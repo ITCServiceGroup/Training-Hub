@@ -26,7 +26,7 @@ create trigger v2_categories_updated_at_trigger
   execute function update_updated_at_column();
 
 -- Study Guides
-create table v2_study_guides (
+create table v2_study_guides (x
   id uuid default uuid_generate_v4() primary key,
   category_id uuid references v2_categories(id) on delete cascade,
   title varchar not null,

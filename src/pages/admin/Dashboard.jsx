@@ -138,20 +138,31 @@ const AdminDashboard = () => {
   // Styles
   const dashboardStyles = {
     display: 'flex',
-    minHeight: 'calc(100vh - 140px)'
+    minHeight: 'calc(100vh - 140px)',
+    overflow: 'hidden'
   };
   
   const sidebarStyles = {
     width: '250px',
     backgroundColor: '#1e293b',
     color: 'white',
-    padding: '2rem 0'
+    padding: '2rem 0',
+    flexShrink: 0
   };
   
   const sidebarNavStyles = {
     listStyle: 'none',
     padding: 0,
     margin: 0
+  };
+  
+  const contentStyles = {
+    flex: '1 1 auto',
+    padding: '2rem',
+    backgroundColor: '#f8fafc',
+    minWidth: 0,
+    width: '100%',
+    overflow: 'auto'
   };
   
   const sidebarItemStyles = (isActive) => ({
@@ -171,12 +182,6 @@ const AdminDashboard = () => {
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem'
-  };
-  
-  const contentStyles = {
-    flex: 1,
-    padding: '2rem',
-    backgroundColor: '#f8fafc'
   };
   
   const headerStyles = {

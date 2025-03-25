@@ -2,6 +2,38 @@ import React from 'react';
 import html2pdf from 'html2pdf.js';
 
 const ExportButtons = ({ data }) => {
+  const containerStyle = {
+    display: 'flex',
+    gap: '1.5rem',
+    paddingTop: '1rem',
+    paddingBottom: '1.5rem'
+  };
+
+  const baseButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '6px 12px',
+    borderRadius: '4px',
+    color: 'white',
+    cursor: 'pointer'
+  };
+
+  const csvButtonStyle = {
+    ...baseButtonStyle,
+    backgroundColor: '#2563eb'
+  };
+
+  const pdfButtonStyle = {
+    ...baseButtonStyle,
+    backgroundColor: '#dc2626'
+  };
+
+  const iconStyle = {
+    width: '16px',
+    height: '16px',
+    marginRight: '8px'
+  };
+
   const exportCSV = () => {
     try {
       // Generate CSV content
@@ -126,13 +158,13 @@ const ExportButtons = ({ data }) => {
   };
 
   return (
-    <div className="flex gap-4 mb-4">
+    <div style={containerStyle}>
       <button
         onClick={exportCSV}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+        style={csvButtonStyle}
       >
         <svg
-          className="w-4 h-4 mr-2"
+          style={iconStyle}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -148,10 +180,10 @@ const ExportButtons = ({ data }) => {
       </button>
       <button
         onClick={exportPDF}
-        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center"
+        style={pdfButtonStyle}
       >
         <svg
-          className="w-4 h-4 mr-2"
+          style={iconStyle}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

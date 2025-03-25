@@ -1,6 +1,6 @@
 import React from 'react';
 
-const NumberRangeFilter = ({ type, value, onChange }) => {
+const NumberRangeFilter = ({ type, value, onChange, hideTitle = false }) => {
   const labels = {
     score: {
       title: 'Score Range',
@@ -30,12 +30,14 @@ const NumberRangeFilter = ({ type, value, onChange }) => {
   const config = labels[type];
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {config.title}
-      </label>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+    <div className="space-y-2 w-full">
+      {!hideTitle && (
+        <label className="block text-sm font-medium text-gray-700">
+          {config.title}
+        </label>
+      )}
+      <div className="grid grid-cols-2 gap-4 w-full">
+        <div className="min-w-0">
           <label htmlFor={`${type}-min`} className="block text-sm text-gray-600">
             {config.min}
           </label>
@@ -50,7 +52,7 @@ const NumberRangeFilter = ({ type, value, onChange }) => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label htmlFor={`${type}-max`} className="block text-sm text-gray-600">
             {config.max}
           </label>

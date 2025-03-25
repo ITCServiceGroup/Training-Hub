@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { quizResultsService } from '../../../../services/api/quizResults';
 
-const MultiSelect = ({ type, value, onChange }) => {
+const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,10 +78,12 @@ const MultiSelect = ({ type, value, onChange }) => {
   };
 
   return (
-    <div className="space-y-1">
-      <label htmlFor={`filter-${type}`} className="block text-sm font-medium text-gray-700">
-        {labels[type]}:
-      </label>
+    <div className="space-y-1 w-full">
+      {!hideLabel && (
+        <label htmlFor={`filter-${type}`} className="block text-sm font-medium text-gray-700">
+          {labels[type]}
+        </label>
+      )}
       <Select
         id={`filter-${type}`}
         isMulti
@@ -92,7 +94,7 @@ const MultiSelect = ({ type, value, onChange }) => {
         placeholder={`Select ${labels[type]}(s)`}
         isClearable={true}
         styles={customStyles}
-        className="min-w-[200px]"
+        className="w-full"
         classNamePrefix="react-select"
       />
     </div>

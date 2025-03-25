@@ -28,11 +28,8 @@ const Results = () => {
     startDate: null,
     endDate: null
   });
-  const [supervisors, setSupervisors] = useState([]);
   const [selectedSupervisors, setSelectedSupervisors] = useState([]);
-  const [ldaps, setLdaps] = useState([]);
   const [selectedLdaps, setSelectedLdaps] = useState([]);
-  const [markets, setMarkets] = useState([]);
   const [selectedMarkets, setSelectedMarkets] = useState([]);
   const [scoreRange, setScoreRange] = useState({ min: 0, max: 100 });
   const [timeRange, setTimeRange] = useState({ min: 0, max: 3600 });
@@ -40,28 +37,6 @@ const Results = () => {
   // Sorting state
   const [sortField, setSortField] = useState('date_of_test');
   const [sortOrder, setSortOrder] = useState('desc');
-  
-  // Fetch filter options (supervisors, ldaps, markets)
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      try {
-        const [supervisorsList, ldapsList, marketsList] = await Promise.all([
-          quizResultsService.getDistinctValues('supervisor'),
-          quizResultsService.getDistinctValues('ldap'),
-          quizResultsService.getDistinctValues('market')
-        ]);
-        
-        setSupervisors(supervisorsList);
-        setLdaps(ldapsList);
-        setMarkets(marketsList);
-      } catch (err) {
-        console.error('Error fetching filter options:', err);
-        setError('Failed to load filter options');
-      }
-    };
-    
-    fetchFilterOptions();
-  }, []);
   
   // Fetch results based on filters
   useEffect(() => {
@@ -123,12 +98,26 @@ const Results = () => {
     console.log('showPdfModal set to:', true);
   };
   
+  // Define grid styles similar to what's working in Dashboard.jsx
+  const filtersGridStyles = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '1.5rem',
+    width: '100%'
+  };
+
+  const filterItemStyles = {
+    minWidth: 0,
+    width: '100%'
+  };
+  
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-6">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+        <div style={filtersGridStyles}>
+          {/* First column: Date Range */}
+          <div style={filterItemStyles}>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Date Range</h3>
             <DateFilter 
               value={dateFilter} 
@@ -136,75 +125,84 @@ const Results = () => {
             />
           </div>
           
-          <div>
+          {/* Second column: Score Range */}
+          <div style={filterItemStyles}>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Score Range</h3>
             <NumberRangeFilter 
               type="score"
               value={scoreRange} 
               onChange={setScoreRange} 
+              hideTitle={true}
             />
           </div>
           
-          <div>
+          {/* Third column: Time Range */}
+          <div style={filterItemStyles}>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Time Range</h3>
             <NumberRangeFilter 
               type="time"
               value={timeRange} 
               onChange={setTimeRange} 
+              hideTitle={true}
             />
           </div>
           
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Supervisors</h3>
-            <MultiSelect 
-              options={supervisors.map(s => ({ value: s, label: s }))} 
-              value={selectedSupervisors} 
-              onChange={setSelectedSupervisors} 
-              placeholder="Select supervisors" 
-            />
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">LDAPs</h3>
-            <MultiSelect 
-              options={ldaps.map(l => ({ value: l, label: l }))} 
-              value={selectedLdaps} 
-              onChange={setSelectedLdaps} 
-              placeholder="Select LDAPs" 
-            />
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Markets</h3>
-            <MultiSelect 
-              options={markets.map(m => ({ value: m, label: m }))} 
-              value={selectedMarkets} 
-              onChange={setSelectedMarkets} 
-              placeholder="Select markets" 
-            />
+          {/* Fourth column: Selection filters */}
+          <div style={{...filterItemStyles, display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Supervisors:</h3>
+              <MultiSelect 
+                type="supervisors"
+                value={selectedSupervisors} 
+                onChange={setSelectedSupervisors}
+                hideLabel={true}
+              />
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">LDAPs:</h3>
+              <MultiSelect 
+                type="ldaps"
+                value={selectedLdaps} 
+                onChange={setSelectedLdaps}
+                hideLabel={true}
+              />
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Markets:</h3>
+              <MultiSelect 
+                type="markets"
+                value={selectedMarkets} 
+                onChange={setSelectedMarkets}
+                hideLabel={true}
+              />
+            </div>
           </div>
         </div>
       </div>
       
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Results</h2>
-          <ExportButtons data={results} />
-        </div>
+        <h2 className="text-xl font-semibold mb-4">Results</h2>
         
         {error ? (
           <div className="p-4 text-center text-red-600">
             {error}
           </div>
         ) : (
-          <ResultsTable 
-            results={results} 
-            sortField={sortField} 
-            sortOrder={sortOrder} 
-            onSort={handleSort} 
-            onViewPDF={handleViewPDF} 
-            loading={loading} 
-          />
+          <>
+            <ResultsTable 
+              results={results} 
+              sortField={sortField} 
+              sortOrder={sortOrder} 
+              onSort={handleSort} 
+              onViewPDF={handleViewPDF} 
+              loading={loading} 
+            />
+            <div className="mt-6 flex justify-end">
+              <ExportButtons data={results} />
+            </div>
+          </>
         )}
       </div>
       

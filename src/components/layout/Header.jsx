@@ -20,7 +20,7 @@ const Header = () => {
   };
 
   const containerStyles = {
-    maxWidth: '1200px',
+    maxWidth: '1600px',
     margin: '0 auto',
     padding: '0 1rem'
   };

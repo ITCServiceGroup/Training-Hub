@@ -20,6 +20,12 @@ const ChartSection = ({ data }) => {
     { bg: 'rgba(255, 159, 64, 0.5)', border: 'rgb(255, 159, 64)' }
   ];
 
+  const baseChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 1.3
+  };
+
   useEffect(() => {
     Object.values(chartInstances.current).forEach(chart => chart?.destroy());
     chartInstances.current = {};
@@ -61,7 +67,7 @@ const ChartSection = ({ data }) => {
         }]
       },
       options: {
-        responsive: true,
+        ...baseChartOptions,
         plugins: {
           title: {
             display: true,
@@ -104,7 +110,7 @@ const ChartSection = ({ data }) => {
         }]
       },
       options: {
-        responsive: true,
+        ...baseChartOptions,
         plugins: {
           title: {
             display: true,
@@ -144,7 +150,7 @@ const ChartSection = ({ data }) => {
         }]
       },
       options: {
-        responsive: true,
+        ...baseChartOptions,
         plugins: {
           title: {
             display: true,
@@ -193,7 +199,7 @@ const ChartSection = ({ data }) => {
         }]
       },
       options: {
-        responsive: true,
+        ...baseChartOptions,
         plugins: {
           title: {
             display: true,
@@ -236,7 +242,7 @@ const ChartSection = ({ data }) => {
         }]
       },
       options: {
-        responsive: true,
+        ...baseChartOptions,
         plugins: {
           title: {
             display: true,
@@ -264,7 +270,7 @@ const ChartSection = ({ data }) => {
         }]
       },
       options: {
-        responsive: true,
+        ...baseChartOptions,
         plugins: {
           title: {
             display: true,
@@ -291,26 +297,59 @@ const ChartSection = ({ data }) => {
     });
   };
 
+  const containerStyles = {
+    backgroundColor: 'white',
+    borderRadius: '0.5rem',
+    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+    padding: '1.5rem',
+    maxWidth: '1400px',
+    margin: '0 auto'
+  };
+
+  const titleStyles = {
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    marginBottom: '1.5rem'
+  };
+
+  const gridStyles = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '1.5rem',
+    width: '100%'
+  };
+
+  const chartContainerStyles = {
+    backgroundColor: '#f9fafb',
+    padding: '1rem',
+    borderRadius: '0.5rem',
+    maxHeight: '400px',
+    minHeight: '350px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">Analytics</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 p-4 rounded-lg">
+    <div style={containerStyles}>
+      <h2 style={titleStyles}>Charts/Graphs</h2>
+      <div style={gridStyles}>
+        <div style={chartContainerStyles}>
           <canvas ref={scoreChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div style={chartContainerStyles}>
           <canvas ref={timeChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div style={chartContainerStyles}>
           <canvas ref={trendChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div style={chartContainerStyles}>
           <canvas ref={supervisorChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div style={chartContainerStyles}>
           <canvas ref={marketChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div style={chartContainerStyles}>
           <canvas ref={scatterChartRef} />
         </div>
       </div>

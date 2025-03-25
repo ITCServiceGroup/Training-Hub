@@ -84,12 +84,12 @@ const DateFilter = ({ value, onChange }) => {
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-4">
+    <div className="space-y-2 w-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
         <select
           value={value.preset}
           onChange={handlePresetChange}
-          className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="block w-full sm:w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
           {presetOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -98,7 +98,7 @@ const DateFilter = ({ value, onChange }) => {
           ))}
         </select>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
           <div className="flex items-center gap-2">
             <label htmlFor="start-date" className="text-sm font-medium text-gray-700">
               Start:

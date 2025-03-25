@@ -8,7 +8,7 @@ const Layout = () => {
     <div className="app-layout" style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header />
       <main className="main-content" style={{ flex: 1 }}>
-        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+        <div className="container" style={{ maxWidth: '1600px', margin: '0 auto', padding: window.location.pathname.startsWith('/admin') ? '0' : '0 1rem' }}>
           <Outlet />
         </div>
       </main>
