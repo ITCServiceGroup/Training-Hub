@@ -11,7 +11,7 @@ const Header = () => {
     navigate('/');
   };
 
-  // Inline styles to ensure proper rendering
+  // Inline styles
   const headerStyles = {
     backgroundColor: '#0f766e',
     color: 'white',

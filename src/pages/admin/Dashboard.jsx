@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../config/supabase';
+import { quizResultsService } from '../../services/api/quizResults';
+import Results from './Results';
 
 // Debug helper function with localStorage persistence
 const logAdmin = (message, data = null) => {
@@ -53,22 +55,45 @@ const AdminDashboard = () => {
   const { user, session, isAuthenticated } = useAuth();
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Mock data for dashboard
-  const stats = {
-    studyGuides: 24,
-    questions: 156,
-    quizzes: 12,
-    completions: 87
-  };
-  
-  const recentActivity = [
-    { id: 1, type: 'quiz_completion', user: 'john.doe@example.com', item: 'Installation Basics', date: '2025-03-23T14:32:00Z', score: '85%' },
-    { id: 2, type: 'quiz_completion', user: 'jane.smith@example.com', item: 'Service Procedures', date: '2025-03-23T10:15:00Z', score: '92%' },
-    { id: 3, type: 'study_guide_view', user: 'robert.johnson@example.com', item: 'Troubleshooting Guide', date: '2025-03-22T16:45:00Z' },
-    { id: 4, type: 'quiz_completion', user: 'sarah.williams@example.com', item: 'Networking Basics', date: '2025-03-22T09:20:00Z', score: '78%' },
-    { id: 5, type: 'study_guide_view', user: 'michael.brown@example.com', item: 'Installation Basics', date: '2025-03-21T13:10:00Z' }
-  ];
+  const [quizStats, setQuizStats] = useState({
+    studyGuides: 24, // Mock data
+    questions: 156,  // Mock data
+    quizzes: 12,    // Mock data
+    completions: 0
+  });
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch quiz results data
+  useEffect(() => {
+    const fetchQuizData = async () => {
+      try {
+        setLoading(true);
+        // Get total completions count
+        const count = await quizResultsService.getTotalCount();
+        setQuizStats(prev => ({ ...prev, completions: count }));
+
+        // Get recent results
+        const results = await quizResultsService.getRecentResults(5);
+        const formattedResults = results.map(result => ({
+          id: result.id,
+          type: 'quiz_completion',
+          user: result.ldap,
+          item: result.quiz_type,
+          date: result.date_of_test,
+          score: result.score_text
+        }));
+        setRecentActivity(formattedResults);
+      } catch (err) {
+        console.error('Error fetching quiz data:', err);
+        setError('Failed to load quiz data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizData();
+  }, []);
   
   // Log when the dashboard mounts
   useEffect(() => {
@@ -87,7 +112,7 @@ const AdminDashboard = () => {
       logAdmin('WARNING: Dashboard loaded but authentication may not be complete');
     }
     
-    // Attempt to call a Supabase method to verify the token
+    // Verify Supabase auth token
     const verifySession = async () => {
       try {
         // Just try to get the user - this will fail if the token isn't valid
@@ -530,19 +555,19 @@ const AdminDashboard = () => {
           <>
             <div style={statsGridStyles}>
               <div style={statCardStyles}>
-                <div style={statValueStyles}>{stats.studyGuides}</div>
+                <div style={statValueStyles}>{quizStats.studyGuides}</div>
                 <div style={statLabelStyles}>Study Guides</div>
               </div>
               <div style={statCardStyles}>
-                <div style={statValueStyles}>{stats.questions}</div>
+                <div style={statValueStyles}>{quizStats.questions}</div>
                 <div style={statLabelStyles}>Questions</div>
               </div>
               <div style={statCardStyles}>
-                <div style={statValueStyles}>{stats.quizzes}</div>
+                <div style={statValueStyles}>{quizStats.quizzes}</div>
                 <div style={statLabelStyles}>Quizzes</div>
               </div>
               <div style={statCardStyles}>
-                <div style={statValueStyles}>{stats.completions}</div>
+                <div style={statValueStyles}>{quizStats.completions}</div>
                 <div style={statLabelStyles}>Quiz Completions</div>
               </div>
             </div>
@@ -670,14 +695,15 @@ const AdminDashboard = () => {
           </>
         )}
         
-        {activeTab !== 'dashboard' && (
+        {activeTab === 'results' ? (
+          <Results />
+        ) : activeTab !== 'dashboard' && (
           <div style={sectionStyles}>
             <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
               <h3 style={{ marginBottom: '1rem', color: '#0f172a' }}>
                 {activeTab === 'study-guides' && 'Study Guides Management'}
                 {activeTab === 'questions' && 'Questions Management'}
                 {activeTab === 'quizzes' && 'Quizzes Management'}
-                {activeTab === 'results' && 'Quiz Results'}
                 {activeTab === 'settings' && 'Settings'}
               </h3>
               <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>

@@ -10,40 +10,63 @@ class QuizResultsService extends BaseService {
   }
 
   /**
-   * Submit a new quiz result
-   * @param {Object} result - Quiz result data
-   * @returns {Promise<Object>} - Created quiz result
+   * Get filtered quiz results
+   * @param {Object} filters - Filter parameters
+   * @returns {Promise<Array>} - Filtered quiz results
    */
-  async submitResult(result) {
+  async getFilteredResults({
+    startDate,
+    endDate,
+    supervisors,
+    ldaps,
+    markets,
+    minScore,
+    maxScore,
+    minTime,
+    maxTime,
+    sortField = 'date_of_test',
+    sortOrder = 'desc'
+  }) {
     try {
-      // Validate required fields
-      if (!result.quiz_id || 
-          !result.user_identifier || 
-          result.score_value === undefined || 
-          !result.score_text || 
-          !result.answers) {
-        throw new Error('Missing required quiz result fields');
+      let query = supabase
+        .from(this.tableName)
+        .select('*');
+
+      // Apply filters
+      if (startDate) {
+        query = query.gte('date_of_test', startDate);
+      }
+      if (endDate) {
+        const endDatePlusOne = new Date(endDate);
+        endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+        query = query.lt('date_of_test', endDatePlusOne.toISOString().split('T')[0]);
+      }
+      if (supervisors?.length) {
+        query = query.in('supervisor', supervisors);
+      }
+      if (ldaps?.length) {
+        query = query.in('ldap', ldaps);
+      }
+      if (markets?.length) {
+        query = query.in('market', markets);
+      }
+      if (minScore !== null && minScore !== undefined) {
+        query = query.gte('score_value', minScore);
+      }
+      if (maxScore !== null && maxScore !== undefined) {
+        query = query.lte('score_value', maxScore);
+      }
+      if (minTime !== null && minTime !== undefined) {
+        query = query.gte('time_taken', minTime);
+      }
+      if (maxTime !== null && maxTime !== undefined) {
+        query = query.lte('time_taken', maxTime);
       }
 
-      return this.create(result);
-    } catch (error) {
-      console.error('Error submitting quiz result:', error.message);
-      throw error;
-    }
-  }
+      // Apply sorting
+      query = query.order(sortField, { ascending: sortOrder === 'asc' });
 
-  /**
-   * Get results for a specific quiz
-   * @param {string} quizId - Quiz ID
-   * @returns {Promise<Array>} - Quiz results
-   */
-  async getByQuizId(quizId) {
-    try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .eq('quiz_id', quizId)
-        .order('created_at', { ascending: false });
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -51,26 +74,69 @@ class QuizResultsService extends BaseService {
 
       return data;
     } catch (error) {
-      console.error('Error fetching quiz results:', error.message);
+      console.error('Error fetching filtered results:', error);
       throw error;
     }
   }
 
   /**
-   * Get results by user identifier
-   * @param {string} userIdentifier - User identifier (e.g., LDAP)
-   * @returns {Promise<Array>} - Quiz results for the user
+   * Get distinct values for a column
+   * @param {string} column - Column name
+   * @returns {Promise<Array>} - Distinct values
    */
-  async getByUserIdentifier(userIdentifier) {
+  async getDistinctValues(column) {
     try {
       const { data, error } = await supabase
         .from(this.tableName)
-        .select(`
-          *,
-          v2_quizzes(title, description)
-        `)
-        .eq('user_identifier', userIdentifier)
-        .order('created_at', { ascending: false });
+        .select(column)
+        .not(column, 'is', null);
+
+      if (error) {
+        throw error;
+      }
+
+      // Extract unique values
+      const values = [...new Set(data.map(item => item[column]))];
+      return values.sort();
+    } catch (error) {
+      console.error(`Error fetching distinct ${column} values:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get total count of quiz results
+   * @returns {Promise<number>} - Total count
+   */
+  async getTotalCount() {
+    try {
+      const { count, error } = await supabase
+        .from(this.tableName)
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        throw error;
+      }
+
+      return count;
+    } catch (error) {
+      console.error('Error fetching total count:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get recent quiz results
+   * @param {number} limit - Number of results to return
+   * @returns {Promise<Array>} - Recent quiz results
+   */
+  async getRecentResults(limit = 5) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .order('date_of_test', { ascending: false })
+        .limit(limit);
 
       if (error) {
         throw error;
@@ -78,58 +144,7 @@ class QuizResultsService extends BaseService {
 
       return data;
     } catch (error) {
-      console.error('Error fetching results by user:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Get aggregate statistics for a quiz
-   * @param {string} quizId - Quiz ID
-   * @returns {Promise<Object>} - Quiz statistics
-   */
-  async getQuizStatistics(quizId) {
-    try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .eq('quiz_id', quizId);
-
-      if (error) {
-        throw error;
-      }
-
-      // Calculate statistics
-      if (!data || data.length === 0) {
-        return {
-          count: 0,
-          avgScore: 0,
-          minScore: 0,
-          maxScore: 0,
-          passingCount: 0,
-          passingRate: 0
-        };
-      }
-
-      const scores = data.map(result => parseFloat(result.score_value));
-      const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-      const minScore = Math.min(...scores);
-      const maxScore = Math.max(...scores);
-      
-      // Assuming passing score is 70%
-      const passingCount = scores.filter(score => score >= 70).length;
-      const passingRate = (passingCount / scores.length) * 100;
-
-      return {
-        count: data.length,
-        avgScore: avgScore.toFixed(2),
-        minScore,
-        maxScore,
-        passingCount,
-        passingRate: passingRate.toFixed(2)
-      };
-    } catch (error) {
-      console.error('Error fetching quiz statistics:', error.message);
+      console.error('Error fetching recent results:', error);
       throw error;
     }
   }
