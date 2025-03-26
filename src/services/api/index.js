@@ -2,6 +2,7 @@
 
 export { BaseService } from './base';
 export { categoriesService } from './categories';
+export { sectionsService } from './sections';
 export { studyGuidesService } from './studyGuides';
 export { questionsService } from './questions';
 export { quizzesService } from './quizzes';

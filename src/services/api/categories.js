@@ -10,16 +10,14 @@ class CategoriesService extends BaseService {
   }
 
   /**
-   * Get categories by section
-   * @param {string} section - Section name (e.g., 'install', 'service')
-   * @returns {Promise<Array>} - Categories in the specified section
+   * Get all categories
+   * @returns {Promise<Array>} - All categories
    */
-  async getBySection(section) {
+  async getAllCategories() {
     try {
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('*')
-        .eq('section', section)
+        .select('*, v2_sections(*)')
         .order('name');
 
       if (error) {
@@ -28,7 +26,31 @@ class CategoriesService extends BaseService {
 
       return data;
     } catch (error) {
-      console.error('Error fetching categories by section:', error.message);
+      console.error('Error fetching all categories:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get categories by section ID
+   * @param {string} sectionId - Section ID
+   * @returns {Promise<Array>} - Categories in the specified section
+   */
+  async getBySectionId(sectionId) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('section_id', sectionId)
+        .order('name');
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching categories by section ID:', error.message);
       throw error;
     }
   }
@@ -43,6 +65,7 @@ class CategoriesService extends BaseService {
         .from(this.tableName)
         .select(`
           *,
+          v2_sections(*),
           v2_study_guides(*)
         `)
         .order('name');
@@ -54,6 +77,80 @@ class CategoriesService extends BaseService {
       return data;
     } catch (error) {
       console.error('Error fetching categories with study guides:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new category
+   * @param {Object} category - Category data
+   * @param {string} category.name - Category name
+   * @param {string} category.description - Category description
+   * @param {string} category.section_id - Section ID
+   * @returns {Promise<Object>} - Created category
+   */
+  async create(category) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .insert([category])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating category:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a category
+   * @param {string} id - Category ID
+   * @param {Object} updates - Category updates
+   * @returns {Promise<Object>} - Updated category
+   */
+  async update(id, updates) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating category:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a category
+   * @param {string} id - Category ID
+   * @returns {Promise<void>}
+   */
+  async delete(id) {
+    try {
+      const { error } = await supabase
+        .from(this.tableName)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error.message);
       throw error;
     }
   }

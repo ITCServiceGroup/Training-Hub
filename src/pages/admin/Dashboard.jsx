@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../config/supabase';
 import { quizResultsService } from '../../services/api/quizResults';
-import Results from './Results';
 
 // Debug helper function with localStorage persistence
 const logAdmin = (message, data = null) => {
@@ -54,7 +54,6 @@ window.clearAdminLogs = () => {
 const AdminDashboard = () => {
   const { user, session, isAuthenticated } = useAuth();
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [quizStats, setQuizStats] = useState({
     studyGuides: 24, // Mock data
     questions: 156,  // Mock data
@@ -136,89 +135,6 @@ const AdminDashboard = () => {
   }, [user, isAuthenticated]);
   
   // Styles
-  const dashboardStyles = {
-    display: 'flex',
-    minHeight: 'calc(100vh - 140px)',
-    overflow: 'hidden'
-  };
-  
-  const sidebarStyles = {
-    width: '250px',
-    backgroundColor: '#1e293b',
-    color: 'white',
-    padding: '2rem 0',
-    flexShrink: 0
-  };
-  
-  const sidebarNavStyles = {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0
-  };
-  
-  const contentStyles = {
-    flex: '1 1 auto',
-    padding: '2rem',
-    backgroundColor: '#f8fafc',
-    minWidth: 0,
-    width: '100%',
-    overflow: 'auto'
-  };
-  
-  const sidebarItemStyles = (isActive) => ({
-    padding: '0.75rem 1.5rem',
-    cursor: 'pointer',
-    backgroundColor: isActive ? '#0f766e' : 'transparent',
-    transition: 'background-color 0.2s'
-  });
-  
-  const sidebarItemHoverStyles = {
-    backgroundColor: '#0f766e'
-  };
-  
-  const sidebarLinkStyles = {
-    color: 'white',
-    textDecoration: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem'
-  };
-  
-  const headerStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '2rem'
-  };
-  
-  const titleStyles = {
-    fontSize: '1.75rem',
-    color: '#0f172a',
-    margin: 0
-  };
-  
-  const userInfoStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem'
-  };
-  
-  const avatarStyles = {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: '#0f766e',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 'bold'
-  };
-  
-  const userNameStyles = {
-    fontWeight: 'bold'
-  };
-  
   const statsGridStyles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -397,15 +313,6 @@ const AdminDashboard = () => {
     }
   };
   
-  const getInitials = (email) => {
-    if (!email) return 'A';
-    const parts = email.split('@')[0].split('.');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return email.substring(0, 2).toUpperCase();
-  };
-  
   // Error display
   if (error) {
     return (
@@ -420,305 +327,167 @@ const AdminDashboard = () => {
   logAdmin('Rendering admin dashboard');
   
   return (
-    <div style={dashboardStyles}>
-      <div style={sidebarStyles}>
-        <ul style={sidebarNavStyles}>
-          <li 
-            style={sidebarItemStyles(activeTab === 'dashboard')}
-            onClick={() => setActiveTab('dashboard')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'dashboard') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'dashboard') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <a href="#" style={sidebarLinkStyles} onClick={(e) => e.preventDefault()}>
-              <span>📊</span> Dashboard
-            </a>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'study-guides')}
-            onClick={() => setActiveTab('study-guides')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'study-guides') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'study-guides') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <a href="#" style={sidebarLinkStyles} onClick={(e) => e.preventDefault()}>
-              <span>📚</span> Study Guides
-            </a>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'questions')}
-            onClick={() => setActiveTab('questions')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'questions') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'questions') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <a href="#" style={sidebarLinkStyles} onClick={(e) => e.preventDefault()}>
-              <span>❓</span> Questions
-            </a>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'quizzes')}
-            onClick={() => setActiveTab('quizzes')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'quizzes') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'quizzes') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <a href="#" style={sidebarLinkStyles} onClick={(e) => e.preventDefault()}>
-              <span>📝</span> Quizzes
-            </a>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'results')}
-            onClick={() => setActiveTab('results')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'results') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'results') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <a href="#" style={sidebarLinkStyles} onClick={(e) => e.preventDefault()}>
-              <span>📊</span> Results
-            </a>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'settings')}
-            onClick={() => setActiveTab('settings')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'settings') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'settings') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <a href="#" style={sidebarLinkStyles} onClick={(e) => e.preventDefault()}>
-              <span>⚙️</span> Settings
-            </a>
-          </li>
-        </ul>
+    <>
+      <div style={statsGridStyles}>
+        <div style={statCardStyles}>
+          <div style={statValueStyles}>{quizStats.studyGuides}</div>
+          <div style={statLabelStyles}>Study Guides</div>
+        </div>
+        <div style={statCardStyles}>
+          <div style={statValueStyles}>{quizStats.questions}</div>
+          <div style={statLabelStyles}>Questions</div>
+        </div>
+        <div style={statCardStyles}>
+          <div style={statValueStyles}>{quizStats.quizzes}</div>
+          <div style={statLabelStyles}>Quizzes</div>
+        </div>
+        <div style={statCardStyles}>
+          <div style={statValueStyles}>{quizStats.completions}</div>
+          <div style={statLabelStyles}>Quiz Completions</div>
+        </div>
       </div>
       
-      <div style={contentStyles}>
-        <div style={headerStyles}>
-          <h2 style={titleStyles}>
-            {activeTab === 'dashboard' && 'Admin Dashboard'}
-            {activeTab === 'study-guides' && 'Study Guides Management'}
-            {activeTab === 'questions' && 'Questions Management'}
-            {activeTab === 'quizzes' && 'Quizzes Management'}
-            {activeTab === 'results' && 'Quiz Results'}
-            {activeTab === 'settings' && 'Settings'}
-          </h2>
-          
-          <div style={userInfoStyles}>
-            <div style={avatarStyles}>
-              {getInitials(user?.email)}
-            </div>
-            <div>
-              <div style={userNameStyles}>{user?.email || 'Administrator'}</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Admin</div>
-            </div>
-          </div>
+      <div style={sectionStyles}>
+        <div style={sectionHeaderStyles}>
+          <h3 style={sectionTitleStyles}>Recent Activity</h3>
         </div>
         
-        {activeTab === 'dashboard' && (
-          <>
-            <div style={statsGridStyles}>
-              <div style={statCardStyles}>
-                <div style={statValueStyles}>{quizStats.studyGuides}</div>
-                <div style={statLabelStyles}>Study Guides</div>
-              </div>
-              <div style={statCardStyles}>
-                <div style={statValueStyles}>{quizStats.questions}</div>
-                <div style={statLabelStyles}>Questions</div>
-              </div>
-              <div style={statCardStyles}>
-                <div style={statValueStyles}>{quizStats.quizzes}</div>
-                <div style={statLabelStyles}>Quizzes</div>
-              </div>
-              <div style={statCardStyles}>
-                <div style={statValueStyles}>{quizStats.completions}</div>
-                <div style={statLabelStyles}>Quiz Completions</div>
-              </div>
-            </div>
-            
-            <div style={sectionStyles}>
-              <div style={sectionHeaderStyles}>
-                <h3 style={sectionTitleStyles}>Recent Activity</h3>
-              </div>
-              
-              <table style={tableStyles}>
-                <thead>
-                  <tr>
-                    <th style={thStyles}>Type</th>
-                    <th style={thStyles}>User</th>
-                    <th style={thStyles}>Item</th>
-                    <th style={thStyles}>Date</th>
-                    <th style={thStyles}>Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentActivity.map(activity => (
-                    <tr key={activity.id}>
-                      <td style={tdStyles}>
-                        <span style={badgeStyles(activity.type)}>
-                          {getActivityTypeLabel(activity.type)}
-                        </span>
-                      </td>
-                      <td style={tdStyles}>{activity.user}</td>
-                      <td style={tdStyles}>{activity.item}</td>
-                      <td style={tdStyles}>{formatDate(activity.date)}</td>
-                      <td style={tdStyles}>{activity.score || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div style={sectionStyles}>
-              <div style={sectionHeaderStyles}>
-                <h3 style={sectionTitleStyles}>Quick Actions</h3>
-              </div>
-              
-              <div style={cardGridStyles}>
-                <div style={cardStyles}>
-                  <div style={cardIconStyles('#0f766e')}>
-                    <span>📚</span>
-                  </div>
-                  <h3 style={cardTitleStyles}>Study Guides</h3>
-                  <p style={cardDescStyles}>Manage study guide content and categories.</p>
-                  <button 
-                    style={buttonStyles}
-                    onClick={() => setActiveTab('study-guides')}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, buttonHoverStyles);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#0f766e';
-                    }}
-                  >
-                    Manage Study Guides
-                  </button>
-                </div>
-                
-                <div style={cardStyles}>
-                  <div style={cardIconStyles('#0e7490')}>
-                    <span>❓</span>
-                  </div>
-                  <h3 style={cardTitleStyles}>Questions</h3>
-                  <p style={cardDescStyles}>Create and edit questions for quizzes.</p>
-                  <button 
-                    style={buttonStyles}
-                    onClick={() => setActiveTab('questions')}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, buttonHoverStyles);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#0f766e';
-                    }}
-                  >
-                    Manage Questions
-                  </button>
-                </div>
-                
-                <div style={cardStyles}>
-                  <div style={cardIconStyles('#0c4a6e')}>
-                    <span>📝</span>
-                  </div>
-                  <h3 style={cardTitleStyles}>Quizzes</h3>
-                  <p style={cardDescStyles}>Create and manage quizzes and access codes.</p>
-                  <button 
-                    style={buttonStyles}
-                    onClick={() => setActiveTab('quizzes')}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, buttonHoverStyles);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#0f766e';
-                    }}
-                  >
-                    Manage Quizzes
-                  </button>
-                </div>
-                
-                <div style={cardStyles}>
-                  <div style={cardIconStyles('#0369a1')}>
-                    <span>📊</span>
-                  </div>
-                  <h3 style={cardTitleStyles}>Results</h3>
-                  <p style={cardDescStyles}>View quiz results and analytics.</p>
-                  <button 
-                    style={buttonStyles}
-                    onClick={() => setActiveTab('results')}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, buttonHoverStyles);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#0f766e';
-                    }}
-                  >
-                    View Results
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-        
-        {activeTab === 'results' ? (
-          <Results />
-        ) : activeTab !== 'dashboard' && (
-          <div style={sectionStyles}>
-            <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-              <h3 style={{ marginBottom: '1rem', color: '#0f172a' }}>
-                {activeTab === 'study-guides' && 'Study Guides Management'}
-                {activeTab === 'questions' && 'Questions Management'}
-                {activeTab === 'quizzes' && 'Quizzes Management'}
-                {activeTab === 'settings' && 'Settings'}
-              </h3>
-              <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>
-                This section is under development. Check back soon for updates!
-              </p>
-            </div>
-          </div>
-        )}
+        <table style={tableStyles}>
+          <thead>
+            <tr>
+              <th style={thStyles}>Type</th>
+              <th style={thStyles}>User</th>
+              <th style={thStyles}>Item</th>
+              <th style={thStyles}>Date</th>
+              <th style={thStyles}>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentActivity.map(activity => (
+              <tr key={activity.id}>
+                <td style={tdStyles}>
+                  <span style={badgeStyles(activity.type)}>
+                    {getActivityTypeLabel(activity.type)}
+                  </span>
+                </td>
+                <td style={tdStyles}>{activity.user}</td>
+                <td style={tdStyles}>{activity.item}</td>
+                <td style={tdStyles}>{formatDate(activity.date)}</td>
+                <td style={tdStyles}>{activity.score || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </div>
+      
+      <div style={sectionStyles}>
+        <div style={sectionHeaderStyles}>
+          <h3 style={sectionTitleStyles}>Quick Actions</h3>
+        </div>
+        
+        <div style={cardGridStyles}>
+          <div style={cardStyles}>
+            <div style={cardIconStyles('#0f766e')}>
+              <span>📚</span>
+            </div>
+            <h3 style={cardTitleStyles}>Study Guides</h3>
+            <p style={cardDescStyles}>Manage study guide content and categories.</p>
+            <Link 
+              to="/admin/study-guides"
+              style={{
+                ...buttonStyles,
+                display: 'block',
+                textAlign: 'center',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, buttonHoverStyles);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#0f766e';
+              }}
+            >
+              Manage Study Guides
+            </Link>
+          </div>
+          
+          <div style={cardStyles}>
+            <div style={cardIconStyles('#0e7490')}>
+              <span>❓</span>
+            </div>
+            <h3 style={cardTitleStyles}>Questions</h3>
+            <p style={cardDescStyles}>Create and edit questions for quizzes.</p>
+            <Link 
+              to="/admin/questions"
+              style={{
+                ...buttonStyles,
+                display: 'block',
+                textAlign: 'center',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, buttonHoverStyles);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#0f766e';
+              }}
+            >
+              Manage Questions
+            </Link>
+          </div>
+          
+          <div style={cardStyles}>
+            <div style={cardIconStyles('#0c4a6e')}>
+              <span>📝</span>
+            </div>
+            <h3 style={cardTitleStyles}>Quizzes</h3>
+            <p style={cardDescStyles}>Create and manage quizzes and access codes.</p>
+            <Link 
+              to="/admin/quizzes"
+              style={{
+                ...buttonStyles,
+                display: 'block',
+                textAlign: 'center',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, buttonHoverStyles);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#0f766e';
+              }}
+            >
+              Manage Quizzes
+            </Link>
+          </div>
+          
+          <div style={cardStyles}>
+            <div style={cardIconStyles('#0369a1')}>
+              <span>📊</span>
+            </div>
+            <h3 style={cardTitleStyles}>Results</h3>
+            <p style={cardDescStyles}>View quiz results and analytics.</p>
+            <Link 
+              to="/admin/results"
+              style={{
+                ...buttonStyles,
+                display: 'block',
+                textAlign: 'center',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, buttonHoverStyles);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#0f766e';
+              }}
+            >
+              View Results
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

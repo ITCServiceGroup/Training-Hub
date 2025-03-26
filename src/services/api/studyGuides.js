@@ -14,7 +14,7 @@ class StudyGuidesService extends BaseService {
    * @param {string} categoryId - Category ID
    * @returns {Promise<Array>} - Study guides in the specified category
    */
-  async getByCategory(categoryId) {
+  async getByCategoryId(categoryId) {
     try {
       const { data, error } = await supabase
         .from(this.tableName)
@@ -56,6 +56,109 @@ class StudyGuidesService extends BaseService {
       return data;
     } catch (error) {
       console.error('Error fetching study guide with category:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new study guide
+   * @param {Object} studyGuide - Study guide data
+   * @param {string} studyGuide.title - Study guide title
+   * @param {string} studyGuide.content - Study guide content
+   * @param {string} studyGuide.category_id - Category ID
+   * @param {number} studyGuide.display_order - Display order
+   * @returns {Promise<Object>} - Created study guide
+   */
+  async create(studyGuide) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .insert([studyGuide])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating study guide:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a study guide
+   * @param {string} id - Study guide ID
+   * @param {Object} updates - Study guide updates
+   * @returns {Promise<Object>} - Updated study guide
+   */
+  async update(id, updates) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating study guide:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update display order for multiple study guides
+   * @param {Array<Object>} updates - Array of updates
+   * @param {string} updates[].id - Study guide ID
+   * @param {number} updates[].display_order - New display order
+   * @returns {Promise<void>}
+   */
+  async updateOrder(updates) {
+    try {
+      const { error } = await supabase
+        .from(this.tableName)
+        .upsert(
+          updates.map(({ id, display_order }) => ({
+            id,
+            display_order,
+            updated_at: new Date().toISOString()
+          }))
+        );
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error updating study guide order:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a study guide
+   * @param {string} id - Study guide ID
+   * @returns {Promise<void>}
+   */
+  async delete(id) {
+    try {
+      const { error } = await supabase
+        .from(this.tableName)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error deleting study guide:', error.message);
       throw error;
     }
   }

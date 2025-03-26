@@ -5,12 +5,15 @@ import TestPage from './pages/TestPage';
 
 // Layout Components
 import Layout from './components/layout/Layout';
+import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Lazy load page components to reduce initial load time
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminStudyGuides = lazy(() => import('./pages/admin/StudyGuides'));
+const AdminResults = lazy(() => import('./pages/admin/Results'));
 const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -80,12 +83,24 @@ function App() {
           
           {/* Admin Routes (Protected) */}
           <Route path="admin" element={<ProtectedRoute />}>
-            <Route index element={
-              <Suspense fallback={<LoadingFallback />}>
-                <AdminDashboard />
-              </Suspense>
-            } />
-            <Route path="*" element={<Navigate to="/admin" replace />} />
+            <Route element={<AdminLayout />}>
+              <Route index element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminDashboard />
+                </Suspense>
+              } />
+              <Route path="study-guides" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminStudyGuides />
+                </Suspense>
+              } />
+              <Route path="results" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminResults />
+                </Suspense>
+              } />
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </Route>
           </Route>
           
           {/* 404 */}
