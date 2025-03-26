@@ -53,6 +53,17 @@ const StudyGuides = () => {
     setIsCreating(true);
   };
 
+  const handleDelete = async () => {
+    try {
+      await studyGuidesService.delete(selectedStudyGuide.id);
+      setSelectedStudyGuide(null);
+      await loadStudyGuides();
+    } catch (error) {
+      console.error('Error deleting study guide:', error);
+      throw error; // Let the editor component handle the error display
+    }
+  };
+
   const handleSave = async (studyGuideData) => {
     try {
       if (isCreating) {
@@ -336,6 +347,7 @@ const StudyGuides = () => {
                         setSelectedStudyGuide(null);
                       }}
                       isNew={isCreating}
+                      onDelete={handleDelete}
                     />
                   </div>
                 )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Dialog } from '@headlessui/react';
 
 // Simple selection management utility - kept outside of render tree
 const selectionManager = {
@@ -110,6 +111,7 @@ const StudyGuideEditor = ({
   initialTitle = '',
   onSave,
   onCancel,
+  onDelete,
   isNew = false
 }) => {
   const [isHtmlMode, setIsHtmlMode] = useState(false);
@@ -119,9 +121,20 @@ const StudyGuideEditor = ({
   const [previewKey, setPreviewKey] = useState(0);
   const [editorIframe, setEditorIframe] = useState(null);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const isMounted = useRef(false);
   const contentRef = useRef(content);
   const lastSelectionRef = useRef(null);
+
+  const handleDelete = async () => {
+    try {
+      await onDelete();
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error('Error deleting study guide:', error);
+      alert('Failed to delete study guide');
+    }
+  };
 
   // Keep contentRef updated
   useEffect(() => {
@@ -540,6 +553,73 @@ const StudyGuideEditor = ({
       cursor: isSaving ? 'not-allowed' : 'pointer',
       opacity: isSaving ? 0.5 : 1
     },
+    deleteButton: {
+      padding: '8px 16px',
+      backgroundColor: 'white',
+      border: '1px solid #DC2626',
+      borderRadius: '6px',
+      fontSize: '14px',
+      color: '#DC2626',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: '#FEE2E2',
+        transform: 'translateY(-1px)'
+      }
+    },
+    modalOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50
+    },
+    modalContent: {
+      backgroundColor: 'white',
+      padding: '24px',
+      borderRadius: '8px',
+      maxWidth: '400px',
+      width: '90%'
+    },
+    modalTitle: {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      color: '#111827',
+      marginBottom: '12px'
+    },
+    modalText: {
+      fontSize: '14px',
+      color: '#4B5563',
+      marginBottom: '20px'
+    },
+    modalButtons: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: '12px'
+    },
+    modalCancelButton: {
+      padding: '8px 16px',
+      backgroundColor: 'white',
+      border: '1px solid #D1D5DB',
+      borderRadius: '6px',
+      fontSize: '14px',
+      color: '#374151',
+      cursor: 'pointer'
+    },
+    modalDeleteButton: {
+      padding: '8px 16px',
+      backgroundColor: '#DC2626',
+      border: '1px solid transparent',
+      borderRadius: '6px',
+      fontSize: '14px',
+      color: 'white',
+      cursor: 'pointer'
+    },
     cancelButton: {
       padding: '8px 16px',
       backgroundColor: 'white',
@@ -575,6 +655,14 @@ const StudyGuideEditor = ({
           type="button"
           onClick={toggleMode}
           style={styles.toggleButton}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F3F4F6';
+            e.currentTarget.style.borderColor = '#9CA3AF';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'white';
+            e.currentTarget.style.borderColor = '#D1D5DB';
+          }}
         >
           {isHtmlMode ? 'Switch to Rich Text' : 'Switch to HTML'}
         </button>
@@ -887,10 +975,36 @@ const StudyGuideEditor = ({
 
       {/* Actions */}
       <div style={styles.actionContainer}>
+        {!isNew && (
+          <button
+            type="button"
+            onClick={() => setIsDeleteModalOpen(true)}
+            style={styles.deleteButton}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#FEE2E2';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.transform = 'none';
+            }}
+          >
+            Delete
+          </button>
+        )}
+        <div style={{ flex: 1 }}></div>
         <button
           type="button"
           onClick={onCancel}
           style={styles.cancelButton}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F3F4F6';
+            e.currentTarget.style.borderColor = '#9CA3AF';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'white';
+            e.currentTarget.style.borderColor = '#D1D5DB';
+          }}
         >
           Cancel
         </button>
@@ -899,10 +1013,72 @@ const StudyGuideEditor = ({
           onClick={handleSave}
           disabled={isSaving}
           style={styles.saveButton}
+          onMouseEnter={(e) => {
+            if (!isSaving) {
+              e.currentTarget.style.backgroundColor = '#2563EB';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSaving) {
+              e.currentTarget.style.backgroundColor = '#3B82F6';
+              e.currentTarget.style.transform = 'none';
+            }
+          }}
         >
           {isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save')}
         </button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        className="relative z-50"
+      >
+        <div style={styles.modalOverlay}>
+          <Dialog.Panel style={styles.modalContent}>
+            <Dialog.Title style={styles.modalTitle}>
+              Delete Study Guide
+            </Dialog.Title>
+            <Dialog.Description style={styles.modalText}>
+              Are you sure you want to delete this study guide? This action cannot be undone and all associated data will be permanently lost.
+            </Dialog.Description>
+            <div style={styles.modalButtons}>
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                style={styles.modalCancelButton}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F3F4F6';
+                  e.currentTarget.style.borderColor = '#9CA3AF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
+                  e.currentTarget.style.borderColor = '#D1D5DB';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                style={styles.modalDeleteButton}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#B91C1C';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#DC2626';
+                  e.currentTarget.style.transform = 'none';
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 };
