@@ -123,18 +123,16 @@ class StudyGuidesService extends BaseService {
    */
   async updateOrder(updates) {
     try {
-      const { error } = await supabase
-        .from(this.tableName)
-        .upsert(
-          updates.map(({ id, display_order }) => ({
-            id,
-            display_order,
-            updated_at: new Date().toISOString()
-          }))
-        );
+      // Process each update sequentially to ensure proper ordering
+      for (const { id, display_order } of updates) {
+        const { error } = await supabase
+          .from(this.tableName)
+          .update({ display_order })
+          .eq('id', id);
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
       }
     } catch (error) {
       console.error('Error updating study guide order:', error.message);

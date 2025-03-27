@@ -328,7 +328,12 @@ const StudyGuides = () => {
                     selectedId={selectedStudyGuide?.id}
                     onReorder={async (updates) => {
                       try {
-                        await studyGuidesService.updateOrder(updates);
+                        if (!selectedCategory) return;
+                        const updatesWithCategory = updates.map(update => ({
+                          ...update,
+                          category_id: selectedCategory.id
+                        }));
+                        await studyGuidesService.updateOrder(updatesWithCategory);
                         await loadStudyGuides();
                       } catch (err) {
                         console.error('Error updating order:', err);

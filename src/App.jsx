@@ -69,7 +69,7 @@ function App() {
             </Suspense>
           } />
           
-          <Route path="study/:categoryId?" element={
+          <Route path="study/:sectionId?/:categoryId?/:studyGuideId?" element={
             <Suspense fallback={<LoadingFallback />}>
               <StudyGuidePage />
             </Suspense>

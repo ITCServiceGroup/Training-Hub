@@ -6,6 +6,7 @@ import Footer from './Footer';
 const Layout = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isStudyGuidePage = location.pathname.includes('/study/');
   
   return (
     <div className="app-layout" style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -18,7 +19,13 @@ const Layout = () => {
           padding: isAdminPage ? '0' : '0 1rem',
           flex: 1,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          // Ensure consistent layout for study guide pages
+          ...(isStudyGuidePage && {
+            maxWidth: '1600px',
+            margin: '0 auto',
+            padding: '0 1rem'
+          })
         }}>
           <Outlet />
         </div>

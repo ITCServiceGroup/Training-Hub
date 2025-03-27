@@ -10,15 +10,55 @@ begin
 end;
 $$ language plpgsql;
 
--- Categories
-create table v2_categories (
+-- Sections
+create table v2_sections (
   id uuid default uuid_generate_v4() primary key,
-  name varchar not null,
+  name character varying,
   description text,
-  section varchar not null,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
+
+create index v2_sections_pkey on v2_sections using btree (id);
+
+create trigger v2_sections_updated_at_trigger
+  before update on v2_sections
+  for each row
+  execute function update_updated_at_column();
+
+-- Row Level Security Policies
+
+-- Sections: public read, admin write
+alter table v2_sections enable row level security;
+
+create policy "Public can read v2_sections" 
+  on v2_sections for select 
+  using (true);
+
+create policy "Only admins can update v2_sections" 
+  on v2_sections for update
+  using (auth.role() = 'authenticated');
+
+create policy "Only admins can insert v2_sections" 
+  on v2_sections for insert
+  with check (auth.role() = 'authenticated');
+
+create policy "Only admins can delete v2_sections" 
+  on v2_sections for delete
+  using (auth.role() = 'authenticated');
+
+-- Categories
+create table v2_categories (
+  id uuid default uuid_generate_v4() primary key,
+  name character varying,
+  description text,
+  section_id uuid references v2_sections(id),
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+create index v2_categories_pkey on v2_categories using btree (id);
+create index v2_categories_section_id_idx on v2_categories using btree (section_id);
 
 create trigger v2_categories_updated_at_trigger
   before update on v2_categories
@@ -26,18 +66,19 @@ create trigger v2_categories_updated_at_trigger
   execute function update_updated_at_column();
 
 -- Study Guides
-create table v2_study_guides (x
+create table v2_study_guides (
   id uuid default uuid_generate_v4() primary key,
-  category_id uuid references v2_categories(id) on delete cascade,
-  title varchar not null,
-  content text not null, -- Rich text content
-  display_order integer default 0,
+  category_id uuid references v2_categories(id),
+  title character varying,
+  content text,
+  display_order integer,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
 
-create index v2_study_guides_category_id_idx on v2_study_guides(category_id);
-create index v2_study_guides_display_order_idx on v2_study_guides(display_order);
+create index v2_study_guides_pkey on v2_study_guides using btree (id);
+create index v2_study_guides_category_id_idx on v2_study_guides using btree (category_id);
+create index v2_study_guides_display_order_idx on v2_study_guides using btree (display_order);
 
 create trigger v2_study_guides_updated_at_trigger
   before update on v2_study_guides
@@ -106,8 +147,16 @@ create policy "Public can read v2_categories"
   on v2_categories for select 
   using (true);
 
-create policy "Only admins can modify v2_categories" 
-  on v2_categories for insert update delete 
+create policy "Only admins can update v2_categories" 
+  on v2_categories for update
+  using (auth.role() = 'authenticated');
+
+create policy "Only admins can insert v2_categories" 
+  on v2_categories for insert
+  with check (auth.role() = 'authenticated');
+
+create policy "Only admins can delete v2_categories" 
+  on v2_categories for delete
   using (auth.role() = 'authenticated');
 
 -- Study Guides: public read, admin write
@@ -117,8 +166,16 @@ create policy "Public can read v2_study_guides"
   on v2_study_guides for select 
   using (true);
 
-create policy "Only admins can modify v2_study_guides" 
-  on v2_study_guides for insert update delete 
+create policy "Only admins can update v2_study_guides" 
+  on v2_study_guides for update
+  using (auth.role() = 'authenticated');
+
+create policy "Only admins can insert v2_study_guides" 
+  on v2_study_guides for insert
+  with check (auth.role() = 'authenticated');
+
+create policy "Only admins can delete v2_study_guides" 
+  on v2_study_guides for delete
   using (auth.role() = 'authenticated');
 
 -- Questions: public read, admin write
@@ -178,10 +235,10 @@ create policy "Only admins can read v2_quiz_results"
 -- Insert sample data for testing
 
 -- Categories
-INSERT INTO v2_categories (name, description, section)
+INSERT INTO v2_categories (name, description, section_id)
 VALUES 
-  ('Installation', 'Installation guides and procedures', 'install'),
-  ('Service', 'Service and maintenance procedures', 'service');
+  ('Installation', 'Installation guides and procedures', (SELECT id FROM v2_sections WHERE name = 'Install')),
+  ('Service', 'Service and maintenance procedures', (SELECT id FROM v2_sections WHERE name = 'Service'));
 
 -- Study Guides (Sample)
 INSERT INTO v2_study_guides (category_id, title, content, display_order)

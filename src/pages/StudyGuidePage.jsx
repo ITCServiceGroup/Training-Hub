@@ -1,69 +1,147 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { categoriesService } from '../services/api/categories';
+import { studyGuidesService } from '../services/api/studyGuides';
+import { sectionsService } from '../services/api/sections';
+import SectionGrid from '../components/SectionGrid';
+import CategoryGrid from '../components/CategoryGrid';
+import StudyGuideList from '../components/StudyGuideList';
+import StudyGuideViewer from '../components/StudyGuideViewer';
 
 const StudyGuidePage = () => {
-  const { categoryId } = useParams();
+  const { sectionId, categoryId, studyGuideId } = useParams();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Mock categories data
-  const categories = [
-    { 
-      id: 'installation', 
-      name: 'Installation', 
-      description: 'Installation guides and procedures.',
-      icon: '📥',
-      topics: 12,
-      color: '#0891b2'
-    },
-    { 
-      id: 'service', 
-      name: 'Service', 
-      description: 'Service and maintenance procedures.',
-      icon: '🔧',
-      topics: 18,
-      color: '#0e7490'
-    },
-    { 
-      id: 'troubleshooting', 
-      name: 'Troubleshooting', 
-      description: 'Common issues and how to resolve them.',
-      icon: '🔍',
-      topics: 15,
-      color: '#0c4a6e'
-    },
-    { 
-      id: 'networking', 
-      name: 'Networking', 
-      description: 'Network setup and configuration guides.',
-      icon: '🌐',
-      topics: 10,
-      color: '#0369a1'
+  // State for data
+  const [sections, setSections] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [studyGuides, setStudyGuides] = useState([]);
+  const [currentStudyGuide, setCurrentStudyGuide] = useState(null);
+  const [currentCategory, setCurrentCategory] = useState(null);
+  const [currentSection, setCurrentSection] = useState(null);
+  
+  // Loading states
+  const [isLoadingSections, setIsLoadingSections] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [isLoadingStudyGuides, setIsLoadingStudyGuides] = useState(false);
+  const [isLoadingStudyGuide, setIsLoadingStudyGuide] = useState(false);
+  
+  // Error states
+  const [sectionsError, setSectionsError] = useState(null);
+  const [categoriesError, setCategoriesError] = useState(null);
+  const [studyGuidesError, setStudyGuidesError] = useState(null);
+  const [studyGuideError, setStudyGuideError] = useState(null);
+
+  // Fetch sections
+  useEffect(() => {
+    const fetchSections = async () => {
+      setIsLoadingSections(true);
+      setSectionsError(null);
+      
+      try {
+        const data = await sectionsService.getSectionsWithCategories();
+        setSections(data);
+      } catch (error) {
+        console.error('Error fetching sections:', error);
+        setSectionsError('Failed to load sections. Please try again later.');
+      } finally {
+        setIsLoadingSections(false);
+      }
+    };
+    
+    fetchSections();
+  }, []);
+
+  // Fetch categories when section changes
+  useEffect(() => {
+    if (!sectionId) {
+      setCategories([]);
+      setCurrentSection(null);
+      return;
     }
-  ];
-  
-  // Mock topics for a selected category
-  const topics = [
-    { id: 'topic1', title: 'Getting Started', completed: true },
-    { id: 'topic2', title: 'Basic Configuration', completed: true },
-    { id: 'topic3', title: 'Advanced Settings', completed: false },
-    { id: 'topic4', title: 'Troubleshooting Common Issues', completed: false },
-    { id: 'topic5', title: 'Best Practices', completed: false }
-  ];
-  
-  // Filter categories based on search query
-  const filteredCategories = categories.filter(category => 
-    category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  // Find the current category if categoryId is provided
-  const currentCategory = categoryId ? 
-    categories.find(cat => cat.id === categoryId) : null;
-  
+    
+    const fetchCategories = async () => {
+      setIsLoadingCategories(true);
+      setCategoriesError(null);
+      
+      try {
+        const cats = await categoriesService.getBySectionId(sectionId);
+        setCategories(cats);
+        
+        // Find current section
+        const section = sections.find(sec => sec.id === sectionId);
+        setCurrentSection(section || { id: sectionId, name: 'Unknown Section' });
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategoriesError('Failed to load categories. Please try again later.');
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+    
+    fetchCategories();
+  }, [sectionId, sections]);
+
+  // Fetch study guides when category changes
+  useEffect(() => {
+    if (!categoryId) {
+      setStudyGuides([]);
+      setCurrentCategory(null);
+      return;
+    }
+    
+    const fetchStudyGuides = async () => {
+      setIsLoadingStudyGuides(true);
+      setStudyGuidesError(null);
+      
+      try {
+        const guides = await studyGuidesService.getByCategoryId(categoryId);
+        setStudyGuides(guides);
+        
+        // Find current category
+        const category = categories.find(cat => cat.id === categoryId);
+        setCurrentCategory(category || { id: categoryId, name: 'Unknown Category' });
+      } catch (error) {
+        console.error('Error fetching study guides:', error);
+        setStudyGuidesError('Failed to load study guides. Please try again later.');
+      } finally {
+        setIsLoadingStudyGuides(false);
+      }
+    };
+    
+    fetchStudyGuides();
+  }, [categoryId, categories]);
+
+  // Fetch specific study guide when studyGuideId changes
+  useEffect(() => {
+    if (!studyGuideId) {
+      setCurrentStudyGuide(null);
+      return;
+    }
+    
+    const fetchStudyGuide = async () => {
+      setIsLoadingStudyGuide(true);
+      setStudyGuideError(null);
+      
+      try {
+        const guide = await studyGuidesService.getWithCategory(studyGuideId);
+        setCurrentStudyGuide(guide);
+      } catch (error) {
+        console.error('Error fetching study guide:', error);
+        setStudyGuideError('Failed to load study guide. Please try again later.');
+      } finally {
+        setIsLoadingStudyGuide(false);
+      }
+    };
+    
+    fetchStudyGuide();
+  }, [studyGuideId]);
+
   // Styles
   const pageStyles = {
     padding: '1rem 0',
+    width: '100%',
     maxWidth: '100%'
   };
   
@@ -115,147 +193,77 @@ const StudyGuidePage = () => {
     margin: '0 0.5rem'
   };
   
-  const categoryGridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '1.5rem'
-  };
-  
-  const categoryCardStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    padding: '1.5rem',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  };
-  
-  const categoryCardHoverStyles = {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-  };
-  
-  const iconContainerStyles = (color) => ({
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    backgroundColor: color || '#0f766e',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    marginBottom: '1rem'
-  });
-  
-  const categoryTitleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    marginBottom: '0.5rem',
-    color: '#0f172a'
-  };
-  
-  const categoryDescStyles = {
-    color: '#64748b',
-    marginBottom: '1rem',
-    flex: '1'
-  };
-  
-  const categoryMetaStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    marginTop: 'auto'
-  };
-  
-  const buttonStyles = {
-    backgroundColor: '#0f766e',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.25rem',
-    padding: '0.5rem 1rem',
-    fontSize: '0.875rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    marginTop: '1rem',
-    width: '100%'
-  };
-  
-  const buttonHoverStyles = {
-    backgroundColor: '#0c5e57'
-  };
-  
-  // Content page styles
   const contentLayoutStyles = {
-    display: 'grid',
-    gridTemplateColumns: '250px 1fr',
-    gap: '2rem'
+    display: 'flex',
+    width: '100%',
+    gap: '2rem',
+    minHeight: 'calc(100vh - 250px)', // Use viewport height minus header/footer/margins
+    maxWidth: '100%'
   };
   
   const sidebarStyles = {
-    backgroundColor: 'white',
+    width: '250px',
+    flexShrink: 0
+  };
+  
+  const mainContentStyles = {
+    flex: '1 1 auto',
+    width: '100%',
+    maxWidth: 'calc(100% - 250px - 2rem)' // Subtract sidebar width and gap
+  };
+
+  const errorStyles = {
+    backgroundColor: '#FEF2F2',
+    color: '#DC2626',
+    padding: '1rem',
     borderRadius: '0.5rem',
-    padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-  };
-  
-  const sidebarTitleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    marginBottom: '1rem',
-    color: '#0f172a'
-  };
-  
-  const topicListStyles = {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0
-  };
-  
-  const topicItemStyles = {
-    padding: '0.75rem 0',
-    borderBottom: '1px solid #e2e8f0',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem'
-  };
-  
-  const topicLinkStyles = {
-    color: '#0f766e',
-    textDecoration: 'none',
-    flex: 1
-  };
-  
-  const completedIconStyles = {
-    color: '#10b981',
-    fontSize: '1rem'
-  };
-  
-  const contentStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    padding: '2rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-  };
-  
-  const contentTitleStyles = {
-    fontSize: '1.75rem',
-    color: '#0f172a',
     marginBottom: '1.5rem'
   };
-  
-  const contentTextStyles = {
-    lineHeight: '1.7',
-    color: '#334155'
-  };
-  
-  const handleCategoryClick = (categoryId) => {
-    navigate(`/study/${categoryId}`);
+
+  // Render breadcrumb navigation
+  const renderBreadcrumbs = () => {
+    return (
+      <div style={breadcrumbStyles}>
+        <Link to="/study" style={breadcrumbLinkStyles}>Study Guides</Link>
+        
+        {sectionId && (
+          <>
+            <span style={breadcrumbSeparatorStyles}>›</span>
+            <Link 
+              to={`/study/${sectionId}`} 
+              style={{
+                ...breadcrumbLinkStyles,
+                fontWeight: !categoryId ? 'bold' : 'normal'
+              }}
+            >
+              {currentSection?.name || 'Section'}
+            </Link>
+          </>
+        )}
+        
+        {categoryId && (
+          <>
+            <span style={breadcrumbSeparatorStyles}>›</span>
+            <Link 
+              to={`/study/${sectionId}/${categoryId}`} 
+              style={{
+                ...breadcrumbLinkStyles,
+                fontWeight: !studyGuideId ? 'bold' : 'normal'
+              }}
+            >
+              {currentCategory?.name || 'Category'}
+            </Link>
+          </>
+        )}
+        
+        {studyGuideId && currentStudyGuide && (
+          <>
+            <span style={breadcrumbSeparatorStyles}>›</span>
+            <span style={{ fontWeight: 'bold' }}>{currentStudyGuide.title}</span>
+          </>
+        )}
+      </div>
+    );
   };
   
   return (
@@ -273,101 +281,59 @@ const StudyGuidePage = () => {
         </div>
       </div>
       
-      {categoryId ? (
+      {/* Error messages */}
+      {sectionsError && <div style={errorStyles}>{sectionsError}</div>}
+      {categoriesError && <div style={errorStyles}>{categoriesError}</div>}
+      {studyGuidesError && <div style={errorStyles}>{studyGuidesError}</div>}
+      {studyGuideError && <div style={errorStyles}>{studyGuideError}</div>}
+      
+      {/* Breadcrumb navigation */}
+      {(sectionId || categoryId || studyGuideId) && renderBreadcrumbs()}
+      
+      {/* Main content area with conditional rendering based on navigation state */}
+      {!sectionId ? (
+        /* Section view (no section selected) */
         <>
-          <div style={breadcrumbStyles}>
-            <Link to="/study" style={breadcrumbLinkStyles}>Study Guides</Link>
-            <span style={breadcrumbSeparatorStyles}>›</span>
-            <span>{currentCategory?.name || categoryId}</span>
-          </div>
-          
-          <div style={contentLayoutStyles}>
-            <div style={sidebarStyles}>
-              <h3 style={sidebarTitleStyles}>Topics</h3>
-              <ul style={topicListStyles}>
-                {topics.map(topic => (
-                  <li key={topic.id} style={topicItemStyles}>
-                    {topic.completed && <span style={completedIconStyles}>✓</span>}
-                    <a href="#" style={topicLinkStyles} onClick={(e) => e.preventDefault()}>
-                      {topic.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div style={contentStyles}>
-              <h2 style={contentTitleStyles}>
-                {currentCategory?.name || categoryId}: Getting Started
-              </h2>
-              <div style={contentTextStyles}>
-                <p>
-                  Welcome to the {currentCategory?.name || categoryId} study guide. This guide will help you understand the key concepts and procedures related to this topic.
-                </p>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                </p>
-                <p>
-                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
-                <h3>Key Concepts</h3>
-                <ul>
-                  <li>Understanding the basics of {currentCategory?.name || categoryId}</li>
-                  <li>Setting up your environment</li>
-                  <li>Best practices for implementation</li>
-                  <li>Troubleshooting common issues</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <p>Select a section below to start learning.</p>
+          <SectionGrid 
+            sections={sections} 
+            isLoading={isLoadingSections}
+            searchQuery={searchQuery}
+          />
+        </>
+      ) : !categoryId ? (
+        /* Category view (section selected, no category selected) */
+        <>
+          <p>Select a category below to view study guides.</p>
+          <CategoryGrid 
+            categories={categories} 
+            sectionId={sectionId}
+            isLoading={isLoadingCategories}
+            searchQuery={searchQuery}
+          />
         </>
       ) : (
-        <>
-          <p>Select a category below to start learning.</p>
-          
-          <div style={categoryGridStyles}>
-            {filteredCategories.map(category => (
-              <div 
-                key={category.id}
-                style={categoryCardStyles}
-                onClick={() => handleCategoryClick(category.id)}
-                onMouseEnter={(e) => {
-                  Object.assign(e.currentTarget.style, categoryCardHoverStyles);
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = '';
-                  e.currentTarget.style.boxShadow = '';
-                }}
-              >
-                <div style={iconContainerStyles(category.color)}>
-                  <span>{category.icon}</span>
-                </div>
-                <h3 style={categoryTitleStyles}>{category.name}</h3>
-                <p style={categoryDescStyles}>{category.description}</p>
-                <div style={categoryMetaStyles}>
-                  <span>{category.topics} Topics</span>
-                </div>
-                <button 
-                  style={buttonStyles}
-                  onMouseEnter={(e) => {
-                    Object.assign(e.currentTarget.style, buttonHoverStyles);
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0f766e';
-                  }}
-                >
-                  View Guide
-                </button>
-              </div>
-            ))}
+        /* Study guide view (section and category selected) */
+        <div style={contentLayoutStyles}>
+          {/* Sidebar with study guide list - always visible when category is selected */}
+          <div style={sidebarStyles}>
+            <StudyGuideList
+              studyGuides={studyGuides}
+              sectionId={sectionId}
+              categoryId={categoryId}
+              selectedGuideId={studyGuideId}
+              isLoading={isLoadingStudyGuides}
+            />
           </div>
           
-          {filteredCategories.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-              <p>No study guides found matching "{searchQuery}"</p>
-            </div>
-          )}
-        </>
+          {/* Main content area */}
+          <div style={mainContentStyles}>
+            <StudyGuideViewer
+              studyGuide={currentStudyGuide}
+              isLoading={isLoadingStudyGuide}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
