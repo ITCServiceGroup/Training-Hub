@@ -1,0 +1,45 @@
+.admin-grid {
+  display: flex; /* Changed from grid to flex */
+  flex-wrap: wrap; /* Added for wrapping */
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  min-height: 0;  /* Prevents flex blowout */
+}
+
+/* Default to full width (1 column) */
+.admin-grid-item {
+  width: 100%;
+  /* transition: transform 0.2s ease-in-out; */ /* Removed to prevent sliding effect with dnd */
+}
+
+
+@media (min-width: 640px) {
+  /* 2 columns */
+  .admin-grid-item {
+     width: calc(50% - 0.75rem); /* 1.5rem gap / 2 */
+  }
+}
+
+@media (min-width: 1024px) {
+  /* 3 columns */
+   .admin-grid-item {
+     width: calc(33.333% - 1rem); /* (1.5rem gap * 2) / 3 */
+  }
+}
+
+/* Add placeholder styling */
+.admin-grid .placeholder {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3B82F6;
+  border-radius: 0.5rem;
+}
+
+/* Draggable item styles */
+/* .admin-grid-item styles moved above for media query width adjustments */
+
+.admin-grid-item.dragging {
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0.8;
+  transform: scale(1.02) rotate(1deg);
+}

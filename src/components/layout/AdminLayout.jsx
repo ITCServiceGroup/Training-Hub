@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import SidebarCategoryTree from './SidebarCategoryTree';
+import { createContext } from 'react';
+import { MdDashboard, MdQuiz } from 'react-icons/md';
+import { BiBook, BiBarChart } from 'react-icons/bi';
+import { BsQuestionCircle } from 'react-icons/bs';
+import { FiSettings } from 'react-icons/fi';
+
+// Create a context to share selected category state and reset function
+export const CategoryContext = createContext({
+  selectedCategory: null,
+  setSelectedCategory: () => {},
+  resetStudyGuideSelection: () => {}
+});
 
 const AdminLayout = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
   
   // Determine active tab based on the current path
   const getActiveTab = () => {
@@ -132,159 +147,174 @@ const AdminLayout = () => {
   };
   
   return (
-    <div style={dashboardStyles}>
-      <div style={sidebarStyles}>
-        <ul style={sidebarNavStyles}>
-          <li 
-            style={sidebarItemStyles(activeTab === 'dashboard')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'dashboard') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'dashboard') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <Link 
-              to="/admin" 
-              style={sidebarLinkStyles}
-              className="no-underline"
+    <CategoryContext.Provider value={{ 
+      selectedCategory, 
+      setSelectedCategory,
+      resetStudyGuideSelection,
+      setResetStudyGuideSelection
+    }}>
+      <div style={dashboardStyles}>
+        <div style={sidebarStyles}>
+          <ul style={sidebarNavStyles}>
+            <li 
+              style={sidebarItemStyles(activeTab === 'dashboard')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'dashboard') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'dashboard') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <span>📊</span> Dashboard
-            </Link>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'study-guides')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'study-guides') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'study-guides') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <Link 
-              to="/admin/study-guides" 
-              style={sidebarLinkStyles}
-              className="no-underline"
+              <Link 
+                to="/admin" 
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <MdDashboard style={{ fontSize: '18px' }} /> Dashboard
+              </Link>
+            </li>
+            <li 
+              style={sidebarItemStyles(activeTab === 'study-guides')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'study-guides') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'study-guides') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <span>📚</span> Study Guides
-            </Link>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'questions')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'questions') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'questions') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <Link 
-              to="/admin/questions" 
-              style={sidebarLinkStyles}
-              className="no-underline"
+              <Link 
+                to="/admin/study-guides" 
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <BiBook style={{ fontSize: '18px' }} /> Study Guides
+              </Link>
+              
+              {/* Sidebar Category Tree */}
+              <SidebarCategoryTree 
+                onSelectCategory={setSelectedCategory}
+                selectedCategoryId={selectedCategory?.id}
+                sidebarLinkStyles={sidebarLinkStyles}
+                sidebarItemHoverStyles={sidebarItemHoverStyles}
+              />
+            </li>
+            <li 
+              style={sidebarItemStyles(activeTab === 'questions')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'questions') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'questions') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <span>❓</span> Questions
-            </Link>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'quizzes')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'quizzes') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'quizzes') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <Link 
-              to="/admin/quizzes" 
-              style={sidebarLinkStyles}
-              className="no-underline"
+              <Link 
+                to="/admin/questions" 
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <BsQuestionCircle style={{ fontSize: '18px' }} /> Questions
+              </Link>
+            </li>
+            <li 
+              style={sidebarItemStyles(activeTab === 'quizzes')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'quizzes') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'quizzes') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <span>📝</span> Quizzes
-            </Link>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'results')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'results') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'results') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <Link 
-              to="/admin/results" 
-              style={sidebarLinkStyles}
-              className="no-underline"
+              <Link 
+                to="/admin/quizzes" 
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <MdQuiz style={{ fontSize: '18px' }} /> Quizzes
+              </Link>
+            </li>
+            <li 
+              style={sidebarItemStyles(activeTab === 'results')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'results') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'results') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <span>📊</span> Results
-            </Link>
-          </li>
-          <li 
-            style={sidebarItemStyles(activeTab === 'settings')}
-            onMouseEnter={(e) => {
-              if (activeTab !== 'settings') {
-                Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== 'settings') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            <Link 
-              to="/admin/settings" 
-              style={sidebarLinkStyles}
-              className="no-underline"
+              <Link 
+                to="/admin/results" 
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <BiBarChart style={{ fontSize: '18px' }} /> Results
+              </Link>
+            </li>
+            <li 
+              style={sidebarItemStyles(activeTab === 'settings')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'settings') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'settings') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <span>⚙️</span> Settings
-            </Link>
-          </li>
-        </ul>
-      </div>
-      
-      <div style={contentStyles}>
-        <div style={headerStyles}>
-          <h2 style={titleStyles}>
-            {getPageTitle()}
-          </h2>
-          
-          <div style={userInfoStyles}>
-            <div style={avatarStyles}>
-              {getInitials(user?.email)}
-            </div>
-            <div>
-              <div style={userNameStyles}>{user?.email || 'Administrator'}</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Admin</div>
-            </div>
-          </div>
+              <Link 
+                to="/admin/settings" 
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <FiSettings style={{ fontSize: '18px' }} /> Settings
+              </Link>
+            </li>
+          </ul>
         </div>
         
-        {/* Render the child routes */}
-        <Outlet />
+        <div style={contentStyles}>
+          <div style={headerStyles}>
+            <h2 style={titleStyles}>
+              {getPageTitle()}
+            </h2>
+            
+            <div style={userInfoStyles}>
+              <div style={avatarStyles}>
+                {getInitials(user?.email)}
+              </div>
+              <div>
+                <div style={userNameStyles}>{user?.email || 'Administrator'}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Admin</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Render the child routes */}
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </CategoryContext.Provider>
   );
 };
 

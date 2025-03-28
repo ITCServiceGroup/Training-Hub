@@ -10,7 +10,8 @@ const CategoryForm = ({
     section_id: ''
   },
   section = null,
-  isEditing = false
+  isEditing = false,
+  darkMode = false
 }) => {
   const [formData, setFormData] = useState(initialData);
   const [sections, setSections] = useState([]);
@@ -47,9 +48,9 @@ const CategoryForm = ({
   // Styles
   const formStyles = {
     padding: '16px',
-    backgroundColor: 'white',
+    backgroundColor: darkMode ? '#2d3748' : 'white',
     borderRadius: '8px',
-    border: '1px solid #D1D5DB',
+    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
   };
 
@@ -61,74 +62,89 @@ const CategoryForm = ({
     display: 'block',
     fontSize: '14px',
     fontWeight: '500',
-    color: '#374151',
+    color: darkMode ? '#E5E7EB' : '#374151',
     marginBottom: '4px'
   };
 
   const inputStyles = {
     width: '100%',
     padding: '8px 12px',
-    border: '1px solid #D1D5DB',
+    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     borderRadius: '6px',
-    fontSize: '14px'
+    fontSize: '14px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    color: darkMode ? '#E5E7EB' : 'inherit'
   };
 
   const textareaStyles = {
     width: '100%',
     padding: '8px 12px',
-    border: '1px solid #D1D5DB',
+    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     borderRadius: '6px',
     fontSize: '14px',
-    minHeight: '80px'
+    minHeight: '80px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    color: darkMode ? '#E5E7EB' : 'inherit'
   };
 
   const selectStyles = {
     width: '100%',
     padding: '8px 12px',
-    border: '1px solid #D1D5DB',
+    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     borderRadius: '6px',
-    fontSize: '14px'
+    fontSize: '14px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    color: darkMode ? '#E5E7EB' : 'inherit'
   };
 
   const sectionInfoStyles = {
     fontSize: '14px',
-    color: '#6B7280',
+    color: darkMode ? '#9CA3AF' : '#6B7280',
     marginBottom: '16px'
   };
 
   const buttonContainerStyles = {
     display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '12px',
-    marginTop: '20px'
+    justifyContent: 'space-between',
+    marginTop: '16px'
   };
 
   const cancelButtonStyles = {
-    padding: '8px 16px',
-    fontSize: '14px',
+    padding: '6px 10px',
+    fontSize: '12px',
     fontWeight: '500',
-    color: '#4B5563',
-    backgroundColor: 'white',
-    border: '1px solid #D1D5DB',
-    borderRadius: '6px',
-    cursor: 'pointer'
+    color: darkMode ? '#E5E7EB' : '#4B5563',
+    backgroundColor: darkMode ? '#4B5563' : 'white',
+    border: darkMode ? '1px solid #6B7280' : '1px solid #D1D5DB',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    width: '48%',
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   };
 
   const submitButtonStyles = {
-    padding: '8px 16px',
-    fontSize: '14px',
+    padding: '6px 10px',
+    fontSize: '12px',
     fontWeight: '500',
     color: 'white',
     backgroundColor: '#3B82F6',
     border: '1px solid transparent',
-    borderRadius: '6px',
-    cursor: 'pointer'
+    borderRadius: '4px',
+    cursor: 'pointer',
+    width: '48%',
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   };
 
   const loadingStyles = {
     padding: '16px',
     textAlign: 'center',
-    color: '#6B7280'
+    color: darkMode ? '#9CA3AF' : '#6B7280'
   };
 
   if (loading) {
@@ -204,7 +220,7 @@ const CategoryForm = ({
           type="submit"
           style={submitButtonStyles}
         >
-          {isEditing ? 'Update' : 'Create'} Category
+          {isEditing ? 'Update' : 'Create'}
         </button>
       </div>
     </form>

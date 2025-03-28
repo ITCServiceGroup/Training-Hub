@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false }) => {
+const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkMode = false }) => {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || ''
@@ -39,10 +39,10 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false }) => 
 
   // Styles
   const formContainerStyles = {
-    backgroundColor: 'white',
+    backgroundColor: darkMode ? '#2d3748' : 'white',
     padding: '16px',
     borderRadius: '8px',
-    border: '1px solid #D1D5DB',
+    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
   };
 
@@ -54,25 +54,31 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false }) => 
     display: 'block',
     fontSize: '14px',
     fontWeight: '500',
-    color: '#374151',
+    color: darkMode ? '#E5E7EB' : '#374151',
     marginBottom: '4px'
   };
 
   const inputStyles = {
     width: '100%',
     padding: '8px 12px',
-    border: errors.name ? '1px solid #EF4444' : '1px solid #D1D5DB',
+    border: errors.name 
+      ? '1px solid #EF4444' 
+      : darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     borderRadius: '6px',
-    fontSize: '14px'
+    fontSize: '14px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    color: darkMode ? '#E5E7EB' : 'inherit'
   };
 
   const textareaStyles = {
     width: '100%',
     padding: '8px 12px',
-    border: '1px solid #D1D5DB',
+    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
     borderRadius: '6px',
     fontSize: '14px',
-    minHeight: '80px'
+    minHeight: '80px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    color: darkMode ? '#E5E7EB' : 'inherit'
   };
 
   const errorTextStyles = {
@@ -83,30 +89,40 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false }) => 
 
   const buttonContainerStyles = {
     display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '12px'
+    justifyContent: 'space-between',
+    marginTop: '16px'
   };
 
   const cancelButtonStyles = {
-    padding: '8px 16px',
-    fontSize: '14px',
+    padding: '6px 10px',
+    fontSize: '12px',
     fontWeight: '500',
-    color: '#4B5563',
-    backgroundColor: 'white',
-    border: '1px solid #D1D5DB',
-    borderRadius: '6px',
-    cursor: 'pointer'
+    color: darkMode ? '#E5E7EB' : '#4B5563',
+    backgroundColor: darkMode ? '#4B5563' : 'white',
+    border: darkMode ? '1px solid #6B7280' : '1px solid #D1D5DB',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    width: '48%',
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   };
 
   const submitButtonStyles = {
-    padding: '8px 16px',
-    fontSize: '14px',
+    padding: '6px 10px',
+    fontSize: '12px',
     fontWeight: '500',
     color: 'white',
     backgroundColor: '#3B82F6',
     border: '1px solid transparent',
-    borderRadius: '6px',
-    cursor: 'pointer'
+    borderRadius: '4px',
+    cursor: 'pointer',
+    width: '48%',
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   };
 
   return (

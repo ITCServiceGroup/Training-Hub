@@ -18,7 +18,7 @@ class CategoriesService extends BaseService {
       const { data, error } = await supabase
         .from(this.tableName)
         .select('*, v2_sections(*)')
-        .order('name');
+        .order('display_order', { nullsLast: true });
 
       if (error) {
         throw error;
@@ -40,9 +40,12 @@ class CategoriesService extends BaseService {
     try {
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('*')
+        .select(`
+          *,
+          v2_study_guides(id)
+        `)
         .eq('section_id', sectionId)
-        .order('name');
+        .order('display_order', { nullsLast: true });
 
       if (error) {
         throw error;
@@ -68,7 +71,7 @@ class CategoriesService extends BaseService {
           v2_sections(*),
           v2_study_guides(*)
         `)
-        .order('name');
+        .order('display_order', { nullsLast: true });
 
       if (error) {
         throw error;
@@ -151,6 +154,31 @@ class CategoriesService extends BaseService {
       }
     } catch (error) {
       console.error('Error deleting category:', error.message);
+      throw error;
+    }
+  }
+  /**
+   * Update display order for multiple categories
+   * @param {Array<Object>} updates - Array of updates
+   * @param {string} updates[].id - Category ID
+   * @param {number} updates[].display_order - New display order
+   * @returns {Promise<void>}
+   */
+  async updateOrder(updates) {
+    try {
+      // Process each update sequentially to ensure proper ordering
+      for (const { id, display_order } of updates) {
+        const { error } = await supabase
+          .from(this.tableName)
+          .update({ display_order })
+          .eq('id', id);
+
+        if (error) {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating category order:', error.message);
       throw error;
     }
   }
