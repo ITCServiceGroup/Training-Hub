@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react'; // Import useContext
 import { FaPlus, FaLayerGroup, FaBars } from 'react-icons/fa';
 import {
   DndContext,
@@ -16,13 +16,14 @@ import {
   rectSortingStrategy, // Using rectSortingStrategy for grid layout
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { CategoryContext } from '../../../../components/layout/AdminLayout'; // Import context
 import CategoryCard from './CategoryCard';
 import CategoryForm from '../CategoryTree/CategoryForm';
 import '../styles/grid.css';
 
 const CategoryAdminGrid = ({
-  categories,
-  section,
+  categories, // Use this prop for rendering the current grid items
+  section, // Need the current section to update the correct part of the context state
   isLoading,
   error,
   onAdd,
@@ -31,9 +32,11 @@ const CategoryAdminGrid = ({
   onViewStudyGuides,
   isCreating,
   setIsCreating,
-  onReorder,
+  onReorder, // This prop likely handles the API call for categories
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
+  // Consume sectionsData and optimistic update function from context
+  const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext); 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -41,36 +44,57 @@ const CategoryAdminGrid = ({
     })
   );
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = async (event) => {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id && section) { // Ensure 'over' and 'section' are not null
       const oldIndex = categories.findIndex((c) => c.id === active.id);
       const newIndex = categories.findIndex((c) => c.id === over.id);
 
-      if (oldIndex === -1 || newIndex === -1) return; // Should not happen
+      if (oldIndex === -1 || newIndex === -1) return;
 
+      // 1. Calculate the new local order for categories within this section
       const reorderedCategories = arrayMove(categories, oldIndex, newIndex);
 
-      // Update the parent component with the new order, including updated display_order
-      onReorder(
-        reorderedCategories.map((category, index) => ({
+      // 2. Create the *entire* new sectionsData structure for optimistic update
+      const newSectionsDataOrder = sectionsData.map(s => {
+        if (s.id === section.id) {
+          // Update the categories for the current section
+          return { ...s, v2_categories: reorderedCategories };
+        }
+        return s; // Keep other sections as they are
+      });
+
+      // 3. Optimistically update the shared state via context
+      optimisticallyUpdateSectionsOrder(newSectionsDataOrder);
+
+      // 4. Prepare data for the backend API call (only the reordered categories)
+      const reorderedDataForApi = reorderedCategories.map(
+        (category, index) => ({
           id: category.id,
           display_order: index,
-        }))
+        })
       );
+
+      // 5. Call the prop function to update the backend for categories
+      try {
+        await onReorder(reorderedDataForApi);
+        // Backend update initiated. UI is already updated optimistically.
+      } catch (error) {
+        console.error("Error updating category order on backend:", error);
+        // Consider reverting or refreshing if backend fails
+      }
     }
   };
 
   // --- Sortable Item Component ---
   const SortableCategoryItem = ({ category }) => {
     const {
-      attributes,
-      listeners,
       setNodeRef,
       transform,
       transition,
       isDragging,
+      ...sortableProps // Capture rest of the props (attributes, listeners)
     } = useSortable({ id: category.id });
 
     const style = {
@@ -78,7 +102,7 @@ const CategoryAdminGrid = ({
       transition,
       zIndex: isDragging ? 1000 : 'auto',
       opacity: isDragging ? 0.8 : 1,
-      ...cardStyles,
+      ...cardStyles, // Combine base card styles
     };
 
     return (
@@ -89,17 +113,15 @@ const CategoryAdminGrid = ({
         onMouseEnter={() => !isDragging && setHoveredId(category.id)}
         onMouseLeave={() => setHoveredId(null)}
       >
-        {/* Apply listeners to the drag handle */}
-        <div {...attributes} {...listeners} style={dragHandleStyles}>
-          <FaBars style={{ margin: '8px auto', display: 'block' }} />
-        </div>
+        {/* Outer drag handle div removed */}
         <CategoryCard
           category={category}
-          section={section} // Pass section prop if needed by CategoryCard
+          section={section} 
           onUpdate={onUpdate}
           onDelete={onDelete}
           onViewStudyGuides={onViewStudyGuides}
           isHovered={!isDragging && hoveredId === category.id}
+          sortableProps={sortableProps} // Pass down sortable props
         />
       </div>
     );
@@ -149,23 +171,28 @@ const CategoryAdminGrid = ({
     transition: 'background-color 0.2s'
   };
 
+  // Base card styles (applied in SortableCategoryItem)
   const cardStyles = {
     backgroundColor: 'white',
     borderRadius: '0.5rem',
     border: '1px solid #E5E7EB',
     boxShadow: '0 2px 5px rgba(0, 0, 0, 0.15)',
-    overflow: 'hidden',
-    flexShrink: 0, // Prevent shrinking
+    overflow: 'hidden', 
+    flexShrink: 0, 
+    display: 'flex', 
+    flexDirection: 'column', 
+    height: '100%', 
   };
 
-  const dragHandleStyles = {
-    color: '#9CA3AF',
-    cursor: 'grab',
-    padding: '4px',
-    borderRadius: '4px',
-    backgroundColor: 'transparent',
-    transition: 'background-color 0.2s'
-  };
+  // Drag handle styles (will be used inside CategoryCard) - Keep for reference if needed
+  // const dragHandleStyles = {
+  //   color: '#9CA3AF',
+  //   cursor: 'grab',
+  //   padding: '4px',
+  //   borderRadius: '4px',
+  //   backgroundColor: 'transparent',
+  //   transition: 'background-color 0.2s'
+  // };
 
   const loadingStyles = {
     display: 'flex',
@@ -200,6 +227,9 @@ const CategoryAdminGrid = ({
     backgroundColor: '#F3F4F6',
     borderRadius: '0.5rem'
   };
+
+  // Use the 'categories' prop passed down for rendering the grid
+  const displayCategories = categories || [];
 
   return (
     <div style={containerStyles}>
@@ -248,7 +278,7 @@ const CategoryAdminGrid = ({
           onCancel={() => setIsCreating(false)}
           darkMode={true}
         />
-      ) : categories.length === 0 ? (
+      ) : displayCategories.length === 0 ? (
         <div style={emptyStyles}>
           <p>No categories available. Click "Add Category" to create one.</p>
         </div>
@@ -259,11 +289,11 @@ const CategoryAdminGrid = ({
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={categories.map((c) => c.id)} // Pass array of IDs
+            items={displayCategories.map((c) => c.id)} // Use displayCategories for SortableContext items
             strategy={rectSortingStrategy} // Use grid strategy
           >
             <div className="admin-grid"> {/* Grid container */}
-              {categories.map((category) => (
+              {displayCategories.map((category) => ( // Use displayCategories for mapping
                 <SortableCategoryItem key={category.id} category={category} />
               ))}
             </div>

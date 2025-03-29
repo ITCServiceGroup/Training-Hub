@@ -65,9 +65,15 @@ class SectionsService extends BaseService {
         .from(this.tableName)
         .select(`
           *,
-          v2_categories(*)
+          v2_categories (
+            *,
+            study_guides:v2_study_guides (*)
+          )
         `)
-        .order('display_order', { nullsLast: true });
+        // Order sections first, then categories within sections, then study guides within categories
+        .order('display_order', { nullsLast: true }) 
+        .order('display_order', { foreignTable: 'v2_categories', nullsLast: true })
+        .order('display_order', { foreignTable: 'v2_categories.v2_study_guides', nullsLast: true });
 
       if (error) {
         throw error;

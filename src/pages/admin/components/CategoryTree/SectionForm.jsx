@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkMode = false }) => {
+const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false }) => {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || ''
@@ -37,12 +37,12 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
     }
   };
 
-  // Styles
+  // Updated styles to match light theme
   const formContainerStyles = {
-    backgroundColor: darkMode ? '#2d3748' : 'white',
-    padding: '16px',
+    backgroundColor: 'white',
+    padding: '24px',
     borderRadius: '8px',
-    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
+    border: '1px solid #E5E7EB',
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
   };
 
@@ -54,31 +54,30 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
     display: 'block',
     fontSize: '14px',
     fontWeight: '500',
-    color: darkMode ? '#E5E7EB' : '#374151',
-    marginBottom: '4px'
+    color: '#374151',
+    marginBottom: '8px'
   };
 
   const inputStyles = {
     width: '100%',
     padding: '8px 12px',
-    border: errors.name 
-      ? '1px solid #EF4444' 
-      : darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
+    border: errors.name ? '1px solid #EF4444' : '1px solid #D1D5DB',
     borderRadius: '6px',
     fontSize: '14px',
-    backgroundColor: darkMode ? '#1e293b' : 'white',
-    color: darkMode ? '#E5E7EB' : 'inherit'
+    backgroundColor: 'white',
+    color: '#374151',
+    outline: 'none',
+    transition: 'border-color 0.15s ease-in-out',
+    ':focus': {
+      borderColor: '#3B82F6',
+      boxShadow: '0 0 0 1px #3B82F6'
+    }
   };
 
   const textareaStyles = {
-    width: '100%',
-    padding: '8px 12px',
-    border: darkMode ? '1px solid #4B5563' : '1px solid #D1D5DB',
-    borderRadius: '6px',
-    fontSize: '14px',
+    ...inputStyles,
     minHeight: '80px',
-    backgroundColor: darkMode ? '#1e293b' : 'white',
-    color: darkMode ? '#E5E7EB' : 'inherit'
+    resize: 'vertical'
   };
 
   const errorTextStyles = {
@@ -89,40 +88,39 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
 
   const buttonContainerStyles = {
     display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '16px'
+    justifyContent: 'flex-end',
+    gap: '12px',
+    marginTop: '24px'
   };
 
   const cancelButtonStyles = {
-    padding: '6px 10px',
-    fontSize: '12px',
+    padding: '8px 16px',
+    fontSize: '14px',
     fontWeight: '500',
-    color: darkMode ? '#E5E7EB' : '#4B5563',
-    backgroundColor: darkMode ? '#4B5563' : 'white',
-    border: darkMode ? '1px solid #6B7280' : '1px solid #D1D5DB',
-    borderRadius: '4px',
+    color: '#4B5563',
+    backgroundColor: 'white',
+    border: '1px solid #D1D5DB',
+    borderRadius: '6px',
     cursor: 'pointer',
-    width: '48%',
-    textAlign: 'center',
+    transition: 'all 0.2s',
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 
   const submitButtonStyles = {
-    padding: '6px 10px',
-    fontSize: '12px',
+    padding: '8px 16px',
+    fontSize: '14px',
     fontWeight: '500',
     color: 'white',
     backgroundColor: '#3B82F6',
     border: '1px solid transparent',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    width: '48%',
-    textAlign: 'center',
+    transition: 'all 0.2s',
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 
   return (
@@ -139,6 +137,7 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
             value={formData.name}
             onChange={handleChange}
             style={inputStyles}
+            placeholder="Enter section name"
           />
           {errors.name && (
             <p style={errorTextStyles}>{errors.name}</p>
@@ -156,6 +155,7 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
             onChange={handleChange}
             rows="3"
             style={textareaStyles}
+            placeholder="Enter section description"
           />
         </div>
         
@@ -164,12 +164,26 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
             type="button"
             onClick={onCancel}
             style={cancelButtonStyles}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#F3F4F6';
+              e.currentTarget.style.borderColor = '#9CA3AF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.borderColor = '#D1D5DB';
+            }}
           >
             Cancel
           </button>
           <button
             type="submit"
             style={submitButtonStyles}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563EB';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#3B82F6';
+            }}
           >
             {isEditing ? 'Update' : 'Create'}
           </button>

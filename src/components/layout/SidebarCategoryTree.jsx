@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react'; // Ensure useEffect is imported
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CategoryContext } from './AdminLayout';
-import { sectionsService } from '../../services/api/sections';
 import { FaFileAlt, FaList, FaLayerGroup, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 
-const SidebarCategoryItem = ({ 
+const SidebarCategoryItem = ({
   category, 
   onSelect, 
   selectedId, 
@@ -14,13 +13,8 @@ const SidebarCategoryItem = ({
   const { resetStudyGuideSelection } = useContext(CategoryContext);
   
   const handleCategoryClick = () => {
-    // Reset any selected study guide
     resetStudyGuideSelection();
-    
-    // Select the category
     onSelect(category);
-    
-    // Navigate to the study guides page if not already there
     navigate('/admin/study-guides');
   };
 
@@ -55,28 +49,48 @@ const SidebarCategoryItem = ({
   );
 };
 
+// Modified SidebarSectionItem for individual state persistence
 const SidebarSectionItem = ({ 
   section, 
-  categories, 
   onSelectCategory, 
   selectedCategoryId, 
   sidebarLinkStyles,
-  onSectionClick
+  onSectionClick,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const navigate = useNavigate();
+  const storageKey = `sidebarSectionExpanded_${section.id}`;
+  
+  // Initialize state from localStorage, defaulting to true (expanded)
+  const [isExpanded, setIsExpanded] = useState(() => {
+    try {
+      const savedState = localStorage.getItem(storageKey);
+      // Default to true if nothing saved or if not explicitly 'false'
+      return savedState !== 'false'; 
+    } catch (e) {
+      console.error("Failed to read localStorage for section:", section.id, e);
+      return true; // Default to expanded on error
+    }
+  });
 
-  const sectionCategories = categories.filter(cat => cat.section_id === section.id);
+  const sectionCategories = section.v2_categories || [];
   const hasCategories = sectionCategories.length > 0;
 
+  // Save state to localStorage whenever it changes for this specific section
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, isExpanded);
+    } catch (e) {
+      console.error("Failed to write to localStorage for section:", section.id, e);
+    }
+  }, [isExpanded, storageKey]); // Depend on isExpanded and storageKey
+
   const handleSectionClick = () => {
-    // Navigate to the categories management page for this section
     onSectionClick(section);
   };
 
+  // Toggle and save state
   const handleExpandToggle = (e) => {
-    e.stopPropagation(); // Prevent triggering the section click
-    setIsExpanded(!isExpanded);
+    e.stopPropagation(); 
+    setIsExpanded(prevExpanded => !prevExpanded); // Use functional update
   };
 
   // Styles
@@ -113,12 +127,10 @@ const SidebarSectionItem = ({
       <div style={sectionHeaderStyles}>
         <span 
           style={expandIconStyles}
-          onClick={handleExpandToggle}
+          onClick={handleExpandToggle} // Use updated handler
         >
-          {isExpanded ? 
-            <FaChevronDown /> : 
-            <FaChevronRight />
-          }
+          {/* Show icon only if categories exist */}
+          {hasCategories ? (isExpanded ? <FaChevronDown /> : <FaChevronRight />) : <span style={{ width: '12px', display: 'inline-block' }}></span>} 
         </span>
         <div 
           style={{ display: 'flex', alignItems: 'center', flex: 1 }}
@@ -146,88 +158,67 @@ const SidebarSectionItem = ({
   );
 };
 
+// Main SidebarCategoryTree component remains largely the same
 const SidebarCategoryTree = ({ 
   onSelectCategory, 
   selectedCategoryId,
-  sidebarLinkStyles
+  sidebarLinkStyles,
 }) => {
-  const [sections, setSections] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const {
+    sectionsData: sections, 
+    isLoadingSections: isLoading, 
+    sectionsError: error, 
+    resetStudyGuideSelection,
+  } = useContext(CategoryContext);
+
+  const [isOverallExpanded, setIsOverallExpanded] = useState(() => { // Renamed state variable
+    try {
+      const savedState = localStorage.getItem('sidebarSectionsExpanded');
+      return savedState === 'true'; 
+    } catch (e) {
+      console.error("Failed to read localStorage:", e);
+      return false; 
+    }
+  });
+
   const location = useLocation();
   const navigate = useNavigate();
-  const { resetStudyGuideSelection } = useContext(CategoryContext);
 
   useEffect(() => {
-    // Only load data if we're on the study guides page
-    if (location.pathname.includes('/admin/study-guides')) {
-      loadData();
-    }
-  }, [location.pathname]);
-
-  const loadData = async () => {
-    if (!isLoading) setIsLoading(true);
     try {
-      // Load sections and categories
-      const sectionsData = await sectionsService.getSectionsWithCategories();
-      setSections(sectionsData);
-      
-      // Flatten categories from all sections
-      const allCategories = [];
-      sectionsData.forEach(section => {
-        if (section.v2_categories && section.v2_categories.length > 0) {
-          allCategories.push(...section.v2_categories);
-        }
-      });
-      
-      setCategories(allCategories);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load data');
-      console.error('Error loading data:', err);
-    } finally {
-      setIsLoading(false);
+      localStorage.setItem('sidebarSectionsExpanded', isOverallExpanded);
+    } catch (e) {
+      console.error("Failed to write to localStorage:", e);
     }
-  };
+  }, [isOverallExpanded]);
 
   const handleSectionsClick = () => {
-    // Reset any selected category or study guide
     resetStudyGuideSelection();
     onSelectCategory(null);
-    
-    // Dispatch a custom event to reset the selected section in StudyGuides component
     const event = new CustomEvent('resetSections', { detail: null });
     window.dispatchEvent(event);
-    
-    // Navigate to the study guides page (which will show sections)
     navigate('/admin/study-guides');
   };
 
   const handleSectionClick = (section) => {
-    // Navigate to the categories management page for this section
     resetStudyGuideSelection();
     onSelectCategory(null);
     navigate('/admin/study-guides');
-    
-    // This will trigger the StudyGuides component to show the categories for this section
     const event = new CustomEvent('sectionSelected', { detail: section });
     window.dispatchEvent(event);
   };
 
-  const handleExpandToggle = (e) => {
-    e.stopPropagation(); // Prevent triggering the sections click
-    setIsExpanded(!isExpanded);
+  const handleOverallExpandToggle = (e) => { // Renamed handler
+    e.stopPropagation(); 
+    setIsOverallExpanded(prevExpanded => !prevExpanded); 
   };
 
-  // Only show if we're on the study guides page
   if (!location.pathname.includes('/admin/study-guides')) {
     return null;
   }
 
-  // Styles
-  const containerStyles = {
+  // Styles remain the same...
+    const containerStyles = {
     marginTop: '8px'
   };
 
@@ -270,14 +261,15 @@ const SidebarCategoryTree = ({
     marginTop: '8px'
   };
 
+
   return (
     <div style={containerStyles}>
       <div style={headerStyles}>
         <span 
           style={expandIconStyles}
-          onClick={handleExpandToggle}
+          onClick={handleOverallExpandToggle} // Use renamed handler
         >
-          {isExpanded ? 
+          {isOverallExpanded ? 
             <FaChevronDown /> : 
             <FaChevronRight />
           }
@@ -291,7 +283,7 @@ const SidebarCategoryTree = ({
         </div>
       </div>
 
-      {isExpanded && (
+      {isOverallExpanded && ( // Use renamed state variable
         <div>
           {isLoading ? (
             <div style={loadingStyles}>Loading...</div>
@@ -302,8 +294,7 @@ const SidebarCategoryTree = ({
               {sections.map(section => (
                 <SidebarSectionItem
                   key={section.id}
-                  section={section}
-                  categories={categories}
+                  section={section} 
                   onSelectCategory={onSelectCategory}
                   selectedCategoryId={selectedCategoryId}
                   sidebarLinkStyles={sidebarLinkStyles}

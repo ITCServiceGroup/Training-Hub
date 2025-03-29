@@ -106,7 +106,7 @@ const StudyGuideManagement = ({
       </div>
 
       <StudyGuideList
-        studyGuides={studyGuides}
+        studyGuides={studyGuides} // Pass the prop to ensure immediate updates
         onSelect={onSelect}
         selectedId={selectedId}
         onReorder={onReorder}

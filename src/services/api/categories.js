@@ -42,7 +42,7 @@ class CategoriesService extends BaseService {
         .from(this.tableName)
         .select(`
           *,
-          v2_study_guides(id)
+          v2_study_guides(*)
         `)
         .eq('section_id', sectionId)
         .order('display_order', { nullsLast: true });

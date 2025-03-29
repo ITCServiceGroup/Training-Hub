@@ -1,42 +1,77 @@
 import React, { useState } from 'react';
-import { FaEdit, FaTrash, FaChevronRight } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaChevronRight, FaBars } from 'react-icons/fa'; // Added FaBars
 import SectionForm from '../CategoryTree/SectionForm';
 
-const SectionCard = ({ section, onUpdate, onDelete, onViewCategories }) => {
+// Accept sortableProps
+const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered, sortableProps }) => { 
   const [isEditing, setIsEditing] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  // isHovered state is now controlled by parent via prop
 
-  const cardContainerStyles = {
-    padding: '1.5rem',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
+  // --- Event Handlers ---
+  const handleCardClick = (e) => {
+    // Prevent click if editing or if the click is on a button/handle
+    if (isEditing || e.target.closest('button') || e.target.closest('[data-dnd-handle]')) {
+      return;
+    }
+    onViewCategories(section);
   };
 
-  const headerStyles = {
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
+
+  // --- Styles ---
+  const cardContainerStyles = {
+    padding: '0', 
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%', 
+    backgroundColor: 'white', 
+    cursor: 'pointer', 
+  };
+
+  const cardHeaderStyles = {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '1rem'
+    alignItems: 'center', 
+    padding: '0.75rem 1.5rem', 
+    borderBottom: '1px solid #E5E7EB', 
+    flexShrink: 0, 
+  };
+  
+  const titleAndHandleStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem', 
+    flexGrow: 1, 
+    minWidth: 0, 
   };
 
   const titleStyles = {
-    fontSize: '1.25rem',
+    fontSize: '1.15rem', 
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: '0.5rem'
+    margin: 0, 
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis', 
   };
 
-  const descriptionStyles = {
-    color: '#6B7280',
-    fontSize: '0.875rem',
-    marginBottom: '1rem',
-    flex: 1
+  const dragHandleStyles = {
+    color: '#9CA3AF',
+    cursor: 'grab',
+    padding: '4px', 
+    borderRadius: '4px',
+    display: 'flex', 
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const actionButtonsStyles = {
-    display: isHovered ? 'flex' : 'none',
-    gap: '0.5rem'
+    display: isHovered ? 'flex' : 'none', // Use isHovered prop
+    gap: '0.5rem',
+    flexShrink: 0, 
+    marginLeft: '0.5rem', 
   };
 
   const buttonBaseStyles = {
@@ -50,7 +85,22 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories }) => {
     alignItems: 'center',
     justifyContent: 'center',
     width: '32px',
-    height: '32px'
+    height: '32px',
+  };
+
+  const contentAreaStyles = {
+    padding: '1rem 1.5rem', 
+    flex: '1 1 auto', 
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: 0, 
+  };
+
+  const descriptionStyles = {
+    color: '#6B7280',
+    fontSize: '0.875rem',
+    marginBottom: '1rem',
+    flexGrow: 1, 
   };
 
   const statsStyles = {
@@ -58,7 +108,14 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories }) => {
     alignItems: 'center',
     color: '#6B7280',
     fontSize: '0.875rem',
-    marginTop: 'auto'
+    marginTop: '0.5rem', 
+    flexShrink: 0, 
+  };
+
+  const viewButtonContainerStyles = {
+    padding: '0 1.5rem 1.5rem 1.5rem', 
+    marginTop: 'auto', 
+    flexShrink: 0,
   };
 
   const viewButtonStyles = {
@@ -69,79 +126,96 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories }) => {
     borderRadius: '0.375rem',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center', 
     gap: '0.5rem',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
-    marginTop: '1rem',
-    width: '100%'
+    width: '100%', 
+    fontSize: '0.875rem', 
   };
 
   return (
     <div
       style={cardContainerStyles}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {!isEditing ? (
         <>
-          <div style={headerStyles}>
-            <div>
-              <h3 style={titleStyles}>{section.name}</h3>
-            </div>
+          {/* Card Header */}
+          <div style={cardHeaderStyles}>
+             <div style={titleAndHandleStyles}>
+                {/* Drag Handle */}
+                <span 
+                  {...sortableProps.attributes} 
+                  {...sortableProps.listeners} 
+                  style={dragHandleStyles}
+                  onClick={stopPropagation} // Prevent card click
+                  data-dnd-handle // Add attribute for click detection
+                >
+                  <FaBars />
+                </span>
+                {/* Title */}
+                <h3 style={titleStyles} title={section.name}>{section.name}</h3>
+             </div>
+            {/* Action Buttons */}
             <div style={actionButtonsStyles}>
               <button
-                onClick={() => setIsEditing(true)}
-                style={{
-                  ...buttonBaseStyles,
-                  backgroundColor: '#D97706'
-                }}
+                onClick={(e) => { stopPropagation(e); setIsEditing(true); }}
+                style={{ ...buttonBaseStyles, backgroundColor: '#D97706' }}
                 title="Edit section"
               >
                 <FaEdit />
               </button>
               <button
-                onClick={() => onDelete(section.id)}
-                style={{
-                  ...buttonBaseStyles,
-                  backgroundColor: '#DC2626'
-                }}
+                onClick={(e) => { stopPropagation(e); onDelete(section.id); }}
+                style={{ ...buttonBaseStyles, backgroundColor: '#DC2626' }}
                 title="Delete section"
               >
                 <FaTrash />
               </button>
             </div>
           </div>
-          <p style={descriptionStyles}>
-            {section.description || 'No description available'}
-          </p>
-          <div style={statsStyles}>
-            {section.v2_categories?.length || 0} Categories
-          </div>
-          <button
-            style={viewButtonStyles}
-            onClick={() => onViewCategories(section)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563EB';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#3B82F6';
-            }}
+
+          {/* Clickable Content Area - Hover handlers removed */}
+          <div 
+            style={contentAreaStyles} 
+            onClick={handleCardClick}
           >
-            <span>View Categories</span>
-            <FaChevronRight size={12} />
-          </button>
+            <p style={descriptionStyles}>
+              {section.description || 'No description available'}
+            </p>
+            <div style={statsStyles}>
+              {/* Display category count for SectionCard */}
+              {section.v2_categories?.length || 0} Categories 
+            </div>
+          </div>
+
+          {/* Footer Button Area */}
+           <div style={viewButtonContainerStyles}>
+             <button
+               style={viewButtonStyles}
+               onClick={(e) => { stopPropagation(e); onViewCategories(section); }} // Ensure stopPropagation
+               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2563EB'; }}
+               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#3B82F6'; }}
+             >
+               <span>View Categories</span>
+               <FaChevronRight size={12} />
+             </button>
+           </div>
         </>
       ) : (
-        <SectionForm
-          initialData={section}
-          onSubmit={async (formData) => {
-            await onUpdate(section.id, formData);
-            setIsEditing(false);
-          }}
-          onCancel={() => setIsEditing(false)}
-          isEditing={true}
-          darkMode={true}
-        />
+        // Keep Edit Form padding consistent
+        <div style={{ padding: '1.5rem' }}> 
+          <SectionForm
+            initialData={section}
+            onSubmit={async (formData) => {
+              await onUpdate(section.id, formData);
+              setIsEditing(false);
+            }}
+            onCancel={() => setIsEditing(false)}
+            isEditing={true}
+            darkMode={true} 
+          />
+        </div>
       )}
     </div>
   );

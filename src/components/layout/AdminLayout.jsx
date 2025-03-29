@@ -1,18 +1,25 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react'; // Added useEffect, useCallback
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import SidebarCategoryTree from './SidebarCategoryTree';
 import { createContext } from 'react';
+import { sectionsService } from '../../services/api/sections'; // Import sectionsService
 import { MdDashboard, MdQuiz } from 'react-icons/md';
 import { BiBook, BiBarChart } from 'react-icons/bi';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { FiSettings } from 'react-icons/fi';
 
-// Create a context to share selected category state and reset function
+// Create a context to share selected category, sections data, and refresh function
 export const CategoryContext = createContext({
   selectedCategory: null,
   setSelectedCategory: () => {},
-  resetStudyGuideSelection: () => {}
+  resetStudyGuideSelection: () => {},
+  setResetStudyGuideSelection: () => {}, // Added setter for completeness
+  sectionsData: [], // Added sections data
+  isLoadingSections: true, // Added loading state
+  sectionsError: null, // Added error state
+  refreshSectionsData: async () => {}, // Added refresh function
+  optimisticallyUpdateSectionsOrder: (newSections) => {}, // Added optimistic update function
 });
 
 const AdminLayout = () => {
@@ -20,7 +27,39 @@ const AdminLayout = () => {
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
-  
+
+  // State for sections data
+  const [sectionsData, setSectionsData] = useState([]);
+  const [isLoadingSections, setIsLoadingSections] = useState(true);
+  const [sectionsError, setSectionsError] = useState(null);
+
+  // Function to fetch/refresh sections data
+  const refreshSectionsData = useCallback(async () => {
+    setIsLoadingSections(true);
+    setSectionsError(null);
+    try {
+      const data = await sectionsService.getSectionsWithCategories();
+      // console.log removed
+      setSectionsData(data);
+    } catch (err) {
+      console.error('Error loading sections data:', err);
+      setSectionsError('Failed to load sections data');
+    } finally {
+      setIsLoadingSections(false);
+    }
+  }, []); // useCallback ensures the function identity is stable unless dependencies change
+
+  // Function to optimistically update local state
+  const optimisticallyUpdateSectionsOrder = useCallback((newSections) => {
+    // Directly update the state with the reordered array
+    setSectionsData(newSections);
+  }, []); // No dependencies needed as it only uses the setter
+
+  // Fetch initial data on mount
+  useEffect(() => {
+    refreshSectionsData();
+  }, [refreshSectionsData]); // Depend on the stable refresh function
+
   // Determine active tab based on the current path
   const getActiveTab = () => {
     const path = location.pathname;
@@ -147,12 +186,19 @@ const AdminLayout = () => {
   };
   
   return (
-    <CategoryContext.Provider value={{ 
-      selectedCategory, 
-      setSelectedCategory,
-      resetStudyGuideSelection,
-      setResetStudyGuideSelection
-    }}>
+    <CategoryContext.Provider
+      value={{
+        selectedCategory,
+        setSelectedCategory,
+        resetStudyGuideSelection,
+        setResetStudyGuideSelection,
+        sectionsData, // Provide sections data
+        isLoadingSections, // Provide loading state
+        sectionsError, // Provide error state
+        refreshSectionsData, // Provide refresh function
+        optimisticallyUpdateSectionsOrder, // Provide optimistic update function
+      }}
+    >
       <div style={dashboardStyles}>
         <div style={sidebarStyles}>
           <ul style={sidebarNavStyles}>
@@ -197,16 +243,15 @@ const AdminLayout = () => {
               >
                 <BiBook style={{ fontSize: '18px' }} /> Study Guides
               </Link>
-              
-              {/* Sidebar Category Tree */}
-              <SidebarCategoryTree 
-                onSelectCategory={setSelectedCategory}
-                selectedCategoryId={selectedCategory?.id}
+              {/* Sidebar Category Tree - Now consumes data from context */}
+              <SidebarCategoryTree
+                onSelectCategory={setSelectedCategory} // Still needed for selection logic
+                selectedCategoryId={selectedCategory?.id} // Still needed for highlighting
                 sidebarLinkStyles={sidebarLinkStyles}
                 sidebarItemHoverStyles={sidebarItemHoverStyles}
               />
             </li>
-            <li 
+            <li
               style={sidebarItemStyles(activeTab === 'questions')}
               onMouseEnter={(e) => {
                 if (activeTab !== 'questions') {
