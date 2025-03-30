@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Editor } from '@tinymce/tinymce-react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
@@ -16,6 +16,26 @@ const StudyGuideEditor = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const iframeRef = useRef(null); // Ref for the preview iframe
+  const [scriptContent, setScriptContent] = useState(''); // Store script content separately
+
+  // Effect to manually update iframe content in HTML mode
+  useEffect(() => {
+    if (isHtmlMode && iframeRef.current) {
+      const iframeDoc = iframeRef.current.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(content);
+      iframeDoc.close();
+    }
+  }, [content, isHtmlMode]);
+
+  // Extract script content from initialContent when component mounts
+  useEffect(() => {
+    const scriptMatch = initialContent.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+    if (scriptMatch && scriptMatch[1]) {
+      setScriptContent(scriptMatch[1]);
+    }
+  }, [initialContent]);
 
   // Extract body content from full HTML document
   const extractBodyContent = (htmlContent) => {
@@ -28,17 +48,23 @@ const StudyGuideEditor = ({
     if (bodyContent.includes('<!DOCTYPE html>')) {
       return bodyContent; // Already a full document
     }
+    
+    // Extract style content from current content
+    const styleContent = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
+    
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title || 'Study Guide'}</title>
     <style>
-        ${content.match(/<style[^>]*>([\s\S]*?)<\/style>/i)?.[1] || ''}
+        ${styleContent}
     </style>
 </head>
 <body>
     ${bodyContent}
+    ${scriptContent ? `<script>\n${scriptContent}\n</script>` : ''}
 </body>
 </html>`;
   };
@@ -391,35 +417,8 @@ const StudyGuideEditor = ({
                   </label>
                   <div style={styles.previewContainer}>
                     <iframe
-                      srcDoc={`
-                    <!DOCTYPE html>
-                    <html>
-                      <head>
-                        <link rel="stylesheet" href="/fonts/inter.css">
-                        <style>
-                          body {
-                            font-family: 'Inter', system-ui;
-                            margin: 0;
-                            padding: 16px;
-                            box-sizing: border-box;
-                            max-width: 100%;
-                          }
-                          img, table {
-                            max-width: 100%;
-                            height: auto;
-                          }
-                          table {
-                            width: 100%;
-                            border-collapse: collapse;
-                          }
-                          td, th {
-                            word-break: break-word;
-                          }
-                        </style>
-                      </head>
-                      <body>${content}</body>
-                    </html>
-                    `}
+                      ref={iframeRef} // Assign the ref
+                      // srcDoc is removed as we write content manually via useEffect
                       style={styles.iframe}
                       sandbox="allow-scripts allow-same-origin allow-downloads"
                       title="Preview"
