@@ -99,8 +99,9 @@ const StudyGuideEditor = ({
       'alignright alignjustify | bullist numlist outdent indent | ' +
       'removeformat | image link table | code | help',
     content_style: `
+      @import url('/fonts/inter.css');
       body { 
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         margin: 0;
         padding: 16px;
         box-sizing: border-box;
@@ -130,7 +131,8 @@ const StudyGuideEditor = ({
     verify_html: false,
     element_format: 'html',
     schema: 'html5',
-    allow_script_urls: true
+    allow_script_urls: true,
+    content_security_policy: "default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
   };
 
   // Styles
@@ -393,9 +395,10 @@ const StudyGuideEditor = ({
                     <!DOCTYPE html>
                     <html>
                       <head>
+                        <link rel="stylesheet" href="/fonts/inter.css">
                         <style>
                           body {
-                            font-family: system-ui;
+                            font-family: 'Inter', system-ui;
                             margin: 0;
                             padding: 16px;
                             box-sizing: border-box;
@@ -418,7 +421,7 @@ const StudyGuideEditor = ({
                     </html>
                     `}
                       style={styles.iframe}
-                      sandbox="allow-scripts allow-same-origin"
+                      sandbox="allow-scripts allow-same-origin allow-downloads"
                       title="Preview"
                     />
                   </div>
