@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiber Fault Detection Simulator</title>
+    <!-- Link the element-specific stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Standard container for interactive elements -->
+    <div class="interactive-container">
+        <div class="interactive-content">
+            <h1>Fiber Fault Detection Simulator</h1>
+            <p>This simulator demonstrates various types of faults that can occur in fiber optic networks. Select a fault type to see its visualization and learn about troubleshooting steps.</p>
+
+            <div class="fault-controls">
+                <!-- Buttons will call methods on the 'simulator' instance -->
+                <button data-fault-type="break">Fiber Break</button>
+                <button data-fault-type="macrobend">Macrobend</button>
+                <button data-fault-type="microbend">Microbend</button>
+                <button data-fault-type="connector">Bad Connector</button>
+                <button data-fault-type="splice">Poor Splice</button>
+                <button data-fault-type="contamination">Contamination</button>
+                <button data-fault-type="stress">Stress Point</button>
+                <button data-fault-type="ghosting">Ghost Reflection</button>
+            </div>
+
+            <!-- Container for the canvases -->
+            <div class="canvas-container">
+                <canvas id="fault-detector"></canvas> <!-- Dimensions set dynamically by JS & CSS -->
+                <canvas id="otdr-trace"></canvas>   <!-- Dimensions set dynamically by JS & CSS -->
+            </div>
+
+            <div class="fault-info">
+                <h3 id="fault-title">Select a fault type above</h3>
+                <p id="fault-description">Click one of the buttons above to simulate different types of fiber optic faults.</p>
+
+                <div class="fault-severity">
+                    <div class="severity-indicator" id="severity-indicator"></div>
+                    <span id="severity-text">Severity: N/A</span>
+                </div>
+
+                <div class="troubleshooting-steps" id="troubleshooting-steps" style="display: none;">
+                    <h4>Troubleshooting Steps:</h4>
+                    <ol id="troubleshooting-list"></ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the element-specific simulator script -->
+    <script src="simulator.js"></script>
+</body>
+</html>

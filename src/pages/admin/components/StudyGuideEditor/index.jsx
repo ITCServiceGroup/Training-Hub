@@ -115,15 +115,20 @@ const StudyGuideEditor = ({
     menubar: true,
     license_key: 'gpl',
     base_url: '/tinymce',
+    external_plugins: {
+      // Define the path to the custom plugin JS file relative to the public root
+      'interactives': '/tinymce/plugins/interactives/plugin.js'
+    },
     plugins: [
       'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
       'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-      'insertdatetime', 'media', 'table', 'help', 'wordcount'
+      'insertdatetime', 'media', 'table', 'help', 'wordcount',
+      'interactives' // Ensure the plugin name is also listed here to be loaded
     ],
     toolbar: 'undo redo | blocks | ' +
       'bold italic forecolor | alignleft aligncenter ' +
       'alignright alignjustify | bullist numlist outdent indent | ' +
-      'removeformat | image link table | code | help',
+      'removeformat | image link table interactives | code | help', // Add the button here
     content_style: `
       @import url('/fonts/inter.css');
       body { 

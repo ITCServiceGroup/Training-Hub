@@ -1,0 +1,23 @@
+[
+  {
+    "name": "fiber-fault",
+    "path": "fiber-fault/",
+    "title": "Fiber Fault Simulator",
+    "description": "An interactive tool to simulate and troubleshoot fiber optic cable faults.",
+    "thumbnailUrl": "/interactive-elements/fiber-fault/thumbnail.png"
+  },
+  {
+    "name": "wifi-channels",
+    "path": "wifi-channels/",
+    "title": "WiFi Channel Visualizer",
+    "description": "Visualize WiFi channels and interference in a simulated environment.",
+    "thumbnailUrl": "/interactive-elements/wifi-channels/thumbnail.png"
+  },
+  {
+    "name": "router-simulator",
+    "path": "router-simulator/",
+    "title": "Router Placement Simulator",
+    "description": "Simulate optimal router placement for WiFi coverage.",
+    "thumbnailUrl": "/interactive-elements/router-simulator/thumbnail.png"
+  }
+]

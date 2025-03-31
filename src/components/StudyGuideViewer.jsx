@@ -1,10 +1,79 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 /**
- * Component for displaying study guide content
+ * Component for displaying study guide content with interactive element support (Web Component Method)
  */
 const StudyGuideViewer = ({ studyGuide, isLoading }) => {
-  // Styles
+  const iframeRef = useRef(null); // Ref for the main content iframe
+
+  // Effect to inject component definition scripts after the main iframe loads
+  useEffect(() => {
+    const mainIframe = iframeRef.current;
+    if (!mainIframe || !studyGuide || !studyGuide.content) return;
+
+    // Use a Set to track which component scripts have already been injected
+    const injectedScripts = new Set();
+
+    const handleLoad = () => {
+      console.log("Main content iframe loaded (for Web Components).");
+      const iframeDoc = mainIframe.contentWindow?.document;
+      if (!iframeDoc) {
+        console.error("Could not access main iframe document.");
+        return;
+      }
+
+      // Find all unique interactive element names required by the content
+      const requiredElements = new Set();
+      const shortcodeRegex = /\[interactive name="([^"]+)"\]/g;
+      let match;
+      while ((match = shortcodeRegex.exec(studyGuide.content)) !== null) {
+          if (/^[a-zA-Z0-9-]+$/.test(match[1])) { // Basic validation
+             requiredElements.add(match[1]);
+          }
+      }
+
+      console.log("Required interactive elements:", requiredElements);
+
+      // Inject the definition script for each required element if not already injected
+      requiredElements.forEach(elementName => {
+        const scriptPath = `/interactive-elements/${elementName}/simulator.js`; // Assuming simulator.js defines the component
+
+        if (!injectedScripts.has(scriptPath)) {
+          console.log(`Injecting script for <${elementName}-simulator>: ${scriptPath}`);
+          const script = iframeDoc.createElement('script');
+          script.src = scriptPath;
+          script.async = false; // Important: Load definitions before body parsing if possible
+          script.onerror = () => console.error(`Failed to load script: ${scriptPath}`);
+          iframeDoc.body.appendChild(script); // Append to body, browser handles execution timing
+          injectedScripts.add(scriptPath);
+        } else {
+           console.log(`Script already injected for ${elementName}: ${scriptPath}`);
+        }
+      });
+    };
+
+    // Use 'load' event for srcDoc changes
+    mainIframe.addEventListener('load', handleLoad);
+
+    // Initial load check (though less critical now as injection happens after load)
+     if (mainIframe.contentWindow && mainIframe.contentWindow.document.readyState === 'complete') {
+       console.log("Main iframe already complete on effect run, calling handleLoad.");
+       handleLoad();
+     } else {
+       console.log("Main iframe not complete on effect run, waiting for load event.");
+     }
+
+    // Cleanup function
+    return () => {
+      if (mainIframe) {
+        mainIframe.removeEventListener('load', handleLoad);
+        console.log("Removed main iframe load listener.");
+      }
+    };
+  }, [studyGuide]); // Rerun effect when studyGuide changes
+
+
+  // Styles (kept for main viewer container)
   const containerStyles = {
     backgroundColor: 'white',
     borderRadius: '0.5rem',
@@ -14,18 +83,13 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     overflow: 'auto',
     width: '100%'
   };
-  
+
   const titleStyles = {
     fontSize: '1.75rem',
     color: '#0f172a',
     marginBottom: '1.5rem',
     borderBottom: '1px solid #e2e8f0',
     paddingBottom: '0.75rem'
-  };
-  
-  const contentStyles = {
-    lineHeight: '1.7',
-    color: '#334155'
   };
 
   const loadingStyles = {
@@ -57,6 +121,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     height: '100%'
   };
 
+  // Loading and Empty states remain the same
   if (isLoading) {
     return (
       <div style={containerStyles}>
@@ -78,107 +143,44 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     );
   }
 
-  // Create a complete HTML document for the iframe
-  const createIframeContent = () => {
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-              line-height: 1.7;
-              color: #334155;
-              margin: 0;
-              padding: 0;
-            }
-            
-            /* Add any default styles for study guide content here */
-            h1, h2, h3, h4, h5, h6 {
-              color: #0f172a;
-              margin-top: 1.5em;
-              margin-bottom: 0.5em;
-            }
-            
-            p {
-              margin-bottom: 1em;
-            }
-            
-            code {
-              background-color: #f1f5f9;
-              padding: 0.2em 0.4em;
-              border-radius: 3px;
-              font-family: monospace;
-            }
-            
-            pre {
-              background-color: #f1f5f9;
-              padding: 1em;
-              border-radius: 5px;
-              overflow-x: auto;
-            }
-            
-            table {
-              border-collapse: collapse;
-              width: 100%;
-              margin-bottom: 1em;
-            }
-            
-            th, td {
-              border: 1px solid #e2e8f0;
-              padding: 0.5em;
-              text-align: left;
-            }
-            
-            th {
-              background-color: #f8fafc;
-            }
-            
-            img {
-              max-width: 100%;
-              height: auto;
-            }
-            
-            a {
-              color: #0f766e;
-              text-decoration: none;
-            }
-            
-            a:hover {
-              text-decoration: underline;
-            }
-            
-            /* Ensure content doesn't overflow */
-            * {
-              max-width: 100%;
-              box-sizing: border-box;
-            }
-          </style>
-        </head>
-        <body>
-          ${studyGuide.content}
-        </body>
-      </html>
-    `;
+  // Process content to replace shortcodes with custom element tags
+  const processContentForWebComponents = (content) => {
+    console.log('Raw Content for Web Components:', content);
+    if (!content) return '';
+    const shortcodeRegex = /\[interactive name="([^"]+)"\]/g;
+    // Replace shortcode with the corresponding custom element tag
+    return content.replace(shortcodeRegex, (match, name) => {
+      // Basic validation for name
+      if (!/^[a-zA-Z0-9-]+$/.test(name)) {
+        console.warn(`Invalid interactive element name found: ${name}`);
+        return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`;
+      }
+      // Construct the custom element tag name (e.g., fiber-fault -> fiber-fault-simulator)
+      const tagName = `${name}-simulator`; // Assuming this convention matches the definition
+      console.log(`Replacing shortcode for "${name}" with <${tagName}>`);
+      return `<${tagName}></${tagName}>`;
+    });
   };
 
+
+  // Main component return statement
   return (
     <div style={containerStyles}>
       <h2 style={titleStyles}>{studyGuide.title}</h2>
       <iframe
+        ref={iframeRef} // Ref for the main iframe
         title={studyGuide.title}
-        srcDoc={createIframeContent()}
+        // Set srcDoc to the content processed for web components
+        srcDoc={processContentForWebComponents(studyGuide.content)}
         style={{
           width: '100%',
-          height: 'calc(100vh - 300px)', // Use viewport height with offset for header, title, etc.
-          minHeight: '600px', // Ensure a minimum height
-          border: 'none',
+          height: 'calc(100vh - 300px)', // Adjust height as needed
+          minHeight: '600px',
+          border: 'none', // No border for the main iframe itself
           backgroundColor: 'white',
           overflow: 'auto'
         }}
+        // Sandbox is still good practice for the main content iframe
         sandbox="allow-scripts allow-same-origin"
       />
     </div>

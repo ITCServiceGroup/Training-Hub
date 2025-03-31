@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Channel Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="interactive-container">
+        <div class="interactive-content">
+            <h1>WiFi Channel Visualizer (Placeholder)</h1>
+            <p>This interactive element will visualize WiFi channels and interference.</p>
+            <!-- Placeholder content -->
+            <div id="visualizer-area" style="height: 300px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; background-color: #f9f9f9;">
+                Visualization Area
+            </div>
+        </div>
+    </div>
+
+    <script src="visualizer.js"></script>
+    <script>
+        // Standard initialization listener
+        window.addEventListener('message', function(event) {
+            // Add origin check in production
+            if (event.data && event.data.type === 'initialize') {
+                console.log('WiFi Channel Visualizer received initialize message.');
+                // Call initialization function from visualizer.js if needed
+                if (typeof initializeVisualizer === 'function') {
+                    initializeVisualizer();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
