@@ -317,7 +317,7 @@ const StudyGuideEditor = ({
 
   // Editor configuration
   const editorConfig = {
-    height: 700, // Set fixed pixel height
+    height: 850, // Set fixed pixel height
     menubar: true,
     license_key: 'gpl',
     base_url: '/tinymce',
@@ -447,7 +447,7 @@ const StudyGuideEditor = ({
     element_format: 'html',
     schema: 'html5',
     allow_script_urls: true,
-    content_security_policy: "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';"
+    content_security_policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';"
   };
 
   // Styles
@@ -463,7 +463,8 @@ const StudyGuideEditor = ({
     formGroup: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '4px'
+      gap: '4px',
+      // flexGrow: 1 // Removed flexGrow from style definition
     },
     label: {
       fontSize: '14px',
@@ -471,24 +472,32 @@ const StudyGuideEditor = ({
       color: '#374151'
     },
     input: {
-      padding: '8px 12px',
+      padding: '0 12px', // Adjust padding to be horizontal only
       border: '1px solid #D1D5DB',
       borderRadius: '6px',
       fontSize: '14px',
-      width: '100%'
+      width: '100%',
+      height: '38px',
+      lineHeight: '38px', // Add explicit line-height
+      boxSizing: 'border-box' // Explicit box-sizing
     },
-    toggleButtonContainer: {
-      display: 'flex',
-      justifyContent: 'flex-end'
-    },
+    // toggleButtonContainer: { // Removed container style
+    // },
     toggleButton: {
-      padding: '8px 16px',
+      padding: '0 16px', // Adjust padding to be horizontal only
       backgroundColor: 'white',
       border: '1px solid #D1D5DB',
       borderRadius: '6px',
       fontSize: '14px',
+      height: '38px',
+      lineHeight: '36px', // Slightly lower line-height to account for borders
       color: '#374151',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      whiteSpace: 'nowrap', // Prevent text wrapping
+      boxSizing: 'border-box', // Explicit box-sizing
+      display: 'flex',
+      alignItems: 'center', // Center text vertically
+      justifyContent: 'center' // Center text horizontally
     },
     editorContainer: {
       width: '100%',
@@ -501,10 +510,10 @@ const StudyGuideEditor = ({
     },
     htmlEditorContainer: {
       width: '100%',
-      // height: '600px', // Removed fixed height
       display: 'flex',
       flexDirection: 'column',
-      flexGrow: 1 // Added to allow vertical expansion
+      flexGrow: 1, // Allow vertical expansion
+      height: '850px' // Match the height of the Rich Text Editor
     },
     panelGroupContainer: {
       flex: 1,
@@ -528,7 +537,8 @@ const StudyGuideEditor = ({
       flexDirection: 'column',
       gap: '8px',
       height: '100%',
-      minHeight: 0  /* Important for Firefox */
+      minHeight: 0,  /* Important for Firefox */
+      overflow: 'hidden' /* Prevent scrolling issues */
     },
     textarea: {
       width: '100%',
@@ -538,19 +548,22 @@ const StudyGuideEditor = ({
       padding: '8px',
       border: '1px solid #D1D5DB',
       borderRadius: '6px',
-      resize: 'none'
+      resize: 'none',
+      overflow: 'auto' /* Enable scrolling within the textarea */
     },
     previewContainer: {
       border: '1px solid #D1D5DB',
       borderRadius: '6px',
       padding: '16px',
       height: 'calc(100% - 30px)',  /* Subtract label height */
-      overflow: 'auto'
+      overflow: 'auto',
+      backgroundColor: '#ffffff' /* Add background color for better visibility */
     },
     iframe: {
       width: '100%',
       height: '100%',
-      border: 'none'
+      border: 'none',
+      display: 'block' /* Ensure proper display */
     },
     actionContainer: {
       display: 'flex',
@@ -644,39 +657,60 @@ const StudyGuideEditor = ({
 
   return (
     <div style={styles.container}>
-      {/* Title Input */}
-      <div style={styles.formGroup}>
-        <label htmlFor="title" style={styles.label}>
-          Title
-        </label>
-        <input
-          type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={styles.input}
-          placeholder="Enter study guide title"
-          required
-        />
-      </div>
-
-      {/* Mode Toggle */}
-      <div style={styles.toggleButtonContainer}>
-        <button
-          type="button"
-          onClick={toggleMode}
-          style={styles.toggleButton}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#F3F4F6';
-            e.currentTarget.style.borderColor = '#9CA3AF';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'white';
-            e.currentTarget.style.borderColor = '#D1D5DB';
-          }}
-        >
-          {isHtmlMode ? 'Switch to Rich Text' : 'Switch to HTML'}
-        </button>
+      {/* Wrapper for Title and Toggle Button with right-aligned button */}
+      <div style={{ display: 'flex', width: '100%', height: '38px', justifyContent: 'space-between' }}>
+        {/* Title input in a div with fixed width percentage */}
+        <div style={{ width: '70%', height: '100%' }}>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              width: '100%',
+              height: '100%',
+              padding: '0 12px',
+              border: '1px solid #D1D5DB',
+              borderRadius: '6px',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              outline: 'none'
+            }}
+            placeholder="Enter study guide title"
+            required
+          />
+        </div>
+        
+        {/* Button aligned to the right */}
+        <div style={{ height: '100%' }}>
+          <button
+            type="button"
+            onClick={toggleMode}
+            style={{
+              height: '100%',
+              padding: '0 16px',
+              backgroundColor: 'white',
+              border: '1px solid #D1D5DB',
+              borderRadius: '6px',
+              fontSize: '14px',
+              color: '#374151',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxSizing: 'border-box',
+              outline: 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#F3F4F6';
+              e.currentTarget.style.borderColor = '#9CA3AF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.borderColor = '#D1D5DB';
+            }}
+          >
+            {isHtmlMode ? 'Switch to Rich Text' : 'Switch to HTML'}
+          </button>
+        </div>
       </div>
 
       {/* Editor */}
