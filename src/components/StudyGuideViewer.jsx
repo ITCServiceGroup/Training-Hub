@@ -36,10 +36,12 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
       // Inject the definition script for each required element if not already injected
       requiredElements.forEach(elementName => {
-        const scriptPath = `/interactive-elements/${elementName}/simulator.js`; // Assuming simulator.js defines the component
+        // Use the standardized 'index.js' filename
+        const scriptPath = `/interactive-elements/${elementName}/index.js`;
 
         if (!injectedScripts.has(scriptPath)) {
-          console.log(`Injecting script for <${elementName}-simulator>: ${scriptPath}`);
+          const tagName = `${elementName}-simulator`; // Construct tag name for logging
+          console.log(`Injecting script for <${tagName}>: ${scriptPath}`);
           const script = iframeDoc.createElement('script');
           script.src = scriptPath;
           script.async = false; // Important: Load definitions before body parsing if possible

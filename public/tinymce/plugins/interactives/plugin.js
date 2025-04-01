@@ -66,7 +66,17 @@ tinymce.PluginManager.add('interactives', (editor, url) => {
               item.addEventListener('click', () => {
                 const shortcode = item.getAttribute('data-shortcode');
                 if (shortcode) {
-                  editor.insertContent(shortcode);
+                  // Extract the name from the shortcode
+                  const nameMatch = shortcode.match(/\[interactive name="([^"]+)"\]/);
+                  if (nameMatch && nameMatch[1]) {
+                    const name = nameMatch[1];
+                    // Insert a placeholder instead of the raw shortcode
+                    const placeholder = `<span class="interactive-placeholder" data-interactive-name="${name}" contenteditable="false">[Interactive: ${name}]</span>`;
+                    editor.insertContent(placeholder);
+                  } else {
+                    // Fallback to inserting the raw shortcode if parsing fails
+                    editor.insertContent(shortcode);
+                  }
                   editor.windowManager.close(); // Close the dialog after insertion
                 } else {
                   console.error("Could not retrieve shortcode from clicked item:", item);

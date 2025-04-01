@@ -101,7 +101,7 @@ const AdminLayout = () => {
   
   const contentStyles = {
     flex: '1 1 auto',
-    padding: '2rem',
+    padding: '1rem', // Reduced padding
     backgroundColor: '#f8fafc',
     minWidth: 0,
     width: '100%',
@@ -132,7 +132,7 @@ const AdminLayout = () => {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '2rem'
+    marginBottom: '1rem' // Reduced margin
   };
   
   const titleStyles = {

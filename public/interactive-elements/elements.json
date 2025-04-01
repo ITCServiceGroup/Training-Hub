@@ -19,5 +19,26 @@
     "title": "Router Placement Simulator",
     "description": "Simulate optimal router placement for WiFi coverage.",
     "thumbnailUrl": "/interactive-elements/router-simulator/thumbnail.png"
+  },
+  {
+    "name": "mac-address-explorer",
+    "path": "mac-address-explorer/",
+    "title": "MAC Address Explorer",
+    "description": "Explore the structure and meaning of MAC address bytes.",
+    "thumbnailUrl": "/interactive-elements/mac-address-explorer/thumbnail.png"
+  },
+  {
+    "name": "channel-overlap-visualizer",
+    "path": "channel-overlap-visualizer/",
+    "title": "Channel Overlap Visualizer",
+    "description": "Visualize 2.4GHz and 5GHz WiFi channel overlap and interference.",
+    "thumbnailUrl": "/interactive-elements/channel-overlap-visualizer/thumbnail.png"
+  },
+  {
+    "name": "packet-loss-analyzer",
+    "path": "packet-loss-analyzer/",
+    "title": "Packet Loss Analyzer",
+    "description": "Simulate and analyze the impact of packet loss on network performance.",
+    "thumbnailUrl": "/interactive-elements/packet-loss-analyzer/thumbnail.png"
   }
 ]

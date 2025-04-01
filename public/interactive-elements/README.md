@@ -14,23 +14,23 @@ All interactive elements reside within the `v2/public/interactive-elements/` dir
 v2/public/interactive-elements/
 ├── elements.json         # Registry of all available elements
 └── your-element-name/    # Folder for your specific element (use kebab-case)
-    ├── simulator.js      # (or appropriate name like 'visualizer.js', 'component.js')
-    |                     # -> This JS file defines the Web Component.
+    ├── index.js          # Main JS file defining the Web Component (MUST be named index.js).
     └── thumbnail.png     # Preview image for the TinyMCE picker (e.g., 100x100px)
-    # (index.html and styles.css are now embedded within the JS file)
+    # (index.html and styles.css are now embedded within the JS file's template)
 ```
 
 ## Creating a New Element (Step-by-Step)
 
 1.  **Choose a Name:**
     *   Select a unique, descriptive name for your element using **kebab-case** (e.g., `wifi-channels`, `circuit-builder`).
-    *   This name will be used for the folder, the shortcode (`[interactive name="your-element-name"]`), and the custom HTML tag (`<your-element-name-simulator>`).
+    *   This name will be used for the folder and the shortcode (`[interactive name="your-element-name"]`).
+    *   The custom HTML tag will be automatically derived as `<your-element-name-simulator>`.
 
 2.  **Create Folder:**
     *   Create a new directory inside `v2/public/interactive-elements/` using your chosen name: `v2/public/interactive-elements/your-element-name/`.
 
-3.  **Create JavaScript File (e.g., `simulator.js`):**
-    *   This is the core file where you define the element's behavior and appearance as a Web Component.
+3.  **Create JavaScript File (`index.js`):**
+    *   Create a file named exactly `index.js` inside the element's folder. This is the core file where you define the element's behavior and appearance as a Web Component.
     *   **Define the Class:** Create a class that extends `HTMLElement`.
     *   **Define Template:** Inside the class (or outside), create an HTML `<template>` string containing:
         *   A `<style>` tag with all the CSS needed for your element. Using the Shadow DOM (step below) will automatically scope these styles.
@@ -52,9 +52,10 @@ v2/public/interactive-elements/
     *   **Encapsulate Logic:** Move all JavaScript logic related to the element's functionality into methods within this class.
     *   **Register the Element:** At the very end of the file, define the custom HTML tag. Use the convention `your-element-name-simulator` (or similar suffix if 'simulator' isn't appropriate).
         ```javascript
+        // IMPORTANT: Tag name MUST follow the pattern: {folder-name}-simulator
         customElements.define('your-element-name-simulator', YourElementNameElement);
         ```
-    *   **Example:** Refer to `v2/public/interactive-elements/fiber-fault/simulator.js` for a complete example (`FiberFaultElement` class).
+    *   **Example:** Refer to `v2/public/interactive-elements/fiber-fault/index.js` for a complete example (`FiberFaultElement` class).
 
 4.  **Create Thumbnail (`thumbnail.png`):**
     *   Create a small preview image (e.g., 100x100 pixels) representing your element.
@@ -78,9 +79,9 @@ v2/public/interactive-elements/
 
 1.  **Shortcode Insertion:** The author uses the "Interactives" button in TinyMCE, which reads `elements.json` to display the picker. Selecting an element inserts the corresponding shortcode (e.g., `[interactive name="your-element-name"]`) into the editor content.
 2.  **Viewer Processing:** When a study guide is viewed, the `StudyGuideViewer` component receives the full HTML content.
-3.  **Tag Replacement:** The `processContentForWebComponents` function finds all `[interactive name="..."]` shortcodes and replaces them with the corresponding custom HTML tags (e.g., `<your-element-name-simulator></your-element-name-simulator>`).
-4.  **Script Injection:** The `useEffect` hook in `StudyGuideViewer` identifies which unique elements are needed based on the shortcodes found in the *original* content. For each required element, it injects a `<script>` tag pointing to that element's JavaScript definition file (e.g., `/interactive-elements/your-element-name/simulator.js`) into the main viewer iframe's body.
-5.  **Component Rendering:** When the browser parses the HTML containing the custom tag (e.g., `<your-element-name-simulator>`) *and* the corresponding JavaScript definition has been loaded and executed via the injected script, the browser automatically calls the Web Component's constructor and `connectedCallback`, rendering the element and running its logic.
+3.  **Tag Replacement:** The `processContentForWebComponents` function finds all `[interactive name="..."]` shortcodes and replaces them with the corresponding custom HTML tags following the convention `<your-element-name-simulator></your-element-name-simulator>`.
+4.  **Script Injection:** The `useEffect` hook in `StudyGuideViewer` identifies which unique elements are needed based on the shortcodes found in the *original* content. For each required element, it injects a `<script>` tag pointing to that element's standardized JavaScript definition file (`/interactive-elements/your-element-name/index.js`) into the main viewer iframe's body.
+5.  **Component Rendering:** When the browser parses the HTML containing the custom tag (e.g., `<your-element-name-simulator>`) *and* the corresponding `index.js` definition has been loaded and executed via the injected script, the browser automatically calls the Web Component's constructor and `connectedCallback`, rendering the element and running its logic.
 
 ## Best Practices
 
