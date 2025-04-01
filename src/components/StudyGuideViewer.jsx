@@ -11,9 +11,6 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     const mainIframe = iframeRef.current;
     if (!mainIframe || !studyGuide || !studyGuide.content) return;
 
-    // Use a Set to track which component scripts have already been injected
-    const injectedScripts = new Set();
-
     const handleLoad = () => {
       console.log("Main content iframe loaded (for Web Components).");
       const iframeDoc = mainIframe.contentWindow?.document;
@@ -34,36 +31,44 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
       console.log("Required interactive elements:", requiredElements);
 
-      // Inject the definition script for each required element if not already injected
+      // Inject the definition script for each required element if not defined in the iframe context
       requiredElements.forEach(elementName => {
-        // Use the standardized 'index.js' filename
+        const tagName = `${elementName}-simulator`;
         const scriptPath = `/interactive-elements/${elementName}/index.js`;
+        const iframeWindow = mainIframe.contentWindow;
 
-        if (!injectedScripts.has(scriptPath)) {
-          const tagName = `${elementName}-simulator`; // Construct tag name for logging
-          console.log(`Injecting script for <${tagName}>: ${scriptPath}`);
+        // Check if the element is already defined in *this* iframe's context
+        if (iframeWindow && !iframeWindow.customElements.get(tagName)) {
+          console.log(`Element <${tagName}> not defined. Injecting script: ${scriptPath}`);
           const script = iframeDoc.createElement('script');
           script.src = scriptPath;
-          script.async = false; // Important: Load definitions before body parsing if possible
+          script.async = false; // Ensure sequential loading
+
+          // Add error handling for script loading itself
           script.onerror = () => console.error(`Failed to load script: ${scriptPath}`);
-          iframeDoc.body.appendChild(script); // Append to body, browser handles execution timing
-          injectedScripts.add(scriptPath);
+
+          // Append the script to the iframe's body
+          iframeDoc.body.appendChild(script);
+
+          // Use whenDefined to wait for the element registration
+          iframeWindow.customElements.whenDefined(tagName)
+            .then(() => {
+              console.log(`Element <${tagName}> successfully defined and registered.`);
+            })
+            .catch(error => {
+              console.error(`Error waiting for element <${tagName}> definition:`, error);
+            });
+
+        } else if (iframeWindow && iframeWindow.customElements.get(tagName)) {
+          console.log(`Element <${tagName}> already defined in this iframe. Skipping script injection: ${scriptPath}`);
         } else {
-           console.log(`Script already injected for ${elementName}: ${scriptPath}`);
+          console.warn(`Could not access iframe window or customElements registry to check for <${tagName}>.`);
         }
       });
     };
 
     // Use 'load' event for srcDoc changes
     mainIframe.addEventListener('load', handleLoad);
-
-    // Initial load check (though less critical now as injection happens after load)
-     if (mainIframe.contentWindow && mainIframe.contentWindow.document.readyState === 'complete') {
-       console.log("Main iframe already complete on effect run, calling handleLoad.");
-       handleLoad();
-     } else {
-       console.log("Main iframe not complete on effect run, waiting for load event.");
-     }
 
     // Cleanup function
     return () => {
@@ -72,7 +77,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         console.log("Removed main iframe load listener.");
       }
     };
-  }, [studyGuide]); // Rerun effect when studyGuide changes
+  // Rerun effect only when study guide *content* actually changes
+  }, [studyGuide?.content]);
 
 
   // Styles (kept for main viewer container)

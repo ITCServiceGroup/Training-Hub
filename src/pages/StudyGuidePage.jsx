@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { studyGuidesService } from '../services/api/studyGuides'; // Keep only needed service
-import { CategoryContext } from '../components/layout/AdminLayout'; // Import context
+import { studyGuidesService } from '../services/api/studyGuides';
+import { sectionsService } from '../services/api/sections';
 import SectionGrid from '../components/SectionGrid';
 import CategoryGrid from '../components/CategoryGrid';
 import StudyGuideList from '../components/StudyGuideList';
@@ -12,8 +12,33 @@ const StudyGuidePage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Get sections data and loading state from context
-  const { sectionsData, isLoadingSections, sectionsError } = useContext(CategoryContext);
+  // Manage sections data locally instead of from context
+  const [sectionsData, setSectionsData] = useState([]);
+  const [isLoadingSections, setIsLoadingSections] = useState(true);
+  const [sectionsError, setSectionsError] = useState(null);
+
+  // Effect to fetch sections data
+  useEffect(() => {
+    const fetchSections = async () => {
+      console.log('[StudyGuidePage] Starting to fetch sections...');
+      setIsLoadingSections(true);
+      setSectionsError(null);
+      try {
+        const data = await sectionsService.getSectionsWithCategories();
+        console.log('[StudyGuidePage] Sections data received:', data?.length || 0, 'sections');
+        setSectionsData(data || []);
+      } catch (error) {
+        console.error('[StudyGuidePage] Error loading sections:', error);
+        setSectionsError('Failed to load sections. Please try again later.');
+      } finally {
+        console.log('[StudyGuidePage] Setting isLoadingSections to false');
+        setIsLoadingSections(false);
+      }
+    };
+
+    console.log('[StudyGuidePage] Initial sections fetch effect running');
+    fetchSections();
+  }, []); // Only fetch once on mount
 
   // Local state for guides and current items derived from context/params
   const [studyGuides, setStudyGuides] = useState([]);
@@ -30,20 +55,28 @@ const StudyGuidePage = () => {
   const [studyGuidesError, setStudyGuidesError] = useState(null);
   const [studyGuideError, setStudyGuideError] = useState(null);
 
-  // Derive current section and its categories from context data when sectionId or sectionsData changes
+  // Derive current section and its categories from sections data when sectionId or sectionsData changes
    useEffect(() => {
+    console.log('[StudyGuidePage] Section derivation effect running:', {
+      sectionId,
+      'sectionsData.length': sectionsData?.length || 0,
+      isLoadingSections
+    });
+
     if (sectionId && sectionsData.length > 0) {
       const section = sectionsData.find(sec => sec.id === sectionId);
-      setCurrentSection(section || { id: sectionId, name: 'Loading...' }); // Show loading state initially
+      console.log('[StudyGuidePage] Found section:', section?.name || 'Not found');
+      setCurrentSection(section || { id: sectionId, name: 'Loading...' });
       setCategories(section?.v2_categories || []);
+      console.log('[StudyGuidePage] Set categories:', section?.v2_categories?.length || 0, 'categories');
     } else if (!sectionId) {
+      console.log('[StudyGuidePage] No sectionId, clearing section and categories');
       setCurrentSection(null);
       setCategories([]);
-    }
-    // Add a check for when sectionsData is loading
-    if (sectionId && isLoadingSections) {
-        setCurrentSection({ id: sectionId, name: 'Loading...' });
-        setCategories([]);
+    } else if (sectionId && isLoadingSections) {
+      console.log('[StudyGuidePage] Sections still loading, showing loading state');
+      setCurrentSection({ id: sectionId, name: 'Loading...' });
+      setCategories([]);
     }
   }, [sectionId, sectionsData, isLoadingSections]);
 

@@ -60,6 +60,7 @@ class SectionsService extends BaseService {
    * @returns {Promise<Array>} - Sections with categories
    */
   async getSectionsWithCategories() {
+    console.log('[Sections Service] Fetching sections with categories...');
     try {
       const { data, error } = await supabase
         .from(this.tableName)
@@ -67,7 +68,7 @@ class SectionsService extends BaseService {
           *,
           v2_categories (
             *,
-            study_guides:v2_study_guides (*)
+            v2_study_guides (*)
           )
         `)
         // Order sections first, then categories within sections, then study guides within categories
@@ -76,12 +77,14 @@ class SectionsService extends BaseService {
         .order('display_order', { foreignTable: 'v2_categories.v2_study_guides', nullsLast: true });
 
       if (error) {
+        console.error('[Sections Service] Error fetching sections:', error);
         throw error;
       }
 
+      console.log('[Sections Service] Successfully fetched sections:', data?.length || 0, 'sections');
       return data;
     } catch (error) {
-      console.error('Error fetching sections with categories:', error.message);
+      console.error('[Sections Service] Error in getSectionsWithCategories:', error.message);
       throw error;
     }
   }

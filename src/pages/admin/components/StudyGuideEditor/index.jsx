@@ -443,6 +443,8 @@ const StudyGuideEditor = ({
     `,
     // Core settings only
     branding: false,
+    promotion: false,
+    removed_menuitems: 'help',
     verify_html: false,
     element_format: 'html',
     schema: 'html5',
