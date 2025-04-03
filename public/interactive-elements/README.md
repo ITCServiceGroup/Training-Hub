@@ -55,7 +55,7 @@ v2/public/interactive-elements/
             customElements.define(tagName, YourElementNameElement);
             console.log(`[WebComponent] Custom element "${tagName}" defined.`); // Helpful log
             ```
-    *   **Example:** Refer to `v2/public/interactive-elements/router-simulator/index.js` or `v2/public/interactive-elements/fiber-fault/index.js`.
+    *   **Example Structure:** A simple element might only need `index.js` (e.g., `fiber-fault`). More complex elements might split logic into multiple files using ES modules (e.g., `router-simulator` uses `index.js` and `floorplan.js`) or utilize Web Workers for performance (e.g., `router-simulator` uses `router-signal-worker.js`). Refer to existing elements for patterns.
 
 4.  **Create Thumbnail (`thumbnail.png`):**
     *   Create a small preview image (e.g., 100x100 pixels).
@@ -104,6 +104,8 @@ v2/public/interactive-elements/
 *   **Accessibility:** Consider keyboard navigation, focus management, and ARIA attributes.
 *   **Clear Metadata:** Provide a good `title`, `description`, and `thumbnailUrl` in `elements.json`.
 *   **Console Logging:** Add informative console logs within your element's JS (e.g., in `connectedCallback`, `define`) to aid debugging, prefixing them like `[WebComponent YourElementName] ...`.
+*   **ES Modules:** If you split your element's logic into multiple JavaScript files using `import` and `export` syntax, the main `index.js` file must be loaded as a module. The `StudyGuideViewer` automatically handles this by adding `type="module"` to the injected script tag.
+*   **Web Workers for Performance:** For elements involving heavy computations that could block the main UI thread (like real-time simulations), consider offloading the work to a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers). Create a separate worker script (e.g., `your-worker.js`) in the element's folder and communicate using `postMessage`. Ensure the worker script path is correctly referenced when creating the worker instance in `index.js` (e.g., `new Worker('/interactive-elements/your-folder-name/your-worker.js')`). See the `router-simulator` element for an example implementation using `router-signal-worker.js`.
 
 ## Troubleshooting Common Issues
 

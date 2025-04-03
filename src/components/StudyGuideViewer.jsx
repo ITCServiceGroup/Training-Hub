@@ -42,6 +42,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           console.log(`Element <${tagName}> not defined. Injecting script: ${scriptPath}`);
           const script = iframeDoc.createElement('script');
           script.src = scriptPath;
+          script.type = 'module'; // Add type="module" for ES module support
           script.async = false; // Ensure sequential loading
 
           // Add error handling for script loading itself

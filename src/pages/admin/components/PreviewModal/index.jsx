@@ -438,8 +438,9 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                         console.log(`Injecting script for <${tagName}> in preview: ${scriptPath}`);
                         const script = iframeDoc.createElement('script');
                         // Use absolute URL to ensure correct path from iframe context
+                        script.type = 'module'; // Load as ES Module
                         script.src = new URL(scriptPath, window.location.origin).href;
-                        script.async = false; // Ensure scripts load in order if needed
+                        // script.async = false; // Removed - Modules are deferred by default
                         script.onerror = () => console.error(`Failed to load script in preview: ${scriptPath}`);
                         iframeDoc.body.appendChild(script);
                         injectedScripts.add(scriptPath);

@@ -4,7 +4,8 @@ import { studyGuidesService } from '../services/api/studyGuides';
 import { sectionsService } from '../services/api/sections';
 import SectionGrid from '../components/SectionGrid';
 import CategoryGrid from '../components/CategoryGrid';
-import StudyGuideList from '../components/StudyGuideList';
+import StudyGuideList from '../components/StudyGuideList'; // Sidebar list
+import PublicStudyGuideList from '../components/PublicStudyGuideList'; // Main content list
 import StudyGuideViewer from '../components/StudyGuideViewer';
 
 const StudyGuidePage = () => {
@@ -185,8 +186,14 @@ const StudyGuidePage = () => {
     fetchStudyGuide();
   }, [studyGuideId, categoryId]); // Add categoryId dependency
 
+  // Handler for selecting a guide from the public list
+  const handlePublicGuideSelect = (guide) => {
+    if (guide && sectionId && categoryId) {
+      navigate(`/study/${sectionId}/${categoryId}/${guide.id}`);
+    }
+  };
 
-  // Styles (Copied from original, no changes needed here)
+  // Styles
   const pageStyles = {
     padding: '1rem 0',
     width: '100%',
@@ -194,7 +201,7 @@ const StudyGuidePage = () => {
   };
 
   const headerStyles = {
-    marginBottom: '2rem',
+    marginBottom: '0.5rem', // Reduced margin from 2rem
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -377,12 +384,22 @@ const StudyGuidePage = () => {
             />
           </div>
 
-          {/* Main content area */}
+          {/* Main content area: Show list or viewer */}
           <div style={mainContentStyles}>
-            <StudyGuideViewer
-              studyGuide={currentStudyGuide}
-              isLoading={isLoadingStudyGuide} // Only pass the guide-specific loading state
-            />
+            {studyGuideId ? (
+              <StudyGuideViewer
+                studyGuide={currentStudyGuide}
+                isLoading={isLoadingStudyGuide} // Only pass the guide-specific loading state
+              />
+            ) : (
+              // Show the public list when no specific guide is selected
+              <PublicStudyGuideList
+                studyGuides={studyGuides}
+                onSelect={handlePublicGuideSelect} // Use the new handler
+                isLoading={isLoadingStudyGuides} // Use the list loading state
+                error={studyGuidesError} // Pass error state
+              />
+            )}
           </div>
         </div>
       )}
