@@ -9,7 +9,7 @@ const logAdmin = (message, data = null) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[ADMIN ${timestamp}] ${message}`;
   console.log(logMessage);
-  
+
   // Format data as string if present
   let dataString = '';
   if (data) {
@@ -20,7 +20,7 @@ const logAdmin = (message, data = null) => {
       dataString = `[Unable to stringify: ${e.message}]`;
     }
   }
-  
+
   // Persist to localStorage
   try {
     const logs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
@@ -93,24 +93,24 @@ const AdminDashboard = () => {
 
     fetchQuizData();
   }, []);
-  
+
   // Log when the dashboard mounts
   useEffect(() => {
     logAdmin('AdminDashboard mounted');
-    logAdmin('Auth state in dashboard', { 
-      hasUser: !!user, 
+    logAdmin('Auth state in dashboard', {
+      hasUser: !!user,
       userEmail: user?.email,
       userRole: user?.role,
       hasSession: !!session,
       isAuthenticated,
       sessionExpires: session?.expires_at
     });
-    
+
     // Check if the session is actually valid
     if (!isAuthenticated || !user || !session) {
       logAdmin('WARNING: Dashboard loaded but authentication may not be complete');
     }
-    
+
     // Verify Supabase auth token
     const verifySession = async () => {
       try {
@@ -122,176 +122,32 @@ const AdminDashboard = () => {
         setError('Failed to verify session: ' + err.message);
       }
     };
-    
+
     verifySession();
   }, []);
-  
+
   // Log when auth state changes
   useEffect(() => {
-    logAdmin('Auth state changed in dashboard', { 
-      isAuthenticated, 
+    logAdmin('Auth state changed in dashboard', {
+      isAuthenticated,
       hasUser: !!user
     });
   }, [user, isAuthenticated]);
-  
-  // Styles
-  const statsGridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1.5rem',
-    marginBottom: '2rem'
-  };
-  
-  const statCardStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    flexDirection: 'column'
-  };
-  
-  const statValueStyles = {
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-    color: '#0f766e',
-    marginBottom: '0.5rem'
-  };
-  
-  const statLabelStyles = {
-    color: '#64748b',
-    fontSize: '0.875rem'
-  };
-  
-  const sectionStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    marginBottom: '2rem'
-  };
-  
-  const sectionHeaderStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1.5rem'
-  };
-  
-  const sectionTitleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    color: '#0f172a',
-    margin: 0
-  };
-  
-  const tableStyles = {
-    width: '100%',
-    borderCollapse: 'collapse'
-  };
-  
-  const thStyles = {
-    textAlign: 'left',
-    padding: '0.75rem',
-    borderBottom: '1px solid #e2e8f0',
-    color: '#64748b',
-    fontWeight: 'normal'
-  };
-  
-  const tdStyles = {
-    padding: '0.75rem',
-    borderBottom: '1px solid #e2e8f0'
-  };
-  
-  const badgeStyles = (type) => {
-    let color;
+
+  // Using Tailwind classes instead of inline styles
+
+  // Helper function to get badge color classes based on activity type
+  const getBadgeClasses = (type) => {
     switch (type) {
       case 'quiz_completion':
-        color = '#0f766e';
-        break;
+        return 'bg-teal-100 text-teal-700';
       case 'study_guide_view':
-        color = '#0369a1';
-        break;
+        return 'bg-blue-100 text-blue-700';
       default:
-        color = '#64748b';
+        return 'bg-gray-100 text-gray-500';
     }
-    
-    return {
-      backgroundColor: `${color}20`,
-      color: color,
-      padding: '0.25rem 0.5rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.75rem',
-      fontWeight: 'bold'
-    };
   };
-  
-  const cardGridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '1.5rem'
-  };
-  
-  const cardStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    padding: '1.5rem',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  };
-  
-  const cardIconStyles = (color) => ({
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    backgroundColor: color || '#0f766e',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    marginBottom: '1rem'
-  });
-  
-  const cardTitleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    marginBottom: '0.5rem',
-    color: '#0f172a'
-  };
-  
-  const cardDescStyles = {
-    color: '#64748b',
-    marginBottom: '1rem',
-    flex: '1'
-  };
-  
-  const buttonStyles = {
-    backgroundColor: '#0f766e',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.25rem',
-    padding: '0.5rem 1rem',
-    fontSize: '0.875rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    width: '100%'
-  };
-  
-  const buttonHoverStyles = {
-    backgroundColor: '#0c5e57'
-  };
-  
-  const errorStyles = {
-    padding: '2rem',
-    backgroundColor: '#fee2e2',
-    borderRadius: '0.5rem',
-    color: '#b91c1c',
-    marginBottom: '1rem'
-  };
-  
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -301,7 +157,7 @@ const AdminDashboard = () => {
       minute: '2-digit'
     }).format(date);
   };
-  
+
   const getActivityTypeLabel = (type) => {
     switch (type) {
       case 'quiz_completion':
@@ -312,175 +168,131 @@ const AdminDashboard = () => {
         return type;
     }
   };
-  
+
   // Error display
   if (error) {
     return (
-      <div style={errorStyles}>
+      <div className="p-8 bg-red-100 rounded-lg text-red-700 mb-4">
         <h2>Dashboard Error</h2>
         <div>{error}</div>
         <p>Please try <a href="/login">logging in</a> again.</p>
       </div>
     );
   }
-  
+
   logAdmin('Rendering admin dashboard');
-  
+
   return (
     <>
-      <div style={statsGridStyles}>
-        <div style={statCardStyles}>
-          <div style={statValueStyles}>{quizStats.studyGuides}</div>
-          <div style={statLabelStyles}>Study Guides</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
+          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.studyGuides}</div>
+          <div className="text-sm text-slate-500">Study Guides</div>
         </div>
-        <div style={statCardStyles}>
-          <div style={statValueStyles}>{quizStats.questions}</div>
-          <div style={statLabelStyles}>Questions</div>
+        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
+          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.questions}</div>
+          <div className="text-sm text-slate-500">Questions</div>
         </div>
-        <div style={statCardStyles}>
-          <div style={statValueStyles}>{quizStats.quizzes}</div>
-          <div style={statLabelStyles}>Quizzes</div>
+        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
+          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.quizzes}</div>
+          <div className="text-sm text-slate-500">Quizzes</div>
         </div>
-        <div style={statCardStyles}>
-          <div style={statValueStyles}>{quizStats.completions}</div>
-          <div style={statLabelStyles}>Quiz Completions</div>
+        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
+          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.completions}</div>
+          <div className="text-sm text-slate-500">Quiz Completions</div>
         </div>
       </div>
-      
-      <div style={sectionStyles}>
-        <div style={sectionHeaderStyles}>
-          <h3 style={sectionTitleStyles}>Recent Activity</h3>
+
+      <div className="bg-white rounded-lg p-6 shadow mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold text-slate-900 m-0">Recent Activity</h3>
         </div>
-        
-        <table style={tableStyles}>
+
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th style={thStyles}>Type</th>
-              <th style={thStyles}>User</th>
-              <th style={thStyles}>Item</th>
-              <th style={thStyles}>Date</th>
-              <th style={thStyles}>Score</th>
+              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Type</th>
+              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">User</th>
+              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Item</th>
+              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Date</th>
+              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Score</th>
             </tr>
           </thead>
           <tbody>
             {recentActivity.map(activity => (
               <tr key={activity.id}>
-                <td style={tdStyles}>
-                  <span style={badgeStyles(activity.type)}>
+                <td className="p-3 border-b border-slate-200">
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${getBadgeClasses(activity.type)}`}>
                     {getActivityTypeLabel(activity.type)}
                   </span>
                 </td>
-                <td style={tdStyles}>{activity.user}</td>
-                <td style={tdStyles}>{activity.item}</td>
-                <td style={tdStyles}>{formatDate(activity.date)}</td>
-                <td style={tdStyles}>{activity.score || '-'}</td>
+                <td className="p-3 border-b border-slate-200">{activity.user}</td>
+                <td className="p-3 border-b border-slate-200">{activity.item}</td>
+                <td className="p-3 border-b border-slate-200">{formatDate(activity.date)}</td>
+                <td className="p-3 border-b border-slate-200">{activity.score || '-'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      
-      <div style={sectionStyles}>
-        <div style={sectionHeaderStyles}>
-          <h3 style={sectionTitleStyles}>Quick Actions</h3>
+
+      <div className="bg-white rounded-lg p-6 shadow mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold text-slate-900 m-0">Quick Actions</h3>
         </div>
-        
-        <div style={cardGridStyles}>
-          <div style={cardStyles}>
-            <div style={cardIconStyles('#0f766e')}>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
+            <div className="w-[50px] h-[50px] rounded-full bg-teal-700 flex items-center justify-center text-2xl mb-4">
               <span>📚</span>
             </div>
-            <h3 style={cardTitleStyles}>Study Guides</h3>
-            <p style={cardDescStyles}>Manage study guide content and categories.</p>
-            <Link 
+            <h3 className="text-xl font-bold mb-2 text-slate-900">Study Guides</h3>
+            <p className="text-slate-500 mb-4 flex-1">Manage study guide content and categories.</p>
+            <Link
               to="/admin/study-guides"
-              style={{
-                ...buttonStyles,
-                display: 'block',
-                textAlign: 'center',
-                textDecoration: 'none'
-              }}
-              onMouseEnter={(e) => {
-                Object.assign(e.currentTarget.style, buttonHoverStyles);
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#0f766e';
-              }}
+              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               Manage Study Guides
             </Link>
           </div>
-          
-          <div style={cardStyles}>
-            <div style={cardIconStyles('#0e7490')}>
+
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
+            <div className="w-[50px] h-[50px] rounded-full bg-cyan-700 flex items-center justify-center text-2xl mb-4">
               <span>❓</span>
             </div>
-            <h3 style={cardTitleStyles}>Questions</h3>
-            <p style={cardDescStyles}>Create and edit questions for quizzes.</p>
-            <Link 
+            <h3 className="text-xl font-bold mb-2 text-slate-900">Questions</h3>
+            <p className="text-slate-500 mb-4 flex-1">Create and edit questions for quizzes.</p>
+            <Link
               to="/admin/questions"
-              style={{
-                ...buttonStyles,
-                display: 'block',
-                textAlign: 'center',
-                textDecoration: 'none'
-              }}
-              onMouseEnter={(e) => {
-                Object.assign(e.currentTarget.style, buttonHoverStyles);
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#0f766e';
-              }}
+              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               Manage Questions
             </Link>
           </div>
-          
-          <div style={cardStyles}>
-            <div style={cardIconStyles('#0c4a6e')}>
+
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
+            <div className="w-[50px] h-[50px] rounded-full bg-blue-900 flex items-center justify-center text-2xl mb-4">
               <span>📝</span>
             </div>
-            <h3 style={cardTitleStyles}>Quizzes</h3>
-            <p style={cardDescStyles}>Create and manage quizzes and access codes.</p>
-            <Link 
+            <h3 className="text-xl font-bold mb-2 text-slate-900">Quizzes</h3>
+            <p className="text-slate-500 mb-4 flex-1">Create and manage quizzes and access codes.</p>
+            <Link
               to="/admin/quizzes"
-              style={{
-                ...buttonStyles,
-                display: 'block',
-                textAlign: 'center',
-                textDecoration: 'none'
-              }}
-              onMouseEnter={(e) => {
-                Object.assign(e.currentTarget.style, buttonHoverStyles);
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#0f766e';
-              }}
+              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               Manage Quizzes
             </Link>
           </div>
-          
-          <div style={cardStyles}>
-            <div style={cardIconStyles('#0369a1')}>
+
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
+            <div className="w-[50px] h-[50px] rounded-full bg-blue-700 flex items-center justify-center text-2xl mb-4">
               <span>📊</span>
             </div>
-            <h3 style={cardTitleStyles}>Results</h3>
-            <p style={cardDescStyles}>View quiz results and analytics.</p>
-            <Link 
+            <h3 className="text-xl font-bold mb-2 text-slate-900">Results</h3>
+            <p className="text-slate-500 mb-4 flex-1">View quiz results and analytics.</p>
+            <Link
               to="/admin/results"
-              style={{
-                ...buttonStyles,
-                display: 'block',
-                textAlign: 'center',
-                textDecoration: 'none'
-              }}
-              onMouseEnter={(e) => {
-                Object.assign(e.currentTarget.style, buttonHoverStyles);
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#0f766e';
-              }}
+              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               View Results
             </Link>

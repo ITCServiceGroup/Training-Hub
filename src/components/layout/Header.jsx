@@ -11,96 +11,39 @@ const Header = () => {
     navigate('/');
   };
 
-  // Inline styles
-  const headerStyles = {
-    backgroundColor: '#0f766e',
-    color: 'white',
-    padding: '1rem 0',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-  };
-
-  const containerStyles = {
-    maxWidth: '1600px',
-    margin: '0 auto',
-    padding: '0 1rem'
-  };
-
-  const headerContentStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  };
-
-  const logoStyles = {
-    color: 'white',
-    textDecoration: 'none',
-    fontSize: '1.5rem',
-    fontWeight: 'bold'
-  };
-
-  const navStyles = {
-    display: 'flex'
-  };
-
-  const ulStyles = {
-    display: 'flex',
-    listStyle: 'none',
-    margin: 0,
-    padding: 0
-  };
-
-  const liStyles = {
-    marginLeft: '1.5rem'
-  };
-
-  const linkStyles = {
-    color: 'white',
-    textDecoration: 'none',
-    fontWeight: '500'
-  };
-
-  const buttonStyles = {
-    background: 'none',
-    border: 'none',
-    color: 'white',
-    cursor: 'pointer',
-    fontWeight: '500',
-    padding: 0
-  };
-
   return (
-    <header style={headerStyles}>
-      <div style={containerStyles}>
-        <div style={headerContentStyles}>
-          <Link to="/" style={logoStyles}>
-            <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Training Hub</h1>
+    <header className="bg-teal-700 text-white py-4 shadow-md">
+      <div className="w-full px-6">
+        <div className="flex justify-between items-center">
+          <Link to="/" className="text-white no-underline text-2xl font-bold">
+            <h1 className="m-0 text-2xl">Training Hub</h1>
           </Link>
-          
-          <nav style={navStyles}>
-            <ul style={ulStyles}>
-              <li style={liStyles}>
-                <Link to="/" style={linkStyles}>Home</Link>
+
+          <nav className="flex">
+            <ul className="flex list-none m-0 p-0">
+              <li className="ml-6">
+                <Link to="/" className="text-white no-underline font-medium">Home</Link>
               </li>
-              <li style={liStyles}>
-                <Link to="/study" style={linkStyles}>Study Guides</Link>
+              <li className="ml-6">
+                <Link to="/study" className="text-white no-underline font-medium">Study Guides</Link>
               </li>
-              <li style={liStyles}>
-                <Link to="/quiz" style={linkStyles}>Quizzes</Link>
+              <li className="ml-6">
+                <Link to="/quiz" className="text-white no-underline font-medium">Quizzes</Link>
               </li>
               {isAuthenticated ? (
                 <>
-                  <li style={liStyles}>
-                    <Link to="/admin" style={linkStyles}>Admin</Link>
+                  <li className="ml-6">
+                    <Link to="/admin" className="text-white no-underline font-medium">Admin</Link>
                   </li>
-                  <li style={liStyles}>
-                    <button style={buttonStyles} onClick={handleSignOut}>
+                  <li className="ml-6">
+                    <button className="bg-transparent border-none text-white cursor-pointer font-medium p-0" onClick={handleSignOut}>
                       Sign Out
                     </button>
                   </li>
                 </>
               ) : (
-                <li style={liStyles}>
-                  <Link to="/login" style={linkStyles}>Admin Login</Link>
+                <li className="ml-6">
+                  <Link to="/login" className="text-white no-underline font-medium">Admin Login</Link>
                 </li>
               )}
             </ul>

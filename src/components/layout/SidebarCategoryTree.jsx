@@ -4,45 +4,26 @@ import { CategoryContext } from './AdminLayout';
 import { FaFileAlt, FaList, FaLayerGroup, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 
 const SidebarCategoryItem = ({
-  category, 
-  onSelect, 
-  selectedId, 
-  sidebarLinkStyles
+  category,
+  onSelect,
+  selectedId
 }) => {
   const navigate = useNavigate();
   const { resetStudyGuideSelection } = useContext(CategoryContext);
-  
+
   const handleCategoryClick = () => {
     resetStudyGuideSelection();
     onSelect(category);
     navigate('/admin/study-guides');
   };
 
-  // Styles
-  const categoryItemStyles = {
-    marginLeft: '4px',
-    position: 'relative',
-    padding: '8px 0'
-  };
-
-  const categoryLinkStyles = {
-    ...sidebarLinkStyles,
-    backgroundColor: selectedId === category.id ? '#0f766e' : 'transparent',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    fontSize: '14px',
-    display: 'flex',
-    alignItems: 'center',
-    cursor: 'pointer'
-  };
-
   return (
-    <div style={categoryItemStyles}>
-      <div 
-        style={categoryLinkStyles}
+    <div className="ml-1 relative py-2">
+      <div
+        className={`text-white flex items-center cursor-pointer p-3 rounded text-sm ${selectedId === category.id ? 'bg-teal-700' : 'bg-transparent'}`}
         onClick={handleCategoryClick}
       >
-        <FaFileAlt style={{ marginRight: '8px', fontSize: '16px' }} />
+        <FaFileAlt className="mr-2 text-base" />
         <span>{category.name}</span>
       </div>
     </div>
@@ -50,21 +31,20 @@ const SidebarCategoryItem = ({
 };
 
 // Modified SidebarSectionItem for individual state persistence
-const SidebarSectionItem = ({ 
-  section, 
-  onSelectCategory, 
-  selectedCategoryId, 
-  sidebarLinkStyles,
+const SidebarSectionItem = ({
+  section,
+  onSelectCategory,
+  selectedCategoryId,
   onSectionClick,
 }) => {
   const storageKey = `sidebarSectionExpanded_${section.id}`;
-  
+
   // Initialize state from localStorage, defaulting to true (expanded)
   const [isExpanded, setIsExpanded] = useState(() => {
     try {
       const savedState = localStorage.getItem(storageKey);
       // Default to true if nothing saved or if not explicitly 'false'
-      return savedState !== 'false'; 
+      return savedState !== 'false';
     } catch (e) {
       console.error("Failed to read localStorage for section:", section.id, e);
       return true; // Default to expanded on error
@@ -89,67 +69,39 @@ const SidebarSectionItem = ({
 
   // Toggle and save state
   const handleExpandToggle = (e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     setIsExpanded(prevExpanded => !prevExpanded); // Use functional update
   };
 
-  // Styles
-  const sectionItemStyles = {
-    marginBottom: '4px',
-    position: 'relative',
-    marginLeft: '8px'
-  };
-
-  const sectionHeaderStyles = {
-    ...sidebarLinkStyles,
-    padding: '8px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center'
-  };
-
-  const categoriesContainerStyles = {
-    marginTop: '4px',
-    marginLeft: '12px',
-    borderLeft: '1px solid #4B5563',
-    paddingLeft: '8px'
-  };
-
-  const expandIconStyles = {
-    cursor: 'pointer',
-    fontSize: '12px',
-    marginRight: '8px'
-  };
+  // Using Tailwind classes instead of inline styles
 
   return (
-    <div style={sectionItemStyles}>
-      <div style={sectionHeaderStyles}>
-        <span 
-          style={expandIconStyles}
-          onClick={handleExpandToggle} // Use updated handler
+    <div className="mb-1 relative ml-2">
+      <div className="text-white p-3 rounded cursor-pointer flex items-center">
+        <span
+          className="cursor-pointer text-xs mr-2"
+          onClick={handleExpandToggle}
         >
           {/* Show icon only if categories exist */}
-          {hasCategories ? (isExpanded ? <FaChevronDown /> : <FaChevronRight />) : <span style={{ width: '12px', display: 'inline-block' }}></span>} 
+          {hasCategories ? (isExpanded ? <FaChevronDown /> : <FaChevronRight />) : <span className="w-3 inline-block"></span>}
         </span>
-        <div 
-          style={{ display: 'flex', alignItems: 'center', flex: 1 }}
+        <div
+          className="flex items-center flex-1"
           onClick={handleSectionClick}
         >
-          <FaList style={{ fontSize: '16px', marginRight: '8px' }} />
+          <FaList className="text-base mr-2" />
           <span>{section.name}</span>
         </div>
       </div>
-      
+
       {isExpanded && hasCategories && (
-        <div style={categoriesContainerStyles}>
+        <div className="mt-1 ml-3 border-l border-gray-600 pl-2">
           {sectionCategories.map(category => (
             <SidebarCategoryItem
               key={category.id}
               category={category}
               onSelect={onSelectCategory}
               selectedId={selectedCategoryId}
-              sidebarLinkStyles={sidebarLinkStyles}
             />
           ))}
         </div>
@@ -159,25 +111,24 @@ const SidebarSectionItem = ({
 };
 
 // Main SidebarCategoryTree component remains largely the same
-const SidebarCategoryTree = ({ 
-  onSelectCategory, 
-  selectedCategoryId,
-  sidebarLinkStyles,
+const SidebarCategoryTree = ({
+  onSelectCategory,
+  selectedCategoryId
 }) => {
   const {
-    sectionsData: sections, 
-    isLoadingSections: isLoading, 
-    sectionsError: error, 
+    sectionsData: sections,
+    isLoadingSections: isLoading,
+    sectionsError: error,
     resetStudyGuideSelection,
   } = useContext(CategoryContext);
 
   const [isOverallExpanded, setIsOverallExpanded] = useState(() => { // Renamed state variable
     try {
       const savedState = localStorage.getItem('sidebarSectionsExpanded');
-      return savedState === 'true'; 
+      return savedState === 'true';
     } catch (e) {
       console.error("Failed to read localStorage:", e);
-      return false; 
+      return false;
     }
   });
 
@@ -209,95 +160,52 @@ const SidebarCategoryTree = ({
   };
 
   const handleOverallExpandToggle = (e) => { // Renamed handler
-    e.stopPropagation(); 
-    setIsOverallExpanded(prevExpanded => !prevExpanded); 
+    e.stopPropagation();
+    setIsOverallExpanded(prevExpanded => !prevExpanded);
   };
 
   if (!location.pathname.includes('/admin/study-guides')) {
     return null;
   }
 
-  // Styles remain the same...
-    const containerStyles = {
-    marginTop: '8px'
-  };
-
-  const headerStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '8px 12px',
-    borderRadius: '4px',
-    color: 'white',
-    fontWeight: 'bold'
-  };
-
-  const expandIconStyles = {
-    cursor: 'pointer',
-    fontSize: '12px',
-    marginRight: '8px'
-  };
-
-  const headerTextStyles = {
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    flex: 1
-  };
-
-  const loadingStyles = {
-    padding: '12px',
-    color: '#9CA3AF',
-    fontSize: '14px',
-    textAlign: 'center'
-  };
-
-  const errorStyles = {
-    padding: '12px',
-    color: '#EF4444',
-    fontSize: '14px'
-  };
-
-  const sectionsContainerStyles = {
-    marginTop: '8px'
-  };
+  // Using Tailwind classes instead of inline styles
 
 
   return (
-    <div style={containerStyles}>
-      <div style={headerStyles}>
-        <span 
-          style={expandIconStyles}
-          onClick={handleOverallExpandToggle} // Use renamed handler
+    <div className="mt-2">
+      <div className="flex items-center p-3 rounded text-white font-bold">
+        <span
+          className="cursor-pointer text-xs mr-2"
+          onClick={handleOverallExpandToggle}
         >
-          {isOverallExpanded ? 
-            <FaChevronDown /> : 
+          {isOverallExpanded ?
+            <FaChevronDown /> :
             <FaChevronRight />
           }
         </span>
-        <div 
-          style={headerTextStyles}
+        <div
+          className="cursor-pointer flex items-center flex-1"
           onClick={handleSectionsClick}
         >
-          <FaLayerGroup style={{ fontSize: '18px', marginRight: '8px' }} />
+          <FaLayerGroup className="text-lg mr-2" />
           <span>Sections</span>
         </div>
       </div>
 
-      {isOverallExpanded && ( // Use renamed state variable
+      {isOverallExpanded && (
         <div>
           {isLoading ? (
-            <div style={loadingStyles}>Loading...</div>
+            <div className="p-3 text-gray-400 text-sm text-center">Loading...</div>
           ) : error ? (
-            <div style={errorStyles}>{error}</div>
+            <div className="p-3 text-red-500 text-sm">{error}</div>
           ) : (
-            <div style={sectionsContainerStyles}>
+            <div className="mt-2">
               {sections.map(section => (
                 <SidebarSectionItem
                   key={section.id}
-                  section={section} 
+                  section={section}
                   onSelectCategory={onSelectCategory}
                   selectedCategoryId={selectedCategoryId}
-                  sidebarLinkStyles={sidebarLinkStyles}
                   onSectionClick={handleSectionClick}
                 />
               ))}

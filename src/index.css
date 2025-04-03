@@ -1,4 +1,7 @@
-@import "tailwindcss"; /* Use Tailwind v4 import directive */
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root { /* Uncommented custom CSS */
   --primary-color: #0f766e;
@@ -12,7 +15,7 @@
   --warning-color: #f59e0b;
   --info-color: #3b82f6;
   --border-radius: 0.25rem;
-  --max-width: 1200px;
+  --max-width: 100%;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -80,7 +83,7 @@ label { /* Uncommented custom CSS */
 }
 
 .container { /* Uncommented custom CSS */
-  max-width: var(--max-width);
+  width: 100%;
   margin: 0 auto;
   padding: 0 1rem;
 }

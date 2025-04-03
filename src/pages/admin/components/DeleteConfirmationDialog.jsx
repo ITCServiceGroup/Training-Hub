@@ -8,104 +8,32 @@ const DeleteConfirmationDialog = ({
   title,
   description
 }) => {
-  const styles = {
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 50
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      padding: '24px',
-      borderRadius: '8px',
-      maxWidth: '400px',
-      width: '90%'
-    },
-    modalTitle: {
-      fontSize: '18px',
-      fontWeight: 'bold',
-      color: '#111827',
-      marginBottom: '12px'
-    },
-    modalText: {
-      fontSize: '14px',
-      color: '#4B5563',
-      marginBottom: '20px'
-    },
-    modalButtons: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: '12px'
-    },
-    modalCancelButton: {
-      padding: '8px 16px',
-      backgroundColor: 'white',
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: '#374151',
-      cursor: 'pointer'
-    },
-    modalDeleteButton: {
-      padding: '8px 16px',
-      backgroundColor: '#DC2626',
-      border: '1px solid transparent',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: 'white',
-      cursor: 'pointer'
-    }
-  };
-
   return (
     <Dialog
       open={isOpen}
       onClose={onClose}
       className="relative z-50"
     >
-      <div style={styles.modalOverlay}>
-        <Dialog.Panel style={styles.modalContent}>
-          <Dialog.Title style={styles.modalTitle}>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <Dialog.Panel className="bg-white p-6 rounded-lg max-w-md w-[90%]">
+          <Dialog.Title className="text-lg font-bold text-gray-900 mb-3">
             {title}
           </Dialog.Title>
-          <Dialog.Description style={styles.modalText}>
+          <Dialog.Description className="text-sm text-gray-600 mb-5">
             {description}
           </Dialog.Description>
-          <div style={styles.modalButtons}>
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              style={styles.modalCancelButton}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#F3F4F6';
-                e.currentTarget.style.borderColor = '#9CA3AF';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white';
-                e.currentTarget.style.borderColor = '#D1D5DB';
-              }}
+              className="py-2 px-4 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer hover:bg-gray-100 hover:border-gray-400 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={onConfirm}
-              style={styles.modalDeleteButton}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#B91C1C';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#DC2626';
-                e.currentTarget.style.transform = 'none';
-              }}
+              className="py-2 px-4 bg-red-600 border border-transparent rounded-md text-sm text-white cursor-pointer hover:bg-red-700 hover:-translate-y-0.5 transition-all"
             >
               Delete
             </button>

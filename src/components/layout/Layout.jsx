@@ -7,26 +7,12 @@ const Layout = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
   const isStudyGuidePage = location.pathname.includes('/study/');
-  
+
   return (
-    <div className="app-layout" style={{ width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="app-layout w-full flex flex-col min-h-screen">
       <Header />
-      <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <div className="container" style={{ 
-          width: '100%', 
-          maxWidth: isAdminPage ? 'none' : '1600px',
-          margin: isAdminPage ? '0' : '0 auto',
-          padding: isAdminPage ? '0' : '0 1rem',
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          // Ensure consistent layout for study guide pages
-          ...(isStudyGuidePage && {
-            maxWidth: '1600px',
-            margin: '0 auto',
-            padding: '0 1rem'
-          })
-        }}>
+      <main className="main-content flex-1 flex flex-col w-full">
+        <div className="w-full flex-1 flex flex-col px-0">
           <Outlet />
         </div>
       </main>

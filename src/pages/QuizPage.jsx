@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
 const QuizPage = () => {
@@ -11,7 +11,7 @@ const QuizPage = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes in seconds
-  
+
   // Mock quizzes data
   const quizzes = [
     {
@@ -59,7 +59,7 @@ const QuizPage = () => {
       color: '#0369a1'
     }
   ];
-  
+
   // Mock questions for a quiz
   const mockQuestions = [
     {
@@ -118,25 +118,25 @@ const QuizPage = () => {
       correctAnswer: 3
     }
   ];
-  
+
   // Filter quizzes based on search query
-  const filteredQuizzes = quizzes.filter(quiz => 
+  const filteredQuizzes = quizzes.filter(quiz =>
     quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     quiz.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     quiz.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   // Find the current quiz if quizId is provided
-  const currentQuiz = quizId ? 
+  const currentQuiz = quizId ?
     quizzes.find(quiz => quiz.id === quizId) : null;
-  
+
   // Format time (seconds) to MM:SS
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
-  
+
   // Calculate quiz score
   const calculateScore = () => {
     let correctCount = 0;
@@ -151,12 +151,12 @@ const QuizPage = () => {
       percentage: Math.round((correctCount / mockQuestions.length) * 100)
     };
   };
-  
+
   // Handle quiz submission
   const handleSubmitQuiz = () => {
     setQuizCompleted(true);
   };
-  
+
   // Handle starting a new quiz
   const handleStartQuiz = () => {
     setQuizStarted(true);
@@ -164,7 +164,7 @@ const QuizPage = () => {
     setSelectedAnswers({});
     setQuizCompleted(false);
   };
-  
+
   // Handle answer selection
   const handleSelectAnswer = (questionIndex, optionIndex) => {
     setSelectedAnswers({
@@ -172,369 +172,101 @@ const QuizPage = () => {
       [questionIndex]: optionIndex
     });
   };
-  
+
   // Handle navigation to next question
   const handleNextQuestion = () => {
     if (currentQuestion < mockQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
-  
+
   // Handle navigation to previous question
   const handlePrevQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
     }
   };
-  
+
   // Handle quiz selection
   const handleQuizSelect = (quizId) => {
     navigate(`/quiz/${quizId}`);
   };
-  
-  // Styles
-  const pageStyles = {
-    padding: '1rem 0',
-    maxWidth: '100%'
-  };
-  
-  const headerStyles = {
-    marginBottom: '2rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '1rem'
-  };
-  
-  const titleStyles = {
-    fontSize: '2rem',
-    color: '#0f766e',
-    margin: '0'
-  };
-  
-  const searchContainerStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    maxWidth: '400px',
-    width: '100%'
-  };
-  
-  const searchInputStyles = {
-    padding: '0.75rem',
-    border: '1px solid #e2e8f0',
-    borderRadius: '0.25rem',
-    width: '100%',
-    fontSize: '1rem'
-  };
-  
-  const breadcrumbStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-    fontSize: '0.875rem',
-    color: '#64748b'
-  };
-  
-  const breadcrumbLinkStyles = {
-    color: '#0f766e',
-    textDecoration: 'none',
-    marginRight: '0.5rem'
-  };
-  
-  const breadcrumbSeparatorStyles = {
-    margin: '0 0.5rem'
-  };
-  
-  const quizGridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '1.5rem'
-  };
-  
-  const quizCardStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    padding: '1.5rem',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  };
-  
-  const quizCardHoverStyles = {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-  };
-  
-  const iconContainerStyles = (color) => ({
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    backgroundColor: color || '#0f766e',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    marginBottom: '1rem'
-  });
-  
-  const quizTitleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    marginBottom: '0.5rem',
-    color: '#0f172a'
-  };
-  
-  const quizDescStyles = {
-    color: '#64748b',
-    marginBottom: '1rem',
-    flex: '1'
-  };
-  
-  const quizMetaStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    marginTop: 'auto',
-    marginBottom: '1rem'
-  };
-  
-  const buttonStyles = {
-    backgroundColor: '#0f766e',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.25rem',
-    padding: '0.75rem 1rem',
-    fontSize: '0.875rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    width: '100%'
-  };
-  
-  const buttonHoverStyles = {
-    backgroundColor: '#0c5e57'
-  };
-  
-  const secondaryButtonStyles = {
-    ...buttonStyles,
-    backgroundColor: '#64748b'
-  };
-  
-  const secondaryButtonHoverStyles = {
-    backgroundColor: '#475569'
-  };
-  
-  const quizContentStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    padding: '2rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-  };
-  
-  const quizHeaderStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '2rem',
-    flexWrap: 'wrap',
-    gap: '1rem'
-  };
-  
-  const quizInfoStyles = {
-    marginBottom: '2rem'
-  };
-  
-  const accessCodeFormStyles = {
-    maxWidth: '400px',
-    margin: '2rem auto',
-    padding: '2rem',
-    backgroundColor: '#f8fafc',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-  };
-  
-  const formGroupStyles = {
-    marginBottom: '1.5rem'
-  };
-  
-  const inputStyles = {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #e2e8f0',
-    borderRadius: '0.25rem',
-    fontSize: '1rem',
-    marginBottom: '1rem'
-  };
-  
-  const questionContainerStyles = {
-    marginBottom: '2rem'
-  };
-  
-  const questionTextStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    marginBottom: '1.5rem',
-    color: '#0f172a'
-  };
-  
-  const optionsListStyles = {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0
-  };
-  
-  const optionItemStyles = (isSelected) => ({
-    padding: '1rem',
-    marginBottom: '0.75rem',
-    border: `1px solid ${isSelected ? '#0f766e' : '#e2e8f0'}`,
-    borderRadius: '0.25rem',
-    cursor: 'pointer',
-    backgroundColor: isSelected ? '#f0fdfa' : 'white',
-    transition: 'all 0.2s'
-  });
-  
-  const optionItemHoverStyles = {
-    borderColor: '#0f766e',
-    backgroundColor: '#f0fdfa'
-  };
-  
-  const navigationStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '2rem'
-  };
-  
-  const progressBarContainerStyles = {
-    height: '0.5rem',
-    backgroundColor: '#e2e8f0',
-    borderRadius: '0.25rem',
-    marginBottom: '1rem',
-    overflow: 'hidden'
-  };
-  
-  const progressBarStyles = (progress) => ({
-    height: '100%',
-    width: `${progress}%`,
-    backgroundColor: '#0f766e',
-    borderRadius: '0.25rem',
-    transition: 'width 0.3s ease'
-  });
-  
-  const timerStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    color: timeLeft < 300 ? '#ef4444' : '#64748b',
-    fontWeight: timeLeft < 300 ? 'bold' : 'normal'
-  };
-  
-  const resultsStyles = {
-    textAlign: 'center',
-    padding: '2rem'
-  };
-  
-  const scoreStyles = {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    color: '#0f766e',
-    marginBottom: '1rem'
-  };
-  
-  const resultMessageStyles = (score) => ({
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444',
-    marginBottom: '2rem'
-  });
-  
-  const questionReviewStyles = {
-    marginTop: '3rem',
-    textAlign: 'left'
-  };
-  
-  const reviewQuestionStyles = {
-    marginBottom: '2rem',
-    padding: '1.5rem',
-    backgroundColor: '#f8fafc',
-    borderRadius: '0.5rem'
-  };
-  
-  const reviewAnswerStyles = (isCorrect, isSelected) => ({
-    padding: '0.75rem',
-    marginBottom: '0.5rem',
-    borderRadius: '0.25rem',
-    backgroundColor: isSelected 
-      ? (isCorrect ? '#d1fae5' : '#fee2e2')
-      : isCorrect ? '#f0fdfa' : 'white',
-    color: isSelected 
-      ? (isCorrect ? '#065f46' : '#b91c1c')
-      : '#0f172a',
-    border: `1px solid ${isSelected 
-      ? (isCorrect ? '#10b981' : '#ef4444')
-      : '#e2e8f0'}`
-  });
-  
+
+  // All styles have been converted to Tailwind classes
+
+  // Timer effect for countdown
+  useEffect(() => {
+    let timer;
+    if (quizStarted && !quizCompleted && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft(prevTime => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            handleSubmitQuiz(); // Auto-submit when time runs out
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [quizStarted, quizCompleted, timeLeft]);
+
   // Calculate progress percentage
-  const progressPercentage = quizStarted 
+  const progressPercentage = quizStarted
     ? Math.round(((currentQuestion + 1) / mockQuestions.length) * 100)
     : 0;
-  
+
   // Get quiz score if completed
   const score = quizCompleted ? calculateScore() : null;
-  
+
   // Get result message based on score
   const getResultMessage = (score) => {
     if (score >= 80) return 'Excellent work!';
     if (score >= 60) return 'Good job!';
     return 'Keep practicing!';
   };
-  
+
   return (
-    <div style={pageStyles}>
-      <div style={headerStyles}>
-        <h2 style={titleStyles}>Quizzes</h2>
+    <div className="py-4 max-w-full">
+      <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
+        <h2 className="text-4xl text-teal-700 m-0">Quizzes</h2>
         {!quizId && (
-          <div style={searchContainerStyles}>
+          <div className="flex items-center max-w-md w-full">
             <input
               type="text"
               placeholder="Search quizzes..."
-              style={searchInputStyles}
+              className="py-3 px-3 border border-slate-200 rounded text-base w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         )}
       </div>
-      
+
       {quizId ? (
         <>
-          <div style={breadcrumbStyles}>
-            <Link to="/quiz" style={breadcrumbLinkStyles}>Quizzes</Link>
-            <span style={breadcrumbSeparatorStyles}>›</span>
+          <div className="flex items-center mb-6 text-sm text-slate-500">
+            <Link to="/quiz" className="text-teal-700 no-underline mr-2">Quizzes</Link>
+            <span className="mx-2">›</span>
             <span>{currentQuiz?.title || quizId}</span>
           </div>
-          
-          <div style={quizContentStyles}>
+
+          <div className="bg-white rounded-lg p-8 shadow">
             {!quizStarted && !quizCompleted ? (
               <>
-                <div style={quizHeaderStyles}>
+                <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                   <div>
-                    <h3 style={quizTitleStyles}>{currentQuiz?.title || quizId}</h3>
-                    <p style={quizDescStyles}>{currentQuiz?.description || 'Test your knowledge with this quiz.'}</p>
+                    <h3 className="text-xl font-bold mb-2 text-slate-900">{currentQuiz?.title || quizId}</h3>
+                    <p className="text-slate-500 mb-4 flex-1">{currentQuiz?.description || 'Test your knowledge with this quiz.'}</p>
                   </div>
-                  <div style={iconContainerStyles(currentQuiz?.color)}>
+                  <div className="w-[50px] h-[50px] rounded-full flex items-center justify-center text-2xl mb-4" style={{ backgroundColor: currentQuiz?.color || '#0f766e' }}>
                     <span>{currentQuiz?.icon || '📝'}</span>
                   </div>
                 </div>
-                
-                <div style={quizInfoStyles}>
-                  <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+
+                <div className="mb-8">
+                  <div className="flex gap-8 flex-wrap">
                     <div>
                       <strong>Category:</strong> {currentQuiz?.category || 'General'}
                     </div>
@@ -549,199 +281,152 @@ const QuizPage = () => {
                     </div>
                   </div>
                 </div>
-                
-                <div style={accessCodeFormStyles}>
-                  <h4 style={{ marginTop: 0, marginBottom: '1rem' }}>Enter Access Code</h4>
-                  <p style={{ marginBottom: '1.5rem' }}>This quiz requires an access code to begin.</p>
-                  <div style={formGroupStyles}>
+
+                <div className="max-w-md mx-auto my-8 p-8 bg-slate-50 rounded-lg shadow">
+                  <h4 className="mt-0 mb-4">Enter Access Code</h4>
+                  <p className="mb-6">This quiz requires an access code to begin.</p>
+                  <div className="mb-6">
                     <input
                       type="text"
                       placeholder="Enter access code"
-                      style={inputStyles}
+                      className="w-full py-3 px-3 border border-slate-200 rounded text-base mb-4"
                       value={accessCode}
                       onChange={(e) => setAccessCode(e.target.value)}
                     />
-                    <button 
-                      style={buttonStyles}
+                    <button
+                      className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors w-full"
                       onClick={handleStartQuiz}
-                      onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, buttonHoverStyles);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#0f766e';
-                      }}
                     >
                       Start Quiz
                     </button>
                   </div>
-                  <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '1rem' }}>
+                  <p className="text-sm text-slate-500 mt-4">
                     Note: For this demo, you can start the quiz without an access code.
                   </p>
                 </div>
               </>
             ) : quizCompleted ? (
-              <div style={resultsStyles}>
-                <h3 style={{ marginBottom: '2rem' }}>Quiz Results</h3>
-                <div style={scoreStyles}>{score.percentage}%</div>
-                <p style={resultMessageStyles(score.percentage)}>
+              <div className="text-center p-8">
+                <h3 className="mb-8">Quiz Results</h3>
+                <div className="text-5xl font-bold text-teal-700 mb-4">{score.percentage}%</div>
+                <p className={`text-2xl font-bold mb-8 ${score.percentage >= 80 ? 'text-green-500' : score.percentage >= 60 ? 'text-amber-500' : 'text-red-500'}`}>
                   {getResultMessage(score.percentage)}
                 </p>
                 <p>You answered {score.correct} out of {score.total} questions correctly.</p>
-                
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                  <button 
-                    style={secondaryButtonStyles}
+
+                <div className="flex justify-center gap-4 mt-8">
+                  <button
+                    className="bg-slate-500 hover:bg-slate-600 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors"
                     onClick={() => navigate('/quiz')}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, secondaryButtonHoverStyles);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#64748b';
-                    }}
                   >
                     Back to Quizzes
                   </button>
-                  <button 
-                    style={buttonStyles}
+                  <button
+                    className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors"
                     onClick={handleStartQuiz}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, buttonHoverStyles);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#0f766e';
-                    }}
                   >
                     Retry Quiz
                   </button>
                 </div>
-                
-                <div style={questionReviewStyles}>
-                  <h4 style={{ marginBottom: '1.5rem' }}>Question Review</h4>
-                  
-                  {mockQuestions.map((question, index) => (
-                    <div key={question.id} style={reviewQuestionStyles}>
-                      <p style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
-                        {index + 1}. {question.question}
-                      </p>
-                      
-                      {question.options.map((option, optionIndex) => (
-                        <div 
-                          key={optionIndex}
-                          style={reviewAnswerStyles(
-                            optionIndex === question.correctAnswer,
-                            optionIndex === selectedAnswers[index]
-                          )}
-                        >
-                          {option}
-                          {optionIndex === question.correctAnswer && 
-                            <span style={{ marginLeft: '0.5rem', color: '#10b981' }}>✓</span>}
-                          {optionIndex === selectedAnswers[index] && optionIndex !== question.correctAnswer && 
-                            <span style={{ marginLeft: '0.5rem', color: '#ef4444' }}>✗</span>}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+
+                <div className="mt-12 text-left">
+                  <h4 className="mb-6">Question Review</h4>
+
+                  {mockQuestions.map((question, index) => {
+                    return (
+                      <div key={question.id} className="mb-8 p-6 bg-slate-50 rounded-lg">
+                        <p className="font-bold mb-4">
+                          {index + 1}. {question.question}
+                        </p>
+
+                        {question.options.map((option, optionIndex) => {
+                          const isSelected = optionIndex === selectedAnswers[index];
+                          const isCorrectAnswer = optionIndex === question.correctAnswer;
+                          let className = "p-3 mb-2 rounded ";
+
+                          if (isSelected) {
+                            className += isCorrectAnswer ? "bg-green-100 text-green-800 border border-green-500 " : "bg-red-100 text-red-800 border border-red-500 ";
+                          } else {
+                            className += isCorrectAnswer ? "bg-teal-50 border border-slate-200 " : "bg-white border border-slate-200 text-slate-900 ";
+                          }
+
+                          return (
+                            <div key={optionIndex} className={className}>
+                              {option}
+                              {isCorrectAnswer &&
+                                <span className="ml-2 text-green-500">✓</span>}
+                              {isSelected && !isCorrectAnswer &&
+                                <span className="ml-2 text-red-500">✗</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
               <>
-                <div style={quizHeaderStyles}>
+                <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                   <div>
-                    <h3 style={quizTitleStyles}>{currentQuiz?.title || quizId}</h3>
+                    <h3 className="text-xl font-bold mb-2 text-slate-900">{currentQuiz?.title || quizId}</h3>
                   </div>
-                  <div style={timerStyles}>
+                  <div className={`flex items-center gap-2 ${timeLeft < 300 ? 'text-red-500 font-bold' : 'text-slate-500'}`}>
                     <span>⏱️</span> {formatTime(timeLeft)}
                   </div>
                 </div>
-                
-                <div style={progressBarContainerStyles}>
-                  <div style={progressBarStyles(progressPercentage)}></div>
+
+                <div className="h-2 bg-slate-200 rounded mb-4 overflow-hidden">
+                  <div
+                    className="h-full bg-teal-700 rounded transition-all duration-300"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+                <div className="flex justify-between mb-8">
                   <span>Question {currentQuestion + 1} of {mockQuestions.length}</span>
                   <span>{progressPercentage}% Complete</span>
                 </div>
-                
-                <div style={questionContainerStyles}>
-                  <p style={questionTextStyles}>
+
+                <div className="mb-8">
+                  <p className="text-xl font-bold mb-6 text-slate-900">
                     {mockQuestions[currentQuestion].question}
                   </p>
-                  
-                  <ul style={optionsListStyles}>
-                    {mockQuestions[currentQuestion].options.map((option, index) => (
-                      <li 
+
+                  <ul className="list-none p-0 m-0">
+                    {mockQuestions[currentQuestion].options.map((option, index) => {
+                      const isSelected = selectedAnswers[currentQuestion] === index;
+                      return (
+                      <li
                         key={index}
-                        style={optionItemStyles(selectedAnswers[currentQuestion] === index)}
+                        className={`p-4 mb-3 border rounded cursor-pointer transition-all ${isSelected ? 'border-teal-700 bg-teal-50' : 'border-slate-200 bg-white hover:border-teal-700 hover:bg-teal-50'}`}
                         onClick={() => handleSelectAnswer(currentQuestion, index)}
-                        onMouseEnter={(e) => {
-                          if (selectedAnswers[currentQuestion] !== index) {
-                            Object.assign(e.currentTarget.style, optionItemHoverStyles);
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (selectedAnswers[currentQuestion] !== index) {
-                            e.currentTarget.style.borderColor = '#e2e8f0';
-                            e.currentTarget.style.backgroundColor = 'white';
-                          }
-                        }}
                       >
                         {option}
                       </li>
-                    ))}
+                    )})}
                   </ul>
                 </div>
-                
-                <div style={navigationStyles}>
-                  <button 
-                    style={{
-                      ...secondaryButtonStyles,
-                      opacity: currentQuestion === 0 ? 0.5 : 1,
-                      cursor: currentQuestion === 0 ? 'not-allowed' : 'pointer',
-                      width: 'auto'
-                    }}
+
+                <div className="flex justify-between mt-8">
+                  <button
+                    className={`bg-slate-500 text-white border-none rounded py-3 px-4 text-sm font-bold transition-colors ${currentQuestion === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-600 cursor-pointer'}`}
                     onClick={handlePrevQuestion}
                     disabled={currentQuestion === 0}
-                    onMouseEnter={(e) => {
-                      if (currentQuestion !== 0) {
-                        Object.assign(e.currentTarget.style, secondaryButtonHoverStyles);
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#64748b';
-                    }}
                   >
                     Previous
                   </button>
-                  
+
                   {currentQuestion < mockQuestions.length - 1 ? (
-                    <button 
-                      style={{
-                        ...buttonStyles,
-                        width: 'auto'
-                      }}
+                    <button
+                      className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors"
                       onClick={handleNextQuestion}
-                      onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, buttonHoverStyles);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#0f766e';
-                      }}
                     >
                       Next
                     </button>
                   ) : (
-                    <button 
-                      style={{
-                        ...buttonStyles,
-                        width: 'auto'
-                      }}
+                    <button
+                      className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors"
                       onClick={handleSubmitQuiz}
-                      onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, buttonHoverStyles);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#0f766e';
-                      }}
                     >
                       Submit Quiz
                     </button>
@@ -754,71 +439,53 @@ const QuizPage = () => {
       ) : (
         <>
           <p>Select a quiz below to begin or enter an access code.</p>
-          
-          <div style={quizGridStyles}>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
             {filteredQuizzes.map(quiz => (
-              <div 
+              <div
                 key={quiz.id}
-                style={quizCardStyles}
+                className="bg-white rounded-lg shadow p-6 cursor-pointer flex flex-col h-full transition-all hover:translate-y-[-5px] hover:shadow-md"
                 onClick={() => handleQuizSelect(quiz.id)}
-                onMouseEnter={(e) => {
-                  Object.assign(e.currentTarget.style, quizCardHoverStyles);
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = '';
-                  e.currentTarget.style.boxShadow = '';
-                }}
               >
-                <div style={iconContainerStyles(quiz.color)}>
+                <div
+                  className="w-[50px] h-[50px] rounded-full flex items-center justify-center text-2xl mb-4"
+                  style={{ backgroundColor: quiz.color || '#0f766e' }}
+                >
                   <span>{quiz.icon}</span>
                 </div>
-                <h3 style={quizTitleStyles}>{quiz.title}</h3>
-                <p style={quizDescStyles}>{quiz.description}</p>
-                <div style={quizMetaStyles}>
+                <h3 className="text-xl font-bold mb-2 text-slate-900">{quiz.title}</h3>
+                <p className="text-slate-500 mb-4 flex-1">{quiz.description}</p>
+                <div className="flex justify-between text-slate-400 text-sm mt-auto mb-4">
                   <span>{quiz.questions} Questions</span>
                   <span>{quiz.difficulty}</span>
                 </div>
-                <button 
-                  style={buttonStyles}
-                  onMouseEnter={(e) => {
-                    Object.assign(e.currentTarget.style, buttonHoverStyles);
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0f766e';
-                  }}
-                >
+                <button className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors w-full">
                   Start Quiz
                 </button>
               </div>
             ))}
           </div>
-          
+
           {filteredQuizzes.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+            <div className="text-center p-8 text-slate-500">
               <p>No quizzes found matching "{searchQuery}"</p>
             </div>
           )}
-          
-          <div style={{ marginTop: '3rem', padding: '2rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem' }}>
-            <h3 style={{ marginTop: 0 }}>Have an Access Code?</h3>
+
+          <div className="mt-12 p-8 bg-slate-50 rounded-lg">
+            <h3 className="mt-0">Have an Access Code?</h3>
             <p>If you have an access code for a specific quiz, enter it below to begin.</p>
-            <div style={{ display: 'flex', maxWidth: '400px', gap: '1rem', marginTop: '1rem' }}>
+            <div className="flex max-w-md gap-4 mt-4">
               <input
                 type="text"
                 placeholder="Enter access code"
-                style={{ ...inputStyles, marginBottom: 0 }}
+                className="w-full py-3 px-3 border border-slate-200 rounded text-base"
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value)}
               />
-              <button 
-                style={{ ...buttonStyles, width: 'auto' }}
+              <button
+                className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors"
                 onClick={() => navigate(`/quiz/access-code-${accessCode}`)}
-                onMouseEnter={(e) => {
-                  Object.assign(e.currentTarget.style, buttonHoverStyles);
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#0f766e';
-                }}
               >
                 Submit
               </button>

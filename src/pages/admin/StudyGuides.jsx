@@ -21,9 +21,9 @@ const StudyGuides = () => {
       setSelectedStudyGuide(null);
       setIsCreating(false);
     };
-    
+
     setResetStudyGuideSelection(() => resetSelection);
-    
+
     return () => {
       setResetStudyGuideSelection(() => () => {});
     };
@@ -42,7 +42,7 @@ const StudyGuides = () => {
 
     window.addEventListener('sectionSelected', handleSectionSelected);
     window.addEventListener('resetSections', handleResetSections);
-    
+
     return () => {
       window.removeEventListener('sectionSelected', handleSectionSelected);
       window.removeEventListener('resetSections', handleResetSections);
@@ -52,7 +52,7 @@ const StudyGuides = () => {
   useEffect(() => {
     if (selectedCategory) {
       loadStudyGuides();
-      
+
       if (!selectedSection && selectedCategory.section_id) {
         loadSection(selectedCategory.section_id);
       }
@@ -63,7 +63,7 @@ const StudyGuides = () => {
 
   const loadStudyGuides = async () => {
     if (!selectedCategory) return;
-    
+
     setIsLoading(true);
     try {
       const guides = await studyGuidesService.getByCategoryId(selectedCategory.id);
@@ -116,13 +116,13 @@ const StudyGuides = () => {
         }
         return section;
       });
-      
+
       // Update local state
       setStudyGuides(prev => prev.filter(guide => guide.id !== selectedStudyGuide.id));
-      
+
       // Update context
       optimisticallyUpdateSectionsOrder(newSectionsData);
-      
+
       // Make API call
       await studyGuidesService.delete(selectedStudyGuide.id);
       setSelectedStudyGuide(null);
@@ -181,7 +181,7 @@ const StudyGuides = () => {
         });
 
         // Update local state with real ID
-        setStudyGuides(prev => prev.map(guide => 
+        setStudyGuides(prev => prev.map(guide =>
           guide.id === tempId ? savedGuide : guide
         ));
 
@@ -246,7 +246,7 @@ const StudyGuides = () => {
         // Make API call
         savedGuide = await studyGuidesService.update(selectedStudyGuide.id, studyGuideData);
       }
-      
+
       setIsCreating(false);
       setSelectedStudyGuide(null);
     } catch (error) {
@@ -279,20 +279,7 @@ const StudyGuides = () => {
     }
   };
 
-  const containerStyles = {
-    backgroundColor: '#F9FAFB',
-    borderRadius: '8px',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    padding: '24px'
-  };
-
-  const contentStyles = {
-    backgroundColor: 'white',
-    padding: '24px',
-    borderRadius: '8px',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    minHeight: '500px'
-  };
+  // Using Tailwind classes instead of inline styles
 
   const renderContent = () => {
     if (selectedStudyGuide || isCreating) {
@@ -392,8 +379,8 @@ const StudyGuides = () => {
   };
 
   return (
-    <div style={containerStyles}>
-      <div style={contentStyles}>
+    <div className="bg-gray-50 rounded-lg shadow p-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm min-h-[500px]">
         {renderContent()}
       </div>
     </div>

@@ -6,7 +6,7 @@ import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
 
 const RedBoldNum = ({ children }) => (
-  <span style={{ color: '#DC2626', fontWeight: 'bold' }}>{children}</span>
+  <span className="text-red-600 font-bold">{children}</span>
 );
 
 const SectionManagement = ({ onViewCategories }) => {
@@ -15,10 +15,10 @@ const SectionManagement = ({ onViewCategories }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [deleteModalState, setDeleteModalState] = useState({ 
-    isOpen: false, 
-    sectionId: null, 
-    description: "" 
+  const [deleteModalState, setDeleteModalState] = useState({
+    isOpen: false,
+    sectionId: null,
+    description: ""
   });
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const SectionManagement = ({ onViewCategories }) => {
       const updatedSection = await sectionsService.update(id, formData);
 
       // Update local state
-      setSections(prev => prev.map(s => 
+      setSections(prev => prev.map(s =>
         s.id === id ? { ...s, ...updatedSection } : s
       ));
     } catch (err) {
@@ -78,7 +78,7 @@ const SectionManagement = ({ onViewCategories }) => {
       });
       // Sort by display_order
       updatedSections.sort((a, b) => a.display_order - b.display_order);
-      
+
       // Update local state
       setSections(updatedSections);
 
@@ -129,8 +129,8 @@ const SectionManagement = ({ onViewCategories }) => {
   const initiateDelete = (id) => {
     const section = sectionsData.find(s => s.id === id);
     if (section) {
-      setDeleteModalState({ 
-        isOpen: true, 
+      setDeleteModalState({
+        isOpen: true,
         sectionId: id,
         description: getDeleteMessage(section)
       });

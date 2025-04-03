@@ -42,7 +42,7 @@ const StudyGuideEditor = ({
       // Basic validation for name
       if (!/^[a-zA-Z0-9-]+$/.test(name)) {
         console.warn(`Invalid interactive element name found: ${name}`);
-        return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`;
+        return `<p class="text-red-500 border border-red-500 p-1">[Invalid interactive element: ${name}]</p>`;
       }
       // Construct the custom element tag name (e.g., fiber-fault -> fiber-fault-simulator)
       const tagName = `${name}-simulator`; // Assuming this convention matches the definition
@@ -136,9 +136,9 @@ const StudyGuideEditor = ({
     // Extract and set body content
     // Set initial content (body + script) for the editor
     // Note: TinyMCE should handle the full body content including scripts
-    setContent(extractBodyContent(initialContent)); 
+    setContent(extractBodyContent(initialContent));
     isInitialMount.current = false; // Mark initial mount as done
-    
+
     setTitle(initialTitle);
     isEditorInitialized.current = false;
   }, [initialContent, initialTitle]);
@@ -146,15 +146,15 @@ const StudyGuideEditor = ({
   // Function to prepare HTML content for preview
   const prepareContentForPreview = (htmlContent) => {
     if (!htmlContent) return htmlContent;
-    
+
     // Only process HTML content
     if (!htmlContent.includes('<!DOCTYPE html>') && !htmlContent.includes('<html')) {
       return htmlContent;
     }
-    
+
     // Add a comment to help with debugging
     const debugComment = `
-<!-- 
+<!--
   Preview content prepared by StudyGuideEditor
   Timestamp: ${new Date().toISOString()}
   Content length: ${htmlContent.length}
@@ -166,20 +166,20 @@ const StudyGuideEditor = ({
     if (headIndex !== -1) {
       return htmlContent.slice(0, headIndex + 6) + debugComment + htmlContent.slice(headIndex + 6);
     }
-    
+
     return htmlContent;
   };
-  
+
   // Extract body content from full HTML document
   const extractBodyContent = (htmlContent) => {
     if (!htmlContent) return '';
-    
+
     // Check if it's a full HTML document
     if (htmlContent.includes('<body')) {
       const match = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
       return match ? match[1] : htmlContent;
     }
-    
+
     return htmlContent;
   };
 
@@ -223,7 +223,7 @@ const StudyGuideEditor = ({
       th { background-color: #f2f2f2; }
       .interactive-placeholder { background-color: #f0f7ff; border: 1px solid #bbd6ff; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
     `;
-    
+
     const styleContent = extractStyleContent(initialContent) || baseStyles;
 
     // Generate the final HTML with proper whitespace and indentation
@@ -281,7 +281,7 @@ const StudyGuideEditor = ({
 
   // Reference to the TinyMCE editor instance
   const editorRef = useRef(null);
-  
+
   // Debug state to track content changes
   const [debugInfo, setDebugInfo] = useState({
     lastRichTextContent: '',
@@ -303,22 +303,22 @@ const StudyGuideEditor = ({
     </style>
 </head>
 <body>
-    ${content} 
+    ${content}
 </body>
 </html>`;
 
       setHtmlModeContent(fullHtml);
       // REMOVED: console.log referencing deleted scriptContent
-      console.log("Switching to HTML mode"); 
+      console.log("Switching to HTML mode");
     } else {
       // Switching from HTML to Rich Text mode
       // Extract only the body content
       const newBodyContent = extractBodyContent(htmlModeContent);
       // Set RTE content to full body extracted from HTML mode (includes script)
-      setContent(newBodyContent); 
-      
+      setContent(newBodyContent);
+
       // REMOVED: scriptContent update logic
-      
+
       console.log("Switching to Rich Text mode");
     }
     setIsHtmlMode(!isHtmlMode);
@@ -381,8 +381,8 @@ const StudyGuideEditor = ({
         });
 
         // If it's not full HTML, wrap it
-        let contentToPreview = editorContent?.includes('<!DOCTYPE html') 
-          ? editorContent 
+        let contentToPreview = editorContent?.includes('<!DOCTYPE html')
+          ? editorContent
           : getFullHtmlForSave(editorContent);
 
         // Prepare content for preview
@@ -392,7 +392,7 @@ const StudyGuideEditor = ({
         setPreviewContent(contentToPreview || '');
         setIsPreviewOpen(true);
       };
-        
+
         try {
           const head = editor.getDoc().head;
           const styleContent = extractStyleContent(initialContent); // Use the helper
@@ -447,7 +447,7 @@ const StudyGuideEditor = ({
         user-select: none;
       }
       @import url('/fonts/inter.css');
-      body { 
+      body {
         font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         margin: 0;
         padding: 16px;
@@ -487,263 +487,31 @@ const StudyGuideEditor = ({
     file_picker_callback: filePickerCallback
   };
 
-  // Styles
-  const styles = {
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px', // Reduced gap
-      width: '100%',
-      flexGrow: 1, // Added to allow vertical expansion
-      minHeight: 0 // Added for flexbox height calculation
-    },
-    formGroup: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '4px',
-      // flexGrow: 1 // Removed flexGrow from style definition
-    },
-    label: {
-      fontSize: '14px',
-      fontWeight: '500',
-      color: '#374151'
-    },
-    input: {
-      padding: '0 12px', // Adjust padding to be horizontal only
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      width: '100%',
-      height: '38px',
-      lineHeight: '38px', // Add explicit line-height
-      boxSizing: 'border-box' // Explicit box-sizing
-    },
-    // toggleButtonContainer: { // Removed container style
-    // },
-    toggleButton: {
-      padding: '0 16px', // Adjust padding to be horizontal only
-      backgroundColor: 'white',
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      height: '38px',
-      lineHeight: '36px', // Slightly lower line-height to account for borders
-      color: '#374151',
-      cursor: 'pointer',
-      whiteSpace: 'nowrap', // Prevent text wrapping
-      boxSizing: 'border-box', // Explicit box-sizing
-      display: 'flex',
-      alignItems: 'center', // Center text vertically
-      justifyContent: 'center' // Center text horizontally
-    },
-    editorContainer: {
-      width: '100%',
-      overflow: 'hidden',
-      flexGrow: 1, // Keep flexGrow
-      minHeight: 0, // Keep minHeight
-      // height: 'calc(100% - 172px)', // Removed explicit height calculation
-      // display: 'flex', // REMOVE flex display
-      // flexDirection: 'column' // REMOVE flex direction
-    },
-    htmlEditorContainer: {
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      flexGrow: 1, // Allow vertical expansion
-      height: '850px' // Match the height of the Rich Text Editor
-    },
-    panelGroupContainer: {
-      flex: 1,
-      minHeight: 0,  /* Important for Firefox */
-      height: '100%'
-    },
-    resizeHandle: {
-      width: '4px',
-      margin: '0 8px',
-      background: '#D1D5DB',
-      borderRadius: '2px',
-      transition: 'background-color 0.2s',
-      cursor: 'col-resize',
-      height: '100%'  /* Ensure handle fills height */
-    },
-    resizeHandleHovered: {
-      background: '#9CA3AF'
-    },
-    htmlEditorColumn: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      height: '100%',
-      minHeight: 0,  /* Important for Firefox */
-      overflow: 'hidden' /* Prevent scrolling issues */
-    },
-    textarea: {
-      width: '100%',
-      height: 'calc(100% - 30px)',  /* Subtract label height */
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      padding: '8px',
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      resize: 'none',
-      overflow: 'auto' /* Enable scrolling within the textarea */
-    },
-    previewContainer: {
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      padding: '16px',
-      height: 'calc(100% - 30px)',  /* Subtract label height */
-      overflow: 'auto',
-      backgroundColor: '#ffffff' /* Add background color for better visibility */
-    },
-    iframe: {
-      width: '100%',
-      height: '100%',
-      border: 'none',
-      display: 'block' /* Ensure proper display */
-    },
-    actionContainer: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: '12px',
-      marginTop: '16px'
-    },
-    saveButton: {
-      padding: '8px 16px',
-      backgroundColor: '#3B82F6',
-      border: '1px solid transparent',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: 'white',
-      cursor: isSaving ? 'not-allowed' : 'pointer',
-      opacity: isSaving ? 0.5 : 1
-    },
-    deleteButton: {
-      padding: '8px 16px',
-      backgroundColor: 'white',
-      border: '1px solid #DC2626',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: '#DC2626',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease'
-    },
-    cancelButton: {
-      padding: '8px 16px',
-      backgroundColor: 'white',
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: '#374151',
-      cursor: 'pointer'
-    },
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 50
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      padding: '24px',
-      borderRadius: '8px',
-      maxWidth: '400px',
-      width: '90%'
-    },
-    modalTitle: {
-      fontSize: '18px',
-      fontWeight: 'bold',
-      color: '#111827',
-      marginBottom: '12px'
-    },
-    modalText: {
-      fontSize: '14px',
-      color: '#4B5563',
-      marginBottom: '20px'
-    },
-    modalButtons: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: '12px'
-    },
-    modalCancelButton: {
-      padding: '8px 16px',
-      backgroundColor: 'white',
-      border: '1px solid #D1D5DB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: '#374151',
-      cursor: 'pointer'
-    },
-    modalDeleteButton: {
-      padding: '8px 16px',
-      backgroundColor: '#DC2626',
-      border: '1px solid transparent',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: 'white',
-      cursor: 'pointer'
-    }
-  };
+  // Styles have been converted to Tailwind CSS classes
 
   return (
-    <div style={styles.container}>
+    <div className="flex flex-col gap-2 w-full flex-grow min-h-0">
       {/* Wrapper for Title and Toggle Button with right-aligned button */}
-      <div style={{ display: 'flex', width: '100%', height: '38px', justifyContent: 'space-between' }}>
+      <div className="flex w-full h-[38px] justify-between">
         {/* Title input in a div with fixed width percentage */}
-        <div style={{ width: '70%', height: '100%' }}>
+        <div className="w-[70%] h-full">
           <input
             type="text"
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{
-              width: '100%',
-              height: '100%',
-              padding: '0 12px',
-              border: '1px solid #D1D5DB',
-              borderRadius: '6px',
-              fontSize: '14px',
-              boxSizing: 'border-box',
-              outline: 'none'
-            }}
+            className="w-full h-full px-3 border border-gray-300 rounded-md text-sm box-border outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             placeholder="Enter study guide title"
             required
           />
         </div>
-        
+
         {/* Button aligned to the right */}
-        <div style={{ height: '100%' }}>
+        <div className="h-full">
           <button
             type="button"
             onClick={toggleMode}
-            style={{
-              height: '100%',
-              padding: '0 16px',
-              backgroundColor: 'white',
-              border: '1px solid #D1D5DB',
-              borderRadius: '6px',
-              fontSize: '14px',
-              color: '#374151',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              boxSizing: 'border-box',
-              outline: 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#F3F4F6';
-              e.currentTarget.style.borderColor = '#9CA3AF';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.borderColor = '#D1D5DB';
-            }}
+            className="h-full px-4 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 rounded-md text-sm text-gray-700 cursor-pointer whitespace-nowrap box-border outline-none transition-colors"
           >
             {isHtmlMode ? 'Switch to Rich Text' : 'Switch to HTML'}
           </button>
@@ -751,43 +519,40 @@ const StudyGuideEditor = ({
       </div>
 
       {/* Editor */}
-      <div style={styles.editorContainer}>
+      <div className="w-full overflow-hidden flex-grow min-h-0">
         {isHtmlMode ? (
-          <div style={styles.htmlEditorContainer}>
-            <div style={styles.panelGroupContainer}>
-              <PanelGroup direction="horizontal" style={{ height: '100%' }}>
+          <div className="w-full flex flex-col flex-grow h-[850px]">
+            <div className="flex-1 min-h-0 h-full">
+              <PanelGroup direction="horizontal" className="h-full">
               <Panel defaultSize={50} minSize={30}>
-                <div style={styles.htmlEditorColumn}>
-                  <label style={styles.label}>
+                <div className="flex flex-col gap-2 h-full min-h-0 overflow-hidden">
+                  <label className="text-sm font-medium text-gray-700">
                     HTML Editor (Full Document)
                   </label>
                   <textarea
-                    value={htmlModeContent} // Use dedicated state for HTML mode
-                    onChange={(e) => setHtmlModeContent(e.target.value)} // Update dedicated state
-                    style={styles.textarea}
+                    value={htmlModeContent}
+                    onChange={(e) => setHtmlModeContent(e.target.value)}
+                    className="w-full h-[calc(100%-30px)] font-mono text-sm p-2 border border-gray-300 rounded-md resize-none overflow-auto focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     placeholder="Enter full HTML document content"
                   />
                 </div>
               </Panel>
-              
+
               <PanelResizeHandle>
                 <div
-                  style={styles.resizeHandle}
-                  onMouseEnter={e => e.currentTarget.style.background = '#9CA3AF'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#D1D5DB'}
+                  className="w-1 mx-2 bg-gray-300 rounded transition-colors cursor-col-resize h-full hover:bg-gray-400"
                 />
               </PanelResizeHandle>
-              
+
               <Panel defaultSize={50} minSize={30}>
-                <div style={styles.htmlEditorColumn}>
-                  <label style={styles.label}>
+                <div className="flex flex-col gap-2 h-full min-h-0 overflow-hidden">
+                  <label className="text-sm font-medium text-gray-700">
                     Preview
                   </label>
-                  <div style={styles.previewContainer}>
+                  <div className="border border-gray-300 rounded-md p-4 h-[calc(100%-30px)]">
                     <iframe
-                      ref={iframeRef} // Assign the ref - content will be injected via useEffect
-                      // Remove srcDoc - we manage content manually
-                      style={styles.iframe}
+                      ref={iframeRef}
+                      className="w-full h-full border-none block"
                       sandbox="allow-scripts allow-same-origin allow-downloads allow-popups"
                       title="Preview"
                     />
@@ -798,65 +563,49 @@ const StudyGuideEditor = ({
             </div>
           </div>
         ) : (
-          // Removed wrapper div
-          <Editor
-            value={content} // Pass body content state directly
-            onEditorChange={(newContent, editor) => {
-                // Simplified: Directly update the body content state
-              console.log("Editor content changed, updating state.");
-              setContent(newContent);
+          <div className="w-full h-full">
+            <Editor
+              value={content} // Pass body content state directly
+              onEditorChange={(newContent, editor) => {
+                  // Simplified: Directly update the body content state
+                console.log("Editor content changed, updating state.");
+                setContent(newContent);
 
-              // Update debug info (optional)
-              setDebugInfo(prev => ({
-                ...prev,
-                lastRichTextContent: newContent,
-                // lastHtmlContent: getFullHtmlForSave(newContent) // Could reconstruct here if needed for debug
-              }));
-            }}
-            onInit={(evt, editor) => {
-              editorRef.current = editor; // Store editor reference
-              isEditorInitialized.current = true; // Mark editor as initialized
-              console.log("TinyMCE editor initialized");
-            }}
+                // Update debug info (optional)
+                setDebugInfo(prev => ({
+                  ...prev,
+                  lastRichTextContent: newContent,
+                  // lastHtmlContent: getFullHtmlForSave(newContent) // Could reconstruct here if needed for debug
+                }));
+              }}
+              onInit={(evt, editor) => {
+                editorRef.current = editor; // Store editor reference
+                isEditorInitialized.current = true; // Mark editor as initialized
+                console.log("TinyMCE editor initialized");
+              }}
               init={editorConfig}
               tinymceScriptSrc="/tinymce/tinymce.min.js"
             />
-          // Removed wrapper div
+          </div>
         )}
       </div>
-      
+
       {/* Actions */}
-      <div style={styles.actionContainer}>
+      <div className="flex justify-end gap-3 mt-4">
         {!isNew && (
           <button
             type="button"
             onClick={() => setIsDeleteModalOpen(true)}
-            style={styles.deleteButton}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#FEE2E2';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.transform = 'none';
-            }}
+            className="py-2 px-4 bg-white hover:bg-red-50 border border-red-600 text-red-600 rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5"
           >
             Delete
           </button>
         )}
-        <div style={{ flex: 1 }}></div>
+        <div className="flex-1"></div>
         <button
           type="button"
           onClick={onCancel}
-          style={styles.cancelButton}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#F3F4F6';
-            e.currentTarget.style.borderColor = '#9CA3AF';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'white';
-            e.currentTarget.style.borderColor = '#D1D5DB';
-          }}
+          className="py-2 px-4 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 rounded-md text-sm text-gray-700 cursor-pointer transition-colors"
         >
           Cancel
         </button>
@@ -864,19 +613,7 @@ const StudyGuideEditor = ({
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          style={styles.saveButton}
-          onMouseEnter={(e) => {
-            if (!isSaving) {
-              e.currentTarget.style.backgroundColor = '#2563EB';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isSaving) {
-              e.currentTarget.style.backgroundColor = '#3B82F6';
-              e.currentTarget.style.transform = 'none';
-            }
-          }}
+          className={`py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save')}
         </button>
@@ -888,42 +625,26 @@ const StudyGuideEditor = ({
         onClose={() => setIsDeleteModalOpen(false)}
         className="relative z-50"
       >
-        <div style={styles.modalOverlay}>
-          <Dialog.Panel style={styles.modalContent}>
-            <Dialog.Title style={styles.modalTitle}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Dialog.Panel className="bg-white p-6 rounded-lg max-w-md w-[90%]">
+            <Dialog.Title className="text-lg font-bold text-gray-900 mb-3">
               Delete Study Guide
             </Dialog.Title>
-            <Dialog.Description style={styles.modalText}>
+            <Dialog.Description className="text-sm text-gray-600 mb-5">
               Are you sure you want to delete this study guide? This action cannot be undone and all associated data will be permanently lost.
             </Dialog.Description>
-            <div style={styles.modalButtons}>
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                style={styles.modalCancelButton}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#F3F4F6';
-                  e.currentTarget.style.borderColor = '#9CA3AF';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'white';
-                  e.currentTarget.style.borderColor = '#D1D5DB';
-                }}
+                className="py-2 px-4 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 rounded-md text-sm text-gray-700 cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDelete}
-                style={styles.modalDeleteButton}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#B91C1C';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#DC2626';
-                  e.currentTarget.style.transform = 'none';
-                }}
+                className="py-2 px-4 bg-red-600 hover:bg-red-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-colors hover:-translate-y-0.5"
               >
                 Delete
               </button>

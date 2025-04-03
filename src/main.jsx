@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
+import './index.css'; // Moved CSS import before App
 import App from './App';
-import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import './utils/debugHelper';
 

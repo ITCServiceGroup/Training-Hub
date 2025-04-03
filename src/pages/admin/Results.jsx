@@ -15,13 +15,13 @@ const Results = () => {
   const [error, setError] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
-  
+
   // Log state changes for debugging
   useEffect(() => {
     console.log('showPdfModal state changed to:', showPdfModal);
     console.log('pdfUrl state:', pdfUrl);
   }, [showPdfModal, pdfUrl]);
-  
+
   // Filter states
   const [dateFilter, setDateFilter] = useState({
     preset: 'last_month',
@@ -33,17 +33,17 @@ const Results = () => {
   const [selectedMarkets, setSelectedMarkets] = useState([]);
   const [scoreRange, setScoreRange] = useState({ min: 0, max: 100 });
   const [timeRange, setTimeRange] = useState({ min: 0, max: 3600 });
-  
+
   // Sorting state
   const [sortField, setSortField] = useState('date_of_test');
   const [sortOrder, setSortOrder] = useState('desc');
-  
+
   // Fetch results based on filters
   useEffect(() => {
     const fetchResults = async () => {
       try {
         setLoading(true);
-        
+
         const data = await quizResultsService.getFilteredResults({
           startDate: dateFilter.startDate,
           endDate: dateFilter.endDate,
@@ -57,7 +57,7 @@ const Results = () => {
           sortField,
           sortOrder
         });
-        
+
         setResults(data);
         setError(null);
       } catch (err) {
@@ -67,19 +67,19 @@ const Results = () => {
         setLoading(false);
       }
     };
-    
+
     fetchResults();
   }, [
-    dateFilter, 
-    selectedSupervisors, 
-    selectedLdaps, 
-    selectedMarkets, 
-    scoreRange, 
-    timeRange, 
-    sortField, 
+    dateFilter,
+    selectedSupervisors,
+    selectedLdaps,
+    selectedMarkets,
+    scoreRange,
+    timeRange,
+    sortField,
     sortOrder
   ]);
-  
+
   // Handle sorting
   const handleSort = (field) => {
     if (field === sortField) {
@@ -89,7 +89,7 @@ const Results = () => {
       setSortOrder('asc');
     }
   };
-  
+
   // Handle PDF view
   const handleViewPDF = (url) => {
     console.log('handleViewPDF called with URL:', url);
@@ -97,83 +97,72 @@ const Results = () => {
     setShowPdfModal(true);
     console.log('showPdfModal set to:', true);
   };
-  
-  // Define grid styles similar to what's working in Dashboard.jsx
-  const filtersGridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '1.5rem',
-    width: '100%'
-  };
 
-  const filterItemStyles = {
-    minWidth: 0,
-    width: '100%'
-  };
-  
+  // Using Tailwind classes instead of inline styles
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-6">Filters</h2>
-        <div style={filtersGridStyles}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
           {/* First column: Date Range */}
-          <div style={filterItemStyles}>
+          <div className="min-w-0 w-full">
             <h3 className="text-sm font-medium text-gray-700 mb-2">Date Range</h3>
-            <DateFilter 
-              value={dateFilter} 
-              onChange={setDateFilter} 
+            <DateFilter
+              value={dateFilter}
+              onChange={setDateFilter}
             />
           </div>
-          
+
           {/* Second column: Score Range */}
-          <div style={filterItemStyles}>
+          <div className="min-w-0 w-full">
             <h3 className="text-sm font-medium text-gray-700 mb-2">Score Range</h3>
-            <NumberRangeFilter 
+            <NumberRangeFilter
               type="score"
-              value={scoreRange} 
-              onChange={setScoreRange} 
+              value={scoreRange}
+              onChange={setScoreRange}
               hideTitle={true}
             />
           </div>
-          
+
           {/* Third column: Time Range */}
-          <div style={filterItemStyles}>
+          <div className="min-w-0 w-full">
             <h3 className="text-sm font-medium text-gray-700 mb-2">Time Range</h3>
-            <NumberRangeFilter 
+            <NumberRangeFilter
               type="time"
-              value={timeRange} 
-              onChange={setTimeRange} 
+              value={timeRange}
+              onChange={setTimeRange}
               hideTitle={true}
             />
           </div>
-          
+
           {/* Fourth column: Selection filters */}
-          <div style={{...filterItemStyles, display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+          <div className="min-w-0 w-full flex flex-col gap-6">
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Supervisors:</h3>
-              <MultiSelect 
+              <MultiSelect
                 type="supervisors"
-                value={selectedSupervisors} 
+                value={selectedSupervisors}
                 onChange={setSelectedSupervisors}
                 hideLabel={true}
               />
             </div>
-            
+
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">LDAPs:</h3>
-              <MultiSelect 
+              <MultiSelect
                 type="ldaps"
-                value={selectedLdaps} 
+                value={selectedLdaps}
                 onChange={setSelectedLdaps}
                 hideLabel={true}
               />
             </div>
-            
+
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Markets:</h3>
-              <MultiSelect 
+              <MultiSelect
                 type="markets"
-                value={selectedMarkets} 
+                value={selectedMarkets}
                 onChange={setSelectedMarkets}
                 hideLabel={true}
               />
@@ -181,23 +170,23 @@ const Results = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Results</h2>
-        
+
         {error ? (
           <div className="p-4 text-center text-red-600">
             {error}
           </div>
         ) : (
           <>
-            <ResultsTable 
-              results={results} 
-              sortField={sortField} 
-              sortOrder={sortOrder} 
-              onSort={handleSort} 
-              onViewPDF={handleViewPDF} 
-              loading={loading} 
+            <ResultsTable
+              results={results}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+              onViewPDF={handleViewPDF}
+              loading={loading}
             />
             <div className="mt-6 flex justify-end">
               <ExportButtons data={results} />
@@ -205,15 +194,15 @@ const Results = () => {
           </>
         )}
       </div>
-      
+
       {results.length > 0 && (
         <ChartSection data={results} />
       )}
-      
-      <PDFModal 
-        isOpen={showPdfModal} 
-        pdfUrl={pdfUrl} 
-        onClose={() => setShowPdfModal(false)} 
+
+      <PDFModal
+        isOpen={showPdfModal}
+        pdfUrl={pdfUrl}
+        onClose={() => setShowPdfModal(false)}
       />
     </div>
   );

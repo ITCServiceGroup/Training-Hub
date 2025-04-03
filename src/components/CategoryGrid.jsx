@@ -6,97 +6,6 @@ import { useNavigate } from 'react-router-dom';
  */
 const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   const navigate = useNavigate();
-  
-  // Styles
-  const gridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '1.5rem'
-  };
-  
-  const categoryCardStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    padding: '1.5rem',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  };
-  
-  const iconContainerStyles = (color) => ({
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    backgroundColor: color || '#0f766e',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    marginBottom: '1rem'
-  });
-  
-  const categoryTitleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    marginBottom: '0.5rem',
-    color: '#0f172a'
-  };
-  
-  const categoryDescStyles = {
-    color: '#64748b',
-    marginBottom: '1rem',
-    flex: '1'
-  };
-  
-  const categoryMetaStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    marginTop: 'auto'
-  };
-  
-  const buttonStyles = {
-    backgroundColor: '#0f766e',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.25rem',
-    padding: '0.5rem 1rem',
-    fontSize: '0.875rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    marginTop: '1rem',
-    width: '100%'
-  };
-
-  const loadingStyles = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '3rem',
-    color: '#64748b'
-  };
-
-  const spinnerStyles = {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    border: '3px solid #E5E7EB',
-    borderTopColor: '#0f766e',
-    animation: 'spin 1s linear infinite',
-    marginRight: '1rem'
-  };
-
-  const emptyStyles = {
-    textAlign: 'center',
-    padding: '3rem',
-    color: '#64748b'
-  };
 
   const handleCategoryClick = (categoryId, sectionId) => {
     navigate(`/study/${sectionId}/${categoryId}`);
@@ -105,7 +14,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   // Get default icon and color based on category name
   const getCategoryIcon = (category) => {
     const name = category.name.toLowerCase();
-    
+
     if (name.includes('network')) return { icon: '🌐', color: '#0369a1' };
     if (name.includes('install')) return { icon: '📥', color: '#0891b2' };
     if (name.includes('service')) return { icon: '🔧', color: '#0e7490' };
@@ -113,23 +22,23 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
     if (name.includes('security')) return { icon: '🔒', color: '#7e22ce' };
     if (name.includes('hardware')) return { icon: '💻', color: '#15803d' };
     if (name.includes('software')) return { icon: '📊', color: '#b45309' };
-    
+
     // Default
     return { icon: '📚', color: '#0f766e' };
   };
 
   if (isLoading) {
     return (
-      <div style={loadingStyles}>
-        <div style={spinnerStyles}></div>
+      <div className="flex justify-center items-center p-12 text-slate-500">
+        <div className="w-8 h-8 rounded-full border-3 border-gray-200 border-t-teal-700 animate-spin mr-4"></div>
         <span>Loading categories...</span>
       </div>
     );
   }
 
   // Filter categories based on search query
-  const filteredCategories = searchQuery 
-    ? categories.filter(category => 
+  const filteredCategories = searchQuery
+    ? categories.filter(category =>
         category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()))
       )
@@ -137,8 +46,8 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
 
   if (filteredCategories.length === 0) {
     return (
-      <div style={emptyStyles}>
-        {searchQuery 
+      <div className="text-center p-12 text-slate-500">
+        {searchQuery
           ? <p>No categories found matching "{searchQuery}"</p>
           : <p>No categories available</p>
         }
@@ -147,41 +56,30 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   }
 
   return (
-    <div style={gridStyles}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
       {filteredCategories.map(category => {
         const { icon, color } = getCategoryIcon(category);
         const studyGuideCount = category.v2_study_guides?.length || 0;
-        
+
         return (
-          <div 
+          <div
             key={category.id}
-            style={categoryCardStyles}
+            className="bg-white rounded-lg shadow p-6 cursor-pointer flex flex-col h-full transition-all hover:translate-y-[-5px] hover:shadow-md"
             onClick={() => handleCategoryClick(category.id, sectionId)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = '';
-              e.currentTarget.style.boxShadow = '';
-            }}
           >
-            <div style={iconContainerStyles(color)}>
+            <div
+              className="w-[50px] h-[50px] rounded-full flex items-center justify-center text-2xl mb-4"
+              style={{ backgroundColor: color || '#0f766e' }}
+            >
               <span>{icon}</span>
             </div>
-            <h3 style={categoryTitleStyles}>{category.name}</h3>
-            <p style={categoryDescStyles}>{category.description || 'No description available'}</p>
-            <div style={categoryMetaStyles}>
+            <h3 className="text-xl font-bold mb-2 text-slate-900">{category.name}</h3>
+            <p className="text-slate-500 mb-4 flex-1">{category.description || 'No description available'}</p>
+            <div className="flex justify-between text-slate-400 text-sm mt-auto">
               <span>{studyGuideCount} {studyGuideCount === 1 ? 'Study Guide' : 'Study Guides'}</span>
             </div>
-            <button 
-              style={buttonStyles}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#0c5e57';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#0f766e';
-              }}
+            <button
+              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full"
             >
               View Guides
             </button>

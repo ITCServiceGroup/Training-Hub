@@ -47,7 +47,7 @@ const ChartSection = ({ data }) => {
   const initScoreChart = () => {
     const ctx = scoreChartRef.current.getContext('2d');
     const buckets = Array(10).fill(0);
-    
+
     data.forEach(item => {
       const score = item.score_value * 100;
       const index = Math.min(Math.floor(score / 10), 9);
@@ -90,7 +90,7 @@ const ChartSection = ({ data }) => {
   const initTimeChart = () => {
     const ctx = timeChartRef.current.getContext('2d');
     let bucket1 = 0, bucket2 = 0, bucket3 = 0;
-    
+
     data.forEach(item => {
       const minutes = item.time_taken / 60;
       if (minutes < 10) bucket1++;
@@ -124,7 +124,7 @@ const ChartSection = ({ data }) => {
   const initTrendChart = () => {
     const ctx = trendChartRef.current.getContext('2d');
     const dateScores = {};
-    
+
     data.forEach(item => {
       const date = item.date_of_test.split('T')[0];
       if (!dateScores[date]) dateScores[date] = [];
@@ -174,7 +174,7 @@ const ChartSection = ({ data }) => {
   const initSupervisorChart = () => {
     const ctx = supervisorChartRef.current.getContext('2d');
     const supervisorScores = {};
-    
+
     data.forEach(item => {
       if (!supervisorScores[item.supervisor]) supervisorScores[item.supervisor] = [];
       supervisorScores[item.supervisor].push(item.score_value * 100);
@@ -223,7 +223,7 @@ const ChartSection = ({ data }) => {
   const initMarketChart = () => {
     const ctx = marketChartRef.current.getContext('2d');
     const marketCounts = {};
-    
+
     data.forEach(item => {
       marketCounts[item.market] = (marketCounts[item.market] || 0) + 1;
     });
@@ -297,59 +297,28 @@ const ChartSection = ({ data }) => {
     });
   };
 
-  const containerStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-    padding: '1.5rem',
-    maxWidth: '1400px',
-    margin: '0 auto'
-  };
-
-  const titleStyles = {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    marginBottom: '1.5rem'
-  };
-
-  const gridStyles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '1.5rem',
-    width: '100%'
-  };
-
-  const chartContainerStyles = {
-    backgroundColor: '#f9fafb',
-    padding: '1rem',
-    borderRadius: '0.5rem',
-    maxHeight: '400px',
-    minHeight: '350px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
-  };
+  // Using Tailwind classes instead of inline styles
 
   return (
-    <div style={containerStyles}>
-      <h2 style={titleStyles}>Charts/Graphs</h2>
-      <div style={gridStyles}>
-        <div style={chartContainerStyles}>
+    <div className="bg-white rounded-lg shadow p-6 max-w-[1400px] mx-auto">
+      <h2 className="text-xl font-semibold mb-6">Charts/Graphs</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
           <canvas ref={scoreChartRef} />
         </div>
-        <div style={chartContainerStyles}>
+        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
           <canvas ref={timeChartRef} />
         </div>
-        <div style={chartContainerStyles}>
+        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
           <canvas ref={trendChartRef} />
         </div>
-        <div style={chartContainerStyles}>
+        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
           <canvas ref={supervisorChartRef} />
         </div>
-        <div style={chartContainerStyles}>
+        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
           <canvas ref={marketChartRef} />
         </div>
-        <div style={chartContainerStyles}>
+        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
           <canvas ref={scatterChartRef} />
         </div>
       </div>

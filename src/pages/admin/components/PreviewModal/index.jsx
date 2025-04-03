@@ -7,14 +7,14 @@ import { FaTimes } from 'react-icons/fa';
  */
 const extractStyleContent = (htmlContent) => {
   if (!htmlContent) return '';
-  
+
   // Find all style tags and extract their content
   const styleMatches = htmlContent.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
   const styleContents = styleMatches.map(match => {
     const content = match.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
     return content ? content[1].trim() : '';
   });
-  
+
   return styleContents.join('\n\n');
 };
 
@@ -23,13 +23,13 @@ const extractStyleContent = (htmlContent) => {
  */
 const extractBodyContent = (htmlContent) => {
   if (!htmlContent) return '';
-  
+
   // Check if it's a full HTML document with a body tag
   if (htmlContent.includes('<body')) {
     const match = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     return match ? match[1] : htmlContent;
   }
-  
+
   // If no body tag but has HTML structure, try to extract content between head and html closing tags
   if (htmlContent.includes('</head>') && htmlContent.includes('</html>')) {
     const match = htmlContent.match(/<\/head>([\s\S]*)<\/html>/i);
@@ -38,7 +38,7 @@ const extractBodyContent = (htmlContent) => {
       return match[1].replace(/<\/html>/i, '');
     }
   }
-  
+
   // If it has HTML tag but no clear body, try to extract everything after the opening html tag
   if (htmlContent.includes('<html')) {
     const match = htmlContent.match(/<html[^>]*>([\s\S]*)/i);
@@ -47,7 +47,7 @@ const extractBodyContent = (htmlContent) => {
       return match[1].replace(/<\/html>/i, '');
     }
   }
-  
+
   return htmlContent;
 };
 
@@ -56,49 +56,49 @@ const extractBodyContent = (htmlContent) => {
  */
 const extractScriptContent = (htmlContent) => {
   if (!htmlContent) return '';
-  
+
   // Find all script tags without src attribute and extract their content
   const scriptMatches = htmlContent.match(/<script(?![^>]*?\bsrc\b)[^>]*>([\s\S]*?)<\/script>/gi) || [];
-  
+
   if (scriptMatches.length === 0) {
     // If no script tags found, check if there's any JavaScript-like code in the content
     // This helps with content that might have JavaScript but not in proper script tags
-    if (htmlContent.includes('function') || 
-        htmlContent.includes('var ') || 
-        htmlContent.includes('let ') || 
+    if (htmlContent.includes('function') ||
+        htmlContent.includes('var ') ||
+        htmlContent.includes('let ') ||
         htmlContent.includes('const ') ||
         htmlContent.includes('=>')) {
-      
+
       console.log('Found potential JavaScript code outside of script tags');
-      
+
       // Try to extract JavaScript-like code blocks
       const jsBlocks = [];
-      
+
       // Look for function declarations
       const functionMatches = htmlContent.match(/function\s+\w+\s*\([^)]*\)\s*\{[\s\S]*?\}/g) || [];
       jsBlocks.push(...functionMatches);
-      
+
       // Look for variable declarations with function expressions
       const varFunctionMatches = htmlContent.match(/(?:var|let|const)\s+\w+\s*=\s*function\s*\([^)]*\)\s*\{[\s\S]*?\}/g) || [];
       jsBlocks.push(...varFunctionMatches);
-      
+
       // Look for arrow functions
       const arrowFunctionMatches = htmlContent.match(/(?:var|let|const)\s+\w+\s*=\s*\([^)]*\)\s*=>\s*\{[\s\S]*?\}/g) || [];
       jsBlocks.push(...arrowFunctionMatches);
-      
+
       if (jsBlocks.length > 0) {
         return jsBlocks.join('\n\n');
       }
     }
-    
+
     return '';
   }
-  
+
   const scriptContents = scriptMatches.map(match => {
     const content = match.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
     return content ? content[1].trim() : '';
   });
-  
+
   return scriptContents.join('\n\n');
 };
 
@@ -145,110 +145,10 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
     };
   }, []);
 
-  const styles = {
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.75)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '5px', // Further reduced from 10px
-      zIndex: 50
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      borderRadius: '8px',
-      width: '100%',
-      maxWidth: '1400px', // Reduced from 1800px to 1400px
-      maxHeight: '98vh', // Increased from 95vh to 98vh
-      height: '98vh', // Added explicit height
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative'
-    },
-    header: {
-      padding: '6px 12px', // Further reduced padding
-      borderBottom: '1px solid #e5e7eb',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      height: '40px', // Fixed height instead of minHeight
-      flexShrink: 0 // Prevent header from shrinking
-    },
-    title: {
-      fontSize: '1rem', // Further reduced from 1.1rem
-      fontWeight: '600',
-      color: '#111827'
-    },
-    closeButton: {
-      padding: '4px', // Further reduced from 6px
-      borderRadius: '4px',
-      border: 'none',
-      background: 'none',
-      cursor: 'pointer',
-      color: '#6b7280',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    previewContainer: {
-      flex: 1, // Take up all available space
-      display: 'flex', // Use flexbox
-      flexDirection: 'column', // Stack children vertically
-      overflow: 'hidden',
-      padding: '0', // Remove all padding
-      height: 'calc(98vh - 40px)', // Use full height minus header
-      minHeight: '0' // Remove minimum height constraint
-    },
-    iframe: {
-      flex: 1, // Take up all available space
-      width: '100%',
-      height: '100%',
-      border: 'none',
-      borderRadius: '0',
-      backgroundColor: 'white',
-      display: 'block',
-      opacity: isLoading ? 0 : 1,
-      transition: 'opacity 0.2s ease'
-    },
-    loadingOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1,
-      opacity: isLoading ? 1 : 0,
-      visibility: isLoading ? 'visible' : 'hidden',
-      transition: 'opacity 0.2s ease, visibility 0.2s ease'
-    },
-    loadingText: {
-      color: '#6b7280',
-      fontSize: '14px',
-      fontWeight: '500',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    loadingDot: {
-      width: '6px',
-      height: '6px',
-      backgroundColor: '#6b7280',
-      borderRadius: '50%',
-      animation: 'pulse 1s infinite'
-    }
-  };
+  // Using Tailwind classes instead of inline styles
 
   // Use content as the key to force iframe remount on content change
-  const iframeKey = content; 
+  const iframeKey = content;
 
   return (
     <Dialog
@@ -257,38 +157,34 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
       className="relative z-50"
       aria-labelledby="preview-modal-title"
     >
-      <div style={styles.modalOverlay} aria-hidden="true">
-        <Dialog.Panel style={styles.modalContent}>
-          <div style={styles.header}>
-            <Dialog.Title id="preview-modal-title" style={styles.title}>
+      <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-[5px] z-50" aria-hidden="true">
+        <Dialog.Panel className="bg-white rounded-lg w-full max-w-[1400px] max-h-[98vh] h-[98vh] flex flex-col relative">
+          <div className="py-[6px] px-3 border-b border-gray-200 flex justify-between items-center h-10 flex-shrink-0">
+            <Dialog.Title id="preview-modal-title" className="text-base font-semibold text-gray-900">
               {title || 'Study Guide Preview'}
             </Dialog.Title>
             <button
-              style={styles.closeButton}
+              className="p-1 rounded border-none bg-transparent cursor-pointer text-gray-500 hover:text-gray-900 flex items-center justify-center"
               onClick={onClose}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#111827'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
               aria-label="Close preview"
             >
               <FaTimes size={20} aria-hidden="true" />
             </button>
           </div>
-          <div style={styles.previewContainer} className="relative">
+          <div className="flex-1 flex flex-col overflow-hidden p-0 h-[calc(98vh-40px)] min-h-0 relative">
             <div
-              style={styles.loadingOverlay}
+              className={`absolute inset-0 bg-white flex items-center justify-center z-10 transition-opacity duration-200 ${isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
               role="status"
               aria-label="Loading preview content"
             >
-              <div style={styles.loadingText}>
+              <div className="text-gray-500 text-sm font-medium flex items-center gap-2">
                 <span>Loading preview</span>
-                <div style={{ display: 'flex', gap: '4px' }}>
+                <div className="flex gap-1">
                   {[0, 1, 2].map((i) => (
                     <span
                       key={i}
-                      style={{
-                        ...styles.loadingDot,
-                        animationDelay: `${i * 0.2}s`
-                      }}
+                      className="w-[6px] h-[6px] bg-gray-500 rounded-full animate-pulse"
+                      style={{ animationDelay: `${i * 0.2}s` }}
                     />
                   ))}
                 </div>
@@ -304,7 +200,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
             {isOpen && ( // Only render iframe when modal is open
               <iframe
                 key={iframeKey} // Force remount when key changes
-                style={styles.iframe}
+                className={`flex-1 w-full h-full border-none rounded-none bg-white block transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                 sandbox="allow-scripts allow-same-origin"
                 title="Study Guide Preview"
                 ref={iframeRef}
@@ -312,20 +208,20 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                   try {
                     const iframe = iframeRef.current;
                     if (!iframe) return;
-                    
+
                     const iframeDoc = iframe.contentWindow.document;
-                    
+
                     // Create a fresh document structure
                     iframeDoc.open();
                     iframeDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
                     iframeDoc.close();
-                    
+
                     // Extract parts from the full HTML content
                     const fullHtml = content || '';
                     const styleContent = extractStyleContent(fullHtml);
                     const bodyContent = extractBodyContent(fullHtml);
                     const scriptContent = extractScriptContent(fullHtml);
-                    
+
                     // Debug content extraction
                     console.log('Content extraction:', {
                       fullHtmlLength: fullHtml.length,
@@ -336,16 +232,16 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       scriptContentLength: scriptContent.length,
                       scriptContentSample: scriptContent ? scriptContent.substring(0, 100) + '...' : 'none'
                     });
-                    
+
                     // Process content to replace shortcodes with custom element tags
                     const processedContent = processContentForWebComponents(bodyContent);
-                    
+
                     // Add base styles to the document
                     const baseStyle = iframeDoc.createElement('style');
                     baseStyle.textContent = `
                       /* Remove any Google Fonts references */
                       @import url('/fonts/inter.css');
-                      
+
                       /* Font fallbacks for Roboto */
                       @font-face {
                         font-family: 'Roboto';
@@ -371,7 +267,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                         font-weight: 700;
                         src: local('Inter Bold'), local('Inter-Bold'), url('/fonts/Inter-Bold.woff2') format('woff2');
                       }
-                      
+
                       /* Base styles */
                       body {
                         font-family: 'Inter', sans-serif;
@@ -406,15 +302,15 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       th {
                         background-color: #f9fafb;
                       }
-                      
+
                       /* Add any extracted styles */
                       ${styleContent}
                     `;
                     iframeDoc.head.appendChild(baseStyle);
-                    
+
                     // Inject processed body content
                     iframeDoc.body.innerHTML = processedContent;
-                    
+
                     // --- Inject Interactive Element Scripts ---
                     const injectedScripts = new Set();
                     const requiredElements = new Set();
@@ -426,9 +322,9 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                          requiredElements.add(match[1]);
                        }
                     }
-                    
+
                     console.log("Required interactive elements in preview:", requiredElements);
-                    
+
                     requiredElements.forEach(elementName => {
                       // Use the standard filename 'index.js'
                       const scriptPath = `/interactive-elements/${elementName}/index.js`;
@@ -447,7 +343,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       }
                     });
                     // --- End Interactive Element Script Injection ---
-                    
+
                     // Inject any scripts from the original content AFTER interactive elements
                     if (scriptContent) {
                       console.log("Injecting main script content in preview.");
@@ -456,11 +352,11 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       mainScript.defer = true; // Ensure it runs after interactive elements are defined
                       iframeDoc.body.appendChild(mainScript);
                     }
-                    
+
                   } catch (err) {
                     console.error('Error enhancing preview iframe:', err);
                   }
-                  
+
                   if (mountedRef.current) {
                     setIsLoading(false);
                   }

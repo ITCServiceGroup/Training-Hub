@@ -15,53 +15,10 @@ const StudyGuideManagement = ({
   onReorder,
   onBackToCategories
 }) => {
-  const containerStyles = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem'
-  };
-
-  const headerStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1rem'
-  };
-
-  const titleStyles = {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#1F2937'
-  };
-
-  const categoryIndicatorStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#1F2937',
-    marginTop: '0.75rem',
-    padding: '0.5rem 0.75rem',
-    backgroundColor: '#F3F4F6',
-    borderRadius: '0.375rem',
-    border: '1px solid #E5E7EB'
-  };
-
-  const createButtonStyles = {
-    backgroundColor: '#3B82F6',
-    color: 'white',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.375rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s'
-  };
+  // Using Tailwind classes instead of inline styles
 
   return (
-    <div style={containerStyles}>
+    <div className="flex flex-col gap-4">
       <BreadcrumbNav
         items={[
           {
@@ -78,25 +35,19 @@ const StudyGuideManagement = ({
         ]}
       />
 
-      <div style={headerStyles}>
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 style={titleStyles}>Study Guides</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Study Guides</h2>
           {category && (
-            <div style={categoryIndicatorStyles}>
-              <FaFileAlt style={{ marginRight: '0.5rem', fontSize: '1rem' }} />
+            <div className="flex items-center text-lg font-semibold text-gray-800 mt-3 py-2 px-3 bg-gray-100 rounded-md border border-gray-200">
+              <FaFileAlt className="mr-2 text-base" />
               <span>Category: {category.name}</span>
             </div>
           )}
         </div>
         <button
-          style={createButtonStyles}
+          className="bg-blue-500 hover:bg-blue-600 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
           onClick={onCreateNew}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#2563EB';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#3B82F6';
-          }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />

@@ -82,60 +82,14 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   }, [studyGuide?.content]);
 
 
-  // Styles (kept for main viewer container)
-  const containerStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    padding: '2rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    height: '100%',
-    overflow: 'auto',
-    width: '100%'
-  };
-
-  const titleStyles = {
-    fontSize: '1.75rem',
-    color: '#0f172a',
-    marginBottom: '1.5rem',
-    borderBottom: '1px solid #e2e8f0',
-    paddingBottom: '0.75rem'
-  };
-
-  const loadingStyles = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '2rem',
-    color: '#64748b'
-  };
-
-  const spinnerStyles = {
-    width: '24px',
-    height: '24px',
-    borderRadius: '50%',
-    border: '2px solid #E5E7EB',
-    borderTopColor: '#0f766e',
-    animation: 'spin 1s linear infinite',
-    marginRight: '0.75rem'
-  };
-
-  const emptyStateStyles = {
-    textAlign: 'center',
-    padding: '2rem',
-    color: '#64748b',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%'
-  };
+  // Using Tailwind classes instead of inline styles
 
   // Loading and Empty states remain the same
   if (isLoading) {
     return (
-      <div style={containerStyles}>
-        <div style={loadingStyles}>
-          <div style={spinnerStyles}></div>
+      <div className="bg-white rounded-lg p-8 shadow h-full overflow-auto w-full">
+        <div className="flex justify-center items-center p-8 text-slate-500">
+          <div className="w-6 h-6 rounded-full border-2 border-gray-200 border-t-teal-700 animate-spin mr-3"></div>
           <span>Loading study guide...</span>
         </div>
       </div>
@@ -144,8 +98,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   if (!studyGuide) {
     return (
-      <div style={containerStyles}>
-        <div style={emptyStateStyles}>
+      <div className="bg-white rounded-lg p-8 shadow h-full overflow-auto w-full">
+        <div className="text-center p-8 text-slate-500 flex flex-col items-center justify-center h-full">
           <p>Select a study guide to view its content</p>
         </div>
       </div>
@@ -174,21 +128,15 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Main component return statement
   return (
-    <div style={containerStyles}>
-      <h2 style={titleStyles}>{studyGuide.title}</h2>
+    <div className="bg-white rounded-lg p-8 shadow h-full overflow-auto w-full">
+      <h2 className="text-2xl text-slate-900 mb-6 border-b border-slate-200 pb-3">{studyGuide.title}</h2>
       <iframe
         ref={iframeRef} // Ref for the main iframe
         title={studyGuide.title}
         // Set srcDoc to the content processed for web components
         srcDoc={processContentForWebComponents(studyGuide.content)}
-        style={{
-          width: '100%',
-          height: 'calc(100vh - 300px)', // Adjust height as needed
-          minHeight: '600px',
-          border: 'none', // No border for the main iframe itself
-          backgroundColor: 'white',
-          overflow: 'auto'
-        }}
+        className="w-full min-h-[600px] border-none bg-white overflow-auto"
+        style={{ height: 'calc(100vh - 300px)' }} // Keep this one style for dynamic calculation
         // Sandbox is still good practice for the main content iframe
         sandbox="allow-scripts allow-same-origin"
       />

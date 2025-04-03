@@ -1,7 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import TestPage from './pages/TestPage';
 
 // Layout Components
 import Layout from './components/layout/Layout';
@@ -19,7 +18,7 @@ const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
-// Loading fallback 
+// Loading fallback
 const LoadingFallback = () => (
   <div className="loading-screen">
     <div className="spinner"></div>
@@ -30,32 +29,20 @@ const LoadingFallback = () => (
 function App() {
   // Get auth state
   const { loading, isAuthenticated } = useAuth();
-  
+
   // If auth is still loading, show loading indicator
   if (loading) {
     return <LoadingFallback />;
   }
 
   return (
-    <div className="app-container" style={{ width: '100%', minHeight: '100vh' }}>
+    <div className="app-container w-full min-h-screen">
       {/* For debug purposes, show auth state */}
-      <div style={{ 
-        position: 'fixed', 
-        bottom: '10px', 
-        right: '10px', 
-        background: '#eee', 
-        padding: '5px', 
-        fontSize: '12px',
-        zIndex: 1000,
-        opacity: 0.7
-      }}>
+      <div className="fixed bottom-[10px] right-[10px] bg-gray-200 p-[5px] text-xs z-[1000] opacity-70">
         Auth: {isAuthenticated ? 'Logged In' : 'Not Logged In'}
       </div>
-      
+
       <Routes>
-        {/* Test route - always available for debugging */}
-        <Route path="/test" element={<TestPage />} />
-        
         {/* Main app routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={
@@ -63,25 +50,25 @@ function App() {
               <HomePage />
             </Suspense>
           } />
-          
+
           <Route path="login" element={
             <Suspense fallback={<LoadingFallback />}>
               <LoginPage />
             </Suspense>
           } />
-          
+
           <Route path="study/:sectionId?/:categoryId?/:studyGuideId?" element={
             <Suspense fallback={<LoadingFallback />}>
               <StudyGuidePage />
             </Suspense>
           } />
-          
+
           <Route path="quiz/:quizId?" element={
             <Suspense fallback={<LoadingFallback />}>
               <QuizPage />
             </Suspense>
           } />
-          
+
           {/* Admin Routes (Protected) */}
           <Route path="admin" element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
@@ -109,7 +96,7 @@ function App() {
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Route>
           </Route>
-          
+
           {/* 404 */}
           <Route path="*" element={
             <Suspense fallback={<LoadingFallback />}>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext'; // To get user ID for uploads
 import { listMedia, uploadMedia, deleteMedia, updateMediaMetadata } from '../../services/api/media';
+// Removed supabase import as we're using direct URL construction
 import { format } from 'date-fns'; // For formatting dates
-import { MdOutlineImage, MdOutlineVideocam, MdOutlineAudioFile, MdOutlineInsertDriveFile, MdEdit, MdDelete } from 'react-icons/md'; // Icons
+import { MdOutlineAudioFile, MdOutlineInsertDriveFile, MdEdit, MdDelete } from 'react-icons/md'; // Icons
 import { useDropzone } from 'react-dropzone'; // Import useDropzone
 
 // Helper to format bytes
@@ -31,8 +32,29 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata }) => (
           {/* Preview Area - Changed h-36 to aspect-square for better consistency */}
           <div className="w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden relative border-b border-gray-200">
             {isImage ? (
-              // Changed object-contain to object-cover
-              <img src={item.public_url} alt={item.alt_text || item.file_name} className="w-full h-full object-cover" loading="lazy" />
+              // Changed object-cover to object-contain for proper image display
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                {/* Display file type icon with click to preview */}
+                <div
+                  className="flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors p-2 rounded-md w-full h-full"
+                  onClick={() => {
+                    // Construct URL for preview
+                    const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media-library/${item.storage_path}`;
+                    setPreviewUrl(url);
+                    setEditingItem(item); // Use existing modal state
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <div className="text-gray-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="text-gray-500 text-xs text-center px-2 truncate max-w-full">
+                    {item.file_name || 'Image'}
+                  </div>
+                </div>
+              </div>
             ) : isVideo ? (
               <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
                  {/* Added controls for video preview */}
@@ -128,7 +150,7 @@ const UploadComponent = ({ onUpload }) => {
     setIsUploading(false);
 
     // Clear progress after a delay (e.g., 5 seconds)
-    const timer = setTimeout(() => {
+    setTimeout(() => {
         setUploadProgress(prev => {
             // Filter out completed/failed items from this batch
             const remainingProgress = { ...prev };
@@ -208,6 +230,7 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
   const [altText, setAltText] = useState('');
   const [caption, setCaption] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Reset form when item changes or modal opens/closes
   useEffect(() => {
@@ -215,10 +238,16 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
       setAltText(item.alt_text || '');
       setCaption(item.caption || '');
       setIsSaving(false); // Reset saving state when modal opens
+      setShowPreview(true); // Show preview when modal opens
     }
   }, [item, isOpen]);
 
   if (!isOpen || !item) return null;
+
+  // Construct the image URL
+  const imageUrl = item.storage_path ?
+    `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media-library/${item.storage_path}` :
+    null;
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -244,17 +273,40 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
 
         <div className="mb-4 text-center">
             {item.mime_type?.startsWith('image/') ? (
-              <img src={item.public_url} alt="Preview" className="max-h-48 mx-auto mb-2 border rounded shadow-sm" />
+              <div className="relative">
+                {showPreview && (
+                  <img
+                    src={imageUrl}
+                    alt="Preview"
+                    className="max-h-48 mx-auto mb-2 border rounded shadow-sm"
+                    onError={(e) => {
+                      console.log(`Failed to load preview image: ${imageUrl}`);
+                      e.target.style.display = 'none';
+                      setShowPreview(false);
+                    }}
+                  />
+                )}
+                {!showPreview && (
+                  <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Image preview not available</span>
+                  </div>
+                )}
+              </div>
             ) : item.mime_type?.startsWith('video/') ? (
-              <video controls muted className="max-h-48 mx-auto mb-2 border rounded shadow-sm bg-black">
-                 <source src={item.public_url} type={item.mime_type} />
-                 Your browser does not support the video tag.
-              </video>
+              <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Video preview not available</span>
+              </div>
             ) : (
-                 <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
-                    <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400" />
-                    <span>No preview available</span>
-                 </div>
+              <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
+                <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400" />
+                <span>No preview available</span>
+              </div>
             )}
             <p className="text-sm font-medium truncate text-gray-700" title={item.file_name}>{item.file_name}</p>
             <p className="text-xs text-gray-500">{item.mime_type} | {formatBytes(item.size)}</p>
@@ -334,19 +386,38 @@ function MediaLibraryPage() {
 
   // Wrap fetchMedia in useCallback to stabilize its identity
   const fetchMedia = useCallback(async () => {
-    // Don't reset loading if already loading (prevents flicker on quick refreshes)
-    // setIsLoading(true);
+    setIsLoading(true);
     setError(null);
     try {
+      // Get media items from the database
       const items = await listMedia();
-      setMediaItems(items);
+
+      // Log all items for debugging
+      console.log('Media items fetched:', items);
+
+      // Check if any items have storage_path
+      const hasStoragePaths = items.some(item => item.storage_path);
+      console.log('Has storage paths:', hasStoragePaths);
+
+      if (items.length > 0) {
+        // Log the first item as an example
+        console.log('Example item:', items[0]);
+        console.log('Storage path:', items[0]?.storage_path);
+        console.log('Public URL:', items[0]?.public_url);
+      }
+
+      // Use items directly without processing
+      const processedItems = items;
+
+      setMediaItems(processedItems);
     } catch (err) {
       console.error("Failed to fetch media:", err);
       setError('Failed to load media library. Please try again.');
     } finally {
-      setIsLoading(false); // Ensure loading is set to false even on error
+      setIsLoading(false);
     }
-  }, []); // No dependencies needed if listMedia doesn't change
+  }, []);
+
 
   useEffect(() => {
     setIsLoading(true); // Set loading true when component mounts
@@ -434,8 +505,7 @@ function MediaLibraryPage() {
       {isLoading && (
           <div className="text-center py-10">
               {/* Simple Spinner */}
-              <div style={{ borderTopColor: 'transparent' }}
-                   className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-blue-500" role="status">
+              <div className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-blue-500 border-t-transparent" role="status">
                   <span className="sr-only">Loading...</span>
               </div>
               <p className="mt-3 text-gray-500">Loading media...</p>

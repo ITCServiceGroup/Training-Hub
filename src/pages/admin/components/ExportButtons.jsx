@@ -2,37 +2,6 @@ import React from 'react';
 import html2pdf from 'html2pdf.js';
 
 const ExportButtons = ({ data }) => {
-  const containerStyle = {
-    display: 'flex',
-    gap: '1.5rem',
-    paddingTop: '1rem',
-    paddingBottom: '1.5rem'
-  };
-
-  const baseButtonStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    color: 'white',
-    cursor: 'pointer'
-  };
-
-  const csvButtonStyle = {
-    ...baseButtonStyle,
-    backgroundColor: '#2563eb'
-  };
-
-  const pdfButtonStyle = {
-    ...baseButtonStyle,
-    backgroundColor: '#dc2626'
-  };
-
-  const iconStyle = {
-    width: '16px',
-    height: '16px',
-    marginRight: '8px'
-  };
 
   const exportCSV = () => {
     try {
@@ -124,7 +93,7 @@ const ExportButtons = ({ data }) => {
         const row = document.createElement('tr');
         const date = new Date(item.date_of_test).toLocaleDateString();
         const timeTaken = `${Math.floor(item.time_taken / 60)}:${(item.time_taken % 60).toString().padStart(2, '0')}`;
-        
+
         [date, item.ldap, item.quiz_type, item.score_text, item.supervisor, item.market, timeTaken]
           .forEach(text => {
             const td = document.createElement('td');
@@ -133,7 +102,7 @@ const ExportButtons = ({ data }) => {
             td.textContent = text;
             row.appendChild(td);
           });
-        
+
         tbody.appendChild(row);
       });
       table.appendChild(tbody);
@@ -158,13 +127,13 @@ const ExportButtons = ({ data }) => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div className="flex gap-6 py-4 pb-6">
       <button
         onClick={exportCSV}
-        style={csvButtonStyle}
+        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
       >
         <svg
-          style={iconStyle}
+          className="w-4 h-4 mr-2"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -180,10 +149,10 @@ const ExportButtons = ({ data }) => {
       </button>
       <button
         onClick={exportPDF}
-        style={pdfButtonStyle}
+        className="flex items-center px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
       >
         <svg
-          style={iconStyle}
+          className="w-4 h-4 mr-2"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

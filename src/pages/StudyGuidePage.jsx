@@ -193,103 +193,20 @@ const StudyGuidePage = () => {
     }
   };
 
-  // Styles
-  const pageStyles = {
-    padding: '1rem 0',
-    width: '100%',
-    maxWidth: '100%'
-  };
-
-  const headerStyles = {
-    marginBottom: '0.5rem', // Reduced margin from 2rem
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '1rem'
-  };
-
-  const titleStyles = {
-    fontSize: '2rem',
-    color: '#0f766e',
-    margin: '0'
-  };
-
-  const searchContainerStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    maxWidth: '400px',
-    width: '100%'
-  };
-
-  const searchInputStyles = {
-    padding: '0.75rem',
-    border: '1px solid #e2e8f0',
-    borderRadius: '0.25rem',
-    width: '100%',
-    fontSize: '1rem'
-  };
-
-  const breadcrumbStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-    fontSize: '0.875rem',
-    color: '#64748b'
-  };
-
-  const breadcrumbLinkStyles = {
-    color: '#0f766e',
-    textDecoration: 'none',
-    marginRight: '0.5rem'
-  };
-
-  const breadcrumbSeparatorStyles = {
-    margin: '0 0.5rem'
-  };
-
-  const contentLayoutStyles = {
-    display: 'flex',
-    width: '100%',
-    gap: '2rem',
-    minHeight: 'calc(100vh - 250px)', // Use viewport height minus header/footer/margins
-    maxWidth: '100%'
-  };
-
-  const sidebarStyles = {
-    width: '250px',
-    flexShrink: 0
-  };
-
-  const mainContentStyles = {
-    flex: '1 1 auto',
-    width: '100%',
-    maxWidth: 'calc(100% - 250px - 2rem)' // Subtract sidebar width and gap
-  };
-
-  const errorStyles = {
-    backgroundColor: '#FEF2F2',
-    color: '#DC2626',
-    padding: '1rem',
-    borderRadius: '0.5rem',
-    marginBottom: '1.5rem'
-  };
+  // Using Tailwind classes instead of inline styles
 
   // Render breadcrumb navigation (using derived state)
   const renderBreadcrumbs = () => {
     return (
-      <div style={breadcrumbStyles}>
-        <Link to="/study" style={breadcrumbLinkStyles}>Study Guides</Link>
+      <div className="flex items-center mb-6 text-sm text-slate-500">
+        <Link to="/study" className="text-teal-700 no-underline mr-2">Study Guides</Link>
 
         {sectionId && (
           <>
-            <span style={breadcrumbSeparatorStyles}>›</span>
+            <span className="mx-2">›</span>
             <Link
               to={`/study/${sectionId}`}
-              style={{
-                ...breadcrumbLinkStyles,
-                fontWeight: !categoryId ? 'bold' : 'normal'
-              }}
+              className={`text-teal-700 no-underline mr-2 ${!categoryId ? 'font-bold' : 'font-normal'}`}
             >
               {currentSection?.name || 'Section'}
             </Link>
@@ -298,13 +215,10 @@ const StudyGuidePage = () => {
 
         {categoryId && (
           <>
-            <span style={breadcrumbSeparatorStyles}>›</span>
+            <span className="mx-2">›</span>
             <Link
               to={`/study/${sectionId}/${categoryId}`}
-              style={{
-                ...breadcrumbLinkStyles,
-                fontWeight: !studyGuideId ? 'bold' : 'normal'
-              }}
+              className={`text-teal-700 no-underline mr-2 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
             >
               {currentCategory?.name || 'Category'}
             </Link>
@@ -313,8 +227,8 @@ const StudyGuidePage = () => {
 
         {studyGuideId && currentStudyGuide && (
           <>
-            <span style={breadcrumbSeparatorStyles}>›</span>
-            <span style={{ fontWeight: 'bold' }}>{currentStudyGuide.title}</span>
+            <span className="mx-2">›</span>
+            <span className="font-bold">{currentStudyGuide.title}</span>
           </>
         )}
       </div>
@@ -325,14 +239,14 @@ const StudyGuidePage = () => {
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
   return (
-    <div style={pageStyles}>
-      <div style={headerStyles}>
-        <h2 style={titleStyles}>Study Guides</h2>
-        <div style={searchContainerStyles}>
+    <div className="py-4 w-full">
+      <div className="mb-2 flex justify-between items-center flex-wrap gap-4">
+        <h2 className="text-4xl text-teal-700 m-0">Study Guides</h2>
+        <div className="flex items-center max-w-md w-full">
           <input
             type="text"
             placeholder="Search study guides..."
-            style={searchInputStyles}
+            className="py-3 px-3 border border-slate-200 rounded text-base w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -340,10 +254,10 @@ const StudyGuidePage = () => {
       </div>
 
       {/* Error messages */}
-      {sectionsError && <div style={errorStyles}>{sectionsError}</div>}
+      {sectionsError && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{sectionsError}</div>}
       {/* Removed categoriesError as it's covered by sectionsError */}
-      {studyGuidesError && <div style={errorStyles}>{studyGuidesError}</div>}
-      {studyGuideError && <div style={errorStyles}>{studyGuideError}</div>}
+      {studyGuidesError && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{studyGuidesError}</div>}
+      {studyGuideError && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{studyGuideError}</div>}
 
       {/* Breadcrumb navigation */}
       {(sectionId || categoryId || studyGuideId) && renderBreadcrumbs()}
@@ -372,9 +286,9 @@ const StudyGuidePage = () => {
         </>
       ) : (
         /* Study guide view (section and category selected) */
-        <div style={contentLayoutStyles}>
+        <div className="flex w-full gap-8 min-h-[calc(100vh-250px)] max-w-full">
           {/* Sidebar with study guide list - always visible when category is selected */}
-          <div style={sidebarStyles}>
+          <div className="w-[250px] flex-shrink-0">
             <StudyGuideList
               studyGuides={studyGuides}
               sectionId={sectionId}
@@ -385,7 +299,7 @@ const StudyGuidePage = () => {
           </div>
 
           {/* Main content area: Show list or viewer */}
-          <div style={mainContentStyles}>
+          <div className="flex-1 w-full">
             {studyGuideId ? (
               <StudyGuideViewer
                 studyGuide={currentStudyGuide}

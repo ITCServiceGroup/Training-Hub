@@ -6,7 +6,7 @@ import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 
 const RedBoldNum = ({ children }) => (
-  <span style={{ color: '#DC2626', fontWeight: 'bold' }}>{children}</span>
+  <span className="text-red-600 font-bold">{children}</span>
 );
 
 const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
@@ -15,10 +15,10 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [deleteModalState, setDeleteModalState] = useState({ 
-    isOpen: false, 
-    categoryId: null, 
-    description: "" 
+  const [deleteModalState, setDeleteModalState] = useState({
+    isOpen: false,
+    categoryId: null,
+    description: ""
   });
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       });
 
       optimisticallyUpdateSectionsOrder(newSectionsData);
-      
+
       // Update local state
       setCategories(prev => [...prev, newCategory]);
       setIsCreating(false);
@@ -82,7 +82,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
         if (s.id === section.id) {
           return {
             ...s,
-            v2_categories: (s.v2_categories || []).map(c => 
+            v2_categories: (s.v2_categories || []).map(c =>
               c.id === id ? { ...c, ...updatedCategory } : c
             )
           };
@@ -91,9 +91,9 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       });
 
       optimisticallyUpdateSectionsOrder(newSectionsData);
-      
+
       // Update local state
-      setCategories(prev => prev.map(c => 
+      setCategories(prev => prev.map(c =>
         c.id === id ? { ...c, ...updatedCategory } : c
       ));
     } catch (err) {
@@ -116,7 +116,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       });
       // Sort by display_order
       updatedCategories.sort((a, b) => a.display_order - b.display_order);
-      
+
       // Update local state
       setCategories(updatedCategories);
 
@@ -161,8 +161,8 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   const initiateDelete = (id) => {
     const category = categories.find(c => c.id === id);
     if (category) {
-      setDeleteModalState({ 
-        isOpen: true, 
+      setDeleteModalState({
+        isOpen: true,
         categoryId: id,
         description: getDeleteMessage(category)
       });
@@ -183,7 +183,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       });
 
       optimisticallyUpdateSectionsOrder(newSectionsData);
-      
+
       // Update local state
       setCategories(prev => prev.filter(c => c.id !== id));
 

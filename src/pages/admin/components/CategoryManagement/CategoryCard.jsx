@@ -20,159 +20,45 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
     e.stopPropagation();
   };
 
-  // --- Styles ---
-  const cardContainerStyles = {
-    padding: '0', 
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%', 
-    backgroundColor: 'white', 
-    cursor: 'pointer', 
-  };
-
-  const cardHeaderStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center', 
-    padding: '0.75rem 1.5rem', 
-    borderBottom: '1px solid #E5E7EB', 
-    flexShrink: 0, 
-  };
-  
-  const titleAndHandleStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem', 
-    flexGrow: 1, 
-    minWidth: 0, 
-  };
-
-  const titleStyles = {
-    fontSize: '1.15rem', 
-    fontWeight: 'bold',
-    color: '#1F2937',
-    margin: 0, 
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis', 
-  };
-
-  const dragHandleStyles = {
-    color: '#9CA3AF',
-    cursor: 'grab',
-    padding: '4px', 
-    borderRadius: '4px',
-    display: 'flex', 
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const actionButtonsStyles = {
-    display: isHovered ? 'flex' : 'none', // Use isHovered prop
-    gap: '0.5rem',
-    flexShrink: 0, 
-    marginLeft: '0.5rem', 
-  };
-
-  const buttonBaseStyles = {
-    padding: '0.5rem',
-    border: 'none',
-    borderRadius: '0.375rem',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '32px',
-    height: '32px',
-  };
-
-  const contentAreaStyles = {
-    padding: '1rem 1.5rem', 
-    flex: '1 1 auto', 
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: 0, 
-  };
-
-  const descriptionStyles = {
-    color: '#6B7280',
-    fontSize: '0.875rem',
-    marginBottom: '1rem',
-    flexGrow: 1, 
-  };
-
-  const statsStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    color: '#6B7280',
-    fontSize: '0.875rem',
-    marginTop: '0.5rem', 
-    flexShrink: 0, 
-  };
-
-  const viewButtonContainerStyles = {
-    padding: '0 1.5rem 1.5rem 1.5rem', 
-    marginTop: 'auto', 
-    flexShrink: 0,
-  };
-
-  const viewButtonStyles = {
-    backgroundColor: '#3B82F6',
-    color: 'white',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.375rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center', 
-    gap: '0.5rem',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    width: '100%', 
-    fontSize: '0.875rem', 
-  };
+  // Using Tailwind classes instead of inline styles
 
   // Determine the study guide count using the CORRECT key
-  const studyGuideCount = category.v2_study_guides?.length || 0; 
-  
+  const studyGuideCount = category.v2_study_guides?.length || 0;
+
   // console.log removed
 
   return (
-    <div
-      style={cardContainerStyles}
-    >
+    <div className="p-0 flex flex-col h-full bg-white cursor-pointer">
       {!isEditing ? (
         <>
           {/* Card Header */}
-          <div style={cardHeaderStyles}>
-             <div style={titleAndHandleStyles}>
+          <div className="flex justify-between items-center py-3 px-6 border-b border-gray-200 flex-shrink-0">
+             <div className="flex items-center gap-3 flex-grow min-w-0">
                 {/* Drag Handle */}
-                <span 
-                  {...sortableProps.attributes} 
-                  {...sortableProps.listeners} 
-                  style={dragHandleStyles}
+                <span
+                  {...sortableProps.attributes}
+                  {...sortableProps.listeners}
+                  className="text-gray-400 cursor-grab p-1 rounded flex items-center justify-center"
                   onClick={stopPropagation} // Prevent card click
                   data-dnd-handle // Add attribute for click detection
                 >
                   <FaBars />
                 </span>
                 {/* Title */}
-                <h3 style={titleStyles} title={category.name}>{category.name}</h3>
+                <h3 className="text-lg font-bold text-gray-800 m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={category.name}>{category.name}</h3>
              </div>
             {/* Action Buttons */}
-            <div style={actionButtonsStyles}>
+            <div className={`${isHovered ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
               <button
                 onClick={(e) => { stopPropagation(e); setIsEditing(true); }}
-                style={{ ...buttonBaseStyles, backgroundColor: '#D97706' }}
+                className="p-2 border-none rounded-md cursor-pointer transition-colors text-white flex items-center justify-center w-8 h-8 bg-amber-600 hover:bg-amber-700"
                 title="Edit category"
               >
                 <FaEdit />
               </button>
               <button
                 onClick={(e) => { stopPropagation(e); onDelete(category.id); }}
-                style={{ ...buttonBaseStyles, backgroundColor: '#DC2626' }}
+                className="p-2 border-none rounded-md cursor-pointer transition-colors text-white flex items-center justify-center w-8 h-8 bg-red-600 hover:bg-red-700"
                 title="Delete category"
               >
                 <FaTrash />
@@ -180,27 +66,24 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
             </div>
           </div>
 
-          {/* Clickable Content Area - Hover handlers removed */}
-          <div 
-            style={contentAreaStyles} 
+          {/* Clickable Content Area */}
+          <div
+            className="p-4 px-6 flex-1 flex flex-col min-h-0"
             onClick={handleCardClick}
           >
-            <p style={descriptionStyles}>
+            <p className="text-gray-500 text-sm mb-4 flex-grow">
               {category.description || 'No description available'}
             </p>
-            <div style={statsStyles}>
-              {/* Use corrected studyGuideCount */}
-              {studyGuideCount} Study Guides 
+            <div className="flex items-center text-gray-500 text-sm mt-2 flex-shrink-0">
+              {studyGuideCount} Study Guides
             </div>
           </div>
 
           {/* Footer Button Area */}
-           <div style={viewButtonContainerStyles}>
+           <div className="px-6 pb-6 mt-auto flex-shrink-0">
              <button
-               style={viewButtonStyles}
-               onClick={(e) => { stopPropagation(e); onViewStudyGuides(category); }} // Ensure stopPropagation
-               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2563EB'; }}
-               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#3B82F6'; }}
+               className="bg-blue-500 hover:bg-blue-600 text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
+               onClick={(e) => { stopPropagation(e); onViewStudyGuides(category); }}
              >
                <span>View Study Guides</span>
                <FaChevronRight size={12} />
@@ -209,17 +92,17 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
         </>
       ) : (
         // Keep Edit Form padding consistent
-        <div style={{ padding: '1.5rem' }}>
+        <div className="p-6">
           <CategoryForm
             initialData={category}
-            section={section} // Pass section if needed by form
+            section={section}
             onSubmit={async (formData) => {
               await onUpdate(category.id, formData);
               setIsEditing(false);
             }}
             onCancel={() => setIsEditing(false)}
             isEditing={true}
-            darkMode={true} 
+            darkMode={true}
           />
         </div>
       )}

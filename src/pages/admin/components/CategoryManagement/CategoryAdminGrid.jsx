@@ -36,7 +36,7 @@ const CategoryAdminGrid = ({
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
   // Consume sectionsData and optimistic update function from context
-  const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext); 
+  const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -102,21 +102,20 @@ const CategoryAdminGrid = ({
       transition,
       zIndex: isDragging ? 1000 : 'auto',
       opacity: isDragging ? 0.8 : 1,
-      ...cardStyles, // Combine base card styles
     };
 
     return (
       <div
         ref={setNodeRef}
         style={style}
-        className={`admin-grid-item ${isDragging ? 'dragging' : ''}`}
+        className={`admin-grid-item bg-white rounded-lg border border-gray-200 shadow overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
         onMouseEnter={() => !isDragging && setHoveredId(category.id)}
         onMouseLeave={() => setHoveredId(null)}
       >
         {/* Outer drag handle div removed */}
         <CategoryCard
           category={category}
-          section={section} 
+          section={section}
           onUpdate={onUpdate}
           onDelete={onDelete}
           onViewStudyGuides={onViewStudyGuides}
@@ -128,131 +127,27 @@ const CategoryAdminGrid = ({
   };
   // --- End Sortable Item Component ---
 
-  const containerStyles = {
-    padding: '1.5rem'
-  };
-
-  const headerStyles = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '2rem'
-  };
-
-  const titleStyles = {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#1F2937'
-  };
-
-  const sectionIndicatorStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#1F2937',
-    marginTop: '0.75rem',
-    padding: '0.5rem 0.75rem',
-    backgroundColor: '#F3F4F6',
-    borderRadius: '0.375rem',
-    border: '1px solid #E5E7EB'
-  };
-
-  const addButtonStyles = {
-    backgroundColor: '#3B82F6',
-    color: 'white',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.375rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s'
-  };
-
-  // Base card styles (applied in SortableCategoryItem)
-  const cardStyles = {
-    backgroundColor: 'white',
-    borderRadius: '0.5rem',
-    border: '1px solid #E5E7EB',
-    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.15)',
-    overflow: 'hidden', 
-    flexShrink: 0, 
-    display: 'flex', 
-    flexDirection: 'column', 
-    height: '100%', 
-  };
-
-  // Drag handle styles (will be used inside CategoryCard) - Keep for reference if needed
-  // const dragHandleStyles = {
-  //   color: '#9CA3AF',
-  //   cursor: 'grab',
-  //   padding: '4px',
-  //   borderRadius: '4px',
-  //   backgroundColor: 'transparent',
-  //   transition: 'background-color 0.2s'
-  // };
-
-  const loadingStyles = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '3rem',
-    color: '#6B7280'
-  };
-
-  const spinnerStyles = {
-    width: '2rem',
-    height: '2rem',
-    borderRadius: '50%',
-    border: '3px solid #E5E7EB',
-    borderTopColor: '#3B82F6',
-    animation: 'spin 1s linear infinite',
-    marginRight: '0.75rem'
-  };
-
-  const errorStyles = {
-    backgroundColor: '#FEE2E2',
-    color: '#DC2626',
-    padding: '1rem',
-    borderRadius: '0.375rem',
-    marginBottom: '1.5rem'
-  };
-
-  const emptyStyles = {
-    textAlign: 'center',
-    padding: '3rem',
-    color: '#6B7280',
-    backgroundColor: '#F3F4F6',
-    borderRadius: '0.5rem'
-  };
+  // Using Tailwind classes instead of inline styles
 
   // Use the 'categories' prop passed down for rendering the grid
   const displayCategories = categories || [];
 
   return (
-    <div style={containerStyles}>
-      <div style={headerStyles}>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 style={titleStyles}>Manage Categories</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Manage Categories</h2>
           {section && (
-            <div style={sectionIndicatorStyles}>
-              <FaLayerGroup style={{ marginRight: '0.5rem', fontSize: '1rem' }} />
+            <div className="flex items-center text-lg font-semibold text-gray-800 mt-3 py-2 px-3 bg-gray-100 rounded-md border border-gray-200">
+              <FaLayerGroup className="mr-2 text-base" />
               <span>Section: {section.name}</span>
             </div>
           )}
         </div>
         {!isCreating && (
           <button
-            style={addButtonStyles}
+            className="bg-blue-500 hover:bg-blue-600 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
             onClick={() => setIsCreating(true)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563EB';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#3B82F6';
-            }}
           >
             <FaPlus />
             <span>Add Category</span>
@@ -261,14 +156,14 @@ const CategoryAdminGrid = ({
       </div>
 
       {error && (
-        <div style={errorStyles}>
+        <div className="bg-red-100 text-red-600 p-4 rounded-md mb-6">
           {error}
         </div>
       )}
 
       {isLoading ? (
-        <div style={loadingStyles}>
-          <div style={spinnerStyles}></div>
+        <div className="flex justify-center items-center p-12 text-gray-500">
+          <div className="w-8 h-8 rounded-full border-3 border-gray-200 border-t-blue-500 animate-spin mr-3"></div>
           <span>Loading categories...</span>
         </div>
       ) : isCreating ? (
@@ -279,7 +174,7 @@ const CategoryAdminGrid = ({
           darkMode={true}
         />
       ) : displayCategories.length === 0 ? (
-        <div style={emptyStyles}>
+        <div className="text-center p-12 text-gray-500 bg-gray-100 rounded-lg">
           <p>No categories available. Click "Add Category" to create one.</p>
         </div>
       ) : (
