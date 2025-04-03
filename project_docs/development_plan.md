@@ -38,7 +38,22 @@
   - [ ] Category reordering
 - [x] Implement content editor (rich text)
 - [ ] Create quiz/question management
-- [ ] Implement media uploads
+- [ ] Develop Media Library feature
+  - [ ] **Backend:** Create `media_library` table (id, file_name, storage_path, public_url, mime_type, size, uploaded_by, created_at, updated_at, alt_text, caption)
+  - [ ] **Backend:** Create Supabase Storage bucket (`media_library`)
+  - [ ] **Backend:** Define RLS policies for storage bucket (Auth users: SELECT, INSERT, UPDATE, DELETE)
+  - [ ] **Backend:** Create API service (`v2/src/services/api/media.js`) with functions: `listMedia`, `uploadMedia`, `deleteMedia`, `updateMediaMetadata`
+  - [ ] **Frontend:** Add protected route `/admin/media`
+  - [ ] **Frontend:** Create `MediaLibraryPage.jsx` component
+  - [ ] **Frontend:** Implement Media Grid UI (Tailwind styled) with thumbnails, metadata, edit/delete options
+  - [ ] **Frontend:** Implement Upload Component (e.g., `react-dropzone`, styled to match)
+  - [ ] **Frontend:** Implement search/filter by filename
+  - [ ] **Frontend:** Implement metadata editing (alt text, caption)
+  - [ ] **Frontend:** Implement pagination (if needed)
+  - [ ] **Integration:** Configure TinyMCE `file_picker_callback` in `StudyGuideEditor`
+  - [ ] **Integration:** Create Media Selection Modal (reusing grid components)
+  - [ ] **Integration:** Ensure modal returns selected media URL/alt text to TinyMCE
+  - [ ] **Integration:** Ensure TinyMCE inserts correct `<img>`/`<video>` tags
 
 ## Phase 4: Public Interface (IN PROGRESS)
 - [x] Create study guide viewer

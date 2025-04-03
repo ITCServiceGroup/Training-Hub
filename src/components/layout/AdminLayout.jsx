@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import SidebarCategoryTree from './SidebarCategoryTree';
 import { createContext } from 'react';
 import { sectionsService } from '../../services/api/sections'; // Import sectionsService
-import { MdDashboard, MdQuiz } from 'react-icons/md';
+import { MdDashboard, MdQuiz, MdOutlinePermMedia } from 'react-icons/md'; // Added MdOutlinePermMedia
 import { BiBook, BiBarChart } from 'react-icons/bi';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { FiSettings } from 'react-icons/fi';
@@ -65,6 +65,7 @@ const AdminLayout = () => {
     const path = location.pathname;
     if (path === '/admin') return 'dashboard';
     if (path.includes('/admin/study-guides')) return 'study-guides';
+    if (path.includes('/admin/media')) return 'media'; // Added media check
     if (path.includes('/admin/questions')) return 'questions';
     if (path.includes('/admin/quizzes')) return 'quizzes';
     if (path.includes('/admin/results')) return 'results';
@@ -177,6 +178,7 @@ const AdminLayout = () => {
     switch (activeTab) {
       case 'dashboard': return 'Admin Dashboard';
       case 'study-guides': return 'Study Guides Management';
+      case 'media': return 'Media Library'; // Added media title
       case 'questions': return 'Questions Management';
       case 'quizzes': return 'Quizzes Management';
       case 'results': return 'Quiz Results';
@@ -251,6 +253,29 @@ const AdminLayout = () => {
                 sidebarItemHoverStyles={sidebarItemHoverStyles}
               />
             </li>
+            {/* Media Library Link */}
+            <li
+              style={sidebarItemStyles(activeTab === 'media')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'media') {
+                  Object.assign(e.currentTarget.style, sidebarItemHoverStyles);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'media') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
+            >
+              <Link
+                to="/admin/media"
+                style={sidebarLinkStyles}
+                className="no-underline"
+              >
+                <MdOutlinePermMedia style={{ fontSize: '18px' }} /> Media Library
+              </Link>
+            </li>
+            {/* End Media Library Link */}
             <li
               style={sidebarItemStyles(activeTab === 'questions')}
               onMouseEnter={(e) => {

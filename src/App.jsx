@@ -14,6 +14,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminStudyGuides = lazy(() => import('./pages/admin/StudyGuides'));
 const AdminResults = lazy(() => import('./pages/admin/Results'));
+const MediaLibraryPage = lazy(() => import('./pages/admin/MediaLibraryPage')); // Added import
 const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -97,6 +98,12 @@ function App() {
               <Route path="results" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <AdminResults />
+                </Suspense>
+              } />
+              {/* Added media route */}
+              <Route path="media" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <MediaLibraryPage />
                 </Suspense>
               } />
               <Route path="*" element={<Navigate to="/admin" replace />} />

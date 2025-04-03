@@ -3,6 +3,11 @@ import { Dialog } from '@headlessui/react';
 import { Editor } from '@tinymce/tinymce-react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import PreviewModal from '../PreviewModal';
+// Import API functions and Auth context if needed for the modal later
+// import { listMedia } from '../../../../services/api/media'; // No longer needed here
+import { useAuth } from '../../../../contexts/AuthContext';
+import MediaSelectionModal from '../MediaSelectionModal'; // Import the actual modal component
+
 
 const StudyGuideEditor = ({
   initialContent = '',
@@ -24,6 +29,9 @@ const StudyGuideEditor = ({
   const isEditorInitialized = useRef(false); // Ref to track editor initialization
   const [htmlModeContent, setHtmlModeContent] = useState(''); // State for HTML mode textarea content
   const [previewContent, setPreviewContent] = useState(''); // State for preview content
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false); // State for media modal visibility
+  const mediaPickerCallbackRef = useRef(null); // Ref to store TinyMCE's file picker callback
+  const mediaPickerFileTypeRef = useRef('file'); // Ref to store the type ('image', 'media', 'file')
 
   // Process content to replace shortcodes with custom element tags (similar to StudyGuideViewer)
   const processContentForWebComponents = (content) => {
@@ -316,6 +324,29 @@ const StudyGuideEditor = ({
     setIsHtmlMode(!isHtmlMode);
   };
 
+  // Function to handle media selection from the modal
+  const handleSelectMedia = (selectedMedia) => {
+    if (mediaPickerCallbackRef.current) {
+      // Pass the URL and potentially alt text back to TinyMCE
+      // TinyMCE expects an object with 'value' (URL) and optional 'text' or 'title' (for alt)
+      mediaPickerCallbackRef.current(selectedMedia.public_url, {
+        alt: selectedMedia.alt_text || selectedMedia.file_name || '', // Use alt_text, fallback to filename
+        // title: selectedMedia.caption || '' // Optional: use caption as title if needed
+      });
+      mediaPickerCallbackRef.current = null; // Clear the callback ref
+    }
+    setIsMediaModalOpen(false); // Close the modal
+  };
+
+  // TinyMCE file picker callback
+  const filePickerCallback = (callback, value, meta) => {
+    mediaPickerCallbackRef.current = callback; // Store the callback
+    mediaPickerFileTypeRef.current = meta.filetype; // Store the file type ('image', 'media', 'file')
+
+    // Open the media selection modal
+    setIsMediaModalOpen(true);
+  };
+
   // Editor configuration
   const editorConfig = {
     height: 850, // Set fixed pixel height
@@ -450,7 +481,10 @@ const StudyGuideEditor = ({
     element_format: 'html',
     schema: 'html5',
     allow_script_urls: true,
-    content_security_policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';"
+    content_security_policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';",
+    // Add the file picker callback
+    file_picker_types: 'image media file', // Specify which types should use the picker
+    file_picker_callback: filePickerCallback
   };
 
   // Styles
@@ -907,6 +941,14 @@ const StudyGuideEditor = ({
         }}
         content={previewContent}
         title={title}
+      />
+
+      {/* Render the Media Selection Modal */}
+      <MediaSelectionModal
+        isOpen={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        onSelectMedia={handleSelectMedia}
+        filterFileType={mediaPickerFileTypeRef.current} // Pass the type to filter if needed
       />
     </div>
   );
