@@ -3,17 +3,26 @@
 export const routerSimulatorTemplate = document.createElement('template');
 routerSimulatorTemplate.innerHTML = `
   <style>
-    /* Base styles */
+    /* Base styles with stronger isolation */
     :host {
-        display: block;
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 20px;
-        background-color: #fff;
-        margin: 15px 0;
+        display: block !important;
+        font-family: Arial, sans-serif !important;
+        line-height: 1.6 !important;
+        color: #333 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 5px !important;
+        padding: 20px !important;
+        background-color: #fff !important;
+        /* Force center alignment and fixed size */
+        margin: 15px auto !important;
+        width: 880px !important; /* 840px + 40px padding */
+        box-sizing: border-box !important;
+        /* Prevent external styles from affecting layout */
+        position: relative !important;
+        contain: content !important;
+        /* Additional isolation */
+        text-align: left !important;
+        clear: both !important;
     }
 
     h3 {
@@ -28,13 +37,25 @@ routerSimulatorTemplate.innerHTML = `
     }
 
     .router-placement {
-        width: 840px; /* Increased width + 40px padding */
-        height: 740px; /* Increased height + 40px padding */
-        position: relative;
-        border: 1px solid #ccc;
-        margin: 20px auto; /* Centered horizontally */
-        background-color: #f5f5f5;
-        /* overflow: hidden; Removed as it might interfere */
+        width: 840px !important; /* Force width */
+        height: 740px !important; /* Force height */
+        position: relative !important;
+        border: 1px solid #ccc !important;
+        margin: 20px auto !important; /* Centered horizontally */
+        background-color: #f5f5f5 !important;
+        /* Ensure proper positioning context */
+        transform: translateZ(0) !important;
+        /* Prevent overflow issues */
+        overflow: visible !important;
+        /* Ensure proper stacking context */
+        isolation: isolate !important;
+        /* Prevent external padding/margin from affecting layout */
+        box-sizing: border-box !important;
+        /* Force dimensions */
+        min-width: 840px !important;
+        min-height: 740px !important;
+        max-width: 840px !important;
+        max-height: 740px !important;
     }
 
     .router {
@@ -83,22 +104,42 @@ routerSimulatorTemplate.innerHTML = `
 
 
     .signal-strength {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+        /* Ensure proper rendering */
+        transform: translateZ(0) !important;
+        backface-visibility: hidden !important;
+        /* Force dimensions to match container */
+        min-width: 100% !important;
+        min-height: 100% !important;
     }
 
-    button { /* General button style within component */
-        padding: 8px 16px;
-        background-color: #2196F3;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin: 5px;
-        font-size: 1em; /* Ensure consistent font size */
+        /* Stronger button isolation */
+    :host button,
+    .interference-button,
+    .tab-button {
+        all: initial !important; /* Reset all properties */
+        font-family: Arial, sans-serif !important;
+        padding: 8px 16px !important;
+        background-color: #2196F3 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        margin: 5px !important;
+        font-size: 1em !important;
+        display: inline-block !important;
+        text-align: center !important;
+        line-height: 1.6 !important;
+        /* Prevent inheritance */
+        box-sizing: border-box !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
     }
 
     button:hover {

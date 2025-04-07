@@ -128,18 +128,15 @@ const processContentForWebComponents = (content) => {
   // Log the processed content for debugging
   console.log('PreviewModal - Processed content (after empty line handling):', processedContent);
 
-  const shortcodeRegex = /\[interactive name="([^"]+)"\]/g;
-  // Replace shortcode with the corresponding custom element tag
-  return processedContent.replace(shortcodeRegex, (match, name) => {
-    // Basic validation for name
+  // Replace shortcodes with custom elements wrapped in centering div
+  return processedContent.replace(/\[interactive name="([^"]+)"\]/g, (match, name) => {
     if (!/^[a-zA-Z0-9-]+$/.test(name)) {
-      console.warn(`Invalid interactive element name found: ${name}`);
+      console.warn(`Invalid interactive element name found in preview: ${name}`);
       return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`;
     }
-    // Construct the custom element tag name (e.g., fiber-fault -> fiber-fault-simulator)
-    const tagName = `${name}-simulator`; // Assuming this convention matches the definition
-    console.log(`Replacing shortcode for "${name}" with <${tagName}>`);
-    return `<${tagName}></${tagName}>`;
+    const tagName = `${name}-simulator`;
+    console.log(`Preview replacing shortcode for "${name}" with <${tagName}>`);
+    return `<div style="display: block; text-align: center;"><${tagName}></${tagName}></div>`;
   });
 };
 
@@ -383,7 +380,27 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       .image-grid-wrapper > .content-cell > p[style*="text-align"] {
                         display: block;
                       }
+                      /* Ensure proper sizing and display of router simulator */
+                      router-simulator-simulator {
+                        display: block !important;
+                        margin: 0 auto !important;
+                        width: fit-content !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                      }
 
+                      /* Remove any inherited styles from parent document */
+                      router-simulator-simulator * {
+                        box-sizing: content-box !important;
+                      }
+
+                      /* Enable proper GPU acceleration and prevent flickering */
+                      router-simulator-simulator,
+                      router-simulator-simulator * {
+                        transform: translateZ(0);
+                        backface-visibility: hidden;
+                        perspective: 1000px;
+                      }
                       /* Add any extracted styles */
                       ${styleContent}
                     `;

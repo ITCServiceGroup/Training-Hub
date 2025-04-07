@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { listMedia } from '../../../../services/api/media'; // Adjust path as needed
+import React, { useState, useEffect, useMemo, useRef } from 'react'; // Removed useContext
+import { listMedia, uploadMedia } from '../../../../services/api/media'; // Added uploadMedia
+import { useAuth } from '../../../../contexts/AuthContext'; // Changed import to useAuth hook
 
 // Reusable Media Grid Component (adapted from MediaLibraryPage)
 // Note: Removed edit/delete buttons for selection context
@@ -54,9 +55,15 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => (
 
 const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType }) => {
   const [mediaItems, setMediaItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Loading media list
+  const [error, setError] = useState(null); // Error fetching media list
   const [searchTerm, setSearchTerm] = useState('');
+  const [isUploading, setIsUploading] = useState(false); // Upload status
+  const [uploadError, setUploadError] = useState(null); // Error during upload
+  const [selectedFile, setSelectedFile] = useState(null); // File selected for upload
+
+  const fileInputRef = useRef(null); // Ref for the hidden file input
+  const { user } = useAuth(); // Use the custom hook to get user
 
   useEffect(() => {
     if (isOpen) {
@@ -76,6 +83,48 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
       setError('Failed to load media library.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle file selection from input
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      // Automatically trigger upload once a file is selected
+      handleUpload(file);
+    }
+     // Reset the input value so the same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle the upload process
+  const handleUpload = async (fileToUpload) => {
+    if (!fileToUpload) {
+      setUploadError('Please select a file first.');
+      return;
+    }
+    if (!user || !user.id) {
+      setUploadError('You must be logged in to upload media.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      console.log(`Uploading file: ${fileToUpload.name} by user: ${user.id}`);
+      const newMediaItem = await uploadMedia(fileToUpload, user.id);
+      console.log('Upload successful:', newMediaItem);
+      setSelectedFile(null); // Clear selected file state
+      await fetchMedia(); // Refresh the media list
+    } catch (err) {
+      console.error("Failed to upload media:", err);
+      setUploadError(`Upload failed: ${err.message || 'Please try again.'}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -137,16 +186,42 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
           />
         </div>
 
+        {/* Upload Section */}
+        <div className="p-3 border-b">
+           <input
+             type="file"
+             ref={fileInputRef}
+             onChange={handleFileChange}
+             className="hidden" // Hide the default input
+             accept="image/*,video/*" // Accept images and videos
+           />
+           <button
+             onClick={() => fileInputRef.current?.click()} // Trigger hidden input
+             disabled={isUploading}
+             className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${
+               isUploading
+                 ? 'bg-gray-400 cursor-not-allowed'
+                 : 'bg-blue-600 hover:bg-blue-700'
+             }`}
+           >
+             {isUploading ? 'Uploading...' : 'Upload New Media'}
+           </button>
+           {uploadError && <p className="text-red-500 text-sm mt-2 text-center">{uploadError}</p>}
+        </div>
+
+
         {/* Media Grid Area */}
-        <div className="flex-grow min-h-0"> {/* Important for overflow */}
+        <div className="flex-grow min-h-0 overflow-y-auto"> {/* Added overflow-y-auto here */}
           {isLoading && <p className="text-center p-4">Loading media...</p>}
           {error && <p className="text-center p-4 text-red-500">{error}</p>}
           {!isLoading && !error && (
             <MediaGridSelect
               mediaItems={filteredMedia}
-              onSelectItem={handleSelectItem}
-            />
-          )}
+               onSelectItem={handleSelectItem}
+             />
+           )}
+           {/* Add padding at the bottom of the grid area if needed */}
+           <div className="h-4"></div>
         </div>
 
         {/* Footer (Optional) */}

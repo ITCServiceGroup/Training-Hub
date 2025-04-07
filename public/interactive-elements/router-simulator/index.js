@@ -504,7 +504,7 @@ class RouterSimulatorElement extends HTMLElement {
             this._sendConfigToWorker(); // This handles sending dimensions and floorplan
 
             // Explicitly request signal update after dimensions change
-            this._requestSignalUpdate(); 
+            this._requestSignalUpdate();
 
         } else {
             console.warn('[Main] Router placement container has zero dimensions, skipping canvas update.');
@@ -573,7 +573,7 @@ class RouterSimulatorElement extends HTMLElement {
         const element = this.interferenceElements[sourceName];
         if (element) {
             element.classList.toggle("active");
-            
+
             // Update position when activated
             if (sourceData.active) {
                 const visualX = sourceData.x - sourceData.radius;

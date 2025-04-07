@@ -149,18 +149,15 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     // Log the processed content for debugging
     console.log('Processed content (after empty line handling):', processedContent);
 
-    // Replace shortcodes with custom element tags
-    const shortcodeRegex = /\[interactive name="([^"]+)"\]/g;
-    processedContent = processedContent.replace(shortcodeRegex, (match, name) => {
-      // Basic validation for name
+    // Replace shortcodes with custom elements wrapped in centering div
+    processedContent = processedContent.replace(/\[interactive name="([^"]+)"\]/g, (match, name) => {
       if (!/^[a-zA-Z0-9-]+$/.test(name)) {
         console.warn(`Invalid interactive element name found in viewer: ${name}`);
-        return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`; // Use style attribute for simple error display
+        return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`;
       }
-      // Construct the custom element tag name (e.g., fiber-fault -> fiber-fault-simulator)
-      const tagName = `${name}-simulator`; // Assuming this convention matches the definition
+      const tagName = `${name}-simulator`;
       console.log(`Viewer replacing shortcode for "${name}" with <${tagName}>`);
-      return `<${tagName}></${tagName}>`;
+      return `<div style="display: block; text-align: center;"><${tagName}></${tagName}></div>`;
     });
 
     return processedContent;
@@ -182,7 +179,32 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
       <title>${studyGuide.title || 'Study Guide Content'}</title>
       <style>
         /* Base iframe styles */
-        body { margin: 0; padding: 15px; font-family: 'Inter', sans-serif; line-height: 1.6; }
+        body { 
+          margin: 0;
+          padding: 15px; 
+          font-family: 'Inter', sans-serif;
+          line-height: 1.6;
+          /* Ensure proper rendering context */
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          /* Reset potential interfering styles */
+          text-size-adjust: none;
+          -webkit-text-size-adjust: none;
+        }
+
+        /* Ensure web components have proper display */
+        router-simulator-simulator {
+          display: block;
+          margin: 0 auto;
+          width: fit-content !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+
+        /* Remove any inherited styles from parent document */
+        router-simulator-simulator * {
+          box-sizing: content-box;
+        }
         /* Preserve whitespace in paragraphs */
         p { white-space: pre-wrap; }
         /* Ensure empty paragraphs have height */
