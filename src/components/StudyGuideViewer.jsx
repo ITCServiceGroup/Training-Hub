@@ -106,24 +106,153 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     );
   }
 
-  // Process content to replace shortcodes with custom element tags
-  const processContentForWebComponents = (content) => {
-    console.log('Raw Content for Web Components:', content);
-    if (!content) return '';
+  // Helper to extract style content from a full HTML string
+  const extractStyleContent = (fullHtml) => {
+    return fullHtml?.match(/<style[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
+  };
+
+  // Helper to extract body content from full HTML document
+  const extractBodyContent = (htmlContent) => {
+    if (!htmlContent) return '';
+    // Check if it's a full HTML document
+    if (htmlContent.includes('<body')) {
+      const match = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      return match ? match[1] : htmlContent; // Return body content or original if no body tag
+    }
+    // Assume it's body content if no body tag found
+    return htmlContent;
+  };
+
+
+  // Process *body* content to replace shortcodes with custom element tags
+  // and ensure empty paragraphs are preserved
+  const processBodyContentForWebComponents = (bodyContent) => {
+    console.log('Processing body content for Web Components:', bodyContent);
+    if (!bodyContent) return '';
+
+    // Log the original content for debugging
+    console.log('Original content:', bodyContent);
+
+    // First, replace all empty paragraphs with a special marker
+    // This is a more aggressive approach to ensure empty paragraphs are preserved
+    let processedContent = bodyContent;
+
+    // Replace empty paragraphs with a div that has height
+    processedContent = processedContent.replace(/<p><br><\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+
+    // Also handle paragraphs with non-breaking spaces or just spaces
+    processedContent = processedContent.replace(/<p>[\s&nbsp;]*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+
+    // Replace consecutive <br> tags with empty lines
+    processedContent = processedContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
+
+    // Log the processed content for debugging
+    console.log('Processed content (after empty line handling):', processedContent);
+
+    // Replace shortcodes with custom element tags
     const shortcodeRegex = /\[interactive name="([^"]+)"\]/g;
-    // Replace shortcode with the corresponding custom element tag
-    return content.replace(shortcodeRegex, (match, name) => {
+    processedContent = processedContent.replace(shortcodeRegex, (match, name) => {
       // Basic validation for name
       if (!/^[a-zA-Z0-9-]+$/.test(name)) {
-        console.warn(`Invalid interactive element name found: ${name}`);
-        return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`;
+        console.warn(`Invalid interactive element name found in viewer: ${name}`);
+        return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`; // Use style attribute for simple error display
       }
       // Construct the custom element tag name (e.g., fiber-fault -> fiber-fault-simulator)
       const tagName = `${name}-simulator`; // Assuming this convention matches the definition
-      console.log(`Replacing shortcode for "${name}" with <${tagName}>`);
+      console.log(`Viewer replacing shortcode for "${name}" with <${tagName}>`);
       return `<${tagName}></${tagName}>`;
     });
+
+    return processedContent;
   };
+
+  // Extract styles and body, process body, then construct srcDoc
+  const fullContent = studyGuide.content || '';
+  const styles = extractStyleContent(fullContent);
+  const bodyContent = extractBodyContent(fullContent);
+  const processedBody = processBodyContentForWebComponents(bodyContent);
+
+  // Construct the full HTML for the iframe srcDoc
+  const iframeHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${studyGuide.title || 'Study Guide Content'}</title>
+      <style>
+        /* Base iframe styles */
+        body { margin: 0; padding: 15px; font-family: 'Inter', sans-serif; line-height: 1.6; }
+        /* Preserve whitespace in paragraphs */
+        p { white-space: pre-wrap; }
+        /* Ensure empty paragraphs have height */
+        p[data-empty="true"] { min-height: 1em; display: block; }
+        /* Ensure consecutive empty paragraphs are visible */
+        p + p[data-empty="true"] { margin-top: 1em; }
+        /* Image Grid Layout Styles */
+        .image-grid-wrapper {
+          display: grid !important;
+          gap: 1em;
+          margin-bottom: 1em;
+          padding: 5px;
+        }
+        .image-grid-wrapper.align-left {
+          grid-template-columns: auto 1fr;
+        }
+        .image-grid-wrapper.align-right {
+          grid-template-columns: 1fr auto;
+        }
+        .image-grid-wrapper.align-center {
+          grid-template-columns: 1fr;
+          justify-items: center;
+        }
+        .image-grid-wrapper > .grid-cell {
+          min-width: 0;
+        }
+        .image-grid-wrapper > .image-cell {
+          display: flex;
+          align-items: flex-start;
+        }
+        .image-grid-wrapper.align-right > .image-cell {
+          grid-column: 2;
+        }
+        .image-grid-wrapper.align-right > .content-cell {
+          grid-column: 1;
+          grid-row: 1;
+        }
+        .image-grid-wrapper > .image-cell > img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+        }
+        .image-grid-wrapper > .content-cell {
+          min-height: 2em;
+          display: block;
+          height: 100%;
+          padding: 0.25em;
+        }
+        .image-grid-wrapper > .content-cell > p {
+          margin: 0 0 0.5em 0;
+          white-space: pre-wrap;
+        }
+        .image-grid-wrapper > .content-cell > p:last-child {
+          margin-bottom: 0;
+        }
+        /* Honor text alignment styles */
+        .image-grid-wrapper > .content-cell[style*="text-align"],
+        .image-grid-wrapper > .content-cell > p[style*="text-align"] {
+          display: block;
+        }
+        /* Inject styles extracted from saved content */
+        ${styles}
+      </style>
+      <link rel="stylesheet" href="/fonts/inter.css"> <!-- Ensure fonts are loaded -->
+    </head>
+    <body>
+      ${processedBody}
+    </body>
+    </html>
+  `;
 
 
   // Main component return statement
@@ -133,8 +262,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
       <iframe
         ref={iframeRef} // Ref for the main iframe
         title={studyGuide.title}
-        // Set srcDoc to the content processed for web components
-        srcDoc={processContentForWebComponents(studyGuide.content)}
+        // Set srcDoc to the manually constructed HTML with injected styles
+        srcDoc={iframeHtml}
         className="w-full min-h-[600px] border-none bg-white overflow-auto"
         style={{ height: 'calc(100vh - 300px)' }} // Keep this one style for dynamic calculation
         // Sandbox is still good practice for the main content iframe

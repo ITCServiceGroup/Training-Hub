@@ -3,12 +3,29 @@ import { supabase } from '../../config/supabase'; // Corrected: Use named import
 const BUCKET_NAME = 'media-library'; // Use the correct bucket name
 
 /**
+ * Gets a public URL for a media item
+ * @param {string} storagePath The storage path of the file
+ * @returns {string} The public URL for the file
+ */
+export const getMediaUrl = (storagePath) => {
+  if (!storagePath) return null;
+
+  // Get the public URL using Supabase's getPublicUrl method
+  const { data } = supabase.storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(storagePath);
+
+  return data?.publicUrl || null;
+};
+
+/**
  * Fetches a list of media items from the database.
  * TODO: Add pagination, filtering, sorting options.
  * @returns {Promise<Array>} A promise that resolves to an array of media objects.
  */
 export const listMedia = async () => {
-  const { data, error } = await supabase
+  // Select all fields. Supabase should provide the correct public_url if the bucket is public.
+  const { data: items, error } = await supabase
     .from('media_library')
     .select('*')
     .order('created_at', { ascending: false }); // Default sort: newest first
@@ -17,7 +34,29 @@ export const listMedia = async () => {
     console.error('Error fetching media:', error);
     throw error;
   }
-  return data || [];
+
+  if (!items) return [];
+
+  // Optionally, verify and regenerate URLs if needed (more robust)
+  const processedItems = items.map(item => {
+    // If public_url is missing or seems invalid, try generating it.
+    // This handles cases where items were uploaded before the bucket was made public.
+    if (!item.public_url || !item.public_url.includes(item.storage_path)) {
+       if (!item.storage_path) {
+         console.warn(`Media item ${item.id} is missing storage_path and public_url.`);
+         return { ...item, public_url: null };
+       }
+       console.log(`Regenerating public URL for item ${item.id}`);
+       const { data: urlData } = supabase.storage
+         .from(BUCKET_NAME)
+         .getPublicUrl(item.storage_path);
+       return { ...item, public_url: urlData?.publicUrl || null };
+    }
+    // Otherwise, assume the stored public_url is correct for the public bucket
+    return item;
+  });
+
+  return processedItems;
 };
 
 /**

@@ -19,7 +19,8 @@ const formatBytes = (bytes, decimals = 2) => {
 };
 
 // --- Media Grid Component ---
-const MediaGrid = ({ mediaItems, onDelete, onEditMetadata }) => (
+// Added onPreviewClick prop
+const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFromTinyMCE }) => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
     {mediaItems.length === 0 && <p className="col-span-full text-center text-gray-500 mt-4">No media items found.</p>}
     {mediaItems.map((item) => {
@@ -32,28 +33,32 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata }) => (
           {/* Preview Area - Changed h-36 to aspect-square for better consistency */}
           <div className="w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden relative border-b border-gray-200">
             {isImage ? (
-              // Changed object-cover to object-contain for proper image display
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                {/* Display file type icon with click to preview */}
-                <div
-                  className="flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors p-2 rounded-md w-full h-full"
-                  onClick={() => {
-                    // Construct URL for preview
-                    const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media-library/${item.storage_path}`;
-                    setPreviewUrl(url);
-                    setEditingItem(item); // Use existing modal state
-                    setIsModalOpen(true);
+              // Use onPreviewClick passed from parent
+              <div
+                className="w-full h-full flex items-center justify-center bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  if (isFromTinyMCE && window.opener && window.opener.tinyMCEMediaLibraryCallback) {
+                    // If opened from TinyMCE, send the selected image back
+                    window.opener.tinyMCEMediaLibraryCallback(item.public_url, item.alt_text || item.file_name);
+                    window.close();
+                  } else {
+                    // Normal behavior
+                    onPreviewClick(item);
+                  }
+                }}
+              >
+                {/* Display actual image */}
+                <img
+                  src={item.public_url || ''} // Ensure URL exists
+                  alt={item.alt_text || item.file_name || 'Media item'}
+                  className="w-full h-full object-contain" // Use object-contain to show full image
+                  loading="lazy" // Lazy load images
+                  onError={(e) => { // Add a simple error handler back
+                    e.target.onerror = null;
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJoLTEyIHctMTIgdGV4dC1ncmF5LTQwMCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDI0IDI0IiBzdHJva2U9ImN1cnJlbnRDb2xvciI+CiAgPHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSIgZD0iTTQgMTZsNC41ODYtNC41ODZhMiAyIDAgMDEyLjgyOCAwTDE2IDE2bS0yLTJsMS41ODYtMS41ODZhMiAyIDAgMDEyLjgyOCAwTDIwIDE0bS02LTZoLjAxTTYgMjBoMTJhMiAyIDAgMDAyLTJWNkEyIDIgMCAwMC0yLTJINkEyIDIgMCAwMC0yIDJ2MTJhMiAyIDAgMDAyIDJ6IiAvPgo8L3N2Zz4='; // Placeholder SVG
+                    e.target.style.objectFit = 'scale-down';
                   }}
-                >
-                  <div className="text-gray-400 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div className="text-gray-500 text-xs text-center px-2 truncate max-w-full">
-                    {item.file_name || 'Image'}
-                  </div>
-                </div>
+                />
               </div>
             ) : isVideo ? (
               <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
@@ -230,24 +235,16 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
   const [altText, setAltText] = useState('');
   const [caption, setCaption] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-
   // Reset form when item changes or modal opens/closes
   useEffect(() => {
     if (isOpen && item) {
       setAltText(item.alt_text || '');
       setCaption(item.caption || '');
       setIsSaving(false); // Reset saving state when modal opens
-      setShowPreview(true); // Show preview when modal opens
     }
   }, [item, isOpen]);
 
   if (!isOpen || !item) return null;
-
-  // Construct the image URL
-  const imageUrl = item.storage_path ?
-    `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media-library/${item.storage_path}` :
-    null;
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -272,40 +269,43 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
         </div>
 
         <div className="mb-4 text-center">
+            {/* Show actual preview in Edit Modal, ensure URL exists */}
             {item.mime_type?.startsWith('image/') ? (
-              <div className="relative">
-                {showPreview && (
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    className="max-h-48 mx-auto mb-2 border rounded shadow-sm"
-                    onError={(e) => {
-                      console.log(`Failed to load preview image: ${imageUrl}`);
-                      e.target.style.display = 'none';
-                      setShowPreview(false);
-                    }}
-                  />
-                )}
-                {!showPreview && (
-                  <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>Image preview not available</span>
-                  </div>
-                )}
-              </div>
+              <> {/* Use Fragment to group img and placeholder */}
+                <img
+                  src={item.public_url || ''} // Ensure URL exists
+                  alt="Preview"
+                  className="w-auto h-24 max-w-full mx-auto object-contain mb-2 border rounded shadow-sm bg-gray-100"
+                  loading="lazy"
+                  onError={(e) => { // Add simple error handler
+                      e.target.onerror = null;
+                      e.target.style.display = 'none'; // Hide broken image
+                      // Optionally show a placeholder div
+                      const placeholder = e.target.nextElementSibling;
+                      if (placeholder && placeholder.classList.contains('placeholder-icon')) {
+                        placeholder.style.display = 'flex';
+                      }
+                  }}
+                />
+                {/* Placeholder shown on error */}
+                <div className="placeholder-icon w-full h-24 bg-gray-100 hidden flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
+                   <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400" />
+                   <span>Preview unavailable</span>
+                </div>
+              </>
             ) : item.mime_type?.startsWith('video/') ? (
-              <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <span>Video preview not available</span>
-              </div>
+              <video
+                src={item.public_url}
+                controls
+                muted
+                className="w-auto h-24 max-w-full mx-auto mb-2 border rounded shadow-sm bg-gray-900"
+              >
+                Your browser does not support the video tag.
+              </video>
             ) : (
               <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
                 <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400" />
-                <span>No preview available</span>
+                <span>Preview not available</span>
               </div>
             )}
             <p className="text-sm font-medium truncate text-gray-700" title={item.file_name}>{item.file_name}</p>
@@ -380,48 +380,73 @@ function MediaLibraryPage() {
   const [mediaItems, setMediaItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editingItem, setEditingItem] = useState(null); // Item being edited in modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null); // Item being edited in metadata modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for edit modal
+  const [isPreviewingItem, setIsPreviewingItem] = useState(null); // Item being previewed
+  const [isMediaPreviewModalOpen, setIsMediaPreviewModalOpen] = useState(false); // State for media preview modal
   const { user } = useAuth(); // Get user context
+
+  // Handler to open the *media preview* modal
+  const handleMediaPreviewClick = (item) => {
+    setIsPreviewingItem(item);
+    setIsMediaPreviewModalOpen(true);
+  };
+
+  // Handler to close the *media preview* modal
+  const handleCloseMediaPreviewModal = () => {
+    setIsMediaPreviewModalOpen(false);
+    setIsPreviewingItem(null);
+  };
+
+  // Handler to open the *edit metadata* modal
+  const handleOpenEditModal = (item) => {
+    setEditingItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  // Handler to close the *edit metadata* modal
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+  };
 
   // Wrap fetchMedia in useCallback to stabilize its identity
   const fetchMedia = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Get media items from the database
+      // Get media items from the database (listMedia now generates fresh URLs)
       const items = await listMedia();
 
       // Log all items for debugging
       console.log('Media items fetched:', items);
 
-      // Check if any items have storage_path
-      const hasStoragePaths = items.some(item => item.storage_path);
-      console.log('Has storage paths:', hasStoragePaths);
+      // No longer need to process URLs here, listMedia handles it
+      setMediaItems(items || []); // Ensure mediaItems is always an array
 
-      if (items.length > 0) {
-        // Log the first item as an example
-        console.log('Example item:', items[0]);
-        console.log('Storage path:', items[0]?.storage_path);
-        console.log('Public URL:', items[0]?.public_url);
-      }
-
-      // Use items directly without processing
-      const processedItems = items;
-
-      setMediaItems(processedItems);
     } catch (err) {
       console.error("Failed to fetch media:", err);
       setError('Failed to load media library. Please try again.');
+      setMediaItems([]); // Set to empty array on error
     } finally {
       setIsLoading(false);
     }
   }, []);
 
 
+  // Check if we're being opened from TinyMCE
+  const [isFromTinyMCE, setIsFromTinyMCE] = useState(false);
+
   useEffect(() => {
     setIsLoading(true); // Set loading true when component mounts
     fetchMedia();
+
+    // Check if we're being opened from TinyMCE
+    const urlParams = new URLSearchParams(window.location.search);
+    const forParam = urlParams.get('for');
+    if (forParam === 'tinymce') {
+      setIsFromTinyMCE(true);
+    }
   }, [fetchMedia]); // Depend on the stable fetchMedia function
 
   // Wrap handleUpload in useCallback
@@ -459,15 +484,7 @@ function MediaLibraryPage() {
     }
   }, [fetchMedia]); // Depend on fetchMedia
 
-  const handleOpenEditModal = (item) => {
-    setEditingItem(item);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingItem(null);
-  };
+  // Note: handleOpenEditModal and handleCloseEditModal defined above
 
   // Wrap handleSaveMetadata in useCallback
   const handleSaveMetadata = useCallback(async (mediaId, metadata) => {
@@ -480,8 +497,7 @@ function MediaLibraryPage() {
       await updateMediaMetadata(mediaId, metadata);
       // If not using optimistic update, refresh after success
       await fetchMedia();
-      // Close modal handled by EditMetadataModal on success now
-      // handleCloseModal();
+      handleCloseEditModal(); // Close edit modal on success
     } catch (err) {
       console.error("Failed to update metadata:", err);
       // Rollback optimistic update
@@ -517,20 +533,105 @@ function MediaLibraryPage() {
         <MediaGrid
           mediaItems={mediaItems}
           onDelete={handleDelete}
-          onEditMetadata={handleOpenEditModal}
+          onEditMetadata={handleOpenEditModal} // Opens edit modal
+          onPreviewClick={handleMediaPreviewClick} // Opens media preview modal
+          isFromTinyMCE={isFromTinyMCE} // Pass the TinyMCE integration flag
         />
       )}
 
+      {/* Edit Metadata Modal */}
       <EditMetadataModal
         item={editingItem}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
         onSave={handleSaveMetadata}
       />
+
+      {/* Simple Media Preview Modal */}
+      {isMediaPreviewModalOpen && isPreviewingItem && (
+        <MediaPreviewModal
+          item={isPreviewingItem}
+          isOpen={isMediaPreviewModalOpen}
+          onClose={handleCloseMediaPreviewModal}
+        />
+      )}
 
       {/* TODO: Add Pagination controls if mediaItems is long */}
     </div>
   );
 }
+
+// --- Simple Media Preview Modal Component ---
+const MediaPreviewModal = ({ item, isOpen, onClose }) => {
+  if (!isOpen || !item) return null;
+
+  const isImage = item.mime_type?.startsWith('image/');
+  const isVideo = item.mime_type?.startsWith('video/');
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[60] p-4 transition-opacity duration-300">
+      <div className="bg-white p-4 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col relative">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-3 pb-2 border-b">
+          <h2 className="text-lg font-semibold text-gray-800 truncate" title={item.file_name}>
+            Preview: {item.file_name}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none focus:outline-none p-1 -mr-1"
+            aria-label="Close preview"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded">
+          {isImage ? (
+            <img
+              // Corrected: Only one src attribute
+              src={item.public_url || ''} // Ensure URL exists
+              alt={item.alt_text || item.file_name || 'Preview'}
+              className="max-w-full max-h-[calc(90vh-100px)] object-contain" // Adjust max-height as needed
+              loading="lazy"
+              onError={(e) => { // Add simple error handler
+                e.target.onerror = null;
+                e.target.style.display = 'none'; // Hide broken image
+                // Optionally display a placeholder/message in the parent div
+                const parent = e.target.parentElement;
+                if (parent) {
+                    parent.innerHTML = '<p class="text-red-500 p-4">Image failed to load.</p>';
+                }
+              }}
+            />
+          ) : isVideo ? (
+            <video
+              src={item.public_url}
+              controls
+              autoPlay
+              muted // Mute to allow autoplay in most browsers
+              className="max-w-full max-h-[calc(90vh-100px)]"
+            >
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div className="text-center text-gray-500 p-10">
+              <MdOutlineInsertDriveFile className="h-16 w-16 mx-auto mb-2 text-gray-400" />
+              Preview not available for this file type ({item.mime_type}).
+            </div>
+          )}
+        </div>
+
+        {/* Footer (optional) */}
+        {/* <div className="mt-4 flex justify-end">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+            Close
+          </button>
+        </div> */}
+      </div>
+    </div>
+  );
+};
+
 
 export default MediaLibraryPage;

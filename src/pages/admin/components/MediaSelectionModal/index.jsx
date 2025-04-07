@@ -4,7 +4,7 @@ import { listMedia } from '../../../../services/api/media'; // Adjust path as ne
 // Reusable Media Grid Component (adapted from MediaLibraryPage)
 // Note: Removed edit/delete buttons for selection context
 const MediaGridSelect = ({ mediaItems, onSelectItem }) => (
-  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-3 overflow-y-auto h-full">
+  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-3 overflow-y-auto"> {/* Removed h-full */}
     {mediaItems.length === 0 && <p className="col-span-full text-center text-gray-500">No media items found matching the criteria.</p>}
     {mediaItems.map((item) => (
       <div
@@ -14,7 +14,18 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => (
         title={`Select ${item.file_name}`}
       >
         {item.mime_type.startsWith('image/') ? (
-          <img src={item.public_url} alt={item.alt_text || item.file_name} className="w-full h-28 object-cover" />
+          <div className="w-full h-28 flex items-center justify-center bg-gray-100 overflow-hidden">
+            <img
+              src={item.public_url}
+              alt={item.alt_text || item.file_name}
+              className="max-w-full max-h-28 object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentNode.innerHTML = `<div class="flex items-center justify-center w-full h-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>`;
+              }}
+              style={{ maxHeight: '7rem', maxWidth: '100%' }}
+            />
+          </div>
         ) : item.mime_type.startsWith('video/') ? (
           <div className="w-full h-28 bg-gray-800 flex items-center justify-center relative">
              <video muted className="w-full h-full object-cover max-h-28">
@@ -108,7 +119,7 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
           <h2 className="text-xl font-semibold">Select Media</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-800 text-2xl"
+            className="text-white bg-teal-600 hover:bg-teal-700 rounded text-2xl w-8 h-8 flex items-center justify-center" // Updated styles: green bg, white text, square, centered
             title="Close"
           >
             &times;

@@ -108,9 +108,29 @@ const extractScriptContent = (htmlContent) => {
  */
 const processContentForWebComponents = (content) => {
   if (!content) return '';
+
+  // Log the original content for debugging
+  console.log('PreviewModal - Original content:', content);
+
+  // First, replace all empty paragraphs with a special marker
+  // This is a more aggressive approach to ensure empty paragraphs are preserved
+  let processedContent = content;
+
+  // Replace empty paragraphs with a div that has height
+  processedContent = processedContent.replace(/<p><br><\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+
+  // Also handle paragraphs with non-breaking spaces or just spaces
+  processedContent = processedContent.replace(/<p>[\s&nbsp;]*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+
+  // Replace consecutive <br> tags with empty lines
+  processedContent = processedContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
+
+  // Log the processed content for debugging
+  console.log('PreviewModal - Processed content (after empty line handling):', processedContent);
+
   const shortcodeRegex = /\[interactive name="([^"]+)"\]/g;
   // Replace shortcode with the corresponding custom element tag
-  return content.replace(shortcodeRegex, (match, name) => {
+  return processedContent.replace(shortcodeRegex, (match, name) => {
     // Basic validation for name
     if (!/^[a-zA-Z0-9-]+$/.test(name)) {
       console.warn(`Invalid interactive element name found: ${name}`);
@@ -276,6 +296,12 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                         padding: 0;
                         color: #333;
                       }
+                      /* Preserve whitespace in paragraphs */
+                      p { white-space: pre-wrap; }
+                      /* Ensure empty paragraphs have height */
+                      p[data-empty="true"] { min-height: 1em; display: block; }
+                      /* Ensure consecutive empty paragraphs are visible */
+                      p + p[data-empty="true"] { margin-top: 1em; }
                       h1, h2, h3, h4, h5, h6 {
                         margin-top: 0;
                         margin-bottom: 0.5em;
@@ -301,6 +327,61 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       }
                       th {
                         background-color: #f9fafb;
+                      }
+
+                      /* Image Grid Layout Styles */
+                      .image-grid-wrapper {
+                        display: grid !important;
+                        gap: 1em;
+                        margin-bottom: 1em;
+                        padding: 5px;
+                      }
+                      .image-grid-wrapper.align-left {
+                        grid-template-columns: auto 1fr;
+                      }
+                      .image-grid-wrapper.align-right {
+                        grid-template-columns: 1fr auto;
+                      }
+                      .image-grid-wrapper.align-center {
+                        grid-template-columns: 1fr;
+                        justify-items: center;
+                      }
+                      .image-grid-wrapper > .grid-cell {
+                        min-width: 0;
+                      }
+                      .image-grid-wrapper > .image-cell {
+                        display: flex;
+                        align-items: flex-start;
+                      }
+                      .image-grid-wrapper.align-right > .image-cell {
+                        grid-column: 2;
+                      }
+                      .image-grid-wrapper.align-right > .content-cell {
+                        grid-column: 1;
+                        grid-row: 1;
+                      }
+                      .image-grid-wrapper > .image-cell > img {
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                      }
+                      .image-grid-wrapper > .content-cell {
+                        min-height: 2em;
+                        display: block;
+                        height: 100%;
+                        padding: 0.25em;
+                      }
+                      .image-grid-wrapper > .content-cell > p {
+                        margin: 0 0 0.5em 0;
+                        white-space: pre-wrap;
+                      }
+                      .image-grid-wrapper > .content-cell > p:last-child {
+                        margin-bottom: 0;
+                      }
+                      /* Honor text alignment styles */
+                      .image-grid-wrapper > .content-cell[style*="text-align"],
+                      .image-grid-wrapper > .content-cell > p[style*="text-align"] {
+                        display: block;
                       }
 
                       /* Add any extracted styles */

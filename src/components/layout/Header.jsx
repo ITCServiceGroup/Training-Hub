@@ -19,31 +19,59 @@ const Header = () => {
             <h1 className="m-0 text-2xl">Training Hub</h1>
           </Link>
 
-          <nav className="flex">
-            <ul className="flex list-none m-0 p-0">
-              <li className="ml-6">
-                <Link to="/" className="text-white no-underline font-medium">Home</Link>
+          <nav>
+            <ul className="flex list-none m-0 p-0 gap-4 items-center">
+              <li>
+                <Link
+                  to="/"
+                  className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                >
+                  Home
+                </Link>
               </li>
-              <li className="ml-6">
-                <Link to="/study" className="text-white no-underline font-medium">Study Guides</Link>
+              <li>
+                <Link
+                  to="/study"
+                  className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                >
+                  Study Guides
+                </Link>
               </li>
-              <li className="ml-6">
-                <Link to="/quiz" className="text-white no-underline font-medium">Quizzes</Link>
+              <li>
+                <Link
+                  to="/quiz"
+                  className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                >
+                  Quizzes
+                </Link>
               </li>
               {isAuthenticated ? (
                 <>
-                  <li className="ml-6">
-                    <Link to="/admin" className="text-white no-underline font-medium">Admin</Link>
+                  <li>
+                    <Link
+                      to="/admin"
+                      className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                    >
+                      Admin
+                    </Link>
                   </li>
-                  <li className="ml-6">
-                    <button className="bg-transparent border-none text-white cursor-pointer font-medium p-0" onClick={handleSignOut}>
+                  <li>
+                    <button
+                      onClick={handleSignOut}
+                      className="inline-block bg-transparent border-none text-white cursor-pointer font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                    >
                       Sign Out
                     </button>
                   </li>
                 </>
               ) : (
-                <li className="ml-6">
-                  <Link to="/login" className="text-white no-underline font-medium">Admin Login</Link>
+                <li>
+                  <Link
+                    to="/login"
+                    className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                  >
+                    Admin Login
+                  </Link>
                 </li>
               )}
             </ul>

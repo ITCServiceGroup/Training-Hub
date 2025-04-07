@@ -122,7 +122,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <MdDashboard className="text-lg" /> Dashboard
               </Link>
@@ -132,7 +132,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/study-guides"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <BiBook className="text-lg" /> Study Guides
               </Link>
@@ -148,7 +148,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/media"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <MdOutlinePermMedia className="text-lg" /> Media Library
               </Link>
@@ -159,7 +159,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/questions"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <BsQuestionCircle className="text-lg" /> Questions
               </Link>
@@ -169,7 +169,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/quizzes"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <MdQuiz className="text-lg" /> Quizzes
               </Link>
@@ -179,7 +179,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/results"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <BiBarChart className="text-lg" /> Results
               </Link>
@@ -189,7 +189,7 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/settings"
-                className="text-white no-underline flex items-center gap-3"
+                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
               >
                 <FiSettings className="text-lg" /> Settings
               </Link>

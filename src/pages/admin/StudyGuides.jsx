@@ -137,13 +137,15 @@ const StudyGuides = () => {
     try {
       let savedGuide;
       const display_order = Math.max(...studyGuides.map(g => g.display_order), -1) + 1;
+      // Extract shouldExit from studyGuideData and remove it from the data sent to the API
+      const { shouldExit = true, ...dataToSave } = studyGuideData;
 
       if (isCreating) {
         // Optimistically update the UI before API call
         const tempId = 'temp-' + Date.now();
         const newGuide = {
           id: tempId,
-          ...studyGuideData,
+          ...dataToSave,
           category_id: selectedCategory.id,
           display_order,
           created_at: new Date().toISOString(),
@@ -175,7 +177,7 @@ const StudyGuides = () => {
 
         // Make API call
         savedGuide = await studyGuidesService.create({
-          ...studyGuideData,
+          ...dataToSave,
           category_id: selectedCategory.id,
           display_order
         });
@@ -207,12 +209,22 @@ const StudyGuides = () => {
         });
         optimisticallyUpdateSectionsOrder(finalSectionsData);
 
+        // Only exit if shouldExit is true
+        if (shouldExit) {
+          setIsCreating(false);
+          setSelectedStudyGuide(null);
+        } else {
+          // If not exiting, set the selected study guide to the newly created one
+          setIsCreating(false);
+          setSelectedStudyGuide(savedGuide);
+        }
+
       } else {
         // Update existing guide
         // Optimistically update UI
         const updatedGuide = {
           ...selectedStudyGuide,
-          ...studyGuideData,
+          ...dataToSave,
           updated_at: new Date().toISOString()
         };
 
@@ -244,11 +256,16 @@ const StudyGuides = () => {
         optimisticallyUpdateSectionsOrder(newSectionsData);
 
         // Make API call
-        savedGuide = await studyGuidesService.update(selectedStudyGuide.id, studyGuideData);
-      }
+        savedGuide = await studyGuidesService.update(selectedStudyGuide.id, dataToSave);
 
-      setIsCreating(false);
-      setSelectedStudyGuide(null);
+        // Only exit if shouldExit is true
+        if (shouldExit) {
+          setSelectedStudyGuide(null);
+        } else {
+          // If not exiting, update the selected study guide with the saved data
+          setSelectedStudyGuide(savedGuide);
+        }
+      }
     } catch (error) {
       console.error('Error saving study guide:', error);
       await loadStudyGuides(); // Revert on error
