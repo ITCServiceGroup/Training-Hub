@@ -28,7 +28,7 @@ const LoadingFallback = () => (
 
 function App() {
   // Get auth state
-  const { loading, isAuthenticated } = useAuth();
+  const { loading } = useAuth();
 
   // If auth is still loading, show loading indicator
   if (loading) {
@@ -37,10 +37,6 @@ function App() {
 
   return (
     <div className="app-container w-full min-h-screen">
-      {/* For debug purposes, show auth state */}
-      <div className="fixed bottom-[10px] right-[10px] bg-gray-200 p-[5px] text-xs z-[1000] opacity-70">
-        Auth: {isAuthenticated ? 'Logged In' : 'Not Logged In'}
-      </div>
 
       <Routes>
         {/* Main app routes */}

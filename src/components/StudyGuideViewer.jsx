@@ -179,9 +179,9 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
       <title>${studyGuide.title || 'Study Guide Content'}</title>
       <style>
         /* Base iframe styles */
-        body { 
+        body {
           margin: 0;
-          padding: 15px; 
+          padding: 15px;
           font-family: 'Inter', sans-serif;
           line-height: 1.6;
           /* Ensure proper rendering context */
@@ -247,6 +247,30 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           height: auto;
           display: block;
         }
+
+        /* Image Style Options */
+        .image-grid-wrapper > .image-cell > img.border-thin {
+          border: 1px solid #e0e0e0;
+        }
+        .image-grid-wrapper > .image-cell > img.border-medium {
+          border: 2px solid #e0e0e0;
+        }
+        .image-grid-wrapper > .image-cell > img.border-thick {
+          border: 4px solid #e0e0e0;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-sm {
+          border-radius: 4px;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-md {
+          border-radius: 8px;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-lg {
+          border-radius: 16px;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-full {
+          border-radius: 9999px;
+        }
+        /* End Image Style Options */
         .image-grid-wrapper > .content-cell {
           min-height: 2em;
           display: block;
@@ -279,15 +303,15 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Main component return statement
   return (
-    <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full"> {/* Changed p-8 to p-2 sm:p-8 */}
+    <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full flex flex-col"> {/* Added flex-col to ensure proper height distribution */}
       <h2 className="text-2xl text-slate-900 mb-6 border-b border-slate-200 pb-3">{studyGuide.title}</h2>
       <iframe
         ref={iframeRef} // Ref for the main iframe
         title={studyGuide.title}
         // Set srcDoc to the manually constructed HTML with injected styles
         srcDoc={iframeHtml}
-        className="w-full min-h-[600px] border-none bg-white overflow-auto"
-        style={{ height: 'calc(100vh - 300px)' }} // Keep this one style for dynamic calculation
+        className="w-full border-none bg-white overflow-auto flex-1"
+        style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }} // Adjusted calculation with flex-1 to fill available space
         // Sandbox is still good practice for the main content iframe
         sandbox="allow-scripts allow-same-origin"
       />

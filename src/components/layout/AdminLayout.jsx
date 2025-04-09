@@ -114,7 +114,7 @@ const AdminLayout = () => {
         optimisticallyUpdateSectionsOrder, // Provide optimistic update function
       }}
     >
-      <div className="flex min-h-[calc(100vh-64px)] overflow-hidden w-full m-0 p-0">
+      <div className="flex flex-1 overflow-hidden w-full m-0 p-0">
         <div className="w-[250px] bg-slate-800 text-white py-8 flex-shrink-0 mt-0">
           <ul className="list-none p-0 m-0">
             <li

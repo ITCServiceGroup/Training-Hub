@@ -15,7 +15,7 @@ const Layout = () => {
       <Header />
       <main className="main-content flex-1 flex flex-col w-full">
         {/* Apply padding conditionally based on whether it's an admin page */}
-        <div className={`w-full flex-1 flex flex-col ${isAdminPage ? 'p-0' : 'p-8'}`}>
+        <div className={`w-full flex-1 flex flex-col ${isAdminPage ? 'p-0' : 'px-8 pt-8 pb-4'}`}>
           <Outlet />
         </div>
       </main>

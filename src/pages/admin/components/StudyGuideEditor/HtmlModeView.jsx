@@ -36,14 +36,8 @@ const HtmlModeView = ({
       processedBodyContent = processedBodyContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
       processedBodyContent = processContentForWebComponents(processedBodyContent);
 
-      // Write the basic structure
-      iframeDoc.open();
-      iframeDoc.write('<!DOCTYPE html><html><head></head><body><div id="content"></div></body></html>');
-      iframeDoc.close();
-
-      // Inject styles first
-      const styleEl = iframeDoc.createElement('style');
-      styleEl.textContent = styleContent || `
+      // Construct the complete HTML document with styles and content
+      const combinedStyles = styleContent || `
         body { font-family: 'Inter', sans-serif; line-height: 1.6; margin: 20px; }
         img { max-width: 100%; height: auto; }
         table { width: 100%; border-collapse: collapse; }
@@ -52,12 +46,153 @@ const HtmlModeView = ({
         p { white-space: pre-wrap; }
         .empty-line { height: 1em; display: block; margin: 1em 0; }
         .loading { text-align: center; padding: 20px; color: #666; }
-      `;
-      iframeDoc.head.appendChild(styleEl);
 
-      // Show loading state
-      const contentDiv = iframeDoc.getElementById('content');
-      contentDiv.innerHTML = '<div class="loading">Loading interactive elements...</div>';
+        /* Image Grid Layout Styles */
+        .image-grid-wrapper {
+          display: grid !important;
+          gap: 1em;
+          margin-bottom: 1em;
+          padding: 5px;
+        }
+        .image-grid-wrapper.align-left {
+          grid-template-columns: auto 1fr;
+        }
+        .image-grid-wrapper.align-right {
+          grid-template-columns: 1fr auto;
+        }
+        .image-grid-wrapper.align-center {
+          grid-template-columns: 1fr;
+          justify-items: center;
+        }
+        .image-grid-wrapper > .grid-cell {
+          min-width: 0;
+        }
+        .image-grid-wrapper > .image-cell {
+          display: flex;
+          align-items: flex-start;
+        }
+        .image-grid-wrapper > .image-cell > img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        /* Image Style Options */
+        .image-grid-wrapper > .image-cell > img.border-thin {
+          border: 1px solid #e0e0e0 !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-medium {
+          border: 2px solid #e0e0e0 !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-thick {
+          border: 4px solid #e0e0e0 !important;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-sm {
+          border-radius: 4px !important;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-md {
+          border-radius: 8px !important;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-lg {
+          border-radius: 16px !important;
+        }
+        .image-grid-wrapper > .image-cell > img.rounded-full {
+          border-radius: 9999px !important;
+        }
+      `;
+
+      // Add debugging info
+      console.log('Preparing HTML preview with content length:', processedBodyContent.length);
+      console.log('Image style classes present:', processedBodyContent.match(/class="[^"]*(?:border|rounded)[^"]*"/g));
+
+      const fullHtmlDocument = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="stylesheet" href="/fonts/inter.css">
+          <title>${title || 'Preview'}</title>
+          <style>
+            html {
+              font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            }
+            ${combinedStyles}
+
+            /* Force all style overrides */
+            html body .image-grid-wrapper > .image-cell > img[class*="border-"],
+            html body .image-grid-wrapper > .image-cell > img[class*="rounded-"] {
+              box-sizing: border-box !important;
+              display: block !important;
+              max-width: 100% !important;
+            }
+
+            /* Ensure border and rounded styles are applied with highest specificity */
+            html body .image-grid-wrapper > .image-cell > img.border-thin { border: 1px solid #e0e0e0 !important; }
+            html body .image-grid-wrapper > .image-cell > img.border-medium { border: 2px solid #e0e0e0 !important; }
+            html body .image-grid-wrapper > .image-cell > img.border-thick { border: 4px solid #e0e0e0 !important; }
+            html body .image-grid-wrapper > .image-cell > img.rounded-sm { border-radius: 4px !important; }
+            html body .image-grid-wrapper > .image-cell > img.rounded-md { border-radius: 8px !important; }
+            html body .image-grid-wrapper > .image-cell > img.rounded-lg { border-radius: 16px !important; }
+            html body .image-grid-wrapper > .image-cell > img.rounded-full { border-radius: 9999px !important; }
+          </style>
+        </head>
+        <body>
+          <div class="loading">Loading interactive elements...</div>
+          ${processedBodyContent}
+          <script>
+            // Debug script to verify style application
+            document.addEventListener('DOMContentLoaded', () => {
+              const images = document.querySelectorAll('.image-grid-wrapper > .image-cell > img');
+              console.log('Found images:', images.length);
+
+              images.forEach(img => {
+                const styles = window.getComputedStyle(img);
+                console.log('Image styles:', {
+                  class: img.className,
+                  border: styles.border,
+                  borderRadius: styles.borderRadius,
+                  hasBorderClass: img.className.includes('border-'),
+                  hasRoundedClass: img.className.includes('rounded-')
+                });
+
+                // Force reapplication of styles
+                if (img.className.includes('border-') || img.className.includes('rounded-')) {
+                  // Clone and replace the image to force style recalculation
+                  const parent = img.parentNode;
+                  const clone = img.cloneNode(true);
+                  parent.replaceChild(clone, img);
+                  console.log('Forced style recalculation for image with classes:', clone.className);
+                }
+              });
+            });
+          </script>
+        </body>
+        </html>
+      `;
+
+      iframeDoc.open();
+      iframeDoc.write(fullHtmlDocument);
+      iframeDoc.close();
+
+      // Force a repaint after a small delay to ensure styles are applied
+      setTimeout(() => {
+        const styleElement = iframeDoc.createElement('style');
+        styleElement.textContent = `
+          /* Force immediate style application */
+          .image-grid-wrapper > .image-cell > img[class*="border-"],
+          .image-grid-wrapper > .image-cell > img[class*="rounded-"] {
+            border: inherit !important;
+            border-radius: inherit !important;
+          }
+        `;
+        iframeDoc.head.appendChild(styleElement);
+
+        // Remove the style after a brief moment to let the browser apply the original styles
+        setTimeout(() => {
+          styleElement.remove();
+        }, 50);
+      }, 100);
 
       // Find required interactive elements
       const requiredElements = new Set();
@@ -76,12 +211,12 @@ const HtmlModeView = ({
           const script = iframeDoc.createElement('script');
           script.type = 'module';
           script.src = new URL(scriptPath, window.location.origin).href;
-          
+
           script.onload = () => {
             console.log(`Successfully loaded script for ${elementName}`);
             resolve();
           };
-          
+
           script.onerror = (error) => {
             console.error(`Failed to load script for ${elementName}:`, error);
             reject(error);
@@ -96,8 +231,11 @@ const HtmlModeView = ({
         await Promise.all(Array.from(requiredElements).map(loadScript));
         console.log('All interactive element scripts loaded successfully');
 
-        // Now that scripts are loaded, inject the content
-        contentDiv.innerHTML = processedBodyContent;
+        // Update the loading message with the content
+        const loadingDiv = iframeDoc.querySelector('.loading');
+        if (loadingDiv) {
+          loadingDiv.remove();
+        }
 
         // Finally, inject any additional script content
         if (mainScriptContent) {
@@ -109,7 +247,7 @@ const HtmlModeView = ({
         }
       } catch (error) {
         console.error('Error loading interactive elements:', error);
-        contentDiv.innerHTML = `
+        iframeDoc.body.innerHTML = `
           <div style="color: #e53e3e; padding: 12px; border: 1px solid #feb2b2; border-radius: 4px; margin: 12px 0;">
             Error loading interactive elements. Please try refreshing the page.
           </div>

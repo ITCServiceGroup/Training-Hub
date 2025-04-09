@@ -171,11 +171,11 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
     <Dialog
       open={isOpen}
       onClose={onClose}
-      className="relative z-50"
+      className="relative z-[200]"
       aria-labelledby="preview-modal-title"
     >
-      <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-[5px] z-50" aria-hidden="true">
-        <Dialog.Panel className="bg-white rounded-lg w-full max-w-[1400px] max-h-[98vh] h-[98vh] flex flex-col relative">
+      <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 sm:p-6 z-[200] overflow-y-auto" aria-hidden="true">
+        <Dialog.Panel className="bg-white rounded-lg w-full max-w-[1400px] max-h-[90vh] h-auto sm:h-[90vh] flex flex-col relative my-4">
           <div className="py-[6px] px-3 border-b border-gray-200 flex justify-between items-center h-10 flex-shrink-0">
             <Dialog.Title id="preview-modal-title" className="text-base font-semibold text-gray-900">
               {title || 'Study Guide Preview'}
@@ -188,7 +188,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
               <FaTimes size={20} aria-hidden="true" />
             </button>
           </div>
-          <div className="flex-1 flex flex-col overflow-hidden p-0 h-[calc(98vh-40px)] min-h-0 relative">
+          <div className="flex-1 flex flex-col overflow-hidden p-0 h-[calc(90vh-40px)] min-h-0 relative">
             <div
               className={`absolute inset-0 bg-white flex items-center justify-center z-10 transition-opacity duration-200 ${isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
               role="status"
@@ -375,11 +375,34 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                       .image-grid-wrapper > .content-cell > p:last-child {
                         margin-bottom: 0;
                       }
-                      /* Honor text alignment styles */
-                      .image-grid-wrapper > .content-cell[style*="text-align"],
-                      .image-grid-wrapper > .content-cell > p[style*="text-align"] {
-                        display: block;
-                      }
+      /* Honor text alignment styles */
+      .image-grid-wrapper > .content-cell[style*="text-align"],
+      .image-grid-wrapper > .content-cell > p[style*="text-align"] {
+        display: block;
+      }
+
+      /* Image Style Options */
+      .image-grid-wrapper > .image-cell > img.border-thin {
+        border: 1px solid #e0e0e0;
+      }
+      .image-grid-wrapper > .image-cell > img.border-medium {
+        border: 2px solid #e0e0e0;
+      }
+      .image-grid-wrapper > .image-cell > img.border-thick {
+        border: 4px solid #e0e0e0;
+      }
+      .image-grid-wrapper > .image-cell > img.rounded-sm {
+        border-radius: 4px;
+      }
+      .image-grid-wrapper > .image-cell > img.rounded-md {
+        border-radius: 8px;
+      }
+      .image-grid-wrapper > .image-cell > img.rounded-lg {
+        border-radius: 16px;
+      }
+      .image-grid-wrapper > .image-cell > img.rounded-full {
+        border-radius: 9999px;
+      }
                       /* Ensure proper sizing and display of router simulator */
                       router-simulator-simulator {
                         display: block !important;

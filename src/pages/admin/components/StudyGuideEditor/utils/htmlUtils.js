@@ -43,7 +43,7 @@ export const prepareContentForPreview = (htmlContent) => {
     bodyContent = bodyContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
 
     // Replace the body content in the full HTML
-    processedContent = processedContent.replace(bodyMatch[0], `<body>${bodyContent}</body>`);
+    processedContent = processedContent.replace(bodyMatch[0], `<body class="preview-content">${bodyContent}</body>`);
   }
 
   // Add a comment to help with debugging
@@ -79,7 +79,10 @@ export const extractBodyContent = (htmlContent) => {
 
 // Helper to extract style content from a full HTML string
 export const extractStyleContent = (fullHtml) => {
-  return fullHtml?.match(/<style[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
+  const extracted = fullHtml?.match(/<style[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
+  
+  // If no styles were extracted, return null instead of empty string to allow default styles
+  return extracted.trim() || null;
 };
 
 // Helper to extract and deduplicate script content
@@ -103,14 +106,80 @@ export const extractUniqueScriptContent = (htmlContent) => {
 export const getFullHtmlForSave = (bodyContentToSave, title, initialContent) => {
   // Construct the HTML while preserving script content
   let baseStyles = `
+    /* Base Font */
     @import url('/fonts/inter.css');
-    body { font-family: 'Inter', sans-serif; line-height: 1.6; margin: 20px; }
+
+    /* Base Styles */
+    html, body { 
+      font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+      line-height: 1.6; 
+      margin: 20px; 
+    }
     .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 4px; }
     h1, h2, h3 { color: #333; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 8px; }
     th { background-color: #f2f2f2; }
     .interactive-placeholder { background-color: #f0f7ff; border: 1px solid #bbd6ff; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
+    /* Image Grid Layout Styles */
+    .image-grid-wrapper {
+      display: grid !important;
+      gap: 1em;
+      margin-bottom: 1em;
+      padding: 5px;
+    }
+    .image-grid-wrapper.align-left {
+      grid-template-columns: auto 1fr;
+    }
+    .image-grid-wrapper.align-right {
+      grid-template-columns: 1fr auto;
+    }
+    .image-grid-wrapper.align-center {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+    .image-grid-wrapper > .grid-cell {
+      min-width: 0;
+    }
+    .image-grid-wrapper > .image-cell {
+      display: flex;
+      align-items: flex-start;
+    }
+    .image-grid-wrapper > .image-cell > img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Image Style Options */
+    .image-grid-wrapper > .image-cell > img.border-thin { 
+      border: 1px solid #e0e0e0 !important; 
+    }
+    .image-grid-wrapper > .image-cell > img.border-medium { 
+      border: 2px solid #e0e0e0 !important; 
+    }
+    .image-grid-wrapper > .image-cell > img.border-thick { 
+      border: 4px solid #e0e0e0 !important; 
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-sm { 
+      border-radius: 4px !important; 
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-md { 
+      border-radius: 8px !important; 
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-lg { 
+      border-radius: 16px !important; 
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-full { 
+      border-radius: 9999px !important; 
+    }
+    /* Additional specific styles for enhanced specificity */
+    html body .image-grid-wrapper > .image-cell > img[class*="border-"],
+    html body .image-grid-wrapper > .image-cell > img[class*="rounded-"] {
+      box-sizing: border-box !important;
+      display: block !important;
+      max-width: 100% !important;
+    }
   `;
 
   const styleContent = extractStyleContent(initialContent) || baseStyles;
@@ -127,7 +196,7 @@ export const getFullHtmlForSave = (bodyContentToSave, title, initialContent) => 
     `        ${styleContent.trim()}`,
     '    </style>',
     '</head>',
-    '<body>',
+    '<body class="preview-content">',
     bodyContentToSave, // This now includes the script tag if present in RTE content
     '</body>',
     '</html>'
