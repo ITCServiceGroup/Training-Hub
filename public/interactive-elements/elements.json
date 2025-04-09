@@ -40,5 +40,12 @@
     "title": "Packet Loss Analyzer",
     "description": "Simulate and analyze the impact of packet loss on network performance.",
     "thumbnailUrl": "/interactive-elements/packet-loss-analyzer/thumbnail.png"
+  },
+  {
+    "name": "traceroute-simulator",
+    "path": "traceroute-simulator/",
+    "title": "Traceroute Simulator",
+    "description": "Simulate traceroute paths and common network issues like latency and packet loss.",
+    "thumbnailUrl": "/interactive-elements/traceroute-simulator/thumbnail.png" 
   }
 ]
