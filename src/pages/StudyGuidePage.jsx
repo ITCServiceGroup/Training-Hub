@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FaBars, FaTimes } from 'react-icons/fa';
 import { studyGuidesService } from '../services/api/studyGuides';
 import { sectionsService } from '../services/api/sections';
 import SectionGrid from '../components/SectionGrid';
@@ -12,6 +13,8 @@ const StudyGuidePage = () => {
   const { sectionId, categoryId, studyGuideId } = useParams();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isHeaderScrolledAway, setIsHeaderScrolledAway] = useState(false); // State for header scroll
 
   // Manage sections data locally instead of from context
   const [sectionsData, setSectionsData] = useState([]);
@@ -186,6 +189,49 @@ const StudyGuidePage = () => {
     fetchStudyGuide();
   }, [studyGuideId, categoryId]); // Add categoryId dependency
 
+
+  // Effect to handle scroll position for sticky mobile menu/sidebar
+  useEffect(() => {
+    const HEADER_HEIGHT_THRESHOLD = 72; // Approx height of the header in pixels
+
+    // Simple throttle function
+    const throttle = (func, limit) => {
+      let inThrottle;
+      return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+          func.apply(context, args);
+          inThrottle = true;
+          setTimeout(() => inThrottle = false, limit);
+        }
+      }
+    };
+
+    const handleScroll = () => {
+      const scrolled = window.scrollY > HEADER_HEIGHT_THRESHOLD;
+      // Only update state if it actually changes
+      setIsHeaderScrolledAway(prevState => {
+        if (prevState !== scrolled) {
+          // console.log(`Header scrolled away: ${scrolled}`); // Debug log
+          return scrolled;
+        }
+        return prevState;
+      });
+    };
+
+    const throttledHandleScroll = throttle(handleScroll, 100); // Throttle scroll checks every 100ms
+
+    window.addEventListener('scroll', throttledHandleScroll);
+    // Initial check in case the page loads already scrolled
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', throttledHandleScroll);
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+
+
   // Handler for selecting a guide from the public list
   const handlePublicGuideSelect = (guide) => {
     if (guide && sectionId && categoryId) {
@@ -285,21 +331,45 @@ const StudyGuidePage = () => {
           />
         </>
       ) : (
-        /* Study guide view (section and category selected) */
-        <div className="flex w-full gap-8 min-h-[calc(100vh-250px)] max-w-full">
-          {/* Sidebar with study guide list - always visible when category is selected */}
-          <div className="w-[250px] flex-shrink-0">
+          /* Study guide view (section and category selected) */
+          <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full">
+            {/* Mobile menu button - Adjusted top based on scroll */}
+            <button
+              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-20'} right-4 z-[60] p-3 bg-white rounded-lg shadow-lg text-teal-700 hover:text-teal-800 transition-colors`}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              aria-label="Toggle menu"
+            >
+              {isSidebarOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            </button>
+
+            {/* Backdrop for mobile */}
+            {isSidebarOpen && (
+              <div 
+                className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[50]"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+            )}
+
+            {/* Sidebar with study guide list - responsive visibility and adjusted top/height */}
+            <div className={`
+              fixed md:static left-0 z-[55] md:z-auto
+              w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out overflow-y-auto
+              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[72px] h-[calc(100vh-72px)]'}
+              ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+              bg-white md:bg-transparent
+            `}>
             <StudyGuideList
               studyGuides={studyGuides}
               sectionId={sectionId}
               categoryId={categoryId}
               selectedGuideId={studyGuideId}
-              isLoading={isLoadingStudyGuides} // Use specific loading state for list
+              isLoading={isLoadingStudyGuides}
+              onClose={() => setIsSidebarOpen(false)}
             />
           </div>
 
           {/* Main content area: Show list or viewer */}
-          <div className="flex-1 w-full">
+          <div className="flex-1 w-full md:ml-8">
             {studyGuideId ? (
               <StudyGuideViewer
                 studyGuide={currentStudyGuide}

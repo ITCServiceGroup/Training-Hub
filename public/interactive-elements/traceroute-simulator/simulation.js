@@ -168,14 +168,28 @@ export class Simulation {
   getLatencyAnalysis(hop, hopNumber) {
     const expectedLatency = this.getExpectedLatency(hop.type);
     const latencyIncrease = Math.round((hop.latency / expectedLatency) * 100 - 100);
+    let analysisText = `This ${hop.type.toLowerCase()} is showing unusually high latency, ${latencyIncrease}% above expected values.`;
+
+    // Node-specific analysis text
+    if (hop.type === 'Local Router') {
+      analysisText = "High latency detected at your local router. This is the first hop from your device and usually represents the connection to your home Wi-Fi router or modem.";
+    } else if (hop.type?.includes('ISP')) {
+      analysisText = `A significant latency increase (${latencyIncrease}% above expected) is observed within your Internet Service Provider's (ISP) network. This often indicates congestion or issues on the links connecting your area to the wider internet.`;
+    } else if (hop.type?.includes('Exchange Point')) {
+      analysisText = `Increased latency observed at an Internet Exchange Point (IXP). IXPs are major interconnection hubs where different networks exchange traffic.`;
+    } else if (hop.type?.includes('Backbone')) {
+      analysisText = `Latency increase detected on a Tier 1 Internet Backbone router. These form the high-speed core of the internet.`;
+    } else if (hop.type?.includes('Destination') || hop.type?.includes('Edge')) {
+       analysisText = `High latency observed within the destination network, close to the target server. This suggests issues within the hosting provider's or target organization's infrastructure.`;
+    }
     
     return {
       title: `High Latency Detected at Hop ${hopNumber} (${hop.type} - ${hop.ip})`,
-      details: `RTT: ${hop.latency}ms (Expected: ~${expectedLatency}ms)`,
-      analysis: `This ${hop.type.toLowerCase()} is showing unusually high latency, ${latencyIncrease}% above expected values.`,
-      impact: this.getLatencyImpactDescription(hop.latency),
+      details: `RTT: ${hop.latency}ms (Expected: ~${expectedLatency}ms, Increase: ${latencyIncrease}%)`,
+      analysis: analysisText,
+      impact: this.getLatencyImpactDescription(hop.latency, hop.type),
       causes: this.getLatencyCauses(hop.type),
-      recommendation: this.getLatencyRecommendation(hop.type)
+      recommendation: this.getLatencyRecommendation(hop.type, hop.ip)
     };
   }
 
@@ -197,28 +211,87 @@ export class Simulation {
 
   // Generate analysis for timeout issues
   getTimeoutAnalysis(hop, hopNumber) {
+    let analysisText = `All probe packets were lost at this ${hop.type.toLowerCase()}.`;
+    let impactText = "Connections through this hop will experience packet loss, leading to retransmissions and potential application timeouts.";
+
+    // Node-specific analysis text
+    if (hop.type === 'Local Router') {
+      analysisText = "Packet loss detected at your local router. Your device is unable to reliably communicate with your primary gateway (router/modem).";
+      impactText = "Significant performance issues like slow speeds, dropped connections, inability to load websites or use online services.";
+    } else if (hop.type?.includes('ISP')) {
+      analysisText = "Packet loss detected within your ISP's network. This indicates instability or equipment issues within the provider's infrastructure serving your connection.";
+      impactText = "Intermittent connectivity, slow downloads/uploads, dropped connections, poor quality for real-time applications (VoIP, video calls).";
+    } else if (hop.type?.includes('Exchange Point')) {
+      analysisText = "Packet loss detected at an Internet Exchange Point (IXP). This suggests instability or problems at a critical network interconnection point.";
+      impactText = "Can cause unreliable connections and performance degradation for traffic passing through this IXP, potentially affecting access to a wide range of destinations.";
+    } else if (hop.type?.includes('Backbone')) {
+      analysisText = "Packet loss occurring on a Tier 1 Internet Backbone router. This points to potential instability in the core internet infrastructure.";
+      impactText = "Can cause widespread connectivity problems, affecting reliability and speed for traffic traversing this part of the backbone.";
+    } else if (hop.type?.includes('Destination') || hop.type?.includes('Edge')) {
+       analysisText = "Packet loss detected near or at the destination network/server. Probes are not reliably reaching the end point or responses are getting lost.";
+       impactText = "Unreliable connection to the specific service, errors, slow performance, potential timeouts.";
+    }
+
     return {
-      title: `Packet Loss Detected at Hop ${hopNumber} (${hop.type} - ${hop.ip})`,
-      analysis: `All probe packets were lost at this ${hop.type.toLowerCase()}.`,
-      impact: "Connections through this hop will experience packet loss, leading to retransmissions and potential application timeouts.",
+      title: `Packet Loss (Timeout) Detected at Hop ${hopNumber} (${hop.type} - ${hop.ip})`,
+      analysis: analysisText,
+      impact: impactText,
       causes: this.getTimeoutCauses(hop.type),
-      recommendation: this.getTimeoutRecommendation(hop.type)
+      recommendation: this.getTimeoutRecommendation(hop.type, hop.ip)
     };
   }
 
   // Generate analysis for unreachable destination
   getUnreachableAnalysis(hop, hopNumber) {
+    let analysisText = `Path terminated at the ${hop.type.toLowerCase()}.`;
+    let impactText = "No further network path available to reach the destination.";
+
+    // Node-specific analysis text
+    if (hop.type === 'Local Router') {
+        analysisText = "Unable to reach the local router (default gateway). Your device cannot find the first step out to the internet.";
+        impactText = "No internet connectivity.";
+    } else if (hop.type?.includes('ISP')) {
+        analysisText = "The trace stopped within the ISP network. This could mean a routing failure or that ISP equipment is configured not to respond to trace requests.";
+        impactText = "If the destination is truly unreachable, you won't be able to access it. However, sometimes only the trace probes are blocked, and the actual service might still work.";
+    } else if (hop.type?.includes('Exchange Point')) {
+        analysisText = "Trace stopped at an Internet Exchange Point (IXP). This could indicate a routing issue between networks at the exchange or that the next hop is configured not to respond.";
+        impactText = "May prevent access to networks reachable only via this peering point, or it might just be blocking trace probes.";
+    } else if (hop.type?.includes('Backbone')) {
+        analysisText = "Trace terminated at a Tier 1 Backbone router. This suggests a major routing failure or a policy blocking probes further along the path.";
+        impactText = "Could indicate a significant disruption preventing access to large parts of the internet, or simply a probe-blocking policy.";
+    } else if (hop.type?.includes('Destination') || hop.type?.includes('Edge')) {
+       analysisText = "Trace stopped just before or within the destination network. This often means the final server or a firewall is configured not to respond to traceroute probes (ICMP).";
+       impactText = "This is common and *does not necessarily* mean the service itself is down. The target server might just be ignoring the trace.";
+    }
+
     return {
       title: `Destination Unreachable after Hop ${hopNumber} (${hop.type} - ${hop.ip})`,
-      analysis: `Path terminated at the ${hop.type.toLowerCase()}.`,
-      impact: "No further network path available to reach the destination.",
+      analysis: analysisText,
+      impact: impactText,
       causes: this.getUnreachableCauses(hop.type),
       recommendation: this.getUnreachableRecommendation(hop.type)
     };
   }
 
   // Helper methods for impact descriptions
-  getLatencyImpactDescription(latency) {
+  getLatencyImpactDescription(latency, type) {
+    if (type === 'Local Router') {
+      return "You might experience general sluggishness, slow loading web pages, and inconsistent performance for devices connected to your local network.";
+    }
+    if (type?.includes('ISP')) {
+      return "Slower website loading, buffering during streaming, lag in online games, especially during peak usage hours (evenings, weekends).";
+    }
+    if (type?.includes('Exchange Point')) {
+       return "May cause slower connections to services hosted on networks peering at this IXP, potentially affecting multiple websites or services.";
+    }
+    if (type?.includes('Backbone')) {
+       return "Can lead to slower performance for long-distance connections or accessing internationally hosted services. May affect multiple destinations.";
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
+       return "Slow response times specifically from the target service/website, while other sites might be fast.";
+    }
+
+    // Default based on latency value if type doesn't match specific cases
     if (latency > 200) return "Severe impact: Users will experience very noticeable delays in all network operations.";
     if (latency > 100) return "Moderate impact: Real-time applications like video calls may be affected.";
     return "Minor impact: Slight delays in network operations may be noticeable.";
@@ -226,72 +299,206 @@ export class Simulation {
 
   // Helper methods for problem causes
   getLatencyCauses(type) {
-    const commonCauses = [
-      "Network congestion during peak hours",
+    if (type === 'Local Router') {
+      return [
+        "Wi-Fi interference (distance, obstacles, other networks)",
+        "Overloaded router (too many devices, demanding tasks)",
+        "Outdated router firmware",
+        "Router hardware issue",
+        "Problem with the device running the trace"
+      ];
+    }
+    if (type?.includes('ISP')) {
+      return [
+        "Neighborhood bandwidth saturation ('rush hour' effect)",
+        "Oversubscribed ISP capacity in your area",
+        "Temporary ISP equipment problems (e.g., local node/DSLAM)",
+        "Suboptimal routing within the ISP network",
+        "Issues with the line to your premises (DSL/Cable)"
+      ];
+    }
+     if (type?.includes('Exchange Point')) {
+      return [
+        "Congestion at the IXP during peak times",
+        "Issues with the specific peering link your traffic is using",
+        "Maintenance or upgrades at the IXP facility"
+      ];
+    }
+    if (type?.includes('Backbone')) {
+      return [
+        "Congestion on major backbone links (less common but possible)",
+        "Suboptimal inter-continental routing paths",
+        "Backbone maintenance or equipment issues"
+      ];
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
+      return [
+        "Overloaded server resources (CPU, RAM, I/O)",
+        "Network congestion within the data center",
+        "Bandwidth limitations at the hosting provider",
+        "Firewall or load balancer processing delays"
+      ];
+    }
+    // Default fallback
+    return [
+      "Network congestion",
       "Hardware resource constraints",
       "Routing path inefficiencies"
     ];
-    
-    if (type.includes('ISP')) {
-      return [...commonCauses, "ISP bandwidth throttling", "Last-mile congestion"];
-    }
-    if (type.includes('Backbone')) {
-      return [...commonCauses, "Inter-region routing delays", "Backbone maintenance"];
-    }
-    return commonCauses;
   }
 
   getTimeoutCauses(type) {
-    const commonCauses = [
+     if (type === 'Local Router') {
+      return [
+        "Poor Wi-Fi signal strength or severe interference",
+        "Faulty network cable (if wired)",
+        "Router hardware failure",
+        "Incorrect network configuration on your device"
+      ];
+    }
+    if (type?.includes('ISP')) {
+      return [
+        "Faulty ISP equipment (local node, routers)",
+        "Severe congestion exceeding capacity",
+        "Line quality problems (noise, signal issues on DSL/Cable)",
+        "Ongoing ISP maintenance or outage"
+      ];
+    }
+     if (type?.includes('Exchange Point')) {
+      return [
+        "Severe congestion at the IXP",
+        "Hardware failure within the IXP infrastructure",
+        "Problems with peering links between networks connected at the IXP"
+      ];
+    }
+    if (type?.includes('Backbone')) {
+      return [
+        "Severe backbone congestion",
+        "Backbone equipment failure",
+        "Fiber cuts or damage on major routes",
+        "Routing instability in the core internet"
+      ];
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
+      return [
+        "Server is overloaded or unresponsive",
+        "Network congestion within the destination data center",
+        "Firewall rules blocking some traffic or ICMP responses",
+        "Network equipment failure at the destination"
+      ];
+    }
+     // Default fallback
+    return [
       "Severe network congestion",
       "Hardware failures",
-      "Configuration issues"
+      "Configuration issues",
+      "Firewall blocking probes"
     ];
-
-    if (type.includes('Exchange')) {
-      return [...commonCauses, "Peering issues between networks", "Exchange point congestion"];
-    }
-    return commonCauses;
   }
 
   getUnreachableCauses(type) {
-    if (type.includes('Edge') || type.includes('Destination')) {
+     if (type === 'Local Router') {
+        return [
+            "Incorrect network settings on your device (IP address, gateway)",
+            "Router is offline or malfunctioning",
+            "Network adapter issue on your device"
+        ];
+    }
+    if (type?.includes('ISP')) {
+        return [
+            "ISP routing failure",
+            "Major ISP equipment outage",
+            "ISP firewall/ACL blocking traceroute probes (ICMP)"
+        ];
+    }
+     if (type?.includes('Exchange Point')) {
+        return [
+            "Routing problems between peering networks",
+            "Major equipment failure at the IXP",
+            "Network policy blocking traceroute probes"
+        ];
+    }
+    if (type?.includes('Backbone')) {
+        return [
+            "Major backbone routing failure",
+            "Significant equipment outage",
+            "Security policies on backbone routers blocking probes"
+        ];
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
       return [
-        "Firewall blocking ICMP traffic",
-        "Access Control Lists (ACLs)",
-        "Network segment isolation"
+        "Firewall rules blocking ICMP (very common security practice)",
+        "Server configured not to respond to trace requests",
+        "Actual network path failure very close to the destination"
       ];
     }
+    // Default fallback
     return [
       "Network outage",
       "Routing configuration errors",
-      "Security policies"
+      "Security policies blocking probes (e.g., firewall)"
     ];
   }
 
   // Helper methods for recommendations
-  getLatencyRecommendation(type) {
-    if (type.includes('ISP')) {
-      return "Monitor the pattern of high latency and consider reporting to ISP if persistent.";
+  getLatencyRecommendation(type, ip) {
+     if (type === 'Local Router') {
+      return "Try moving closer to the router or using a wired connection if possible. Restart your router and modem. Check for router firmware updates. Reduce the number of connected devices temporarily to test.";
     }
-    if (type.includes('Backbone')) {
-      return "This may indicate a larger network issue requiring attention from backbone providers.";
+    if (type?.includes('ISP')) {
+      return `Run tests at different times of day to check for peak-hour patterns. Restart your modem. If consistent or severe, contact your ISP with these traceroute results, noting the latency jump at their hop (${ip}).`;
     }
-    return "Continue monitoring and document the frequency of latency spikes.";
+     if (type?.includes('Exchange Point')) {
+      return "Usually outside of end-user or ISP control. Latency here often fluctuates. If persistent and impacting specific services, your ISP might need to investigate peering arrangements, but this is complex.";
+    }
+    if (type?.includes('Backbone')) {
+      return "Generally outside direct user/ISP control. Backbone providers monitor and manage these links. Persistent high latency might indicate a larger routing issue that network operators need to resolve.";
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
+      return "The issue likely lies with the service provider or website owner. If performance is consistently poor, consider contacting the service's support (if available) or checking their status page.";
+    }
+    // Default fallback
+    return "Continue monitoring and document the frequency of latency spikes. Identify where in the path the latency originates.";
   }
 
-  getTimeoutRecommendation(type) {
-    if (type.includes('Exchange')) {
-      return "This critical interconnection point requires immediate investigation by network operators.";
+  getTimeoutRecommendation(type, ip) {
+     if (type === 'Local Router') {
+      return "Check physical connections (cables). Restart your router/modem and your device. Try connecting via a different method (Wi-Fi vs. wired). If the problem persists, your router may need replacement.";
     }
-    return "Investigate network capacity and hardware health at this hop.";
+    if (type?.includes('ISP')) {
+      return `Check your ISP's status page for reported outages in your area. Restart your modem. Contact your ISP support with the traceroute data showing loss at their hop (${ip}) and report the impact on your service.`;
+    }
+     if (type?.includes('Exchange Point')) {
+      return "Significant issues at IXPs usually affect many users and are investigated by the involved network operators. Monitor if the issue resolves. Persistent problems might require escalation through your ISP.";
+    }
+    if (type?.includes('Backbone')) {
+      return "Significant backbone issues are typically addressed quickly by the providers. Monitor for resolution. Your ISP may have visibility into major backbone problems.";
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
+      return "Check the status page for the service. Try accessing the service again later. If persistent, the issue needs to be addressed by the service provider/administrator.";
+    }
+    // Default fallback
+    return "Investigate network capacity and hardware health at this hop. Check for firewall rules blocking probes.";
   }
 
   getUnreachableRecommendation(type) {
-    if (type.includes('Edge') || type.includes('Destination')) {
-      return "Verify ICMP/traceroute is allowed by destination network policies.";
+     if (type === 'Local Router') {
+        return "Verify your device's network settings (DHCP recommended). Ensure your router is powered on and showing normal status lights. Restart both your device and router.";
     }
-    return "Check for network outages or routing issues along this path.";
+    if (type?.includes('ISP')) {
+        return "Check ISP outage status. Try accessing the target service/website directly to see if it works despite the trace stopping. If the service is also down, report the issue to your ISP.";
+    }
+     if (type?.includes('Exchange Point')) {
+        return "Try accessing the target service directly. If unreachable, this indicates a significant network issue likely being addressed by network operators.";
+    }
+    if (type?.includes('Backbone')) {
+        return "Check major internet health dashboards (e.g., Downdetector) for widespread issues. Try accessing the target service directly. Report to ISP if service is inaccessible.";
+    }
+    if (type?.includes('Destination') || type?.includes('Edge')) {
+      return "The most important step is to test the actual service directly (e.g., load the website, connect to the game server). If the service works, the 'unreachable' message in the trace can likely be ignored. If the service is also down, the issue lies with the destination provider.";
+    }
+    // Default fallback
+    return "Check for network outages or routing issues along this path. Verify if the destination is expected to respond to ICMP probes.";
   }
 
   // Simulate response times for a hop

@@ -18,9 +18,9 @@ export class Visualization {
   // Detect current layout based on container width
   _detectLayout() {
     const width = this.container.offsetWidth;
-    if (width > 1024) {
+    if (width > 1800) {
       this.currentLayout = 'full';
-    } else if (width > 768) {
+    } else if (width > 1600) {
       this.currentLayout = 'mid';
     } else {
       this.currentLayout = 'small';

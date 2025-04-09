@@ -301,7 +301,7 @@ export const styles = `
   }
 
   /* Medium screens (e.g. tablets) */
-  @media (max-width: 1024px) {
+  @media (max-width: 1350px) {
     #vis-container {
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows: repeat(2, auto);
@@ -623,5 +623,20 @@ export const styles = `
     fieldset { padding: 10px; }
     .visualization { padding: 15px; }
     .node { min-width: 60px; padding: 4px 6px; }
+
+    /* Adjust trace row grid and hide RTT 3 column */
+    .trace-row {
+      grid-template-columns: 35px repeat(2, 65px) 20px auto; /* Remove 3rd RTT column width */
+    }
+    .trace-header-row span:nth-child(4), /* Hide RTT 3 header */
+    .trace-row span:nth-child(4) {       /* Hide RTT 3 value */
+      display: none;
+    }
+    /* Reassign separator and IP columns */
+    .trace-col-sep { grid-column: 4; }
+    .trace-col-ip { grid-column: 5; }
+
+    /* Reduce font size in results table */
+    #trace-output-container { font-size: 12px; }
   }
 `;

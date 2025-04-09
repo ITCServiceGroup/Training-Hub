@@ -157,7 +157,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
       }
       const tagName = `${name}-simulator`;
       console.log(`Viewer replacing shortcode for "${name}" with <${tagName}>`);
-      return `<div style="display: block; text-align: center;"><${tagName}></${tagName}></div>`;
+      return `<div style="display: block;"><${tagName}></${tagName}></div>`; // Removed text-align: center
     });
 
     return processedContent;
@@ -279,7 +279,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Main component return statement
   return (
-    <div className="bg-white rounded-lg p-8 shadow h-full overflow-auto w-full">
+    <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full"> {/* Changed p-8 to p-2 sm:p-8 */}
       <h2 className="text-2xl text-slate-900 mb-6 border-b border-slate-200 pb-3">{studyGuide.title}</h2>
       <iframe
         ref={iframeRef} // Ref for the main iframe
