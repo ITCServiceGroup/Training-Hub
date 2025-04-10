@@ -171,11 +171,11 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
     <Dialog
       open={isOpen}
       onClose={onClose}
-      className="relative z-[200]"
+      className="relative z-[110]"
       aria-labelledby="preview-modal-title"
     >
-      <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 sm:p-6 z-[200] overflow-y-auto" aria-hidden="true">
-        <Dialog.Panel className="bg-white rounded-lg w-full max-w-[1400px] max-h-[90vh] h-auto sm:h-[90vh] flex flex-col relative my-4">
+      <div className="fixed inset-0 bg-black/75 flex items-start justify-center p-[5px] pt-[60px] z-[110]" aria-hidden="true">
+        <Dialog.Panel className="bg-white rounded-lg w-full max-w-[1400px] max-h-[calc(100vh-80px)] h-[calc(100vh-80px)] flex flex-col relative">
           <div className="py-[6px] px-3 border-b border-gray-200 flex justify-between items-center h-10 flex-shrink-0">
             <Dialog.Title id="preview-modal-title" className="text-base font-semibold text-gray-900">
               {title || 'Study Guide Preview'}
@@ -188,7 +188,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
               <FaTimes size={20} aria-hidden="true" />
             </button>
           </div>
-          <div className="flex-1 flex flex-col overflow-hidden p-0 h-[calc(90vh-40px)] min-h-0 relative">
+          <div className="flex-1 flex flex-col overflow-hidden p-0 h-[calc(100vh-120px)] min-h-0 relative">
             <div
               className={`absolute inset-0 bg-white flex items-center justify-center z-10 transition-opacity duration-200 ${isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
               role="status"
@@ -390,6 +390,44 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
       }
       .image-grid-wrapper > .image-cell > img.border-thick {
         border: 4px solid #e0e0e0;
+      }
+      /* Custom border colors will be applied as inline styles */
+      .image-grid-wrapper > .image-cell > img.border-color-custom {
+        /* This class just indicates that a custom color is being used */
+        /* The actual color is set via inline style */
+      }
+      /* Border Style Options */
+      .image-grid-wrapper > .image-cell > img.border-style-solid {
+        border-style: solid;
+      }
+      .image-grid-wrapper > .image-cell > img.border-style-dashed {
+        border-style: dashed;
+      }
+      .image-grid-wrapper > .image-cell > img.border-style-dotted {
+        border-style: dotted;
+      }
+      /* Border Color Options */
+      .image-grid-wrapper > .image-cell > img.border-color-gray {
+        border-color: #e0e0e0;
+      }
+      .image-grid-wrapper > .image-cell > img.border-color-black {
+        border-color: #000000;
+      }
+      .image-grid-wrapper > .image-cell > img.border-color-blue {
+        border-color: #2563eb;
+      }
+      .image-grid-wrapper > .image-cell > img.border-color-red {
+        border-color: #dc2626;
+      }
+      .image-grid-wrapper > .image-cell > img.border-color-green {
+        border-color: #16a34a;
+      }
+
+      /* Fallback: Apply solid border style when thickness is present but no style is specified */
+      .image-grid-wrapper > .image-cell > img.border-thin:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+      .image-grid-wrapper > .image-cell > img.border-medium:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+      .image-grid-wrapper > .image-cell > img.border-thick:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted) {
+        border-style: solid;
       }
       .image-grid-wrapper > .image-cell > img.rounded-sm {
         border-radius: 4px;

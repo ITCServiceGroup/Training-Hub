@@ -372,6 +372,19 @@ const StudyGuideEditor = ({
       });
 
       editor.on('init', function() {
+        // Ensure TinyMCE preserves inline styles
+        editor.serializer.addAttributeFilter('style', function(nodes) {
+          let i = nodes.length;
+          while (i--) {
+            const node = nodes[i];
+            const value = node.attr('style');
+            if (value) {
+              // Ensure the style attribute is preserved
+              node.attr('data-mce-style', value);
+            }
+          }
+        });
+
         // Set up preview callback
         editor.windowManager.customPreviewCallback = (editorContent) => {
           console.log('Preview callback received content:', {

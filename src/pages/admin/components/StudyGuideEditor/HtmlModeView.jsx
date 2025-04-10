@@ -87,6 +87,37 @@ const HtmlModeView = ({
         .image-grid-wrapper > .image-cell > img.border-thick {
           border: 4px solid #e0e0e0 !important;
         }
+        /* Custom border colors will be applied as inline styles */
+        .image-grid-wrapper > .image-cell > img.border-color-custom {
+          /* This class just indicates that a custom color is being used */
+          /* The actual color is set via inline style */
+        }
+        /* Border Style Options */
+        .image-grid-wrapper > .image-cell > img.border-style-solid {
+          border-style: solid !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-style-dashed {
+          border-style: dashed !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-style-dotted {
+          border-style: dotted !important;
+        }
+        /* Border Color Options */
+        .image-grid-wrapper > .image-cell > img.border-color-gray {
+          border-color: #e0e0e0 !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-black {
+          border-color: #000000 !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-blue {
+          border-color: #2563eb !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-red {
+          border-color: #dc2626 !important;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-green {
+          border-color: #16a34a !important;
+        }
         .image-grid-wrapper > .image-cell > img.rounded-sm {
           border-radius: 4px !important;
         }
@@ -104,6 +135,16 @@ const HtmlModeView = ({
       // Add debugging info
       console.log('Preparing HTML preview with content length:', processedBodyContent.length);
       console.log('Image style classes present:', processedBodyContent.match(/class="[^"]*(?:border|rounded)[^"]*"/g));
+
+      // Enhanced debugging for border styles
+      const borderStyleClasses = processedBodyContent.match(/class="[^"]*border-style-[^"]*"/g);
+      console.log('Border style classes specifically:', borderStyleClasses);
+
+      // Log the combined styles to verify border styles are included
+      console.log('Combined styles include border styles:',
+        combinedStyles.includes('border-style-solid') &&
+        combinedStyles.includes('border-style-dashed') &&
+        combinedStyles.includes('border-style-dotted'));
 
       const fullHtmlDocument = `
         <!DOCTYPE html>
@@ -127,14 +168,72 @@ const HtmlModeView = ({
               max-width: 100% !important;
             }
 
-            /* Ensure border and rounded styles are applied with highest specificity */
-            html body .image-grid-wrapper > .image-cell > img.border-thin { border: 1px solid #e0e0e0 !important; }
-            html body .image-grid-wrapper > .image-cell > img.border-medium { border: 2px solid #e0e0e0 !important; }
-            html body .image-grid-wrapper > .image-cell > img.border-thick { border: 4px solid #e0e0e0 !important; }
-            html body .image-grid-wrapper > .image-cell > img.rounded-sm { border-radius: 4px !important; }
-            html body .image-grid-wrapper > .image-cell > img.rounded-md { border-radius: 8px !important; }
-            html body .image-grid-wrapper > .image-cell > img.rounded-lg { border-radius: 16px !important; }
-            html body .image-grid-wrapper > .image-cell > img.rounded-full { border-radius: 9999px !important; }
+            /* Explicit border thickness with correct color */
+            html body .image-grid-wrapper > .image-cell > img.border-thin {
+              border-width: 1px !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-medium {
+              border-width: 2px !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-thick {
+              border-width: 4px !important;
+            }
+
+            /* Border Color Options */
+            html body .image-grid-wrapper > .image-cell > img.border-color-gray {
+              border-color: #e0e0e0 !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-color-black {
+              border-color: #000000 !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-color-blue {
+              border-color: #2563eb !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-color-red {
+              border-color: #dc2626 !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-color-green {
+              border-color: #16a34a !important;
+            }
+            /* Custom border color class */
+            html body .image-grid-wrapper > .image-cell > img.border-color-custom {
+              /* This class just indicates that a custom color is being used */
+              /* The actual color is set via inline style */
+            }
+            /* Custom border colors will be preserved from inline styles */
+
+            /* Ensure border styles have highest specificity */
+            html body .image-grid-wrapper > .image-cell > img.border-style-solid {
+              border-style: solid !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-style-dashed {
+              border-style: dashed !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.border-style-dotted {
+              border-style: dotted !important;
+            }
+
+            /* Explicit border radius with highest specificity */
+            html body .image-grid-wrapper > .image-cell > img.rounded-sm {
+              border-radius: 4px !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.rounded-md {
+              border-radius: 8px !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.rounded-lg {
+              border-radius: 16px !important;
+            }
+            html body .image-grid-wrapper > .image-cell > img.rounded-full {
+              border-radius: 9999px !important;
+            }
+
+            /* Fallback: Apply solid border style when thickness is present but no style is specified */
+            html body .image-grid-wrapper > .image-cell > img.border-thin:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+            html body .image-grid-wrapper > .image-cell > img.border-medium:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+            html body .image-grid-wrapper > .image-cell > img.border-thick:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted) {
+              border-style: solid !important;
+              border-color: #e0e0e0 !important;
+            }
           </style>
         </head>
         <body>
@@ -144,25 +243,84 @@ const HtmlModeView = ({
             // Debug script to verify style application
             document.addEventListener('DOMContentLoaded', () => {
               const images = document.querySelectorAll('.image-grid-wrapper > .image-cell > img');
-              console.log('Found images:', images.length);
+              console.log('Found ' + images.length + ' images in the preview');
 
               images.forEach(img => {
                 const styles = window.getComputedStyle(img);
+                const hasBorderStyleClass = img.className.includes('border-style-');
+
                 console.log('Image styles:', {
                   class: img.className,
+                  hasBorderStyleClass: hasBorderStyleClass,
                   border: styles.border,
-                  borderRadius: styles.borderRadius,
-                  hasBorderClass: img.className.includes('border-'),
-                  hasRoundedClass: img.className.includes('rounded-')
+                  borderStyle: styles.borderStyle,
+                  borderWidth: styles.borderWidth,
+                  borderColor: styles.borderColor,
+                  borderRadius: styles.borderRadius
                 });
 
-                // Force reapplication of styles
-                if (img.className.includes('border-') || img.className.includes('rounded-')) {
-                  // Clone and replace the image to force style recalculation
-                  const parent = img.parentNode;
-                  const clone = img.cloneNode(true);
-                  parent.replaceChild(clone, img);
-                  console.log('Forced style recalculation for image with classes:', clone.className);
+                // Check for border color classes
+                const hasBorderColorClass = img.classList.contains('border-color-gray') ||
+                                          img.classList.contains('border-color-black') ||
+                                          img.classList.contains('border-color-blue') ||
+                                          img.classList.contains('border-color-red') ||
+                                          img.classList.contains('border-color-green') ||
+                                          img.classList.contains('border-color-custom');
+
+                // Check for inline border color style
+                const hasInlineBorderColor = img.style.borderColor && img.style.borderColor !== '';
+
+                // Log border color information
+                console.log('Border color info:', {
+                  hasBorderColorClass: hasBorderColorClass,
+                  hasInlineBorderColor: hasInlineBorderColor,
+                  inlineBorderColor: img.style.borderColor,
+                  computedBorderColor: styles.borderColor,
+                  borderColorClasses: {
+                    gray: img.classList.contains('border-color-gray'),
+                    black: img.classList.contains('border-color-black'),
+                    blue: img.classList.contains('border-color-blue'),
+                    red: img.classList.contains('border-color-red'),
+                    green: img.classList.contains('border-color-green'),
+                    custom: img.classList.contains('border-color-custom')
+                  }
+                });
+
+                // If no border color class or inline style is applied but there is a border, use default gray
+                if (styles.borderWidth !== '0px' && !hasBorderColorClass && !hasInlineBorderColor) {
+                  console.log('No border color class or inline style found, using default gray');
+                }
+
+                // Check if border radius is being applied correctly
+                if (img.classList.contains('rounded-lg') && styles.borderRadius !== '16px') {
+                  console.warn('Border radius not applied correctly for rounded-lg:', styles.borderRadius);
+                  // Force the correct border radius
+                  img.style.borderRadius = '16px';
+                }
+
+                // Check if border style classes are being applied correctly
+                if (img.classList.contains('border-style-solid')) {
+                  console.log('This image has border-style-solid class, borderStyle is:', styles.borderStyle);
+                }
+                if (img.classList.contains('border-style-dashed')) {
+                  console.log('This image has border-style-dashed class, borderStyle is:', styles.borderStyle);
+                }
+                if (img.classList.contains('border-style-dotted')) {
+                  console.log('This image has border-style-dotted class, borderStyle is:', styles.borderStyle);
+                }
+
+                // Check if there's a border thickness class but no border style
+                const hasBorderThickness = img.classList.contains('border-thin') ||
+                                          img.classList.contains('border-medium') ||
+                                          img.classList.contains('border-thick');
+                const hasBorderStyle = img.classList.contains('border-style-solid') ||
+                                      img.classList.contains('border-style-dashed') ||
+                                      img.classList.contains('border-style-dotted');
+
+                if (hasBorderThickness && !hasBorderStyle) {
+                  console.log('This image has border thickness but no border style - adding default solid style');
+                  // Apply a default solid border style if there's thickness but no style
+                  img.classList.add('border-style-solid');
                 }
               });
             });
@@ -174,25 +332,6 @@ const HtmlModeView = ({
       iframeDoc.open();
       iframeDoc.write(fullHtmlDocument);
       iframeDoc.close();
-
-      // Force a repaint after a small delay to ensure styles are applied
-      setTimeout(() => {
-        const styleElement = iframeDoc.createElement('style');
-        styleElement.textContent = `
-          /* Force immediate style application */
-          .image-grid-wrapper > .image-cell > img[class*="border-"],
-          .image-grid-wrapper > .image-cell > img[class*="rounded-"] {
-            border: inherit !important;
-            border-radius: inherit !important;
-          }
-        `;
-        iframeDoc.head.appendChild(styleElement);
-
-        // Remove the style after a brief moment to let the browser apply the original styles
-        setTimeout(() => {
-          styleElement.remove();
-        }, 50);
-      }, 100);
 
       // Find required interactive elements
       const requiredElements = new Set();

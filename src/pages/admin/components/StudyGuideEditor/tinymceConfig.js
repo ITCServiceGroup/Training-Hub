@@ -10,6 +10,39 @@ export const baseEditorConfig = {
     'medialibrary': '/tinymce/plugins/medialibrary/plugin.js',
     'imagestyle': '/tinymce/plugins/imagestyle/plugin.js'
   },
+  // Color map for color pickers (used by bordercolor button)
+  // Format: ['hex_color_without_hash', 'Color Name', ...]
+  // Using the original TinyMCE default color palette
+  color_map: [
+    'BFEDD2', 'Light Green',
+    'FBEEB8', 'Light Yellow',
+    'F8CAC6', 'Light Red',
+    'ECCAFA', 'Light Purple',
+    'C2E0F4', 'Light Blue',
+
+    '2DC26B', 'Green',
+    'F1C40F', 'Yellow',
+    'E03E2D', 'Red',
+    'B96AD9', 'Purple',
+    '3598DB', 'Blue',
+
+    '169179', 'Dark Turquoise',
+    'E67E23', 'Orange',
+    'BA372A', 'Dark Red',
+    '843FA1', 'Dark Purple',
+    '236FA1', 'Dark Blue',
+
+    'ECF0F1', 'Light Gray',
+    'CED4D9', 'Medium Gray',
+    '95A5A6', 'Gray',
+    '7E8C8D', 'Dark Gray',
+    '34495E', 'Navy Blue',
+
+    '000000', 'Black',
+    'FFFFFF', 'White'
+  ],
+  color_cols: 5, // Number of columns in the color grid
+  custom_colors: true, // Enable custom color picker
   plugins: [
     'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
     'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -20,11 +53,16 @@ export const baseEditorConfig = {
     'bold italic forecolor | alignleft aligncenter ' +
     'alignright alignjustify | bullist numlist outdent indent | ' +
     'removeformat | image medialibrary link table interactives | ' +
-    'imageoptions rotateleft rotateright imagestyle | code custompreview | help',
+    'imageoptions rotateleft rotateright bordercolor imagestyle | code custompreview | help',
   // Prevent TinyMCE from filtering out custom elements and attributes
   extended_valid_elements: '*[*]',
   custom_elements: '~custom-element',
   content_style: `
+    /* Force TinyMCE to respect inline styles */
+    img[style*="border-color"] {
+      /* This selector helps TinyMCE recognize that these elements have custom styles */
+    }
+
     /* --- Image Grid Layout Styles (Increased Specificity) --- */
     body .image-grid-wrapper {
       display: grid;
@@ -72,26 +110,77 @@ export const baseEditorConfig = {
     }
 
     /* --- Image Style Options --- */
-    html body .image-grid-wrapper > .image-cell > img.border-thin { 
-      border: 1px solid #e0e0e0 !important; 
+    html body .image-grid-wrapper > .image-cell > img.border-thin {
+      border-width: 1px !important;
+      border-style: solid !important;
+      border-color: #e0e0e0 !important;
     }
-    html body .image-grid-wrapper > .image-cell > img.border-medium { 
-      border: 2px solid #e0e0e0 !important; 
+    html body .image-grid-wrapper > .image-cell > img.border-medium {
+      border-width: 2px !important;
+      border-style: solid !important;
+      border-color: #e0e0e0 !important;
     }
-    html body .image-grid-wrapper > .image-cell > img.border-thick { 
-      border: 4px solid #e0e0e0 !important; 
+    html body .image-grid-wrapper > .image-cell > img.border-thick {
+      border-width: 4px !important;
+      border-style: solid !important;
+      border-color: #e0e0e0 !important;
     }
-    html body .image-grid-wrapper > .image-cell > img.rounded-sm { 
-      border-radius: 4px !important; 
+
+    /* Custom border color class - the actual color comes from inline style */
+    html body .image-grid-wrapper > .image-cell > img.border-color-custom {
+      /* This class just indicates that a custom color is being used */
+      /* The actual color is set via inline style */
+      border-color: inherit !important;
     }
-    html body .image-grid-wrapper > .image-cell > img.rounded-md { 
-      border-radius: 8px !important; 
+
+    /* Ensure inline styles take precedence */
+    html body .image-grid-wrapper > .image-cell > img[style*="border-color"] {
+      /* The border color will be applied directly via the style attribute */
     }
-    html body .image-grid-wrapper > .image-cell > img.rounded-lg { 
-      border-radius: 16px !important; 
+    /* Border Style Options */
+    html body .image-grid-wrapper > .image-cell > img.border-style-solid {
+      border-style: solid !important;
     }
-    html body .image-grid-wrapper > .image-cell > img.rounded-full { 
-      border-radius: 9999px !important; 
+    html body .image-grid-wrapper > .image-cell > img.border-style-dashed {
+      border-style: dashed !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.border-style-dotted {
+      border-style: dotted !important;
+    }
+    /* Border Color Options */
+    html body .image-grid-wrapper > .image-cell > img.border-color-gray {
+      border-color: #e0e0e0 !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.border-color-black {
+      border-color: #000000 !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.border-color-blue {
+      border-color: #2563eb !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.border-color-red {
+      border-color: #dc2626 !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.border-color-green {
+      border-color: #16a34a !important;
+    }
+
+    /* Fallback: Apply solid border style when thickness is present but no style is specified */
+    html body .image-grid-wrapper > .image-cell > img.border-thin:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+    html body .image-grid-wrapper > .image-cell > img.border-medium:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+    html body .image-grid-wrapper > .image-cell > img.border-thick:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted) {
+      border-style: solid !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.rounded-sm {
+      border-radius: 4px !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.rounded-md {
+      border-radius: 8px !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.rounded-lg {
+      border-radius: 16px !important;
+    }
+    html body .image-grid-wrapper > .image-cell > img.rounded-full {
+      border-radius: 9999px !important;
     }
     /* Additional specific styles for enhanced specificity */
     html body .image-grid-wrapper > .image-cell > img[class*="border-"],
@@ -189,6 +278,8 @@ export const baseEditorConfig = {
   allow_script_urls: true,
   forced_root_block: 'p',
   keep_styles: true,
+  inline_styles: true,
+  convert_fonts_to_spans: false,
   entity_encoding: 'raw',
   formats: {
     removeformat: [
@@ -207,10 +298,10 @@ export const baseEditorConfig = {
   resize: true,
 
   // Updated image toolbar options
-  image_toolbar: 'alignleft aligncenter alignright | rotateleft rotateright | imageoptions imagestyle',
+  image_toolbar: 'alignleft aligncenter alignright | rotateleft rotateright | bordercolor | imageoptions imagestyle',
 
   quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
-  quickbars_image_toolbar: 'alignGridLeft alignGridCenter alignGridRight alignGridNone | rotateleft rotateright | imageoptions imagestyle',
+  quickbars_image_toolbar: 'alignGridLeft alignGridCenter alignGridRight alignGridNone | rotateleft rotateright | bordercolor | imageoptions imagestyle',
 
   contextmenu: 'link image imagestyle table'
 };

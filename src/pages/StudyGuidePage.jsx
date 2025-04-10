@@ -285,7 +285,7 @@ const StudyGuidePage = () => {
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
   return (
-    <div className="pt-4 pb-2 w-full">
+    <div className="py-4 w-full">
       <div className="mb-2 flex justify-between items-center flex-wrap gap-4">
         <h2 className="text-4xl text-teal-700 m-0">Study Guides</h2>
         <div className="flex items-center max-w-md w-full">
@@ -344,7 +344,7 @@ const StudyGuidePage = () => {
 
             {/* Backdrop for mobile */}
             {isSidebarOpen && (
-              <div
+              <div 
                 className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[50]"
                 onClick={() => setIsSidebarOpen(false)}
               />

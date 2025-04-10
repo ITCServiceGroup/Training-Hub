@@ -258,6 +258,44 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         .image-grid-wrapper > .image-cell > img.border-thick {
           border: 4px solid #e0e0e0;
         }
+        /* Custom border colors will be applied as inline styles */
+        .image-grid-wrapper > .image-cell > img.border-color-custom {
+          /* This class just indicates that a custom color is being used */
+          /* The actual color is set via inline style */
+        }
+        /* Border Style Options */
+        .image-grid-wrapper > .image-cell > img.border-style-solid {
+          border-style: solid;
+        }
+        .image-grid-wrapper > .image-cell > img.border-style-dashed {
+          border-style: dashed;
+        }
+        .image-grid-wrapper > .image-cell > img.border-style-dotted {
+          border-style: dotted;
+        }
+        /* Border Color Options */
+        .image-grid-wrapper > .image-cell > img.border-color-gray {
+          border-color: #e0e0e0;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-black {
+          border-color: #000000;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-blue {
+          border-color: #2563eb;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-red {
+          border-color: #dc2626;
+        }
+        .image-grid-wrapper > .image-cell > img.border-color-green {
+          border-color: #16a34a;
+        }
+
+        /* Fallback: Apply solid border style when thickness is present but no style is specified */
+        .image-grid-wrapper > .image-cell > img.border-thin:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+        .image-grid-wrapper > .image-cell > img.border-medium:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+        .image-grid-wrapper > .image-cell > img.border-thick:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted) {
+          border-style: solid;
+        }
         .image-grid-wrapper > .image-cell > img.rounded-sm {
           border-radius: 4px;
         }
@@ -303,15 +341,15 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Main component return statement
   return (
-    <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full flex flex-col"> {/* Added flex-col to ensure proper height distribution */}
+    <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full"> {/* Changed p-8 to p-2 sm:p-8 */}
       <h2 className="text-2xl text-slate-900 mb-6 border-b border-slate-200 pb-3">{studyGuide.title}</h2>
       <iframe
         ref={iframeRef} // Ref for the main iframe
         title={studyGuide.title}
         // Set srcDoc to the manually constructed HTML with injected styles
         srcDoc={iframeHtml}
-        className="w-full border-none bg-white overflow-auto flex-1"
-        style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }} // Adjusted calculation with flex-1 to fill available space
+        className="w-full border-none bg-white overflow-auto"
+        style={{ height: 'calc(100% - 60px)' }} // Adjusted to fill container minus the title height
         // Sandbox is still good practice for the main content iframe
         sandbox="allow-scripts allow-same-origin"
       />

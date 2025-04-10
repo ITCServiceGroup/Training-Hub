@@ -80,7 +80,7 @@ export const extractBodyContent = (htmlContent) => {
 // Helper to extract style content from a full HTML string
 export const extractStyleContent = (fullHtml) => {
   const extracted = fullHtml?.match(/<style[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
-  
+
   // If no styles were extracted, return null instead of empty string to allow default styles
   return extracted.trim() || null;
 };
@@ -110,10 +110,10 @@ export const getFullHtmlForSave = (bodyContentToSave, title, initialContent) => 
     @import url('/fonts/inter.css');
 
     /* Base Styles */
-    html, body { 
+    html, body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-      line-height: 1.6; 
-      margin: 20px; 
+      line-height: 1.6;
+      margin: 20px;
     }
     .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 4px; }
     h1, h2, h3 { color: #333; }
@@ -152,26 +152,43 @@ export const getFullHtmlForSave = (bodyContentToSave, title, initialContent) => 
     }
 
     /* Image Style Options */
-    .image-grid-wrapper > .image-cell > img.border-thin { 
-      border: 1px solid #e0e0e0 !important; 
+    .image-grid-wrapper > .image-cell > img.border-thin {
+      border: 1px solid #e0e0e0 !important;
     }
-    .image-grid-wrapper > .image-cell > img.border-medium { 
-      border: 2px solid #e0e0e0 !important; 
+    .image-grid-wrapper > .image-cell > img.border-medium {
+      border: 2px solid #e0e0e0 !important;
     }
-    .image-grid-wrapper > .image-cell > img.border-thick { 
-      border: 4px solid #e0e0e0 !important; 
+    .image-grid-wrapper > .image-cell > img.border-thick {
+      border: 4px solid #e0e0e0 !important;
     }
-    .image-grid-wrapper > .image-cell > img.rounded-sm { 
-      border-radius: 4px !important; 
+    /* Border Style Options */
+    .image-grid-wrapper > .image-cell > img.border-style-solid {
+      border-style: solid !important;
     }
-    .image-grid-wrapper > .image-cell > img.rounded-md { 
-      border-radius: 8px !important; 
+    .image-grid-wrapper > .image-cell > img.border-style-dashed {
+      border-style: dashed !important;
     }
-    .image-grid-wrapper > .image-cell > img.rounded-lg { 
-      border-radius: 16px !important; 
+    .image-grid-wrapper > .image-cell > img.border-style-dotted {
+      border-style: dotted !important;
     }
-    .image-grid-wrapper > .image-cell > img.rounded-full { 
-      border-radius: 9999px !important; 
+
+    /* Fallback: Apply solid border style when thickness is present but no style is specified */
+    .image-grid-wrapper > .image-cell > img.border-thin:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+    .image-grid-wrapper > .image-cell > img.border-medium:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted),
+    .image-grid-wrapper > .image-cell > img.border-thick:not(.border-style-solid):not(.border-style-dashed):not(.border-style-dotted) {
+      border-style: solid !important;
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-sm {
+      border-radius: 4px !important;
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-md {
+      border-radius: 8px !important;
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-lg {
+      border-radius: 16px !important;
+    }
+    .image-grid-wrapper > .image-cell > img.rounded-full {
+      border-radius: 9999px !important;
     }
     /* Additional specific styles for enhanced specificity */
     html body .image-grid-wrapper > .image-cell > img[class*="border-"],
