@@ -192,6 +192,7 @@ export const updateMediaMetadata = async (mediaId, metadata) => {
   const updates = {};
   if (metadata.alt_text !== undefined) updates.alt_text = metadata.alt_text;
   if (metadata.caption !== undefined) updates.caption = metadata.caption;
+  if (metadata.file_name !== undefined) updates.file_name = metadata.file_name;
   // Add other updatable fields here if needed
 
   if (Object.keys(updates).length === 0) {

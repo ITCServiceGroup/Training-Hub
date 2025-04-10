@@ -4,6 +4,7 @@ import { listMedia, uploadMedia, deleteMedia, updateMediaMetadata } from '../../
 // Removed supabase import as we're using direct URL construction
 import { format } from 'date-fns'; // For formatting dates
 import { MdOutlineAudioFile, MdOutlineInsertDriveFile, MdEdit, MdDelete } from 'react-icons/md'; // Icons
+import { FaTimes } from 'react-icons/fa'; // Import FaTimes for close icon
 import { useDropzone } from 'react-dropzone'; // Import useDropzone
 
 // Helper to format bytes
@@ -232,12 +233,14 @@ const UploadComponent = ({ onUpload }) => {
 
 // --- Edit Metadata Modal ---
 const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
+  const [fileName, setFileName] = useState('');
   const [altText, setAltText] = useState('');
   const [caption, setCaption] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   // Reset form when item changes or modal opens/closes
   useEffect(() => {
     if (isOpen && item) {
+      setFileName(item.file_name || '');
       setAltText(item.alt_text || '');
       setCaption(item.caption || '');
       setIsSaving(false); // Reset saving state when modal opens
@@ -247,9 +250,13 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
   if (!isOpen || !item) return null;
 
   const handleSave = async () => {
+    if (!fileName.trim()) {
+      alert('Filename cannot be empty');
+      return;
+    }
     setIsSaving(true);
     try {
-      await onSave(item.id, { alt_text: altText, caption });
+      await onSave(item.id, { file_name: fileName, alt_text: altText, caption });
       onClose(); // Close modal on successful save
     } catch (error) {
        console.error("Failed to save metadata:", error);
@@ -261,14 +268,30 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4 transition-opacity duration-300">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg transform transition-all scale-100 opacity-100">
+    // Add onClick={onClose} to the backdrop
+    <div
+      className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4 transition-opacity duration-300"
+      onClick={onClose}
+    >
+      {/* Add onClick={(e) => e.stopPropagation()} to prevent clicks inside from closing */}
+      <div
+        className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg transform transition-all scale-100 opacity-100"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-4 pb-2 border-b">
            <h2 className="text-xl font-semibold text-gray-800">Edit Metadata</h2>
-           <button onClick={onClose} disabled={isSaving} className="text-gray-400 hover:text-gray-600 text-2xl leading-none focus:outline-none">&times;</button>
+           {/* Updated Close Button */}
+           <button
+             onClick={onClose}
+             disabled={isSaving}
+             className="bg-teal-600 hover:bg-teal-700 text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 disabled:opacity-50"
+             aria-label="Close edit metadata"
+           >
+             <FaTimes size={16} /> {/* Use FaTimes icon */}
+           </button>
         </div>
 
-        <div className="mb-4 text-center">
+        <div className="mb-6 text-center">
             {/* Show actual preview in Edit Modal, ensure URL exists */}
             {item.mime_type?.startsWith('image/') ? (
               <> {/* Use Fragment to group img and placeholder */}
@@ -313,6 +336,20 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
         </div>
 
         <div className="space-y-4">
+          <div>
+            <label htmlFor="fileName" className="block text-sm font-medium text-gray-700 mb-1">
+              File Name <span className="text-xs text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="fileName"
+              value={fileName}
+              onChange={(e) => setFileName(e.target.value)}
+              disabled={isSaving}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100"
+              required
+            />
+          </div>
           <div>
             <label htmlFor="altText" className="block text-sm font-medium text-gray-700 mb-1">
               Alt Text <span className="text-xs text-gray-500">(for accessibility, mainly images)</span>
@@ -569,21 +606,30 @@ const MediaPreviewModal = ({ item, isOpen, onClose }) => {
   const isVideo = item.mime_type?.startsWith('video/');
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[60] p-4 transition-opacity duration-300">
-      <div className="bg-white p-4 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col relative">
+    // Add onClick={onClose} to the backdrop
+    <div
+      className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[60] p-4 transition-opacity duration-300"
+      onClick={onClose}
+    >
+      {/* Add onClick={(e) => e.stopPropagation()} to prevent clicks inside from closing */}
+      <div
+        className="bg-white p-4 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-3 pb-2 border-b">
           <h2 className="text-lg font-semibold text-gray-800 truncate" title={item.file_name}>
-            Preview: {item.file_name}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none focus:outline-none p-1 -mr-1"
-            aria-label="Close preview"
-          >
-            &times;
-          </button>
-        </div>
+             Preview: {item.file_name}
+           </h2>
+           {/* Updated Close Button */}
+           <button
+             onClick={onClose}
+             className="bg-teal-600 hover:bg-teal-700 text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+             aria-label="Close preview"
+           >
+             <FaTimes size={16} /> {/* Use FaTimes icon */}
+           </button>
+         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded">
