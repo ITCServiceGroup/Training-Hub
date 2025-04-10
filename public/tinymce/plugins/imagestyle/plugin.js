@@ -126,8 +126,30 @@
       },
       columns: editor.options.get('color_cols') || 5,
       fetch: (callback) => {
-        const colorMap = editor.options.get('color_map');
-        callback(colorMap);
+        const colorMap = editor.options.get('color_map') || [];
+        const hasCustomColors = editor.options.get('custom_colors');
+
+        // Mimic TinyMCE's getAdditionalColors logic
+        const removeColorItem = {
+          type: 'choiceitem',
+          text: 'Remove color', // Text will be translated by TinyMCE if needed via I18n
+          icon: 'color-swatch-remove-color',
+          value: 'remove'
+        };
+
+        const customColorItem = {
+          type: 'choiceitem',
+          text: 'Custom color...', // Text will be translated by TinyMCE if needed via I18n
+          icon: 'color-picker',
+          value: 'custom'
+        };
+
+        // Combine the color map with the additional items at the end
+        const fullColorMap = colorMap.concat(
+          hasCustomColors ? [removeColorItem, customColorItem] : [removeColorItem]
+        );
+
+        callback(fullColorMap);
       },
       onAction: () => {
         // This is called when the main part of the split button is clicked
@@ -141,8 +163,13 @@
       onItemAction: (_, value) => {
         // This is called when a color is selected from the menu
         if (value === 'custom') {
-          // Open the color picker dialog
+          // Get the current color if available
+          const img = editor.selection.getNode();
+          const currentColor = img.nodeName === 'IMG' ? (editor.dom.getStyle(img, 'border-color') || '#000000') : '#000000';
+
+          // Open the color picker dialog with the current color
           editor.execCommand('mceColorPicker', true, {
+            color: currentColor,
             callback: function(hexColor) {
               if (hexColor) {
                 editor.execCommand('BorderColor', false, hexColor);
@@ -176,9 +203,57 @@
     });
   };
 
+  // Register the mceColorPicker command to handle custom color selection
+  const registerColorPickerCommand = function(editor) {
+    editor.addCommand('mceColorPicker', function(_, args) {
+      const callback = args && args.callback ? args.callback : null;
+      const initialColor = args && args.color ? args.color : '#000000';
+
+      // Create the color picker dialog with the full color spectrum
+      editor.windowManager.open({
+        title: 'Color Picker',
+        size: 'normal',
+        body: {
+          type: 'panel',
+          items: [
+            {
+              type: 'colorpicker',
+              name: 'color',
+              label: 'Color'
+            }
+          ]
+        },
+        buttons: [
+          {
+            type: 'cancel',
+            text: 'Cancel'
+          },
+          {
+            type: 'submit',
+            text: 'Save',
+            primary: true
+          }
+        ],
+        initialData: {
+          color: initialColor
+        },
+        onSubmit: function(api) {
+          const data = api.getData();
+          if (callback && typeof callback === 'function') {
+            callback(data.color);
+          }
+          api.close();
+        }
+      });
+    });
+  };
+
   const register = function (editor) {
     // Register a custom icon for the border color button
     editor.ui.registry.addIcon('color-swatch', '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-1 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="currentColor"/></svg>');
+
+    // Register the color picker command
+    registerColorPickerCommand(editor);
 
     // Register the border color button
     registerBorderColorButton(editor);
