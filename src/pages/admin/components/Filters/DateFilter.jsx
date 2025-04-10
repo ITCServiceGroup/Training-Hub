@@ -84,12 +84,23 @@ const DateFilter = ({ value, onChange }) => {
   };
 
   return (
-    <div className="space-y-2 w-full">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+    <div className="w-full">
+      {/* Sub-labels row for alignment */}
+      <div className="flex flex-row gap-2 mb-1">
+        <div className="w-full md:w-40" />
+        <div className="w-full md:w-36">
+          <span className="text-sm font-medium text-gray-700 block text-left">Start</span>
+        </div>
+        <div className="w-full md:w-36">
+          <span className="text-sm font-medium text-gray-700 block text-left">End</span>
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row items-stretch gap-2 w-full">
+        {/* Preset Dropdown */}
         <select
           value={value.preset}
           onChange={handlePresetChange}
-          className="block w-full sm:w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
           {presetOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -97,52 +108,44 @@ const DateFilter = ({ value, onChange }) => {
             </option>
           ))}
         </select>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
-          <div className="flex items-center gap-2">
-            <label htmlFor="start-date" className="text-sm font-medium text-gray-700">
-              Start:
-            </label>
-            <Flatpickr
-              id="start-date"
-              value={value.startDate}
-              onChange={([date]) => {
-                onChange({
-                  ...value,
-                  preset: 'custom',
-                  startDate: date ? date.toISOString().split('T')[0] : null
-                });
-              }}
-              className="block w-36 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              options={{
-                dateFormat: 'Y-m-d',
-                maxDate: value.endDate || 'today'
-              }}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label htmlFor="end-date" className="text-sm font-medium text-gray-700">
-              End:
-            </label>
-            <Flatpickr
-              id="end-date"
-              value={value.endDate}
-              onChange={([date]) => {
-                onChange({
-                  ...value,
-                  preset: 'custom',
-                  endDate: date ? date.toISOString().split('T')[0] : null
-                });
-              }}
-              className="block w-36 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              options={{
-                dateFormat: 'Y-m-d',
-                minDate: value.startDate,
-                maxDate: 'today'
-              }}
-            />
-          </div>
+        {/* Start Date */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Flatpickr
+            id="start-date"
+            value={value.startDate}
+            onChange={([date]) => {
+              onChange({
+                ...value,
+                preset: 'custom',
+                startDate: date ? date.toISOString().split('T')[0] : null
+              });
+            }}
+            className="block w-full md:w-36 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            options={{
+              dateFormat: 'Y-m-d',
+              maxDate: value.endDate || 'today'
+            }}
+          />
+        </div>
+        {/* End Date */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Flatpickr
+            id="end-date"
+            value={value.endDate}
+            onChange={([date]) => {
+              onChange({
+                ...value,
+                preset: 'custom',
+                endDate: date ? date.toISOString().split('T')[0] : null
+              });
+            }}
+            className="block w-full md:w-36 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            options={{
+              dateFormat: 'Y-m-d',
+              minDate: value.startDate,
+              maxDate: 'today'
+            }}
+          />
         </div>
       </div>
     </div>

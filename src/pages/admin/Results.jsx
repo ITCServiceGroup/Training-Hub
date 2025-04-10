@@ -102,44 +102,47 @@ const Results = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-8">
         <h2 className="text-xl font-semibold mb-6">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-          {/* First column: Date Range */}
-          <div className="min-w-0 w-full">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Date Range</h3>
-            <DateFilter
-              value={dateFilter}
-              onChange={setDateFilter}
-            />
+        <div className="space-y-6">
+          {/* Row 1: Range Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            {/* Date Range */}
+            <div className="flex flex-col justify-center h-full">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Date Range</label>
+              <DateFilter
+                value={dateFilter}
+                onChange={setDateFilter}
+              />
+            </div>
+            {/* Score Range */}
+            <div className="flex flex-col justify-center h-full">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Score Range</label>
+              <NumberRangeFilter
+                type="score"
+                value={scoreRange}
+                onChange={setScoreRange}
+                hideTitle={true}
+              />
+            </div>
+            {/* Time Range */}
+            <div className="flex flex-col justify-center h-full">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Time Range</label>
+              <NumberRangeFilter
+                type="time"
+                value={timeRange}
+                onChange={setTimeRange}
+                hideTitle={true}
+              />
+            </div>
           </div>
-
-          {/* Second column: Score Range */}
-          <div className="min-w-0 w-full">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Score Range</h3>
-            <NumberRangeFilter
-              type="score"
-              value={scoreRange}
-              onChange={setScoreRange}
-              hideTitle={true}
-            />
-          </div>
-
-          {/* Third column: Time Range */}
-          <div className="min-w-0 w-full">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Time Range</h3>
-            <NumberRangeFilter
-              type="time"
-              value={timeRange}
-              onChange={setTimeRange}
-              hideTitle={true}
-            />
-          </div>
-
-          {/* Fourth column: Selection filters */}
-          <div className="min-w-0 w-full flex flex-col gap-6">
+          {/* Divider */}
+          <div className="border-t border-gray-200" />
+          {/* Row 2: Selection Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Supervisors */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Supervisors:</h3>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Supervisors</label>
               <MultiSelect
                 type="supervisors"
                 value={selectedSupervisors}
@@ -147,9 +150,9 @@ const Results = () => {
                 hideLabel={true}
               />
             </div>
-
+            {/* LDAPs */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">LDAPs:</h3>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">LDAPs</label>
               <MultiSelect
                 type="ldaps"
                 value={selectedLdaps}
@@ -157,9 +160,9 @@ const Results = () => {
                 hideLabel={true}
               />
             </div>
-
+            {/* Markets */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Markets:</h3>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Markets</label>
               <MultiSelect
                 type="markets"
                 value={selectedMarkets}
@@ -167,6 +170,31 @@ const Results = () => {
                 hideLabel={true}
               />
             </div>
+          </div>
+          {/* Action Buttons */}
+          <div className="flex flex-col md:flex-row justify-end items-center gap-3 pt-4">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                setDateFilter({ preset: 'last_month', startDate: null, endDate: null });
+                setSelectedSupervisors([]);
+                setSelectedLdaps([]);
+                setSelectedMarkets([]);
+                setScoreRange({ min: 0, max: 100 });
+                setTimeRange({ min: 0, max: 3600 });
+              }}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              // "Apply" is visually present; actual filtering is handled by useEffect on filter state
+              onClick={() => { /* No-op, filters auto-apply */ }}
+            >
+              Apply Filters
+            </button>
           </div>
         </div>
       </div>

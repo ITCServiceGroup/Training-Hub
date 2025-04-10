@@ -1,7 +1,50 @@
 (function () {
   'use strict';
 
+  // Helper function to convert RGB color to hex format
+  function rgbToHex(r, g, b) {
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toLowerCase();
+  }
+
   const pluginName = 'imagestyle';
+
+  // Helper to get the current border color from inline style or class
+  function getCurrentBorderColor(img, editor) {
+    // 1. Try inline style
+    let color = editor.dom.getStyle(img, 'border-color');
+    if (color && color !== '' && color !== 'initial') {
+      // Convert RGB format to hex if needed
+      if (color.startsWith('rgb')) {
+        const rgb = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+        if (rgb) {
+          color = rgbToHex(parseInt(rgb[1]), parseInt(rgb[2]), parseInt(rgb[3]));
+        }
+      }
+
+      // Ensure color has # prefix
+      if (color && !color.startsWith('#')) {
+        color = '#' + color;
+      }
+
+      return color;
+    }
+
+    // 2. Try known classes
+    const colorClassToHex = {
+      'border-color-gray': '#808080',
+      'border-color-black': '#000000',
+      'border-color-blue': '#0000ff',
+      'border-color-red': '#ff0000',
+      'border-color-green': '#008000'
+    };
+    for (const className in colorClassToHex) {
+      if (editor.dom.hasClass(img, className)) {
+        return colorClassToHex[className];
+      }
+    }
+    // 3. Fallback
+    return '#000000';
+  }
 
   // Apply border color to image
   const applyBorderColor = function(editor, value) {
@@ -106,6 +149,9 @@
     editor.nodeChanged();
   };
 
+  // Session-persistent variable for last custom border color
+  let lastBorderCustomColor = null;
+
   // Register a color button for border color using the same approach as forecolor
   const registerBorderColorButton = function(editor) {
     // Register the BorderColor command
@@ -121,8 +167,36 @@
       select: value => {
         const img = editor.selection.getNode();
         if (img.nodeName !== 'IMG') return false;
-        const currentColor = editor.dom.getStyle(img, 'border-color');
-        return currentColor === value;
+
+        // Get the current border color
+        let currentColor = editor.dom.getStyle(img, 'border-color');
+
+        // If we have a current color, convert it to hex format for comparison
+        if (currentColor) {
+          // Convert RGB format to hex if needed
+          if (currentColor.startsWith('rgb')) {
+            const rgb = currentColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (rgb) {
+              currentColor = rgbToHex(parseInt(rgb[1]), parseInt(rgb[2]), parseInt(rgb[3]));
+            }
+          }
+
+          // Ensure both values are in the same format for comparison
+          // Remove the # if it exists and convert to lowercase
+          const normalizedCurrent = currentColor.replace(/^#/, '').toLowerCase();
+          const normalizedValue = value.replace(/^#/, '').toLowerCase();
+
+          // For debugging
+          console.log('Comparing colors:', {
+            currentColor: normalizedCurrent,
+            valueToCheck: normalizedValue,
+            isMatch: normalizedCurrent === normalizedValue
+          });
+
+          return normalizedCurrent === normalizedValue;
+        }
+
+        return false;
       },
       columns: editor.options.get('color_cols') || 5,
       fetch: (callback) => {
@@ -144,10 +218,70 @@
           value: 'custom'
         };
 
+        // Create an array to hold additional items
+        let additionalItems = [];
+
+        // If we have a last custom color, add it to the grid
+        if (lastBorderCustomColor) {
+          // Get the current border color to check if the custom color is selected
+          const img = editor.selection.getNode();
+          let isSelected = false;
+
+          if (img.nodeName === 'IMG') {
+            let currentColor = editor.dom.getStyle(img, 'border-color');
+
+            // Convert to hex format if needed
+            if (currentColor && currentColor.startsWith('rgb')) {
+              const rgb = currentColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+              if (rgb) {
+                currentColor = rgbToHex(parseInt(rgb[1]), parseInt(rgb[2]), parseInt(rgb[3]));
+              }
+            }
+
+            // Ensure both values are in the same format for comparison
+            if (currentColor) {
+              const normalizedCurrent = currentColor.replace(/^#/, '').toLowerCase();
+              const normalizedCustom = lastBorderCustomColor.replace(/^#/, '').toLowerCase();
+              isSelected = normalizedCurrent === normalizedCustom;
+            }
+          }
+
+          // Create a color item for the last custom color
+          // Format it like the standard color items in the color_map
+          const lastCustomColorItem = {
+            type: 'choiceitem',
+            text: 'Custom', // Label it as 'Custom'
+            value: lastBorderCustomColor, // Use the stored custom color with # prefix
+            active: isSelected, // Set active to true if this color is currently selected
+            icon: isSelected ? 'checkmark' : undefined, // Add checkmark icon when selected
+            checked: isSelected, // Another way to indicate selection
+
+            // Add a meta property to help identify this as a custom color
+            // This is used by TinyMCE to properly render the color swatch
+            meta: {
+              style: 'background-color: ' + lastBorderCustomColor,
+              selected: isSelected // Add selected property to meta
+            }
+          };
+
+          // For debugging
+          console.log('Custom color item:', {
+            color: lastBorderCustomColor,
+            isSelected: isSelected
+          });
+
+          // Add the last custom color item to the additional items
+          additionalItems.push(lastCustomColorItem);
+        }
+
+        // Add the remove color and custom color items
+        additionalItems.push(removeColorItem);
+        if (hasCustomColors) {
+          additionalItems.push(customColorItem);
+        }
+
         // Combine the color map with the additional items at the end
-        const fullColorMap = colorMap.concat(
-          hasCustomColors ? [removeColorItem, customColorItem] : [removeColorItem]
-        );
+        const fullColorMap = colorMap.concat(additionalItems);
 
         callback(fullColorMap);
       },
@@ -163,16 +297,29 @@
       onItemAction: (_, value) => {
         // This is called when a color is selected from the menu
         if (value === 'custom') {
-          // Get the current color if available
+          // Use session-persistent variable, else current border color, else #000000
           const img = editor.selection.getNode();
-          const currentColor = img.nodeName === 'IMG' ? (editor.dom.getStyle(img, 'border-color') || '#000000') : '#000000';
+          let currentColor = img.nodeName === 'IMG' ? getCurrentBorderColor(img, editor) : '#000000';
 
-          // Open the color picker dialog with the current color
+          // Use the last custom color if available, otherwise use the current color
+          let hexColor = lastBorderCustomColor || currentColor;
+
+          // Ensure we have a valid hex color (with #)
+          if (!hexColor.startsWith('#')) {
+            hexColor = '#' + hexColor;
+          }
+
+          // Open the color picker dialog with the last custom color or current color
           editor.execCommand('mceColorPicker', true, {
-            color: currentColor,
-            callback: function(hexColor) {
-              if (hexColor) {
-                editor.execCommand('BorderColor', false, hexColor);
+            color: hexColor,
+            callback: function(hexColorResult) {
+              if (hexColorResult) {
+                // Store the last custom color for session
+                lastBorderCustomColor = hexColorResult;
+                editor.execCommand('BorderColor', false, hexColorResult);
+
+                // Force a redraw of the color button to show the new custom color
+                editor.nodeChanged();
               }
             }
           });
@@ -182,6 +329,9 @@
         } else {
           // Apply the selected color
           editor.execCommand('BorderColor', false, value);
+
+          // Don't update the lastBorderCustomColor when selecting from the predefined grid
+          // Only the custom color picker dialog should update this value
         }
       },
       onSetup: (api) => {
@@ -207,7 +357,19 @@
   const registerColorPickerCommand = function(editor) {
     editor.addCommand('mceColorPicker', function(_, args) {
       const callback = args && args.callback ? args.callback : null;
-      const initialColor = args && args.color ? args.color : '#000000';
+
+      // Ensure we have a valid color with # prefix
+      let initialColor = args && args.color ? args.color : '#000000';
+
+      // If the color doesn't start with #, add it
+      if (initialColor && !initialColor.startsWith('#')) {
+        initialColor = '#' + initialColor;
+      }
+
+      // If initialColor is empty or invalid, use #000000
+      if (!initialColor || initialColor === '#') {
+        initialColor = '#000000';
+      }
 
       // Create the color picker dialog with the full color spectrum
       editor.windowManager.open({
@@ -251,7 +413,7 @@
   const register = function (editor) {
     // Register custom icons
     editor.ui.registry.addIcon('color-swatch', '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-1 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="currentColor"/></svg>');
-    
+
     editor.ui.registry.addIcon('image-style', '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 8v-4h4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="8" width="8" height="8" fill="currentColor" opacity="0.2"/></svg>');
 
     // Register the color picker command
