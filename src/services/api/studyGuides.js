@@ -160,6 +160,25 @@ class StudyGuidesService extends BaseService {
       throw error;
     }
   }
+
+  /**
+   * Get the total count of study guides
+   * @returns {Promise<number>} - Total number of study guides
+   */
+  async getCount() {
+    try {
+      const { count, error } = await supabase
+        .from(this.tableName)
+        .select('*', { count: 'exact', head: true });
+      if (error) {
+        throw error;
+      }
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting study guide count:', error.message);
+      return 0;
+    }
+  }
 }
 
 export const studyGuidesService = new StudyGuidesService();

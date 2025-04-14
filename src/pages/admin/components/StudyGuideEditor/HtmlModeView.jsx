@@ -429,13 +429,13 @@ const HtmlModeView = ({
                  Preview
                </label>
                {/* Let this div grow and handle overflow */}
-               <div className="border border-gray-300 rounded-md p-4 overflow-auto flex-grow">
-                 <iframe
-                   ref={iframeRef} // Use the passed ref
-                   className="w-full h-full border-none block"
-                  sandbox="allow-scripts allow-same-origin allow-downloads allow-popups"
-                  title="Preview" // Use the passed title prop if needed for accessibility
-                />
+               <div className="border border-gray-300 rounded-md p-4 flex-grow">
+<iframe
+  ref={iframeRef} // Use the passed ref
+  className="w-full h-full border-none block"
+  sandbox="allow-scripts allow-same-origin allow-downloads allow-popups"
+  title="Preview" // Use the passed title prop if needed for accessibility
+/>
               </div>
             </div>
           </Panel>

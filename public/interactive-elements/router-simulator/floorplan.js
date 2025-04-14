@@ -99,8 +99,8 @@ const floorplan1Data = {
     ],
     interferenceSources: [
         // Positioned in main living areas
-        { name: "bluetooth", x: 248, y: 376, radius: 84, attenuation: 0.5, active: false }, // Living Room center
-        { name: "babyMonitor", x: 704, y: 172, radius: 96, attenuation: 0.3, active: false } // Master Bedroom center
+        { name: "bluetooth", x: 160, y: 376, radius: 84, attenuation: 0.5, active: false }, // Living Room center
+        { name: "babyMonitor", x: 597, y: 289, radius: 96, attenuation: 0.3, active: false } // Bedroom Two center
     ],
     
     // Furniture definitions for the floorplan

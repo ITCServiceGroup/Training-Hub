@@ -295,6 +295,7 @@ routerSimulatorTemplate.innerHTML = `
         background-color: #9E9E9E;
         transition: all 0.3s ease;
         flex-shrink: 0; /* Prevent shrinking */
+        margin-right: 5px; /* Add explicit space */
     }
 
     .interference-button:hover {

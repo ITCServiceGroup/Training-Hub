@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../config/supabase';
 import { quizResultsService } from '../../services/api/quizResults';
+import { studyGuidesService } from '../../services/api/studyGuides';
 
 // Debug helper function with localStorage persistence
 const logAdmin = (message, data = null) => {
@@ -55,7 +56,7 @@ const AdminDashboard = () => {
   const { user, session, isAuthenticated } = useAuth();
   const [error, setError] = useState(null);
   const [quizStats, setQuizStats] = useState({
-    studyGuides: 24, // Mock data
+    studyGuides: 0,
     questions: 156,  // Mock data
     quizzes: 12,    // Mock data
     completions: 0
@@ -63,11 +64,16 @@ const AdminDashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch quiz results data
+  // Fetch quiz results data and study guide count
   useEffect(() => {
-    const fetchQuizData = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
+
+        // Get total study guides count
+        const studyGuideCount = await studyGuidesService.getCount();
+        setQuizStats(prev => ({ ...prev, studyGuides: studyGuideCount }));
+
         // Get total completions count
         const count = await quizResultsService.getTotalCount();
         setQuizStats(prev => ({ ...prev, completions: count }));
@@ -84,14 +90,14 @@ const AdminDashboard = () => {
         }));
         setRecentActivity(formattedResults);
       } catch (err) {
-        console.error('Error fetching quiz data:', err);
-        setError('Failed to load quiz data');
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuizData();
+    fetchDashboardData();
   }, []);
 
   // Log when the dashboard mounts

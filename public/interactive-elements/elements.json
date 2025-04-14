@@ -47,5 +47,12 @@
     "title": "Traceroute Simulator",
     "description": "Simulate traceroute paths and common network issues like latency and packet loss.",
     "thumbnailUrl": "/interactive-elements/traceroute-simulator/thumbnail.png" 
+  },
+  {
+    "name": "command-builder",
+    "path": "command-builder/",
+    "title": "Command Builder Sandbox",
+    "description": "Interactive tool to learn and practice command-line network diagnostic tools.",
+    "thumbnailUrl": "/interactive-elements/command-builder/thumbnail.png"
   }
 ]
