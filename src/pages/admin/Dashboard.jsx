@@ -34,18 +34,6 @@ const logAdmin = (message, data = null) => {
   }
 };
 
-// Function to view all persisted logs
-window.viewAdminLogs = () => {
-  try {
-    const logs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
-    console.log('=== PERSISTED ADMIN LOGS ===', logs);
-    return logs;
-  } catch (e) {
-    console.error('Failed to retrieve logs', e);
-    return [];
-  }
-};
-
 // Clear logs
 window.clearAdminLogs = () => {
   localStorage.removeItem('adminLogs');
@@ -69,6 +57,7 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        logAdmin('Fetching dashboard data');
 
         // Get total study guides count
         const studyGuideCount = await studyGuidesService.getCount();
@@ -76,21 +65,19 @@ const AdminDashboard = () => {
 
         // Get total completions count
         const count = await quizResultsService.getTotalCount();
+        logAdmin('Total quiz completions:', count);
         setQuizStats(prev => ({ ...prev, completions: count }));
 
         // Get recent results
+        logAdmin('Fetching recent quiz results...');
         const results = await quizResultsService.getRecentResults(5);
-        const formattedResults = results.map(result => ({
-          id: result.id,
-          type: 'quiz_completion',
-          user: result.ldap,
-          item: result.quiz_type,
-          date: result.date_of_test,
-          score: result.score_text
-        }));
-        setRecentActivity(formattedResults);
+        
+        // Results are already formatted by the service
+        logAdmin('Received quiz results:', results);
+        setRecentActivity(results);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
+        logAdmin('Error in fetchDashboardData:', err);
         setError('Failed to load dashboard data');
       } finally {
         setLoading(false);
@@ -103,73 +90,43 @@ const AdminDashboard = () => {
   // Log when the dashboard mounts
   useEffect(() => {
     logAdmin('AdminDashboard mounted');
-    logAdmin('Auth state in dashboard', {
-      hasUser: !!user,
-      userEmail: user?.email,
-      userRole: user?.role,
-      hasSession: !!session,
-      isAuthenticated,
-      sessionExpires: session?.expires_at
-    });
-
-    // Check if the session is actually valid
-    if (!isAuthenticated || !user || !session) {
-      logAdmin('WARNING: Dashboard loaded but authentication may not be complete');
-    }
-
-    // Verify Supabase auth token
-    const verifySession = async () => {
-      try {
-        // Just try to get the user - this will fail if the token isn't valid
-        const { data, error } = await supabase.auth.getUser();
-        logAdmin('Session verification result', { data, error });
-      } catch (err) {
-        logAdmin('Session verification failed', err);
-        setError('Failed to verify session: ' + err.message);
-      }
-    };
-
-    verifySession();
   }, []);
-
-  // Log when auth state changes
-  useEffect(() => {
-    logAdmin('Auth state changed in dashboard', {
-      isAuthenticated,
-      hasUser: !!user
-    });
-  }, [user, isAuthenticated]);
-
-  // Using Tailwind classes instead of inline styles
 
   // Helper function to get badge color classes based on activity type
   const getBadgeClasses = (type) => {
     switch (type) {
       case 'quiz_completion':
         return 'bg-teal-100 text-teal-700';
-      case 'study_guide_view':
-        return 'bg-blue-100 text-blue-700';
       default:
         return 'bg-gray-100 text-gray-500';
     }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        logAdmin('Invalid date:', dateString);
+        return '-';
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      logAdmin('Error formatting date:', e);
+      return '-';
+    }
   };
 
   const getActivityTypeLabel = (type) => {
     switch (type) {
       case 'quiz_completion':
         return 'Quiz Completion';
-      case 'study_guide_view':
-        return 'Study Guide View';
       default:
         return type;
     }
@@ -185,8 +142,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  logAdmin('Rendering admin dashboard');
 
   return (
     <>
@@ -225,19 +180,36 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {recentActivity.map(activity => (
-              <tr key={activity.id}>
-                <td className="p-3 border-b border-slate-200">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${getBadgeClasses(activity.type)}`}>
-                    {getActivityTypeLabel(activity.type)}
-                  </span>
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="p-3 text-center text-slate-500">
+                  <div className="flex justify-center items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-t-teal-500 border-slate-200 rounded-full animate-spin"></div>
+                    <span>Loading...</span>
+                  </div>
                 </td>
-                <td className="p-3 border-b border-slate-200">{activity.user}</td>
-                <td className="p-3 border-b border-slate-200">{activity.item}</td>
-                <td className="p-3 border-b border-slate-200">{formatDate(activity.date)}</td>
-                <td className="p-3 border-b border-slate-200">{activity.score || '-'}</td>
               </tr>
-            ))}
+            ) : recentActivity.length > 0 ? (
+              recentActivity.map(activity => (
+                <tr key={activity.id}>
+                  <td className="p-3 border-b border-slate-200">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${getBadgeClasses(activity.type)}`}>
+                      {getActivityTypeLabel(activity.type)}
+                    </span>
+                  </td>
+                  <td className="p-3 border-b border-slate-200">{activity.user}</td>
+                  <td className="p-3 border-b border-slate-200">{activity.item}</td>
+                  <td className="p-3 border-b border-slate-200">{formatDate(activity.date)}</td>
+                  <td className="p-3 border-b border-slate-200">{activity.score}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="p-3 text-center text-slate-500">
+                  No recent activity
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

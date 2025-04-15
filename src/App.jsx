@@ -12,11 +12,14 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminStudyGuides = lazy(() => import('./pages/admin/StudyGuides'));
+const AdminQuizzes = lazy(() => import('./pages/admin/AdminQuizzes'));
+const QuizBuilderPage = lazy(() => import('./components/quiz-builder/QuizBuilderPage'));
 const AdminResults = lazy(() => import('./pages/admin/Results'));
-const MediaLibraryPage = lazy(() => import('./pages/admin/MediaLibraryPage')); // Added import
+const MediaLibraryPage = lazy(() => import('./pages/admin/MediaLibraryPage'));
 const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const PracticeQuizPage = lazy(() => import('./components/practice-quiz/PracticeQuizPage'));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -27,17 +30,14 @@ const LoadingFallback = () => (
 );
 
 function App() {
-  // Get auth state
   const { loading } = useAuth();
 
-  // If auth is still loading, show loading indicator
   if (loading) {
     return <LoadingFallback />;
   }
 
   return (
     <div className="app-container w-full min-h-screen">
-
       <Routes>
         {/* Main app routes */}
         <Route path="/" element={<Layout />}>
@@ -59,7 +59,23 @@ function App() {
             </Suspense>
           } />
 
-          <Route path="quiz/:quizId?" element={
+          {/* Quiz Routes */}
+          <Route path="quiz/access/:accessCode" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <QuizPage />
+            </Suspense>
+          } />
+          <Route path="quiz/:quizId" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <QuizPage />
+            </Suspense>
+          } />
+          <Route path="practice-quiz/:categoryId" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <PracticeQuizPage />
+            </Suspense>
+          } />
+          <Route path="quiz" element={
             <Suspense fallback={<LoadingFallback />}>
               <QuizPage />
             </Suspense>
@@ -78,12 +94,24 @@ function App() {
                   <AdminStudyGuides />
                 </Suspense>
               } />
+              
+              {/* Quiz Management Routes */}
+              <Route path="quizzes/*" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route index element={<AdminQuizzes />} />
+                    <Route path="builder" element={<AdminQuizzes />} />
+                    <Route path="builder/:quizId" element={<AdminQuizzes />} />
+                    <Route path="codes/:quizId" element={<AdminQuizzes />} />
+                  </Routes>
+                </Suspense>
+              } />
+
               <Route path="results" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <AdminResults />
                 </Suspense>
               } />
-              {/* Added media route */}
               <Route path="media" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <MediaLibraryPage />

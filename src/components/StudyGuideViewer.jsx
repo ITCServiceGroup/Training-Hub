@@ -342,7 +342,17 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   // Main component return statement
   return (
     <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full"> {/* Changed p-8 to p-2 sm:p-8 */}
-      <h2 className="text-2xl text-slate-900 mb-6 border-b border-slate-200 pb-3">{studyGuide.title}</h2>
+      <div className="flex justify-between items-center mb-6 border-b border-slate-200 pb-3">
+        <h2 className="text-2xl text-slate-900">{studyGuide.title}</h2>
+        {studyGuide && studyGuide.category_id && (
+          <button
+            onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}
+            className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2"
+          >
+            <span>📝</span> Take Practice Quiz
+          </button>
+        )}
+      </div>
       <iframe
         ref={iframeRef} // Ref for the main iframe
         title={studyGuide.title}

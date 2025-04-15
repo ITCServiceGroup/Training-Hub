@@ -1,9 +1,6 @@
 import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
 
-/**
- * Quiz Results service for interacting with v2_quiz_results table
- */
 class QuizResultsService extends BaseService {
   constructor() {
     super('v2_quiz_results');
@@ -24,7 +21,7 @@ class QuizResultsService extends BaseService {
     maxScore,
     minTime,
     maxTime,
-    sortField = 'date_of_test',
+    sortField = 'created_at',
     sortOrder = 'desc'
   }) {
     try {
@@ -63,8 +60,9 @@ class QuizResultsService extends BaseService {
         query = query.lte('time_taken', maxTime);
       }
 
-      // Apply sorting
-      query = query.order(sortField, { ascending: sortOrder === 'asc' });
+      // Handle sorting - map created_at to date_of_test
+      const actualSortField = sortField === 'created_at' ? 'date_of_test' : sortField;
+      query = query.order(actualSortField, { ascending: sortOrder === 'asc' });
 
       const { data, error } = await query;
 
@@ -105,8 +103,80 @@ class QuizResultsService extends BaseService {
   }
 
   /**
+   * Create a new quiz result
+   * @param {Object} result - Quiz result data
+   * @returns {Promise<Object>} - Created quiz result
+   */
+  async create(result) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .insert([result])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating quiz result:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get results for a specific quiz type
+   * @param {string} quizType - Quiz type
+   * @returns {Promise<Array>} - Quiz results
+   */
+  async getByQuizId(quizType) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('quiz_type', quizType)
+        .order('date_of_test', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching results by quiz type:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get results for a specific user
+   * @param {string} ldap - LDAP username
+   * @returns {Promise<Array>} - Quiz results
+   */
+  async getByUserIdentifier(ldap) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('ldap', ldap)
+        .order('date_of_test', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching results by user identifier:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Get total count of quiz results
-   * @returns {Promise<number>} - Total count
+   * @returns {Promise<number>} - Total count of quiz results
    */
   async getTotalCount() {
     try {
@@ -120,31 +190,41 @@ class QuizResultsService extends BaseService {
 
       return count;
     } catch (error) {
-      console.error('Error fetching total count:', error);
+      console.error('Error getting total count:', error.message);
       throw error;
     }
   }
 
   /**
    * Get recent quiz results
-   * @param {number} limit - Number of results to return
+   * @param {number} limit - Maximum number of results to return
    * @returns {Promise<Array>} - Recent quiz results
    */
   async getRecentResults(limit = 5) {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .order('date_of_test', { ascending: false })
-        .limit(limit);
+      console.log('Getting recent results with limit:', limit);
+      const results = await this.getFilteredResults({
+        sortField: 'date_of_test',
+        sortOrder: 'desc'
+      });
 
-      if (error) {
-        throw error;
-      }
+      console.log('Filtered results before slice:', results);
+      const limitedResults = results.slice(0, limit);
+      console.log('Limited results:', limitedResults);
 
-      return data;
+      return limitedResults.map(result => {
+        console.log('Processing result:', result);
+        return {
+          id: result.id,
+          type: 'quiz_completion',
+          user: result.ldap || '-',
+          item: result.quiz_type || 'Quiz',
+          date: result.date_of_test,
+          score: result.score_text || '-'
+        };
+      });
     } catch (error) {
-      console.error('Error fetching recent results:', error);
+      console.error('Error in getRecentResults:', error);
       throw error;
     }
   }

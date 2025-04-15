@@ -1,12 +1,33 @@
 import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
 
-/**
- * Questions service for interacting with v2_questions table
- */
 class QuestionsService extends BaseService {
   constructor() {
     super('v2_questions');
+  }
+
+  /**
+   * Get a single question by ID
+   * @param {string} id - Question ID
+   * @returns {Promise<Object>} - Question data
+   */
+  async get(id) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching question:', error.message);
+      throw error;
+    }
   }
 
   /**
@@ -81,6 +102,56 @@ class QuestionsService extends BaseService {
       return shuffled.slice(0, count);
     } catch (error) {
       console.error('Error fetching random questions:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new question
+   * @param {Object} question - Question data
+   * @returns {Promise<Object>} - Created question
+   */
+  async create(question) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .insert([question])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating question:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a question
+   * @param {string} id - Question ID
+   * @param {Object} updates - Question updates
+   * @returns {Promise<Object>} - Updated question
+   */
+  async update(id, updates) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating question:', error.message);
       throw error;
     }
   }

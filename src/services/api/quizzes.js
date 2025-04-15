@@ -79,45 +79,199 @@ class QuizzesService extends BaseService {
   }
 
   /**
-   * Get a quiz with its full question set
+   * Create a new quiz with questions
+   * @param {Object} quiz - Quiz data including questions array
+   * @returns {Promise<Object>} - Created quiz
+   */
+  async create(quiz) {
+    const { questions, ...quizData } = quiz;
+    
+    try {
+      // Start a Supabase transaction
+      const { data: createdQuiz, error: quizError } = await supabase
+        .from(this.tableName)
+        .insert([{
+          ...quizData,
+          category_ids: Array.isArray(quizData.category_ids) ? quizData.category_ids : []
+        }])
+        .select()
+        .single();
+
+      if (quizError) throw quizError;
+
+      // If there are questions, create the relationships
+      if (questions && questions.length > 0) {
+        const questionRelations = questions.map((questionId, index) => ({
+          quiz_id: createdQuiz.id,
+          question_id: questionId,
+          order_index: index
+        }));
+
+        const { error: relationsError } = await supabase
+          .from('v2_quiz_questions')
+          .insert(questionRelations);
+
+        if (relationsError) throw relationsError;
+      }
+
+      // Return the quiz with its questions
+      return await this.getWithQuestions(createdQuiz.id);
+    } catch (error) {
+      console.error('Error creating quiz:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a quiz and its questions
+   * @param {string} id - Quiz ID
+   * @param {Object} updates - Quiz updates including questions array
+   * @returns {Promise<Object>} - Updated quiz
+   */
+  async update(id, updates) {
+    const { questions, ...quizData } = updates;
+
+    try {
+      // Update quiz data
+      const { error: quizError } = await supabase
+        .from(this.tableName)
+        .update({
+          ...quizData,
+          category_ids: Array.isArray(quizData.category_ids) ? quizData.category_ids : []
+        })
+        .eq('id', id);
+
+      if (quizError) throw quizError;
+
+      // Delete existing question relationships
+      const { error: deleteError } = await supabase
+        .from('v2_quiz_questions')
+        .delete()
+        .eq('quiz_id', id);
+
+      if (deleteError) throw deleteError;
+
+      // Create new question relationships
+      if (questions && questions.length > 0) {
+        const questionIds = questions.map(q => typeof q === 'string' ? q : q.id).filter(Boolean);
+        const questionRelations = questionIds.map((questionId, index) => ({
+          quiz_id: id,
+          question_id: questionId,
+          order_index: index
+        }));
+
+        const { error: relationsError } = await supabase
+          .from('v2_quiz_questions')
+          .insert(questionRelations);
+
+        if (relationsError) {
+          console.error('Error creating question relations:', relationsError);
+          throw new Error('Failed to link questions to quiz');
+        }
+      }
+
+      // Return the updated quiz with its questions
+      return await this.getWithQuestions(id);
+    } catch (error) {
+      console.error('Error updating quiz:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get practice quizzes
+   * @returns {Promise<Array>} - Practice quizzes
+   */
+  async getPracticeQuizzes() {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('is_practice', true)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching practice quizzes:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get quizzes by category
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<Array>} - Quizzes in the specified category
+   */
+  async getByCategoryId(categoryId) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .contains('category_ids', [categoryId])
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching quizzes by category:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a quiz with its associated questions
    * @param {string} id - Quiz ID
    * @returns {Promise<Object>} - Quiz with questions
    */
   async getWithQuestions(id) {
     try {
       // Get the quiz
-      const { data: quiz, error } = await supabase
+      const { data: quiz, error: quizError } = await supabase
         .from(this.tableName)
         .select('*')
         .eq('id', id)
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (quizError) throw quizError;
+      if (!quiz) throw new Error('Quiz not found');
 
-      if (!quiz) {
-        throw new Error('Quiz not found');
-      }
+      // Get the quiz's questions through the junction table
+      const { data: relations, error: relationsError } = await supabase
+        .from('v2_quiz_questions')
+        .select('question_id, order_index')
+        .eq('quiz_id', id)
+        .order('order_index');
 
-      // Parse category IDs if stored as JSON string
-      const categoryIds = typeof quiz.category_ids === 'string' 
-        ? JSON.parse(quiz.category_ids) 
-        : quiz.category_ids;
+      if (relationsError) throw relationsError;
 
-      // Get questions for these categories
-      const { data: questions, error: questionsError } = await supabase
-        .from('v2_questions')
-        .select('*')
-        .in('category_id', categoryIds);
+      // Get the actual questions if there are any relations
+      let questions = [];
+      if (relations && relations.length > 0) {
+        const questionIds = relations.map(r => r.question_id);
+        const { data: questionsData, error: questionsError } = await supabase
+          .from('v2_questions')
+          .select('*')
+          .in('id', questionIds);
 
-      if (questionsError) {
-        throw questionsError;
+        if (questionsError) throw questionsError;
+
+        // Sort questions according to the order_index
+        questions = relations.map(rel => {
+          const question = questionsData.find(q => q.id === rel.question_id);
+          return question;
+        }).filter(Boolean);
       }
 
       return {
         ...quiz,
-        questions: questions || []
+        questions
       };
     } catch (error) {
       console.error('Error fetching quiz with questions:', error.message);

@@ -1,0 +1,837 @@
+{
+  "tables": [
+    {
+      "table_name": "Quiz Results",
+      "columns": [
+        "date_of_test timestamp with time zone",
+        "id bigint",
+        "ldap text",
+        "market text",
+        "pdf_url text",
+        "quiz_type text",
+        "score_text text",
+        "score_value double precision",
+        "supervisor text",
+        "time_taken real",
+        "quiz_id uuid",
+        "answers jsonb"
+      ]
+    },
+    {
+      "table_name": "media_library",
+      "columns": [
+        "alt_text text",
+        "caption text",
+        "created_at timestamp with time zone",
+        "file_name text",
+        "id uuid",
+        "mime_type text",
+        "public_url text",
+        "size bigint",
+        "storage_path text",
+        "updated_at timestamp with time zone",
+        "uploaded_by uuid"
+      ]
+    },
+    {
+      "table_name": "v2_access_codes",
+      "columns": [
+        "code character varying",
+        "created_at timestamp with time zone",
+        "email character varying",
+        "expires_at timestamp with time zone",
+        "id uuid",
+        "is_used boolean",
+        "ldap character varying",
+        "market character varying",
+        "quiz_id uuid",
+        "supervisor character varying"
+      ]
+    },
+    {
+      "table_name": "v2_categories",
+      "columns": [
+        "created_at timestamp with time zone",
+        "description text",
+        "display_order integer",
+        "id uuid",
+        "name character varying",
+        "section_id uuid",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_questions",
+      "columns": [
+        "category_id uuid",
+        "correct_answer jsonb",
+        "created_at timestamp with time zone",
+        "explanation text",
+        "id uuid",
+        "options jsonb",
+        "question_text text",
+        "question_type character varying",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_quiz_questions",
+      "columns": [
+        "created_at timestamp with time zone",
+        "order_index integer",
+        "question_id uuid",
+        "quiz_id uuid"
+      ]
+    },
+    {
+      "table_name": "v2_quiz_results",
+      "columns": [
+        "date_of_test timestamp with time zone",
+        "id bigint",
+        "ldap text",
+        "market text",
+        "pdf_url text",
+        "quiz_type text",
+        "score_text text",
+        "score_value double precision",
+        "supervisor text",
+        "time_taken real"
+      ]
+    },
+    {
+      "table_name": "v2_quizzes",
+      "columns": [
+        "category_ids jsonb",
+        "created_at timestamp with time zone",
+        "description text",
+        "has_practice_mode boolean",
+        "id uuid",
+        "is_practice boolean",
+        "passing_score numeric",
+        "time_limit integer",
+        "title character varying",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_sections",
+      "columns": [
+        "created_at timestamp with time zone",
+        "description text",
+        "display_order integer",
+        "id uuid",
+        "name character varying",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_study_guides",
+      "columns": [
+        "category_id uuid",
+        "content text",
+        "created_at timestamp with time zone",
+        "display_order integer",
+        "id uuid",
+        "title character varying",
+        "updated_at timestamp with time zone"
+      ]
+    }
+  ],
+  "policies": [
+    {
+      "schemaname": "public",
+      "tablename": "Quiz Results",
+      "policyname": "Allow insert for all",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "media_library",
+      "policyname": "Allow authenticated users to DELETE",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "media_library",
+      "policyname": "Allow authenticated users to INSERT",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "media_library",
+      "policyname": "Allow authenticated users to SELECT",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "media_library",
+      "policyname": "Allow authenticated users to UPDATE",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "check_condition": "true",
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "policyname": "Access codes delete access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "policyname": "Access codes insert access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "policyname": "Access codes read access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "policyname": "Access codes update access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "policyname": "Only admins can delete v2_categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "policyname": "Only admins can insert v2_categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "policyname": "Only admins can update v2_categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "policyname": "Public can read v2_categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_questions",
+      "policyname": "Questions delete access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_questions",
+      "policyname": "Questions insert access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_questions",
+      "policyname": "Questions read access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_questions",
+      "policyname": "Questions update access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "policyname": "Quiz questions delete access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "policyname": "Quiz questions insert access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "policyname": "Quiz questions read access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "policyname": "Quiz questions update access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_results",
+      "policyname": "Quiz results insert access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_results",
+      "policyname": "Quiz results read access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quizzes",
+      "policyname": "Quizzes delete access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quizzes",
+      "policyname": "Quizzes insert access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quizzes",
+      "policyname": "Quizzes read access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quizzes",
+      "policyname": "Quizzes update access",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_sections",
+      "policyname": "Only admins can delete v2_sections",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_sections",
+      "policyname": "Only admins can insert v2_sections",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_sections",
+      "policyname": "Only admins can update v2_sections",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_sections",
+      "policyname": "Public can read v2_sections",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "policyname": "Only admins can delete v2_study_guides",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "policyname": "Only admins can insert v2_study_guides",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "check_condition": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "policyname": "Only admins can update v2_study_guides",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "check_condition": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "policyname": "Public can read v2_study_guides",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "check_condition": "true",
+      "with_check": null
+    }
+  ],
+  "functions": [
+    {
+      "function_name": "update_updated_at_column",
+      "function_definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n   NEW.updated_at = now();\n   RETURN NEW;\nEND;\n$function$\n"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "table_schema": "public",
+      "constraint_name": "v2_questions_category_id_fkey",
+      "table_name": "v2_questions",
+      "column_name": "category_id",
+      "foreign_table_name": "v2_categories",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "v2_study_guides_category_id_fkey",
+      "table_name": "v2_study_guides",
+      "column_name": "category_id",
+      "foreign_table_name": "v2_categories",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "v2_categories_section_id_fkey",
+      "table_name": "v2_categories",
+      "column_name": "section_id",
+      "foreign_table_name": "v2_sections",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "v2_access_codes_quiz_id_fkey",
+      "table_name": "v2_access_codes",
+      "column_name": "quiz_id",
+      "foreign_table_name": "v2_quizzes",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "v2_quiz_questions_question_id_fkey",
+      "table_name": "v2_quiz_questions",
+      "column_name": "question_id",
+      "foreign_table_name": "v2_questions",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "v2_quiz_questions_quiz_id_fkey",
+      "table_name": "v2_quiz_questions",
+      "column_name": "quiz_id",
+      "foreign_table_name": "v2_quizzes",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_quiz_id",
+      "table_name": "v2_quiz_results",
+      "column_name": "quiz_id",
+      "foreign_table_name": "v2_quizzes",
+      "foreign_column_name": "id"
+    }
+  ],
+  "indexes": [
+    {
+      "schemaname": "public",
+      "tablename": "v2_questions",
+      "indexname": "v2_questions_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_questions_pkey ON public.v2_questions USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "media_library",
+      "indexname": "media_library_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX media_library_pkey ON public.media_library USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "media_library",
+      "indexname": "media_library_storage_path_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX media_library_storage_path_key ON public.media_library USING btree (storage_path)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "indexname": "v2_study_guides_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_study_guides_pkey ON public.v2_study_guides USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "indexname": "v2_study_guides_category_id_idx",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX v2_study_guides_category_id_idx ON public.v2_study_guides USING btree (category_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_study_guides",
+      "indexname": "v2_study_guides_display_order_idx",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX v2_study_guides_display_order_idx ON public.v2_study_guides USING btree (display_order)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_sections",
+      "indexname": "v2_sections_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_sections_pkey ON public.v2_sections USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_sections",
+      "indexname": "v2_sections_display_order_idx",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX v2_sections_display_order_idx ON public.v2_sections USING btree (display_order)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "indexname": "v2_categories_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_categories_pkey ON public.v2_categories USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "indexname": "v2_categories_section_id_idx",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX v2_categories_section_id_idx ON public.v2_categories USING btree (section_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_categories",
+      "indexname": "v2_categories_display_order_idx",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX v2_categories_display_order_idx ON public.v2_categories USING btree (display_order)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "Quiz Results",
+      "indexname": "Service Tech Quiz Results_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX \"Service Tech Quiz Results_pkey\" ON public.\"Quiz Results\" USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "indexname": "v2_access_codes_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_access_codes_pkey ON public.v2_access_codes USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "indexname": "v2_access_codes_code_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_access_codes_code_key ON public.v2_access_codes USING btree (code)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_access_codes",
+      "indexname": "v2_access_codes_code_idx",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX v2_access_codes_code_idx ON public.v2_access_codes USING btree (code)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "indexname": "v2_quiz_questions_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_quiz_questions_pkey ON public.v2_quiz_questions USING btree (quiz_id, question_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "indexname": "idx_quiz_questions_quiz_id",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_quiz_questions_quiz_id ON public.v2_quiz_questions USING btree (quiz_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_questions",
+      "indexname": "idx_quiz_questions_question_id",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_quiz_questions_question_id ON public.v2_quiz_questions USING btree (question_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quizzes",
+      "indexname": "v2_quizzes_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX v2_quizzes_pkey ON public.v2_quizzes USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_results",
+      "indexname": "idx_quiz_results_quiz_id",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_quiz_results_quiz_id ON public.v2_quiz_results USING btree (quiz_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "v2_quiz_results",
+      "indexname": "idx_quiz_results_ldap",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_quiz_results_ldap ON public.v2_quiz_results USING btree (ldap)"
+    }
+  ],
+  "triggers": [
+    {
+      "trigger_schema": "public",
+      "trigger_name": "v2_sections_updated_at_trigger",
+      "event_object_table": "v2_sections",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "trigger_schema": "public",
+      "trigger_name": "v2_categories_updated_at_trigger",
+      "event_object_table": "v2_categories",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "trigger_schema": "public",
+      "trigger_name": "v2_study_guides_updated_at_trigger",
+      "event_object_table": "v2_study_guides",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "trigger_schema": "public",
+      "trigger_name": "update_media_library_updated_at",
+      "event_object_table": "media_library",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    }
+  ],
+  "column_descriptions": [
+    {
+      "table_name": "v2_questions",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "media_library",
+      "column_position": 0,
+      "description": "Stores metadata for uploaded media files."
+    },
+    {
+      "table_name": "media_library",
+      "column_position": 3,
+      "description": "Path to the file within the Supabase storage bucket (e.g., public/images/myfile.jpg)"
+    },
+    {
+      "table_name": "media_library",
+      "column_position": 4,
+      "description": "Full public URL provided by Supabase storage."
+    },
+    {
+      "table_name": "media_library",
+      "column_position": 7,
+      "description": "Alternative text for accessibility, primarily for images."
+    },
+    {
+      "table_name": "media_library",
+      "column_position": 9,
+      "description": "The user who uploaded the file."
+    },
+    {
+      "table_name": "v2_quiz_results",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "v2_study_guides",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "v2_sections",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "v2_categories",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "Quiz Results",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "v2_access_codes",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "v2_quiz_questions",
+      "column_position": null,
+      "description": null
+    },
+    {
+      "table_name": "v2_quizzes",
+      "column_position": null,
+      "description": null
+    }
+  ],
+  "storage_buckets": [
+    {
+      "id": "quiz-pdfs",
+      "name": "quiz-pdfs",
+      "owner": null,
+      "created_at": "2025-02-16 22:58:56.606004+00",
+      "updated_at": "2025-02-16 22:58:56.606004+00",
+      "public": false,
+      "avif_autodetection": false,
+      "file_size_limit": null,
+      "allowed_mime_types": null,
+      "owner_id": null
+    },
+    {
+      "id": "media-library",
+      "name": "media-library",
+      "owner": null,
+      "created_at": "2025-04-03 19:15:50.464755+00",
+      "updated_at": "2025-04-03 19:15:50.464755+00",
+      "public": true,
+      "avif_autodetection": false,
+      "file_size_limit": null,
+      "allowed_mime_types": null,
+      "owner_id": null
+    }
+  ]
+}
