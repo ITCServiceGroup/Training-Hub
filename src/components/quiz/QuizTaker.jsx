@@ -241,7 +241,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         const pdfHtml = buildPdfContentHtml(quiz, selectedAnswers, finalScore, timeTaken, accessCodeData.ldap);
         
         // 2. Generate and Upload PDF
-        pdfUrl = await generateAndUploadPdf(accessCodeData.ldap, pdfHtml);
+        pdfUrl = await generateAndUploadPdf(accessCodeData.ldap, pdfHtml, accessCodeData, quiz);
         if (!pdfUrl) {
            console.warn('PDF generation/upload failed. Saving result without PDF URL.');
            // Optionally alert the user here if needed
@@ -249,17 +249,17 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
         // 3. Save quiz result to DB
         await quizResultsService.create({
-          quiz_id: quiz.id,
           ldap: accessCodeData.ldap,
           supervisor: accessCodeData.supervisor,
           market: accessCodeData.market,
-          score_value: finalScore.percentage, // Keep as percentage (0-100)
-          score_text: `${finalScore.correct}/${finalScore.total} (${finalScore.percentage}%)`, // New format
+          quiz_id: quiz.id,
+          quiz_type: quiz.title,
+          score_value: finalScore.percentage / 100, // Convert to 0-1 scale
+          score_text: `${finalScore.correct}/${finalScore.total} (${finalScore.percentage}%)`,
           answers: selectedAnswers,
           time_taken: timeTaken,
-          date_of_test: new Date().toISOString(), // Add date_of_test
-          quiz_type: quiz.title, // Add quiz_type
-          pdf_url: pdfUrl // Add the generated PDF URL (or null if failed)
+          date_of_test: new Date().toISOString(),
+          pdf_url: pdfUrl
         });
 
         // 4. Mark access code as used
@@ -509,54 +509,56 @@ const buildPdfContentHtml = (quiz, selectedAnswers, score, timeTaken, ldap) => {
 };
 
 // Generates and uploads the PDF, returns the public URL or path
-const generateAndUploadPdf = async (ldap, htmlContent) => {
+const generateAndUploadPdf = async (ldap, htmlContent, accessCodeData, quiz) => {
   try {
     console.log('Starting PDF generation...');
-    const cleanLDAP = ldap.replace(/[^a-z0-9]/gi, '').toLowerCase(); // Sanitize LDAP
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // Create timestamp
-    const filename = `${cleanLDAP}-${timestamp}.pdf`; // Unique filename
-    const bucketName = 'quiz-pdfs'; // Target bucket
 
-    console.log('Generating PDF for:', filename);
-
+    // Generate PDF blob
     const pdfBlob = await html2pdf().set({
-      margin: [10, 10, 10, 10], // Margins in mm [top, left, bottom, right]
-      filename: filename, // Default filename if save() is called
+      margin: [10, 10, 10, 10],
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, logging: false }, // Increase scale for better quality
+      html2canvas: { scale: 2, useCORS: true, logging: false },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'avoid-all'] } // Avoid breaking elements unnecessarily
+      pagebreak: { mode: ['css', 'avoid-all'] }
     }).from(htmlContent).output('blob');
 
     console.log('PDF Blob created, size:', pdfBlob.size);
 
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from(bucketName)
-      .upload(filename, pdfBlob, {
-        contentType: 'application/pdf',
-        upsert: false // Don't overwrite existing files with the same name (though unlikely with timestamp)
-      });
+    // Convert blob to base64
+    const reader = new FileReader();
+    const base64Promise = new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+    });
+    reader.readAsDataURL(pdfBlob);
+    const base64Data = await base64Promise;
 
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      throw uploadError;
+    // Call the Edge Function to handle the upload
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-quiz-pdf`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        pdfData: base64Data,
+        accessCode: accessCodeData.code,
+        ldap: ldap,
+        quizId: quiz.id
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to upload PDF');
     }
 
-    console.log('Supabase upload successful:', uploadData);
-
-    // Construct the public URL (adjust if your bucket/setup differs)
-    // Note: This assumes the bucket is public or you have policies allowing access.
-    // If the bucket is private, you'd need to generate a signed URL instead.
-    const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(filename);
-    
-    console.log('Public URL data:', urlData);
-    return urlData?.publicUrl || filename; // Return URL if available, otherwise just the path
+    const { pdf_url } = await response.json();
+    return pdf_url;
 
   } catch (err) {
     console.error('Error during PDF generation or upload:', err);
-    return null; // Indicate failure
+    return null;
   }
 };
 

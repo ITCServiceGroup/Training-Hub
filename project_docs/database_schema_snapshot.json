@@ -86,8 +86,7 @@
     {
       "table_name": "v2_quiz_results",
       "columns": [
-        "date_of_test timestamp with time zone",
-        "id bigint",
+        "id bigint PRIMARY KEY",
         "ldap text",
         "market text",
         "pdf_url text",
@@ -95,7 +94,10 @@
         "score_text text",
         "score_value double precision",
         "supervisor text",
-        "time_taken real"
+        "time_taken real",
+        "quiz_id uuid",
+        "answers jsonb",
+        "date_of_test timestamp with time zone"
       ]
     },
     {
@@ -138,6 +140,16 @@
     }
   ],
   "policies": [
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Allow authenticated select from quiz-pdfs",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "check_condition": "bucket_id = 'quiz-pdfs'",
+      "with_check": null
+    },
     {
       "schemaname": "public",
       "tablename": "Quiz Results",
@@ -491,6 +503,34 @@
   ],
   "functions": [
     {
+      "function_name": "upload-quiz-pdf",
+      "function_type": "edge",
+      "description": "Handles secure PDF uploads for quiz results",
+      "path": "/api/edge/upload-quiz-pdf",
+      "method": "POST",
+      "no_verify_jwt": true,
+      "parameters": {
+        "pdfData": "Base64 encoded PDF data",
+        "accessCode": "Quiz access code",
+        "ldap": "User LDAP identifier",
+        "quizId": "Quiz ID"
+      },
+      "responses": {
+        "200": {
+          "description": "PDF uploaded successfully",
+          "schema": {
+            "pdf_url": "Public URL of the uploaded PDF"
+          }
+        },
+        "400": {
+          "description": "Invalid request or upload failed",
+          "schema": {
+            "error": "Error message"
+          }
+        }
+      }
+    },
+    {
       "function_name": "update_updated_at_column",
       "function_definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n   NEW.updated_at = now();\n   RETURN NEW;\nEND;\n$function$\n"
     }
@@ -818,7 +858,7 @@
       "public": false,
       "avif_autodetection": false,
       "file_size_limit": null,
-      "allowed_mime_types": null,
+      "allowed_mime_types": ["application/pdf"],
       "owner_id": null
     },
     {

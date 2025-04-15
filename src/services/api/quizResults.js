@@ -21,7 +21,7 @@ class QuizResultsService extends BaseService {
     maxScore,
     minTime,
     maxTime,
-    sortField = 'created_at',
+    sortField = 'date_of_test',
     sortOrder = 'desc'
   }) {
     try {
@@ -39,6 +39,7 @@ class QuizResultsService extends BaseService {
         query = query.lt('date_of_test', endDatePlusOne.toISOString().split('T')[0]);
       }
       if (supervisors?.length) {
+        console.log('Filtering by supervisors:', supervisors);
         query = query.in('supervisor', supervisors);
       }
       if (ldaps?.length) {
@@ -48,10 +49,10 @@ class QuizResultsService extends BaseService {
         query = query.in('market', markets);
       }
       if (minScore !== null && minScore !== undefined) {
-        query = query.gte('score_value', minScore);
+        query = query.gte('score_value', minScore); // Revert: Expect 0-1
       }
       if (maxScore !== null && maxScore !== undefined) {
-        query = query.lte('score_value', maxScore);
+        query = query.lte('score_value', maxScore); // Revert: Expect 0-1
       }
       if (minTime !== null && minTime !== undefined) {
         query = query.gte('time_taken', minTime);
@@ -60,11 +61,29 @@ class QuizResultsService extends BaseService {
         query = query.lte('time_taken', maxTime);
       }
 
-      // Handle sorting - map created_at to date_of_test
-      const actualSortField = sortField === 'created_at' ? 'date_of_test' : sortField;
-      query = query.order(actualSortField, { ascending: sortOrder === 'asc' });
+      // Apply sorting
+      query = query.order(sortField, { ascending: sortOrder === 'asc' });
+
+      // Log the query details
+      console.log('Query details:', {
+        raw_sql: query.toSQL ? query.toSQL() : 'Could not get SQL', // Add check for toSQL method
+        filters: {
+          startDate,
+          endDate,
+          supervisors,
+          ldaps,
+          markets,
+          minScore,
+          maxScore,
+          minTime,
+          maxTime,
+          sortField,
+          sortOrder
+        }
+      });
 
       const { data, error } = await query;
+      console.log('Query results:', data); // Also log the results received
 
       if (error) {
         throw error;
@@ -84,17 +103,24 @@ class QuizResultsService extends BaseService {
    */
   async getDistinctValues(column) {
     try {
+      console.log(`Fetching distinct values for column: ${column}`);
       const { data, error } = await supabase
         .from(this.tableName)
-        .select(column)
+        .select('*')
         .not(column, 'is', null);
+
+      console.log('Raw data:', data);
 
       if (error) {
         throw error;
       }
 
       // Extract unique values
-      const values = [...new Set(data.map(item => item[column]))];
+      const values = [...new Set(data.map(item => {
+        console.log(`Processing item ${column}:`, item[column]);
+        return item[column];
+      }))];
+      console.log('Unique values:', values);
       return values.sort();
     } catch (error) {
       console.error(`Error fetching distinct ${column} values:`, error);

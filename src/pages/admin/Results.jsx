@@ -50,8 +50,8 @@ const Results = () => {
           supervisors: selectedSupervisors,
           ldaps: selectedLdaps,
           markets: selectedMarkets,
-          minScore: scoreRange.min / 100,
-          maxScore: scoreRange.max / 100,
+          minScore: scoreRange.min / 100, // Revert: Divide by 100
+          maxScore: scoreRange.max / 100, // Revert: Divide by 100
           minTime: timeRange.min,
           maxTime: timeRange.max,
           sortField,
@@ -68,6 +68,7 @@ const Results = () => {
       }
     };
 
+    console.log('Results.jsx: useEffect triggered, calling fetchResults...'); // Add this log
     fetchResults();
   }, [
     dateFilter,

@@ -19,11 +19,15 @@ const PDFModal = ({ isOpen, pdfUrl, onClose }) => {
         try {
           console.log('Getting signed URL for:', pdfUrl);
           
+          // Extract filename from the full URL
+          const filename = pdfUrl.split('/').pop();
+          console.log('Extracted filename:', filename);
+          
           // Get the signed URL
           const { data, error } = await storageClient
             .storage
             .from('quiz-pdfs')
-            .createSignedUrl(pdfUrl, 3600); // 1-hour expiry
+            .createSignedUrl(filename, 3600); // 1-hour expiry
 
           if (error) {
             console.error('Error getting signed URL:', error);
