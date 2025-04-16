@@ -10,6 +10,7 @@ const PracticeQuizPage = () => {
   const [category, setCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isCurrentQuestionAnswered, setIsCurrentQuestionAnswered] = useState(false); // New state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -41,10 +42,17 @@ const PracticeQuizPage = () => {
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setIsCurrentQuestionAnswered(false); // Reset for the new question
     } else {
       // End of questions, show completion message
       setCurrentQuestionIndex(-1);
+      setIsCurrentQuestionAnswered(false); // Reset state
     }
+  };
+
+  // Handler for when the child component signals an answer has been processed
+  const handleQuestionAnswered = () => {
+    setIsCurrentQuestionAnswered(true);
   };
   
   // Handle restarting the quiz
@@ -140,11 +148,24 @@ const PracticeQuizPage = () => {
                 ></div>
               </div>
             </div>
-            
             <PracticeQuestionDisplay
               question={questions[currentQuestionIndex]}
-              onNext={handleNextQuestion}
+              onAnswered={handleQuestionAnswered} // Pass the new handler
             />
+
+            {/* Render Next button only when feedback is shown (handled by isCurrentQuestionAnswered) */}
+            {isCurrentQuestionAnswered && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleNextQuestion}
+                  // Although button is only rendered when answered, double-check state just in case
+                  disabled={!isCurrentQuestionAnswered} 
+                >
+                  {currentQuestionIndex < questions.length - 1 ? 'Next Question' : 'Finish Practice'}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { questionsService } from '../../services/api/questions';
 
+// Helper to create initial answers state from questions
+const createInitialAnswers = (questions) => {
+  const initial = {};
+  questions.forEach(q => {
+    initial[q.id] = q.question_type === 'check_all_that_apply' ? [] : '';
+  });
+  return initial;
+};
+
 const QuizPreview = ({ quiz }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questionData, setQuestionData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -19,7 +29,9 @@ const QuizPreview = ({ quiz }) => {
         const fetchedQuestions = await Promise.all(
           questionIds.map(id => questionsService.get(id))
         );
-        setQuestionData(fetchedQuestions);
+        const questions = fetchedQuestions.filter(q => q); // Filter out any null values
+        setQuestionData(questions);
+        setSelectedAnswers(createInitialAnswers(questions));
       } catch (error) {
         console.error('Error fetching questions:', error);
       } finally {
@@ -49,14 +61,23 @@ const QuizPreview = ({ quiz }) => {
             {question.options.map((option, index) => (
               <div
                 key={index}
-                className="p-3 border border-slate-200 rounded-md hover:border-teal-500 cursor-pointer"
+                className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                  selectedAnswers[question.id] === option
+                    ? 'border-teal-500 bg-teal-50'
+                    : 'border-slate-200 hover:border-teal-500'
+                }`}
+                onClick={() => setSelectedAnswers({
+                  ...selectedAnswers,
+                  [question.id]: option
+                })}
               >
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="radio"
-                    name="preview-answer"
+                    name={`preview-answer-${question.id}`}
                     className="h-4 w-4 text-teal-600 border-slate-300"
-                    disabled
+                    checked={selectedAnswers[question.id] === option}
+                    onChange={() => {}}
                   />
                   <span className="ml-2">{option}</span>
                 </label>
@@ -71,16 +92,36 @@ const QuizPreview = ({ quiz }) => {
             {question.options.map((option, index) => (
               <div
                 key={index}
-                className="p-3 border border-slate-200 rounded-md hover:border-teal-500 cursor-pointer"
+                className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                  selectedAnswers[question.id]?.includes(option)
+                    ? 'border-teal-500 bg-teal-50'
+                    : 'border-slate-200 hover:border-teal-500'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const currentAnswers = selectedAnswers[question.id] || [];
+                  const newAnswers = currentAnswers.includes(option)
+                    ? currentAnswers.filter(a => a !== option)
+                    : [...currentAnswers, option];
+                  setSelectedAnswers({
+                    ...selectedAnswers,
+                    [question.id]: newAnswers
+                  });
+                }}
+                tabIndex={0}
+                role="checkbox"
+                aria-checked={selectedAnswers[question.id]?.includes(option)}
               >
-                <label className="flex items-center cursor-pointer">
+                <div className="flex items-center cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded"
-                    disabled
+                    className="h-4 w-4 text-teal-600 border-slate-300 rounded pointer-events-none"
+                    checked={selectedAnswers[question.id]?.includes(option)}
+                    onChange={() => {}} // Empty handler to prevent React warning
+                    tabIndex={-1}
                   />
                   <span className="ml-2">{option}</span>
-                </label>
+                </div>
               </div>
             ))}
           </div>
@@ -89,24 +130,46 @@ const QuizPreview = ({ quiz }) => {
       case 'true_false':
         return (
           <div className="flex space-x-4">
-            <div className="flex-1 p-3 border border-slate-200 rounded-md hover:border-teal-500 cursor-pointer">
+            <div
+              className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors ${
+                selectedAnswers[question.id] === 'true'
+                  ? 'border-teal-500 bg-teal-50'
+                  : 'border-slate-200 hover:border-teal-500'
+              }`}
+              onClick={() => setSelectedAnswers({
+                ...selectedAnswers,
+                [question.id]: 'true'
+              })}
+            >
               <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
-                  name="preview-answer"
+                  name={`preview-answer-${question.id}`}
                   className="h-4 w-4 text-teal-600 border-slate-300"
-                  disabled
+                  checked={selectedAnswers[question.id] === 'true'}
+                  onChange={() => {}}
                 />
                 <span className="ml-2">True</span>
               </label>
             </div>
-            <div className="flex-1 p-3 border border-slate-200 rounded-md hover:border-teal-500 cursor-pointer">
+            <div
+              className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors ${
+                selectedAnswers[question.id] === 'false'
+                  ? 'border-teal-500 bg-teal-50'
+                  : 'border-slate-200 hover:border-teal-500'
+              }`}
+              onClick={() => setSelectedAnswers({
+                ...selectedAnswers,
+                [question.id]: 'false'
+              })}
+            >
               <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
-                  name="preview-answer"
+                  name={`preview-answer-${question.id}`}
                   className="h-4 w-4 text-teal-600 border-slate-300"
-                  disabled
+                  checked={selectedAnswers[question.id] === 'false'}
+                  onChange={() => {}}
                 />
                 <span className="ml-2">False</span>
               </label>

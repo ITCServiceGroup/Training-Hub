@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const QuizTimer = ({ timeLeft, formatTime, isWarning }) => {
+const QuizTimer = ({ timeLeft, formatTime, isWarning = false }) => { // Added default parameter
   return (
     <div 
       className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
@@ -20,10 +20,6 @@ QuizTimer.propTypes = {
   timeLeft: PropTypes.number.isRequired,
   formatTime: PropTypes.func.isRequired,
   isWarning: PropTypes.bool
-};
-
-QuizTimer.defaultProps = {
-  isWarning: false
 };
 
 export default QuizTimer;

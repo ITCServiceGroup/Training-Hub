@@ -123,50 +123,83 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-medium text-slate-700 mb-2">Quiz Mode Options</h3>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="h-4 w-4 text-teal-600 border-slate-300 rounded"
-                checked={quiz.is_practice || false}
-                onChange={(e) => {
-                  const isPracticeChecked = e.target.checked;
-                  // Update both flags in a single state update
-                  onChange({
-                    ...quiz,
-                    is_practice: isPracticeChecked,
-                    // If checking practice-only, ensure has_practice_mode is false
-                    has_practice_mode: isPracticeChecked ? false : quiz.has_practice_mode
-                  });
-                }}
-                disabled={isLoading}
-              />
-              <span className="ml-2 text-sm text-slate-700">
-                Practice Quiz Only (no access code required, immediate feedback)
-              </span>
-            </label>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                  checked={quiz.is_practice || false}
+                  onChange={(e) => {
+                    const isPracticeChecked = e.target.checked;
+                    // Update both flags in a single state update
+                    onChange({
+                      ...quiz,
+                      is_practice: isPracticeChecked,
+                      // If checking practice-only, ensure has_practice_mode is false
+                      has_practice_mode: isPracticeChecked ? false : quiz.has_practice_mode
+                    });
+                  }}
+                  disabled={isLoading}
+                />
+                <span className="ml-2 text-sm text-slate-700">
+                  Practice Quiz Only (no access code required, immediate feedback)
+                </span>
+              </label>
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="h-4 w-4 text-teal-600 border-slate-300 rounded"
-                checked={quiz.has_practice_mode || false}
-                onChange={(e) => {
-                  const hasPracticeModeChecked = e.target.checked;
-                  // Update both flags in a single state update
-                  onChange({
-                    ...quiz,
-                    has_practice_mode: hasPracticeModeChecked,
-                    // If checking has_practice_mode, ensure is_practice is false
-                    is_practice: hasPracticeModeChecked ? false : quiz.is_practice
-                  });
-                }}
-                disabled={isLoading}
-              />
-              <span className="ml-2 text-sm text-slate-700">
-                Enable Practice Mode (allows practice attempts alongside regular quiz)
-              </span>
-            </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                  checked={quiz.has_practice_mode || false}
+                  onChange={(e) => {
+                    const hasPracticeModeChecked = e.target.checked;
+                    // Update both flags in a single state update
+                    onChange({
+                      ...quiz,
+                      has_practice_mode: hasPracticeModeChecked,
+                      // If checking has_practice_mode, ensure is_practice is false
+                      is_practice: hasPracticeModeChecked ? false : quiz.is_practice
+                    });
+                  }}
+                  disabled={isLoading}
+                />
+                <span className="ml-2 text-sm text-slate-700">
+                  Enable Practice Mode (allows practice attempts alongside regular quiz)
+                </span>
+              </label>
+            </div>
+
+            <div className="border-t border-slate-200 pt-4">
+              <h4 className="text-sm font-medium text-slate-700 mb-2">Randomization Options</h4>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                    checked={quiz.randomize_questions || false}
+                    onChange={(e) => handleChange('randomize_questions', e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  <span className="ml-2 text-sm text-slate-700">
+                    Randomize question order for all attempts
+                  </span>
+                </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                    checked={quiz.randomize_answers || false}
+                    onChange={(e) => handleChange('randomize_answers', e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  <span className="ml-2 text-sm text-slate-700">
+                    Randomize answer options for all attempts
+                  </span>
+                </label>
+              </div>
+            </div>
           </div>
           <p className="mt-2 text-sm text-slate-500">
             {quiz.is_practice 

@@ -11,69 +11,105 @@ class QuizzesService extends BaseService {
 
   /**
    * Get quizzes with questions from selected categories
-   * @returns {Promise<Array>} - Quizzes with information about included questions
+   * Get all active quizzes with their question count, category details, and section details.
+   * @returns {Promise<Array>} - Quizzes with nested category and section information.
    */
   async getAllWithQuestionCount() {
     try {
-      // First, get all quizzes
-      const { data: quizzes, error } = await supabase
+      // 1. Fetch all active quizzes
+      const { data: quizzes, error: quizzesError } = await supabase
         .from(this.tableName)
         .select('*')
+        .is('archived_at', null)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
+      if (quizzesError) throw quizzesError;
+      if (!quizzes || quizzes.length === 0) return [];
+
+      // 2. Extract all unique category IDs from all quizzes
+      const allCategoryIds = quizzes.reduce((acc, quiz) => {
+        const ids = typeof quiz.category_ids === 'string' 
+          ? JSON.parse(quiz.category_ids) 
+          : quiz.category_ids || [];
+        return [...new Set([...acc, ...ids])];
+      }, []);
+
+      if (allCategoryIds.length === 0) {
+        // Return quizzes with empty categories and 0 question count if no categories are linked
+        return quizzes.map(quiz => ({ ...quiz, questionCount: 0, categories: [] }));
       }
 
-      // For each quiz, count questions in its categories
-      const enhancedQuizzes = await Promise.all(
-        quizzes.map(async (quiz) => {
-          // Parse category IDs if stored as JSON string
-          const categoryIds = typeof quiz.category_ids === 'string' 
-            ? JSON.parse(quiz.category_ids) 
-            : quiz.category_ids;
-            
-          // Get categories
-          const { data: categories, error: categoriesError } = await supabase
-            .from('v2_categories')
-            .select('name')
-            .in('id', categoryIds);
+      // 3. Fetch all relevant categories including section_id
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('v2_categories')
+        .select('id, name, section_id')
+        .in('id', allCategoryIds);
 
-          if (categoriesError) {
-            console.error('Error fetching categories for quiz:', categoriesError.message);
-            return {
-              ...quiz,
-              questionCount: 0,
-              categories: []
-            };
-          }
+      if (categoriesError) throw categoriesError;
 
-          // Count questions in these categories
-          const { count, error: countError } = await supabase
-            .from('v2_questions')
-            .select('*', { count: 'exact', head: true })
-            .in('category_id', categoryIds);
+      // 4. Extract unique section IDs from categories
+      const allSectionIds = [...new Set(categoriesData.map(cat => cat.section_id).filter(Boolean))];
 
-          if (countError) {
-            console.error('Error counting questions:', countError.message);
-            return {
-              ...quiz,
-              questionCount: 0,
-              categories: categories || []
-            };
-          }
+      // 5. Fetch relevant sections
+      let sectionsMap = {};
+      if (allSectionIds.length > 0) {
+        const { data: sectionsData, error: sectionsError } = await supabase
+          .from('v2_sections')
+          .select('id, name')
+          .in('id', allSectionIds);
 
-          return {
-            ...quiz,
-            questionCount: count || 0,
-            categories: categories || []
-          };
-        })
-      );
+        if (sectionsError) throw sectionsError;
+        sectionsMap = sectionsData.reduce((map, section) => {
+          map[section.id] = section;
+          return map;
+        }, {});
+      }
+      
+      // 6. Create a map for categories for quick lookup
+      const categoriesMap = categoriesData.reduce((map, category) => {
+        map[category.id] = {
+          ...category,
+          section: sectionsMap[category.section_id] || null // Embed section info
+        };
+        return map;
+      }, {});
+
+      // 7. Count questions for all relevant categories in one go
+      const { count: totalQuestions, error: countError } = await supabase
+        .from('v2_questions')
+        .select('*', { count: 'exact', head: true })
+        .in('category_id', allCategoryIds);
+        
+      if (countError) {
+          console.warn('Could not count questions for categories:', countError.message);
+          // We can proceed but counts might be inaccurate or missing
+      }
+
+      // 8. Combine data for each quiz
+      const enhancedQuizzes = quizzes.map(quiz => {
+        const categoryIds = typeof quiz.category_ids === 'string' 
+          ? JSON.parse(quiz.category_ids) 
+          : quiz.category_ids || [];
+          
+        const quizCategories = categoryIds
+          .map(id => categoriesMap[id])
+          .filter(Boolean); // Filter out potential nulls if a category wasn't found
+
+        // Note: The question count here is the total across *all* fetched categories.
+        // If a per-quiz count is strictly needed, another query inside the loop would be required,
+        // but for the public page showing available quizzes, total count might be acceptable or even preferred.
+        // Let's keep the total count for now for efficiency. If specific count per quiz is needed, we can adjust.
+        
+        return {
+          ...quiz,
+          questionCount: totalQuestions || 0, // Using the total count for now
+          categories: quizCategories, // Embed full category and section info
+        };
+      });
 
       return enhancedQuizzes;
     } catch (error) {
-      console.error('Error fetching quizzes with question count:', error.message);
+      console.error('Error fetching quizzes with category and section details:', error.message);
       throw error;
     }
   }
@@ -188,6 +224,7 @@ class QuizzesService extends BaseService {
         .from(this.tableName)
         .select('*')
         .eq('is_practice', true)
+        .is('archived_at', null) // Only fetch non-archived practice quizzes
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -212,6 +249,7 @@ class QuizzesService extends BaseService {
         .from(this.tableName)
         .select('*')
         .contains('category_ids', [categoryId])
+        .is('archived_at', null) // Only fetch non-archived quizzes
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -226,17 +264,92 @@ class QuizzesService extends BaseService {
   }
 
   /**
+   * Get all archived quizzes.
+   * @returns {Promise<Array>} - Archived quizzes.
+   */
+  async getArchivedQuizzes() {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .not('archived_at', 'is', null) // Filter for quizzes where archived_at is NOT null
+        .order('archived_at', { ascending: false }); // Order by archive date
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching archived quizzes:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Restore an archived quiz by setting archived_at to null.
+   * @param {string} id - Quiz ID to restore
+   * @returns {Promise<Object>} - The updated (restored) quiz data
+   */
+  async restore(id) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update({ archived_at: null }) // Set archived_at to null
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`Error restoring quiz ${id}:`, error.message);
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      console.error('Exception during quiz restore:', error.message);
+      throw error;
+    }
+  }
+
+
+  /**
+   * Archive a quiz (soft delete) by setting the archived_at timestamp.
+   * Overrides the BaseService delete method.
+   * @param {string} id - Quiz ID to archive
+   * @returns {Promise<Object>} - The updated (archived) quiz data
+   */
+  async delete(id) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update({ archived_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`Error archiving quiz ${id}:`, error.message);
+        throw error;
+      }
+      // Return the updated record to confirm archival
+      return data;
+    } catch (error) {
+      // Catch potential exceptions during the update process
+      console.error('Exception during quiz archive:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Get a quiz with its associated questions
    * @param {string} id - Quiz ID
    * @returns {Promise<Object>} - Quiz with questions
    */
   async getWithQuestions(id) {
     try {
-      // Get the quiz
+      // Get the *active* quiz
       const { data: quiz, error: quizError } = await supabase
         .from(this.tableName)
         .select('*')
         .eq('id', id)
+        .is('archived_at', null) // Ensure the quiz is not archived
         .single();
 
       if (quizError) throw quizError;

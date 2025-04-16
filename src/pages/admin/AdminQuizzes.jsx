@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import QuizBuilderPage from '../../components/quiz-builder/QuizBuilderPage';
 import AccessCodeManager from '../../components/quiz/access-codes/AccessCodeManager';
 import { quizzesService } from '../../services/api/quizzes';
+import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 
 const AdminQuizzes = () => {
   const navigate = useNavigate();
@@ -12,9 +13,10 @@ const AdminQuizzes = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [archiveConfirmation, setArchiveConfirmation] = useState({ isOpen: false, quizId: null });
 
   // Determine current section from the URL path
-  const currentSection = location.pathname.includes('/builder') ? 'builder' : 
+  const currentSection = location.pathname.includes('/builder') ? 'builder' :
                         location.pathname.includes('/codes') ? 'codes' : null;
 
   // Load quiz data when quizId changes
@@ -67,16 +69,18 @@ const AdminQuizzes = () => {
     navigate(`/admin/quizzes/codes/${quiz.id}`);
   };
 
-  const handleDeleteQuiz = async (quizId) => {
-    if (!window.confirm('Are you sure you want to delete this quiz?')) {
-      return;
-    }
+  const openArchiveConfirmation = (quizId) => {
+    setArchiveConfirmation({ isOpen: true, quizId });
+  };
 
+  const handleArchiveQuiz = async (quizId) => {
     try {
+      // quizzesService.delete now performs an archive (soft delete)
       await quizzesService.delete(quizId);
+      // Reload the list of active quizzes
       await loadQuizzes();
     } catch (error) {
-      setError('Failed to delete quiz');
+      setError('Failed to archive quiz'); // Update error message
     }
   };
 
@@ -91,23 +95,17 @@ const AdminQuizzes = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <button
-            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors" // Changed style to match other back buttons, not teal
+            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors"
             onClick={() => navigate('/admin/quizzes')}
           >
             ← Back to Quizzes
           </button>
         </div>
 
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">
-            Access Codes: {selectedQuiz.title}
-          </h2>
-          <p className="text-slate-500 mt-1">
-            Manage access codes for this quiz
-          </p>
-        </div>
-
-        <AccessCodeManager quizId={quizId} />
+        <AccessCodeManager
+          quizId={quizId}
+          quizTitle={selectedQuiz.title}
+        />
       </div>
     );
   }
@@ -191,7 +189,7 @@ const AdminQuizzes = () => {
                 <td className="px-4 py-4 text-right space-x-4"> {/* Reverted spacing */}
                   <button
                     type="button"
-                    className="text-white hover:text-teal-200" // Reverted styles, added text-white and adjusted hover
+                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
                     onClick={() => handleEditQuiz(quiz)}
                   >
                     Edit
@@ -199,7 +197,7 @@ const AdminQuizzes = () => {
                   {!quiz.is_practice && (
                     <button
                       type="button"
-                      className="text-white hover:text-teal-200" // Reverted styles, added text-white and adjusted hover
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
                       onClick={() => handleManageCodes(quiz)}
                     >
                       Access Codes
@@ -207,10 +205,11 @@ const AdminQuizzes = () => {
                   )}
                   <button
                     type="button"
-                    className="text-red-600 hover:text-red-900"
-                    onClick={() => handleDeleteQuiz(quiz.id)}
+                    className="px-4 py-2 bg-white border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white font-medium rounded-lg transition-colors" // Changed color scheme slightly for archive
+                    onClick={() => openArchiveConfirmation(quiz.id)}
+                    title="Archive quiz" // Update title
                   >
-                    Delete
+                    Archive {/* Update button text */}
                   </button>
                 </td>
               </tr>
@@ -219,6 +218,19 @@ const AdminQuizzes = () => {
           </table>
         )}
       </div>
+
+      <ConfirmationDialog
+        isOpen={archiveConfirmation.isOpen}
+        onClose={() => setArchiveConfirmation({ isOpen: false, quizId: null })}
+        onConfirm={() => {
+          handleArchiveQuiz(archiveConfirmation.quizId); // Use renamed handler
+          setArchiveConfirmation({ isOpen: false, quizId: null });
+        }}
+        title="Archive Quiz" // Update title
+        description="Are you sure you want to archive this quiz? It will be hidden from lists but can be recovered later." // Update description
+        confirmButtonText="Archive" // Update button text
+        confirmButtonVariant="danger" // Revert to allowed variant
+      />
     </div>
   );
 };

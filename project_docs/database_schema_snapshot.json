@@ -112,7 +112,8 @@
         "passing_score numeric",
         "time_limit integer",
         "title character varying",
-        "updated_at timestamp with time zone"
+        "updated_at timestamp with time zone",
+        "archived_at timestamp with time zone"
       ]
     },
     {
@@ -586,7 +587,7 @@
     },
     {
       "table_schema": "public",
-      "constraint_name": "fk_quiz_id",
+      "constraint_name": "v2_quiz_results_new_quiz_id_fkey",
       "table_name": "v2_quiz_results",
       "column_name": "quiz_id",
       "foreign_table_name": "v2_quizzes",
@@ -729,6 +730,13 @@
     },
     {
       "schemaname": "public",
+      "tablename": "v2_quizzes",
+      "indexname": "idx_quizzes_archived_at",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_quizzes_archived_at ON public.v2_quizzes USING btree (archived_at)"
+    },
+    {
+      "schemaname": "public",
       "tablename": "v2_quiz_results",
       "indexname": "idx_quiz_results_quiz_id",
       "tablespace": null,
@@ -845,7 +853,7 @@
     {
       "table_name": "v2_quizzes",
       "column_position": null,
-      "description": null
+      "description": "Timestamp when the quiz was archived (soft deleted). NULL means the quiz is active."
     }
   ],
   "storage_buckets": [

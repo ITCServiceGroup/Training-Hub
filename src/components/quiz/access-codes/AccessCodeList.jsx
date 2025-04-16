@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { accessCodesService } from '../../../services/api/accessCodes';
+import ConfirmationDialog from '../../common/ConfirmationDialog';
 
 const AccessCodeList = ({ quizId }) => {
   const [codes, setCodes] = useState([]);
@@ -8,6 +9,7 @@ const AccessCodeList = ({ quizId }) => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'used', 'unused', 'expired'
+  const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, codeId: null });
 
   useEffect(() => {
     loadAccessCodes();
@@ -28,10 +30,11 @@ const AccessCodeList = ({ quizId }) => {
     navigator.clipboard.writeText(code);
   };
 
+  const openDeleteConfirmation = (codeId) => {
+    setDeleteConfirmation({ isOpen: true, codeId });
+  };
+
   const handleDelete = async (codeId) => {
-    if (!window.confirm('Are you sure you want to delete this access code?')) {
-      return;
-    }
 
     try {
       await accessCodesService.delete(codeId);
@@ -42,7 +45,7 @@ const AccessCodeList = ({ quizId }) => {
   };
 
   const filteredCodes = codes.filter(code => {
-    const matchesSearch = 
+    const matchesSearch =
       code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       code.ldap.toLowerCase().includes(searchTerm.toLowerCase()) ||
       code.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -160,15 +163,17 @@ const AccessCodeList = ({ quizId }) => {
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
-                      className="text-slate-600 hover:text-slate-900"
+                      type="button"
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
                       onClick={() => handleCopyCode(code.code)}
                       title="Copy code"
                     >
                       Copy
                     </button>
                     <button
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => handleDelete(code.id)}
+                      type="button"
+                      className="px-4 py-2 bg-white border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium rounded-lg transition-colors"
+                      onClick={() => openDeleteConfirmation(code.id)}
                       title="Delete code"
                     >
                       Delete
@@ -180,6 +185,19 @@ const AccessCodeList = ({ quizId }) => {
           </tbody>
         </table>
       </div>
+      
+      <ConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, codeId: null })}
+        onConfirm={() => {
+          handleDelete(deleteConfirmation.codeId);
+          setDeleteConfirmation({ isOpen: false, codeId: null });
+        }}
+        title="Delete Access Code"
+        description="Are you sure you want to delete this access code? This action cannot be undone."
+        confirmButtonText="Delete"
+        confirmButtonVariant="danger"
+      />
     </div>
   );
 };

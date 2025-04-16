@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import html2pdf from 'html2pdf.js'; // Import html2pdf
-import { supabase } from '../../config/supabase'; // Import supabase client
+import html2pdf from 'html2pdf.js';
+import { supabase } from '../../config/supabase';
+import { shuffleArray, shuffleQuestionOptions } from '../../utils/shuffleUtils';
 import { quizzesService } from '../../services/api/quizzes';
 import { quizResultsService } from '../../services/api/quizResults';
 import { accessCodesService } from '../../services/api/accessCodes';
@@ -43,8 +44,11 @@ const isAnswerCorrect = (question, answerData, isPractice) => {
 
 
 const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
-  // Ref for PDF content generation without rendering it
+  // Refs
   const pdfContentRef = useRef(null);
+  const timeoutPromiseRef = useRef(null);
+  const submitInProgressRef = useRef(false);
+  const timeoutTimeoutRef = useRef(null); // Moved ref to top level
   // Quiz state
   const [quiz, setQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -56,6 +60,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const [isReviewing, setIsReviewing] = useState(false);
   const [score, setScore] = useState(null);
   const [accessCodeData, setAccessCodeData] = useState(null);
+  const [isCurrentPracticeQuestionAnswered, setIsCurrentPracticeQuestionAnswered] = useState(false); // New state for practice mode
 
   // UI state
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +89,15 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           quizData = await quizzesService.getWithQuestions(codeData.quiz_id);
           // Force practice mode off when using access code
           quizData.is_practice = false;
+          
+          // Apply randomization if enabled
+          if (quizData.randomize_questions) {
+            quizData.questions = shuffleArray(quizData.questions);
+          }
+          if (quizData.randomize_answers) {
+            quizData.questions = quizData.questions.map(q => shuffleQuestionOptions(q));
+          }
+          
           setQuiz(quizData);
         } else if (quizId) {
           // Load quiz directly if ID is provided
@@ -98,6 +112,15 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           
           // Force practice mode on for direct access
           quizData.is_practice = true;
+          
+          // Apply randomization if enabled
+          if (quizData.randomize_questions) {
+            quizData.questions = shuffleArray(quizData.questions);
+          }
+          if (quizData.randomize_answers) {
+            quizData.questions = quizData.questions.map(q => shuffleQuestionOptions(q));
+          }
+          
           setQuiz(quizData);
         }
       } catch (error) {
@@ -114,24 +137,178 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     loadQuiz();
   }, [quizId, accessCode]);
 
+  // Submit quiz handler - defined before timer effect
+  const handleSubmitQuiz = useCallback(async (isTimeout = false) => {
+    // Prevent multiple submissions
+    if (submitInProgressRef.current) return;
+    submitInProgressRef.current = true;
+
+    // Calculate score - defined inside handleSubmitQuiz again
+    const calculateScore = () => {
+      if (!quiz || !quiz.questions) {
+         return { correct: 0, total: 0, percentage: 0 };
+      }
+      let correctCount = 0;
+      const totalQuestions = quiz.questions.length;
+
+      quiz.questions.forEach(question => {
+        const answerData = selectedAnswers[question.id];
+        if (answerData === undefined) return;
+
+        // Get the actual answer value, considering practice mode format
+        const answer = quiz.is_practice ? answerData.answer : answerData;
+        if (answer === undefined) return; // Skip if practice answer object doesn't have 'answer'
+
+        let isCorrect = false;
+        switch (question.question_type) {
+          case 'multiple_choice':
+            isCorrect = answer === question.correct_answer;
+            break;
+          case 'check_all_that_apply':
+            // Ensure answer is an array for comparison
+            if (Array.isArray(answer) && Array.isArray(question.correct_answer)) {
+              isCorrect =
+                answer.length === question.correct_answer.length &&
+                answer.every(a => question.correct_answer.includes(a));
+            }
+            break;
+          case 'true_false':
+            isCorrect = answer === question.correct_answer;
+            break;
+        }
+        if (isCorrect) correctCount++;
+      });
+
+      return {
+        correct: correctCount,
+        total: totalQuestions,
+        percentage: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
+      };
+    };
+
+    try {
+      const finalScore = calculateScore(); // Use the inner function
+      setScore(finalScore);
+
+      // For non-practice quizzes, generate PDF and save the result
+      if (!quiz.is_practice && accessCodeData) {
+        let pdfUrl = null;
+        try {
+          const pdfHtml = buildPdfContentHtml(quiz, selectedAnswers, finalScore, timeTaken, accessCodeData.ldap);
+          pdfUrl = await generateAndUploadPdf(accessCodeData.ldap, pdfHtml, accessCodeData, quiz);
+
+          if (!pdfUrl) {
+            console.warn('PDF generation/upload failed. Saving result without PDF URL.');
+          }
+
+          // Save quiz result to DB
+          await quizResultsService.create({
+            ldap: accessCodeData.ldap,
+            supervisor: accessCodeData.supervisor,
+            market: accessCodeData.market,
+            quiz_id: quiz.id,
+            quiz_type: quiz.title,
+            score_value: finalScore.percentage / 100,
+            score_text: `${finalScore.correct}/${finalScore.total} (${finalScore.percentage}%)`,
+            answers: selectedAnswers,
+            time_taken: timeTaken,
+            date_of_test: new Date().toISOString(),
+            pdf_url: pdfUrl
+          });
+
+          // Mark access code as used
+          await accessCodesService.markAsUsed(accessCode);
+        } catch (error) {
+          console.error('Failed to save quiz result or generate PDF:', error);
+          if (isTimeout) {
+            throw error; // Re-throw for timeout handling
+          }
+        }
+      }
+
+      // Set completion states
+      setQuizCompleted(true);
+      setIsReviewing(false);
+    } catch (error) {
+      console.error('Quiz submission failed:', error);
+      if (isTimeout) {
+        // Force completion on timeout
+        setQuizCompleted(true);
+        setIsReviewing(false);
+      }
+    } finally {
+      submitInProgressRef.current = false;
+    }
+    // calculateScore is not needed in deps as it's defined inside
+  }, [quiz, accessCodeData, accessCode, timeTaken, selectedAnswers]); // Removed stable state setters AND calculateScore
+
+  // Timeout handler
+  const handleTimeout = useCallback(async (clearTimer) => {
+    if (timeoutPromiseRef.current) return; // Prevent multiple timeouts
+
+    // Clear timer if provided
+    if (clearTimer) clearTimer();
+    setTimeLeft(0);
+
+    try {
+      timeoutPromiseRef.current = handleSubmitQuiz(true);
+      await timeoutPromiseRef.current;
+    } catch (error) {
+      console.error('Failed to submit quiz on timeout:', error);
+      // Force completion on timeout error
+      setQuizCompleted(true);
+      setIsReviewing(false);
+    } finally {
+      timeoutPromiseRef.current = null;
+    }
+  }, [handleSubmitQuiz]); // Removed stable state setters
+
   // Timer effect
   useEffect(() => {
     let timer;
-    if (quizStarted && !quizCompleted && timeLeft !== null) {
+
+    const startTimer = () => {
       timer = setInterval(() => {
         setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            handleSubmitQuiz();
+          const newTime = prev - 1;
+          if (newTime <= 0 && !timeoutPromiseRef.current) {
+            // Schedule timeout handling for next tick to avoid state update conflicts
+            timeoutTimeoutRef.current = setTimeout(() => {
+              handleTimeout(() => {
+                if (timer) clearInterval(timer);
+              });
+            }, 0);
             return 0;
           }
-          return prev - 1;
+          return newTime;
         });
         setTimeTaken(prev => prev + 1);
       }, 1000);
+    };
+
+    if (quizStarted && !quizCompleted && timeLeft !== null && !timeoutPromiseRef.current) {
+      startTimer();
     }
-    return () => clearInterval(timer);
-  }, [quizStarted, quizCompleted, timeLeft]);
+
+    return () => {
+      if (timer) clearInterval(timer);
+      if (timeoutTimeoutRef.current) clearTimeout(timeoutTimeoutRef.current);
+      
+      // Cleanup pending submission promise *without* setting state here
+      if (timeoutPromiseRef.current) {
+        timeoutPromiseRef.current
+          .catch(error => {
+            // Log error, but don't set state in cleanup
+            console.error('Error during cleanup of timeout submission:', error);
+          })
+          .finally(() => {
+            // Ensure ref is cleared even if component unmounts during submission
+            timeoutPromiseRef.current = null;
+          });
+      }
+    };
+  }, [quizStarted, quizCompleted, timeLeft, handleTimeout]); // handleTimeout is stable via useCallback
+
 
   // Format time
   const formatTime = (seconds) => {
@@ -142,6 +319,16 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
   // Start quiz
   const handleStartQuiz = () => {
+    // Load a fresh copy of questions and shuffle if needed
+    let questions = [...quiz.questions];
+    if (quiz.randomize_questions) {
+      questions = shuffleArray(questions);
+    }
+    if (quiz.randomize_answers) {
+      questions = questions.map(q => shuffleQuestionOptions(q));
+    }
+    setQuiz({ ...quiz, questions });
+    
     setQuizStarted(true);
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
@@ -181,9 +368,10 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         [currentQuestion.id]: {
           answer,
           showFeedback: true,
-          isCorrect
+          isCorrect,
         }
       }));
+      setIsCurrentPracticeQuestionAnswered(true); // Mark as answered for practice mode
     } else {
       // For regular quizzes, just store the answer
       setSelectedAnswers(prev => ({
@@ -193,100 +381,27 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     }
   };
 
-  // Calculate score
-  const calculateScore = () => {
-    let correctCount = 0;
-    const totalQuestions = quiz.questions.length;
-
-    quiz.questions.forEach(question => {
-      const selectedAnswer = selectedAnswers[question.id];
-      if (selectedAnswer === undefined) return;
-
-      let isCorrect = false;
-      switch (question.question_type) {
-        case 'multiple_choice':
-          isCorrect = selectedAnswer === question.correct_answer;
-          break;
-        case 'check_all_that_apply':
-          if (Array.isArray(selectedAnswer) && Array.isArray(question.correct_answer)) {
-            isCorrect = 
-              selectedAnswer.length === question.correct_answer.length &&
-              selectedAnswer.every(a => question.correct_answer.includes(a));
-          }
-          break;
-        case 'true_false':
-          isCorrect = selectedAnswer === question.correct_answer;
-          break;
-      }
-      if (isCorrect) correctCount++;
-    });
-
-    return {
-      correct: correctCount,
-      total: totalQuestions,
-      percentage: Math.round((correctCount / totalQuestions) * 100)
-    };
-  };
-
-  // Submit quiz
-  const handleSubmitQuiz = async () => {
-    const finalScore = calculateScore();
-    setScore(finalScore); // Set score state for UI
-
-    // For non-practice quizzes, generate PDF and save the result
-    if (!quiz.is_practice && accessCodeData) {
-      let pdfUrl = null;
-      try {
-        // 1. Generate PDF content HTML (similar to old quiz.js buildSummaryHTML)
-        const pdfHtml = buildPdfContentHtml(quiz, selectedAnswers, finalScore, timeTaken, accessCodeData.ldap);
-        
-        // 2. Generate and Upload PDF
-        pdfUrl = await generateAndUploadPdf(accessCodeData.ldap, pdfHtml, accessCodeData, quiz);
-        if (!pdfUrl) {
-           console.warn('PDF generation/upload failed. Saving result without PDF URL.');
-           // Optionally alert the user here if needed
-        }
-
-        // 3. Save quiz result to DB
-        await quizResultsService.create({
-          ldap: accessCodeData.ldap,
-          supervisor: accessCodeData.supervisor,
-          market: accessCodeData.market,
-          quiz_id: quiz.id,
-          quiz_type: quiz.title,
-          score_value: finalScore.percentage / 100, // Convert to 0-1 scale
-          score_text: `${finalScore.correct}/${finalScore.total} (${finalScore.percentage}%)`,
-          answers: selectedAnswers,
-          time_taken: timeTaken,
-          date_of_test: new Date().toISOString(),
-          pdf_url: pdfUrl
-        });
-
-        // 4. Mark access code as used
-        await accessCodesService.markAsUsed(accessCode);
-
-      } catch (error) {
-        console.error('Failed to save quiz result or generate PDF:', error);
-        // Consider more robust error handling/user feedback
-      }
-    }
-
-    setQuizCompleted(true); // Move to results screen regardless of PDF success
-    setIsReviewing(false);
-  };
-
   // Navigation
   const handleNextQuestion = () => {
     if (currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setIsCurrentPracticeQuestionAnswered(false); // Reset for next question
     } else {
-      setIsReviewing(true);
+      // Last question behavior
+      if (quiz.is_practice) {
+        // Skip review step for practice mode, submit directly
+        handleSubmitQuiz();
+      } else {
+        // Go to review screen for non-practice quizzes
+        setIsReviewing(true);
+      }
     }
   };
 
   const handlePrevQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setIsCurrentPracticeQuestionAnswered(false); // Reset when going back
     }
   };
 
@@ -315,7 +430,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         score={score}
         timeTaken={timeTaken}
         onRetry={quiz.is_practice ? handleStartQuiz : undefined}
-        onExit={() => window.location.hash = '/'} // Use hash routing
+        onExit={() => window.location.hash = '/admin/quizzes'} // Navigate to quizzes page
         isPractice={quiz.is_practice}
       />
     );
@@ -424,10 +539,11 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           </button>
 
           <button
-            className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors"
+            className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleNextQuestion}
+            disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
           >
-            {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : 'Review Answers'}
+            {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : (quiz.is_practice ? 'Finish Quiz' : 'Review Answers')}
           </button>
         </div>
       </div>
@@ -468,15 +584,31 @@ const buildPdfContentHtml = (quiz, selectedAnswers, score, timeTaken, ldap) => {
     const correct = isAnswerCorrect(question, answerData, quiz.is_practice); // Use helper
     const answer = quiz.is_practice ? answerData?.answer : answerData;
 
-    let userAnswerText = 'N/A';
-    let correctAnswerText = 'N/A';
+    let userAnswerText = 'No Answer Provided'; // Default for unanswered
+    let correctAnswerText = 'N/A'; // Default for correct answer text
 
-    if (question.question_type === 'multiple_choice' || question.question_type === 'true_false') {
-       userAnswerText = answer !== undefined && question.options ? (question.options[answer] ?? (answer === true ? 'True' : answer === false ? 'False' : 'No Answer')) : 'No Answer';
-       correctAnswerText = question.options ? (question.options[question.correct_answer] ?? (question.correct_answer === true ? 'True' : 'False')) : (question.correct_answer === true ? 'True' : 'False');
+    // Only determine user answer text if an answer was actually selected
+    if (answer !== undefined) {
+      if (question.question_type === 'multiple_choice') {
+        userAnswerText = question.options?.[answer] ?? 'Invalid Answer Index';
+      } else if (question.question_type === 'true_false') {
+        userAnswerText = answer === true ? 'True' : 'False';
+      } else if (question.question_type === 'check_all_that_apply') {
+        userAnswerText = Array.isArray(answer) && answer.length > 0
+          ? answer.map(idx => question.options?.[idx] ?? 'Invalid Index').join(', ')
+          : 'No Selection'; // Should not happen if answer is defined array, but safe fallback
+      }
+    }
+
+    // Determine correct answer text (remains mostly the same, added safety checks)
+    if (question.question_type === 'multiple_choice') {
+      correctAnswerText = question.options?.[question.correct_answer] ?? 'N/A';
+    } else if (question.question_type === 'true_false') {
+      correctAnswerText = question.correct_answer === true ? 'True' : 'False';
     } else if (question.question_type === 'check_all_that_apply') {
-       userAnswerText = Array.isArray(answer) && answer.length > 0 ? answer.map(idx => question.options[idx]).join(', ') : 'No Answer';
-       correctAnswerText = Array.isArray(question.correct_answer) ? question.correct_answer.map(idx => question.options[idx]).join(', ') : 'N/A';
+      correctAnswerText = Array.isArray(question.correct_answer)
+        ? question.correct_answer.map(idx => question.options?.[idx] ?? 'Invalid Index').join(', ')
+        : 'N/A';
     }
 
 

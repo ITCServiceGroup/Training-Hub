@@ -57,21 +57,19 @@ a:hover {
 
 button { /* Uncommented custom CSS */
   cursor: pointer;
-  border: none;
   border-radius: var(--border-radius);
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  background-color: var(--primary-color);
-  color: white;
+  /* Removed background-color and color to allow Tailwind classes to take precedence */
   transition: background-color 0.2s ease;
 }
 
 button:hover { /* Uncommented custom CSS */
-  background-color: var(--primary-dark);
+  /* Removed background-color to allow Tailwind classes to take precedence */
 }
 
 button:disabled { /* Uncommented custom CSS */
-  background-color: #ccc;
+  /* background-color: #ccc; */ /* Commented out: Let Tailwind handle disabled background/opacity */
   cursor: not-allowed;
 }
 
@@ -184,6 +182,8 @@ label { /* Uncommented custom CSS */
   background-color: var(--danger-color);
   color: white;
 }
+
+
 
 /* Login Page Specific */
 .login-page { /* Uncommented custom CSS */

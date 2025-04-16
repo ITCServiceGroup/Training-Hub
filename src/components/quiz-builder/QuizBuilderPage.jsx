@@ -111,9 +111,16 @@ const QuizBuilderPage = () => {
       </div>
 
       <div className="mb-8 flex justify-between items-center">
-        <h2 className="text-4xl text-teal-700 m-0">
-          {quizId ? 'Edit Quiz' : 'Create Quiz'}
-        </h2>
+        <div>
+          <h2 className="text-4xl text-teal-700 m-0">
+            {quizId ? 'Edit Quiz' : 'Create Quiz'}
+          </h2>
+          {quizId && quiz.title && (
+            <h3 className="text-xl text-slate-600 mt-2 mb-0 font-normal">
+              {quiz.title}
+            </h3>
+          )}
+        </div>
         <button
           className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSave}
@@ -128,38 +135,47 @@ const QuizBuilderPage = () => {
       )}
 
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex border-b mb-6">
-          {/* Apply common styles first, then conditional active/inactive styles */}
-          <button
-            className={`py-3 px-4 font-medium text-white rounded-t-md ${ // Base styles: white text, rounded top
-              activeTab === 'metadata' 
-                ? 'bg-teal-700 border-b-4 border-white' // Active: teal bg, white bottom border
-                : 'bg-teal-600 hover:bg-teal-700 opacity-80' // Inactive: slightly lighter teal, hover effect, slight opacity
-            }`}
-            onClick={() => setActiveTab('metadata')}
-          >
-            Quiz Details
-          </button>
-          <button
-            className={`py-3 px-4 font-medium text-white rounded-t-md ${ // Base styles
-              activeTab === 'questions' 
-                ? 'bg-teal-700 border-b-4 border-white' // Active
-                : 'bg-teal-600 hover:bg-teal-700 opacity-80' // Inactive
-            }`}
-            onClick={() => setActiveTab('questions')}
-          >
-            Questions
-          </button>
-          <button
-            className={`py-3 px-4 font-medium text-white rounded-t-md ${ // Base styles
-              activeTab === 'preview' 
-                ? 'bg-teal-700 border-b-4 border-white' // Active
-                : 'bg-teal-600 hover:bg-teal-700 opacity-80' // Inactive
-            }`}
-            onClick={() => setActiveTab('preview')}
-          >
-            Preview
-          </button>
+        <div className="flex mb-6 relative">
+          {/* Add bottom border that spans the full width */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-slate-200"></div>
+          
+          <div className="flex gap-1">
+            {/* Quiz Details Tab */}
+            <button
+              className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
+                activeTab === 'metadata'
+                  ? 'bg-teal-700 text-white border-slate-200 z-10' // Active: teal bg, white text
+                  : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: darker gray, even darker on hover
+              }`}
+              onClick={() => setActiveTab('metadata')}
+            >
+              Quiz Details
+            </button>
+
+            {/* Questions Tab */}
+            <button
+              className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
+                activeTab === 'questions'
+                  ? 'bg-teal-700 text-white border-slate-200 z-10'
+                  : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
+              }`}
+              onClick={() => setActiveTab('questions')}
+            >
+              Questions
+            </button>
+
+            {/* Preview Tab */}
+            <button
+              className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
+                activeTab === 'preview'
+                  ? 'bg-teal-700 text-white border-slate-200 z-10'
+                  : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
+              }`}
+              onClick={() => setActiveTab('preview')}
+            >
+              Preview
+            </button>
+          </div>
         </div>
 
         {activeTab === 'metadata' && (

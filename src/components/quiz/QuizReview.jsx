@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { BiSolidError, BiCheck, BiX } from 'react-icons/bi';
 
 const QuizReview = ({ 
   quiz, 
@@ -41,7 +42,7 @@ const QuizReview = ({
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-slate-900">Review Your Answers</h3>
       
-      <div className="p-6 bg-slate-50 rounded-lg space-y-4">
+      <div className="p-6 bg-slate-100 rounded-lg space-y-4">
         <div className="flex flex-wrap gap-6">
           <div>
             <p className="text-sm text-slate-500">Questions Answered</p>
@@ -57,15 +58,15 @@ const QuizReview = ({
         </div>
 
         {unansweredCount > 0 && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-amber-800">
+          <div className="p-4 bg-amber-100 border border-amber-300 rounded-lg">
+            <p className="text-amber-900">
               <span className="font-bold">Warning:</span> You have {unansweredCount} unanswered {unansweredCount === 1 ? 'question' : 'questions'}.
             </p>
           </div>
         )}
 
-        <div className="p-4 bg-slate-100 border border-slate-200 rounded-lg">
-          <p className="text-slate-600">
+        <div className="p-4 bg-slate-200 border border-slate-300 rounded-lg">
+          <p className="text-slate-700">
             Once you submit, you will not be able to change your answers. Make sure you have reviewed all questions before proceeding.
           </p>
         </div>
@@ -73,7 +74,7 @@ const QuizReview = ({
 
       <div>
         <h4 className="text-lg font-semibold text-slate-900 mb-4">Question Summary</h4>
-        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+        <div className="space-y-3">
           {quiz.questions.map((question, index) => {
             const answer = selectedAnswers[question.id];
             let isAnswered, statusClasses;
@@ -82,28 +83,179 @@ const QuizReview = ({
               isAnswered = answer?.answer !== undefined;
               if (isAnswered) {
                 statusClasses = answer.isCorrect
-                  ? "bg-green-100 text-green-800 hover:bg-green-200"
-                  : "bg-red-100 text-red-800 hover:bg-red-200";
+                  ? "bg-green-100 border-green-300 hover:bg-green-200"
+                  : "bg-red-100 border-red-300 hover:bg-red-200";
               } else {
-                statusClasses = "bg-amber-100 text-amber-800 hover:bg-amber-200";
+                statusClasses = "bg-amber-100 border-amber-300 hover:bg-amber-200";
               }
             } else {
               isAnswered = answer !== undefined;
               statusClasses = isAnswered
-                ? "bg-teal-100 text-teal-800 hover:bg-teal-200"
-                : "bg-amber-100 text-amber-800 hover:bg-amber-200";
+                ? "bg-slate-100 border-slate-300 hover:bg-slate-200"
+                : "bg-amber-100 border-amber-300 hover:bg-amber-200";
             }
+
+            const renderOptions = () => {
+              if (!isAnswered) {
+                return (
+                  <div className="flex items-center text-amber-600 mt-1">
+                    <BiSolidError className="w-5 h-5" />
+                    <span className="ml-2 font-medium">Not answered</span>
+                  </div>
+                );
+              }
+
+              switch (question.question_type) {
+                case 'multiple_choice':
+                  return (
+                    <div className="mt-3 space-y-2">
+                      {question.options.map((option, idx) => {
+                        const isSelected = quiz.is_practice ? answer?.answer === idx : answer === idx;
+                        const isCorrect = quiz.is_practice && isSelected && answer?.isCorrect;
+                        const isIncorrect = quiz.is_practice && isSelected && !answer?.isCorrect;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={classNames(
+                              "flex items-center p-3 rounded border",
+                              {
+                                'bg-teal-50 border-teal-600': isSelected && !quiz.is_practice,
+                                'bg-green-50 border-green-500': isCorrect,
+                                'bg-red-50 border-red-500': isIncorrect,
+                                'border-slate-300': !isSelected && !quiz.is_practice
+                              }
+                            )}
+                          >
+                            <div className="flex-1">{option}</div>
+                            {isSelected && (
+                              <div className="ml-2">
+                                {quiz.is_practice ? (
+                                  isCorrect ? (
+                                    <BiCheck className="w-5 h-5 text-green-600" />
+                                  ) : (
+                                    <BiX className="w-5 h-5 text-red-600" />
+                                  )
+                                ) : (
+                                  <BiCheck className="w-5 h-5 text-green-600" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+
+                case 'check_all_that_apply':
+                  return (
+                    <div className="mt-3 space-y-2">
+                      {question.options.map((option, idx) => {
+                        const isSelected = quiz.is_practice 
+                          ? Array.isArray(answer?.answer) && answer.answer.includes(idx)
+                          : Array.isArray(answer) && answer.includes(idx);
+                        const isCorrect = quiz.is_practice && isSelected && answer?.isCorrect;
+                        const isIncorrect = quiz.is_practice && isSelected && !answer?.isCorrect;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={classNames(
+                              "flex items-center p-3 rounded border",
+                              {
+                                'bg-teal-50 border-teal-600': isSelected && !quiz.is_practice,
+                                'bg-green-50 border-green-500': isCorrect,
+                                'bg-red-50 border-red-500': isIncorrect,
+                                'border-slate-300': !isSelected && !quiz.is_practice
+                              }
+                            )}
+                          >
+                            <div className="flex-1">{option}</div>
+                            {isSelected && (
+                              <div className="ml-2">
+                                {quiz.is_practice ? (
+                                  isCorrect ? (
+                                    <BiCheck className="w-5 h-5 text-green-600" />
+                                  ) : (
+                                    <BiX className="w-5 h-5 text-red-600" />
+                                  )
+                                ) : (
+                                  <BiCheck className="w-5 h-5 text-green-600" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+
+                case 'true_false':
+                  return (
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      {['True', 'False'].map((option, idx) => {
+                        const isSelected = quiz.is_practice ? answer?.answer === (idx === 0) : answer === (idx === 0);
+                        const isCorrect = quiz.is_practice && isSelected && answer?.isCorrect;
+                        const isIncorrect = quiz.is_practice && isSelected && !answer?.isCorrect;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={classNames(
+                              "flex items-center justify-between p-3 rounded border",
+                              {
+                                'bg-teal-50 border-teal-600': isSelected && !quiz.is_practice,
+                                'bg-green-50 border-green-500': isCorrect,
+                                'bg-red-50 border-red-500': isIncorrect,
+                                'border-slate-300': !isSelected && !quiz.is_practice
+                              }
+                            )}
+                          >
+                            <div>{option}</div>
+                            {isSelected && (
+                              <div className="ml-2">
+                                {quiz.is_practice ? (
+                                  isCorrect ? (
+                                    <BiCheck className="w-5 h-5 text-green-600" />
+                                  ) : (
+                                    <BiX className="w-5 h-5 text-red-600" />
+                                  )
+                                ) : (
+                                  <BiCheck className="w-5 h-5 text-green-600" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+
+                default:
+                  return null;
+              }
+            };
             
             return (
               <button
                 key={question.id}
                 onClick={() => onBack(index)}
-                className={classNames(
-                  "aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-colors",
-                  statusClasses
-                )}
+              className={classNames(
+                "w-full text-left p-6 border rounded-lg transition-colors",
+                statusClasses
+              )}
               >
-                {index + 1}
+              <div className="flex gap-6">
+                <div className="font-bold text-slate-700 text-lg">
+                  Q{index + 1}
+                </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-slate-900 mb-4">
+                      {question.question_text}
+                    </div>
+                    {renderOptions()}
+                  </div>
+                </div>
               </button>
             );
           })}
@@ -123,7 +275,7 @@ const QuizReview = ({
           type="button"
           onClick={onSubmit}
           className={classNames(
-            "px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors",
+            "px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors",
             {
               'opacity-90 hover:opacity-100': unansweredCount > 0
             }
@@ -149,8 +301,11 @@ QuizReview.propTypes = {
     description: PropTypes.string,
     questions: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.string.isRequired,
-      question_text: PropTypes.string.isRequired
-    })).isRequired
+      question_text: PropTypes.string.isRequired,
+      question_type: PropTypes.oneOf(['multiple_choice', 'check_all_that_apply', 'true_false']).isRequired,
+      options: PropTypes.arrayOf(PropTypes.string)
+    })).isRequired,
+    is_practice: PropTypes.bool
   }).isRequired,
   selectedAnswers: PropTypes.object.isRequired,
   onSubmit: PropTypes.func.isRequired,

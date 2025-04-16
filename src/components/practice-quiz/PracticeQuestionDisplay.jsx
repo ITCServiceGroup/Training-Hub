@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const PracticeQuestionDisplay = ({ question, onNext }) => {
+const PracticeQuestionDisplay = ({ question, onAnswered }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -34,9 +34,10 @@ const PracticeQuestionDisplay = ({ question, onNext }) => {
     if (question.question_type !== 'check_all_that_apply') {
       setIsCorrect(correct);
       setShowFeedback(true);
+      onAnswered(); // Notify parent that question is answered
     }
   };
-  
+
   // Handle submitting check-all-that-apply answers
   const handleCheckAllSubmit = () => {
     if (!Array.isArray(selectedAnswer)) return;
@@ -47,16 +48,16 @@ const PracticeQuestionDisplay = ({ question, onNext }) => {
     
     setIsCorrect(correct);
     setShowFeedback(true);
+    onAnswered(); // Notify parent that question is answered
   };
-  
-  // Reset component state when moving to next question
-  const handleNext = () => {
+
+  // Reset internal state when the question changes
+  useEffect(() => {
     setSelectedAnswer(null);
     setShowFeedback(false);
     setIsCorrect(false);
-    onNext();
-  };
-  
+  }, [question]); // Dependency array ensures this runs when question prop changes
+
   // Render different question types
   const renderQuestionContent = () => {
     switch (question.question_type) {
@@ -211,15 +212,7 @@ const PracticeQuestionDisplay = ({ question, onNext }) => {
             )}
           </div>
         )}
-        
-        <div className="mt-4">
-          <button
-            className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-3 text-sm font-bold cursor-pointer transition-colors"
-            onClick={handleNext}
-          >
-            Next Question
-          </button>
-        </div>
+        {/* Next Question button is now handled by the parent */}
       </div>
     );
   };

@@ -92,7 +92,8 @@ const QuizResults = ({
       <div className="flex justify-center gap-4 mb-12">
         <button
           className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
-          onClick={onExit}
+          // onClick={onExit} // Original prop might be admin-specific
+          onClick={() => window.location.hash = '/quiz'} // Navigate to public quiz list
         >
           Back to Quizzes
         </button>
@@ -142,7 +143,7 @@ const QuizResults = ({
                     "text-sm mt-1",
                     isCorrect ? "text-green-700" : "text-red-700"
                   )}>
-                    {isCorrect ? "Correct" : "Incorrect"}
+                    {answer === undefined ? "Incorrect (Unanswered)" : (isCorrect ? "Correct" : "Incorrect")}
                   </p>
                 </div>
               </div>
@@ -160,14 +161,16 @@ const QuizResults = ({
                         className={classNames(
                           "p-3 rounded",
                           {
-                            'bg-green-100 border border-green-500': isCorrectOption,
-                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption,
-                            'bg-white border border-slate-200': !isSelected && !isCorrectOption
+                            'bg-green-100 border border-green-500': isCorrectOption, // Highlight correct option always
+                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption, // Highlight selected *wrong* option
+                            'bg-white border border-slate-200': !isCorrectOption && !isSelected // Default for non-correct, non-selected
                           }
                         )}
                       >
                         {option}
+                        {/* Show check only for the correct option */}
                         {isCorrectOption && <span className="ml-2 text-green-600">✓</span>}
+                        {/* Show cross only if this specific option was selected and it's wrong */}
                         {isSelected && !isCorrectOption && <span className="ml-2 text-red-600">✗</span>}
                       </div>
                     );
@@ -185,14 +188,16 @@ const QuizResults = ({
                         className={classNames(
                           "p-3 rounded",
                           {
-                            'bg-green-100 border border-green-500': isCorrectOption,
-                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption,
-                            'bg-white border border-slate-200': !isSelected && !isCorrectOption
+                            'bg-green-100 border border-green-500': isCorrectOption, // Highlight correct options always
+                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption, // Highlight selected *wrong* options
+                            'bg-white border border-slate-200': !isCorrectOption && !isSelected // Default for non-correct, non-selected
                           }
                         )}
                       >
                         {option}
+                        {/* Show check only for the correct options */}
                         {isCorrectOption && <span className="ml-2 text-green-600">✓</span>}
+                        {/* Show cross only if this specific option was selected and it's wrong */}
                         {isSelected && !isCorrectOption && <span className="ml-2 text-red-600">✗</span>}
                       </div>
                     );
@@ -202,32 +207,32 @@ const QuizResults = ({
                 {question.question_type === 'true_false' && (
                   <div className="grid grid-cols-2 gap-4">
                     <div
-                      className={classNames(
-                        "p-3 text-center rounded",
-                        {
-                          'bg-green-100 border border-green-500': question.correct_answer === true,
-                          'bg-red-100 border border-red-500': answer === true && !question.correct_answer,
-                          'bg-white border border-slate-200': answer !== true && !question.correct_answer
-                        }
-                      )}
-                    >
-                      True
-                      {question.correct_answer === true && <span className="ml-2 text-green-600">✓</span>}
-                      {answer === true && !question.correct_answer && <span className="ml-2 text-red-600">✗</span>}
+                        className={classNames(
+                          "p-3 text-center rounded",
+                          {
+                            'bg-green-100 border border-green-500': question.correct_answer === true, // Highlight correct True
+                            'bg-red-100 border border-red-500': answer === true && question.correct_answer === false, // Selected True, but was False
+                            'bg-white border border-slate-200': question.correct_answer === false && answer !== true // Default if correct is False and user didn't select True
+                          }
+                        )}
+                      >
+                        True
+                        {question.correct_answer === true && <span className="ml-2 text-green-600">✓</span>}
+                        {answer === true && question.correct_answer === false && <span className="ml-2 text-red-600">✗</span>}
                     </div>
                     <div
-                      className={classNames(
-                        "p-3 text-center rounded",
-                        {
-                          'bg-green-100 border border-green-500': question.correct_answer === false,
-                          'bg-red-100 border border-red-500': answer === false && question.correct_answer,
-                          'bg-white border border-slate-200': answer !== false && question.correct_answer
-                        }
-                      )}
-                    >
-                      False
-                      {question.correct_answer === false && <span className="ml-2 text-green-600">✓</span>}
-                      {answer === false && question.correct_answer && <span className="ml-2 text-red-600">✗</span>}
+                        className={classNames(
+                          "p-3 text-center rounded",
+                          {
+                            'bg-green-100 border border-green-500': question.correct_answer === false, // Highlight correct False
+                            'bg-red-100 border border-red-500': answer === false && question.correct_answer === true, // Selected False, but was True
+                            'bg-white border border-slate-200': question.correct_answer === true && answer !== false // Default if correct is True and user didn't select False
+                          }
+                        )}
+                      >
+                        False
+                        {question.correct_answer === false && <span className="ml-2 text-green-600">✓</span>}
+                        {answer === false && question.correct_answer === true && <span className="ml-2 text-red-600">✗</span>}
                     </div>
                   </div>
                 )}
