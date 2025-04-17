@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext'; // To get user ID for uploads
+import { useTheme } from '../../contexts/ThemeContext'; // Import ThemeContext for dark mode
 import { listMedia, uploadMedia, deleteMedia, updateMediaMetadata } from '../../services/api/media';
 // Removed supabase import as we're using direct URL construction
 import { format } from 'date-fns'; // For formatting dates
@@ -21,7 +22,11 @@ const formatBytes = (bytes, decimals = 2) => {
 
 // --- Media Grid Component ---
 // Added onPreviewClick prop
-const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFromTinyMCE }) => (
+const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFromTinyMCE }) => {
+  const { theme } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  return (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
     {mediaItems.length === 0 && <p className="col-span-full text-center text-gray-500 mt-4">No media items found.</p>}
     {mediaItems.map((item) => {
@@ -30,13 +35,13 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
       const isAudio = item.mime_type?.startsWith('audio/');
 
       return (
-        <div key={item.id} className="border rounded-lg overflow-hidden shadow-sm relative group bg-white flex flex-col transition-shadow hover:shadow-md">
+        <div key={item.id} className="border rounded-lg overflow-hidden shadow-sm relative group bg-white dark:bg-slate-700 dark:border-slate-600 flex flex-col transition-shadow hover:shadow-md">
           {/* Preview Area - Changed h-36 to aspect-square for better consistency */}
-          <div className="w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden relative border-b border-gray-200">
+          <div className="w-full aspect-square bg-gray-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden relative border-b border-gray-200 dark:border-slate-600">
             {isImage ? (
               // Use onPreviewClick passed from parent
               <div
-                className="w-full h-full flex items-center justify-center bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors"
+                className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
                 onClick={() => {
                   if (isFromTinyMCE && window.opener && window.opener.tinyMCEMediaLibraryCallback) {
                     // If opened from TinyMCE, send the selected image back
@@ -62,7 +67,7 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
                 />
               </div>
             ) : isVideo ? (
-              <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
+              <div className="w-full h-full bg-gray-900 dark:bg-slate-900 flex items-center justify-center relative">
                  {/* Added controls for video preview */}
                  <video controls muted className="w-full h-full object-contain max-h-full">
                    <source src={item.public_url} type={item.mime_type} />
@@ -72,12 +77,12 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
                  </div>
               </div>
             ) : isAudio ? (
-               <div className="w-full h-full bg-gray-200 flex items-center justify-center p-4">
-                 <MdOutlineAudioFile className="h-16 w-16 text-gray-500" />
+               <div className="w-full h-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center p-4">
+                 <MdOutlineAudioFile className="h-16 w-16 text-gray-500 dark:text-gray-300" />
                </div>
             ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center p-4">
-                <MdOutlineInsertDriveFile className="h-16 w-16 text-gray-500" />
+              <div className="w-full h-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center p-4">
+                <MdOutlineInsertDriveFile className="h-16 w-16 text-gray-500 dark:text-gray-300" />
               </div>
             )}
           </div>
@@ -85,11 +90,11 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
           {/* Info Area - Adjusted padding and text sizes */}
           <div className="p-2.5 text-xs flex-grow flex flex-col justify-between">
             <div className="mb-1.5">
-              <p className="font-medium text-gray-800 text-xs truncate mb-0.5" title={item.file_name}>{item.file_name}</p>
-              {item.alt_text && <p className="text-gray-500 truncate italic text-[10px]" title={`Alt: ${item.alt_text}`}>Alt: {item.alt_text}</p>}
-              {item.caption && <p className="text-gray-500 truncate text-[10px]" title={`Caption: ${item.caption}`}>Caption: {item.caption}</p>}
+              <p className="font-medium text-gray-800 dark:text-white text-xs truncate mb-0.5" title={item.file_name}>{item.file_name}</p>
+              {item.alt_text && <p className="text-gray-500 dark:text-gray-300 truncate italic text-[10px]" title={`Alt: ${item.alt_text}`}>Alt: {item.alt_text}</p>}
+              {item.caption && <p className="text-gray-500 dark:text-gray-300 truncate text-[10px]" title={`Caption: ${item.caption}`}>Caption: {item.caption}</p>}
             </div>
-            <div className="text-gray-400 mt-1 text-[10px]">
+            <div className="text-gray-400 dark:text-gray-300 mt-1 text-[10px]">
               <span>{formatBytes(item.size)}</span> | <span>{item.created_at ? format(new Date(item.created_at), 'PP') : 'N/A'}</span>
             </div>
           </div>
@@ -115,7 +120,8 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
       );
     })}
   </div>
-);
+  );
+};
 
 // --- Upload Component ---
 const UploadComponent = ({ onUpload }) => {
@@ -186,21 +192,21 @@ const UploadComponent = ({ onUpload }) => {
   });
 
   return (
-    <div className="p-4 border rounded-lg bg-gray-50 mb-6 shadow-sm">
-      <h3 className="text-lg font-semibold mb-3 text-gray-700">Upload New Media</h3>
+    <div className="p-4 border rounded-lg bg-gray-50 dark:bg-slate-800 dark:border-slate-600 mb-6 shadow-sm">
+      <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-white">Upload New Media</h3>
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors ${
-          isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400 bg-white'
+          isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 bg-white dark:bg-slate-700'
         } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p className="text-blue-600">Drop the files here ...</p>
+          <p className="text-blue-600 dark:text-blue-400">Drop the files here ...</p>
         ) : (
-          <p className="text-gray-500">Drag 'n' drop files here, or click to select files</p>
+          <p className="text-gray-500 dark:text-gray-300">Drag 'n' drop files here, or click to select files</p>
         )}
-        <p className="text-xs text-gray-400 mt-1">(Images, Videos, Audio)</p>
+        <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">(Images, Videos, Audio)</p>
       </div>
 
       {/* Upload Progress Area */}
@@ -208,14 +214,14 @@ const UploadComponent = ({ onUpload }) => {
         <div className="mt-4 space-y-2 max-h-32 overflow-y-auto pr-2">
           {/* <h4 className="text-sm font-medium text-gray-600">Uploads:</h4> */}
           {Object.entries(uploadProgress).map(([id, status]) => (
-            <div key={id} className="text-xs p-1.5 bg-white border rounded">
-              <p className="truncate font-medium text-gray-800">{status.name}</p>
+            <div key={id} className="text-xs p-1.5 bg-white dark:bg-slate-700 border dark:border-slate-600 rounded">
+              <p className="truncate font-medium text-gray-800 dark:text-white">{status.name}</p>
               {status.error ? (
-                <p className="text-red-600 font-medium">Error: {status.error}</p>
+                <p className="text-red-600 dark:text-red-400 font-medium">Error: {status.error}</p>
               ) : status.progress === 100 ? (
-                 <p className="text-green-600 font-medium">Upload Complete</p>
+                 <p className="text-green-600 dark:text-green-400 font-medium">Upload Complete</p>
               ) : (
-                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 overflow-hidden">
+                <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-1.5 mt-1 overflow-hidden">
                   <div
                     className="bg-blue-500 h-1.5 rounded-full transition-all duration-300 ease-out"
                     style={{ width: `${status.progress || 0}%` }} // Default to 0 if progress is undefined
@@ -275,11 +281,11 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
     >
       {/* Add onClick={(e) => e.stopPropagation()} to prevent clicks inside from closing */}
       <div
-        className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg transform transition-all scale-100 opacity-100"
+        className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-lg transform transition-all scale-100 opacity-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4 pb-2 border-b">
-           <h2 className="text-xl font-semibold text-gray-800">Edit Metadata</h2>
+           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Metadata</h2>
            {/* Updated Close Button */}
            <button
              onClick={onClose}
@@ -298,7 +304,7 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
                 <img
                   src={item.public_url || ''} // Ensure URL exists
                   alt="Preview"
-                  className="w-auto h-24 max-w-full mx-auto object-contain mb-2 border rounded shadow-sm bg-gray-100"
+                  className="w-auto h-24 max-w-full mx-auto object-contain mb-2 border rounded shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600"
                   loading="lazy"
                   onError={(e) => { // Add simple error handler
                       e.target.onerror = null;
@@ -311,8 +317,8 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
                   }}
                 />
                 {/* Placeholder shown on error */}
-                <div className="placeholder-icon w-full h-24 bg-gray-100 hidden flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
-                   <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400" />
+                <div className="placeholder-icon w-full h-24 bg-gray-100 dark:bg-slate-700 hidden flex-col items-center justify-center text-gray-500 dark:text-gray-300 text-sm mb-2 border dark:border-slate-600 rounded shadow-sm">
+                   <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400 dark:text-gray-300" />
                    <span>Preview unavailable</span>
                 </div>
               </>
@@ -321,24 +327,24 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
                 src={item.public_url}
                 controls
                 muted
-                className="w-auto h-24 max-w-full mx-auto mb-2 border rounded shadow-sm bg-gray-900"
+                className="w-auto h-24 max-w-full mx-auto mb-2 border rounded shadow-sm bg-gray-900 dark:border-slate-600"
               >
                 Your browser does not support the video tag.
               </video>
             ) : (
-              <div className="w-full h-24 bg-gray-100 flex flex-col items-center justify-center text-gray-500 text-sm mb-2 border rounded shadow-sm">
-                <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400" />
+              <div className="w-full h-24 bg-gray-100 dark:bg-slate-700 flex flex-col items-center justify-center text-gray-500 dark:text-gray-300 text-sm mb-2 border dark:border-slate-600 rounded shadow-sm">
+                <MdOutlineInsertDriveFile className="h-8 w-8 mb-1 text-gray-400 dark:text-gray-300" />
                 <span>Preview not available</span>
               </div>
             )}
-            <p className="text-sm font-medium truncate text-gray-700" title={item.file_name}>{item.file_name}</p>
-            <p className="text-xs text-gray-500">{item.mime_type} | {formatBytes(item.size)}</p>
+            <p className="text-sm font-medium truncate text-gray-700 dark:text-white" title={item.file_name}>{item.file_name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{item.mime_type} | {formatBytes(item.size)}</p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="fileName" className="block text-sm font-medium text-gray-700 mb-1">
-              File Name <span className="text-xs text-red-500">*</span>
+            <label htmlFor="fileName" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+              File Name <span className="text-xs text-red-500 dark:text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -346,13 +352,13 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
               disabled={isSaving}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-slate-800"
               required
             />
           </div>
           <div>
-            <label htmlFor="altText" className="block text-sm font-medium text-gray-700 mb-1">
-              Alt Text <span className="text-xs text-gray-500">(for accessibility, mainly images)</span>
+            <label htmlFor="altText" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+              Alt Text <span className="text-xs text-gray-500 dark:text-gray-400">(for accessibility, mainly images)</span>
             </label>
             <input
               type="text"
@@ -360,13 +366,13 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
               value={altText}
               onChange={(e) => setAltText(e.target.value)}
               disabled={isSaving}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-slate-800"
               placeholder="Describe the image or media"
             />
           </div>
           <div>
-            <label htmlFor="caption" className="block text-sm font-medium text-gray-700 mb-1">
-              Caption <span className="text-xs text-gray-500">(optional)</span>
+            <label htmlFor="caption" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+              Caption <span className="text-xs text-gray-500 dark:text-gray-400">(optional)</span>
             </label>
             <textarea
               id="caption"
@@ -374,7 +380,7 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
               onChange={(e) => setCaption(e.target.value)}
               rows="3"
               disabled={isSaving}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-slate-800"
               placeholder="Optional caption for the media"
             ></textarea>
           </div>
@@ -385,7 +391,7 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -473,6 +479,7 @@ function MediaLibraryPage() {
 
   // Check if we're being opened from TinyMCE
   const [isFromTinyMCE, setIsFromTinyMCE] = useState(false);
+  const { theme } = useTheme(); // Get current theme
 
   useEffect(() => {
     setIsLoading(true); // Set loading true when component mounts
@@ -558,13 +565,13 @@ function MediaLibraryPage() {
       {isLoading && (
           <div className="text-center py-10">
               {/* Simple Spinner */}
-              <div className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-blue-500 border-t-transparent" role="status">
+              <div className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-blue-500 dark:border-blue-400 border-t-transparent" role="status">
                   <span className="sr-only">Loading...</span>
               </div>
-              <p className="mt-3 text-gray-500">Loading media...</p>
+              <p className="mt-3 text-gray-500 dark:text-gray-300">Loading media...</p>
           </div>
       )}
-      {error && !isLoading && <p className="text-center py-10 text-red-600 bg-red-50 p-4 rounded-md shadow-sm">{error}</p>}
+      {error && !isLoading && <p className="text-center py-10 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded-md shadow-sm">{error}</p>}
 
       {!isLoading && !error && (
         <MediaGrid
@@ -613,12 +620,12 @@ const MediaPreviewModal = ({ item, isOpen, onClose }) => {
     >
       {/* Add onClick={(e) => e.stopPropagation()} to prevent clicks inside from closing */}
       <div
-        className="bg-white p-4 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col relative"
+        className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-3 pb-2 border-b">
-          <h2 className="text-lg font-semibold text-gray-800 truncate" title={item.file_name}>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white truncate" title={item.file_name}>
              Preview: {item.file_name}
            </h2>
            {/* Updated Close Button */}
@@ -632,7 +639,7 @@ const MediaPreviewModal = ({ item, isOpen, onClose }) => {
          </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded">
+        <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 dark:bg-slate-700 rounded">
           {isImage ? (
             <img
               // Corrected: Only one src attribute
@@ -661,8 +668,8 @@ const MediaPreviewModal = ({ item, isOpen, onClose }) => {
               Your browser does not support the video tag.
             </video>
           ) : (
-            <div className="text-center text-gray-500 p-10">
-              <MdOutlineInsertDriveFile className="h-16 w-16 mx-auto mb-2 text-gray-400" />
+            <div className="text-center text-gray-500 dark:text-gray-300 p-10">
+              <MdOutlineInsertDriveFile className="h-16 w-16 mx-auto mb-2 text-gray-400 dark:text-gray-300" />
               Preview not available for this file type ({item.mime_type}).
             </div>
           )}

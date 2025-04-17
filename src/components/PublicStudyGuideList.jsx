@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
 // Helper function to extract a preview from HTML content (Copied from admin StudyGuideList)
@@ -75,25 +76,27 @@ const formatDate = (dateString) => {
 
 // Simplified Item Component (based on SortableStudyGuideItem)
 const PublicStudyGuideItem = ({ guide, onSelect }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   return (
     <div
-      className="rounded-lg border border-gray-200 overflow-hidden transition-all duration-200 shadow-sm cursor-pointer hover:border-gray-300 hover:shadow-md"
+      className={`rounded-lg border ${isDark ? 'border-slate-700' : 'border-gray-200'} overflow-hidden transition-all duration-200 shadow-sm cursor-pointer ${isDark ? 'hover:border-slate-600' : 'hover:border-gray-300'} hover:shadow-md`}
       onClick={() => onSelect(guide)} // Use the passed onSelect handler
     >
-      <div className="bg-white">
+      <div className={isDark ? 'bg-slate-800' : 'bg-white'}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-800 overflow-hidden text-ellipsis whitespace-nowrap">
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'} overflow-hidden text-ellipsis whitespace-nowrap`}>
               {guide.title || 'Untitled Guide'}
             </h3>
           </div>
-          <div className="text-sm text-gray-600 line-clamp-2 h-12 overflow-hidden">
+          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-2 h-12 overflow-hidden`}>
             {extractPreview(guide.content)}
           </div>
         </div>
-        <div className="bg-gray-50 p-2 px-4 border-t border-gray-100 flex justify-between items-center">
-          <div className="text-xs text-gray-500 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className={`${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-100'} p-2 px-4 border-t flex justify-between items-center`}>
+          <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} flex items-center`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className={`w-3.5 h-3.5 mr-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Updated {formatDate(guide.updated_at)}
@@ -106,23 +109,25 @@ const PublicStudyGuideItem = ({ guide, onSelect }) => {
 
 // Main List Component
 const PublicStudyGuideList = ({ studyGuides = [], onSelect, isLoading, error }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   if (isLoading) {
-    return <div className="text-center p-8 text-gray-500">Loading study guides...</div>;
+    return <div className={`text-center p-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Loading study guides...</div>;
   }
 
   if (error) {
-    return <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-200">Error loading study guides: {error}</div>;
+    return <div className={`${isDark ? 'bg-red-900/30 text-red-400 border-red-900/50' : 'bg-red-50 text-red-600 border-red-200'} p-4 rounded-lg border`}>Error loading study guides: {error}</div>;
   }
 
   if (!studyGuides || studyGuides.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center bg-gray-50 rounded-lg border border-gray-200 min-h-[200px]">
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className={`flex flex-col items-center justify-center p-12 text-center ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-200'} rounded-lg border min-h-[200px]`}>
+        <svg xmlns="http://www.w3.org/2000/svg" className={`w-12 h-12 ${isDark ? 'text-gray-600' : 'text-gray-300'} mb-4`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
-        <p className="text-gray-500 mb-2 font-medium">No study guides available</p>
-        <p className="text-gray-400 text-sm">There are currently no study guides in this category.</p>
+        <p className={`${isDark ? 'text-gray-300' : 'text-gray-500'} mb-2 font-medium`}>No study guides available</p>
+        <p className={`${isDark ? 'text-gray-500' : 'text-gray-400'} text-sm`}>There are currently no study guides in this category.</p>
       </div>
     );
   }

@@ -63,6 +63,11 @@ export const baseEditorConfig = {
       /* This selector helps TinyMCE recognize that these elements have custom styles */
     }
 
+    /* Dark mode styles */
+    body.mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
     /* --- Image Grid Layout Styles (Increased Specificity) --- */
     body .image-grid-wrapper {
       display: grid;
@@ -70,6 +75,10 @@ export const baseEditorConfig = {
       margin-bottom: 1em;
       padding: 5px;
       border: 1px dashed #e0e0e0;
+    }
+
+    body.mce-dark-mode .image-grid-wrapper {
+      border-color: #475569;
     }
     body .image-grid-wrapper.align-left {
       grid-template-columns: auto 1fr;
@@ -126,6 +135,13 @@ export const baseEditorConfig = {
       border-color: #e0e0e0 !important;
     }
 
+    /* Dark mode border colors */
+    html body.mce-dark-mode .image-grid-wrapper > .image-cell > img.border-thin,
+    html body.mce-dark-mode .image-grid-wrapper > .image-cell > img.border-medium,
+    html body.mce-dark-mode .image-grid-wrapper > .image-cell > img.border-thick {
+      border-color: #475569 !important;
+    }
+
     /* Custom border color class - the actual color comes from inline style */
     html body .image-grid-wrapper > .image-cell > img.border-color-custom {
       /* This class just indicates that a custom color is being used */
@@ -155,7 +171,7 @@ export const baseEditorConfig = {
       border-color: #000000 !important;
     }
     html body .image-grid-wrapper > .image-cell > img.border-color-blue {
-      border-color: #2563eb !important;
+      border-color: #0f766e !important; /* Changed from blue to teal */
     }
     html body .image-grid-wrapper > .image-cell > img.border-color-red {
       border-color: #dc2626 !important;
@@ -252,6 +268,34 @@ export const baseEditorConfig = {
       min-height: 100%;
       outline: none;
       line-height: 1.5;
+    }
+
+    /* Dark mode styles */
+    body.mce-content-body.mce-dark-mode {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
+
+    body.mce-content-body.mce-dark-mode h1,
+    body.mce-content-body.mce-dark-mode h2,
+    body.mce-content-body.mce-dark-mode h3,
+    body.mce-content-body.mce-dark-mode h4,
+    body.mce-content-body.mce-dark-mode h5,
+    body.mce-content-body.mce-dark-mode h6 {
+      color: #f1f5f9;
+    }
+
+    body.mce-content-body.mce-dark-mode table {
+      border-color: #475569;
+    }
+
+    body.mce-content-body.mce-dark-mode th,
+    body.mce-content-body.mce-dark-mode td {
+      border-color: #475569;
+    }
+
+    body.mce-content-body.mce-dark-mode th {
+      background-color: #334155;
     }
     img, table {
       max-width: 100%;

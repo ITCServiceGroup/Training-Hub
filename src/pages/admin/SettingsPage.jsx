@@ -1,40 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext'; // Import useAuth
-import { supabase } from '../../config/supabase'; // Import Supabase client
-import ConfirmationDialog from '../../components/common/ConfirmationDialog'; // Import ConfirmationDialog
-// Removed InputField and Button imports as they don't exist
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { supabase } from '../../config/supabase';
+import { quizzesService } from '../../services/api/quizzes';
+import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+import { Dialog } from '@headlessui/react';
 
 const SettingsPage = () => {
-  const { user } = useAuth(); // Get user data from context
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false); // Loading state for profile update
-  const [isChangingPassword, setIsChangingPassword] = useState(false); // Loading state for password change
+  const { user } = useAuth();
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
   const [dialogMessage, setDialogMessage] = useState('');
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
 
   // State for profile form
   const [profileData, setProfileData] = useState({ name: '', email: '' });
-  // State for password form
-  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  // State for quiz settings - Initialize with defaults, will be overwritten by localStorage if available
+
+  // State for password form with visibility toggles
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    showCurrentPassword: false,
+    showNewPassword: false,
+    showConfirmPassword: false
+  });
+
+  // Password strength validation
+  const validatePassword = (password) => {
+    const rules = [
+      { test: /.{8,}/, message: 'At least 8 characters' },
+      { test: /[A-Z]/, message: 'At least one uppercase letter' },
+      { test: /[a-z]/, message: 'At least one lowercase letter' },
+      { test: /[0-9]/, message: 'At least one number' },
+      { test: /[^A-Za-z0-9]/, message: 'At least one special character' }
+    ];
+    return rules.map(rule => ({
+      passed: rule.test.test(password),
+      message: rule.message
+    }));
+  };
+
+  const passwordValidation = useMemo(() =>
+    validatePassword(passwordData.newPassword),
+    [passwordData.newPassword]
+  );
+
+  // Quiz settings state
   const [quizSettings, setQuizSettings] = useState({
     defaultTimer: 60,
     defaultQuestionRandomization: true,
     defaultAnswerRandomization: true,
   });
-  // State for archived quizzes (placeholder)
+
+  // State for archived quizzes
   const [archivedQuizzes, setArchivedQuizzes] = useState([
     { id: 1, title: 'Archived Quiz 1' },
     { id: 2, title: 'Archived Quiz 2' },
   ]);
-  // State for system settings
+
+  // Get theme from ThemeContext
+  const { theme, setThemeMode } = useTheme();
+
+  // System settings state
   const [systemSettings, setSystemSettings] = useState({
-    theme: 'light', // Default theme, load from localStorage or backend
+    theme: theme || 'light',
   });
 
-  // Load quiz setting preferences from localStorage and fetch archived quizzes on mount
+  const [isLoadingArchived, setIsLoadingArchived] = useState(false);
+
+  // Function to handle smooth scrolling
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = (field) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
   useEffect(() => {
-    // Load preferences
     const savedTimer = localStorage.getItem('quizDefaultTimer');
     const savedQRand = localStorage.getItem('quizDefaultQuestionRandomization');
     const savedARand = localStorage.getItem('quizDefaultAnswerRandomization');
@@ -46,24 +100,17 @@ const SettingsPage = () => {
       defaultAnswerRandomization: savedARand !== null ? JSON.parse(savedARand) : prev.defaultAnswerRandomization,
     }));
 
-    // TODO: Fetch actual default quiz settings from backend if/when implemented
-    console.log('Fetching default quiz settings (using localStorage)...');
+    fetchArchivedQuizzes();
+  }, []);
 
-    // Placeholder: Fetch archived quizzes logic would go here
-    console.log('Fetching archived quizzes (placeholder)...');
-    // fetchArchivedQuizzes(); // Call the actual fetch function here when ready
-
-    // TODO: Load theme preference from localStorage/backend
-  }, []); // Empty dependency array: Load preferences only once on mount
-
-
-  // Populate profile form when user data is available
   useEffect(() => {
     if (user) {
-      // Use user_metadata.full_name if available, otherwise fallback or leave empty
-      setProfileData({ name: user.user_metadata?.full_name || '', email: user.email || '' });
+      setProfileData({
+        name: user.user_metadata?.full_name || '',
+        email: user.email || ''
+      });
     }
-  }, [user]); // Dependency array now uses the stable user object from context
+  }, [user]);
 
   const handleProfileChange = (e) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
@@ -75,41 +122,57 @@ const SettingsPage = () => {
 
   const handleQuizSettingChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setQuizSettings(prevSettings => { // Need to wrap the logic inside the setter function
+    setQuizSettings(prevSettings => {
       const newValue = type === 'checkbox' ? checked : value;
       const updatedSettings = {
         ...prevSettings,
         [name]: newValue,
       };
 
-      // Save preference to localStorage
-    try {
-      if (name === 'defaultTimer') {
-        localStorage.setItem('quizDefaultTimer', newValue);
-      } else if (name === 'defaultQuestionRandomization') {
-        localStorage.setItem('quizDefaultQuestionRandomization', JSON.stringify(newValue));
-      } else if (name === 'defaultAnswerRandomization') {
-        localStorage.setItem('quizDefaultAnswerRandomization', JSON.stringify(newValue));
+      try {
+        if (name === 'defaultTimer') {
+          localStorage.setItem('quizDefaultTimer', newValue);
+        } else if (name === 'defaultQuestionRandomization') {
+          localStorage.setItem('quizDefaultQuestionRandomization', JSON.stringify(newValue));
+        } else if (name === 'defaultAnswerRandomization') {
+          localStorage.setItem('quizDefaultAnswerRandomization', JSON.stringify(newValue));
+        }
+      } catch (error) {
+        console.error("Failed to save quiz setting preference to localStorage", error);
       }
-    } catch (error) {
-      console.error("Failed to save quiz setting preference to localStorage", error);
-      // Optionally show an error dialog
-    }
 
-      return updatedSettings; // Return the new state
-    }); // Close the setter function
+      return updatedSettings;
+    });
   };
 
-  // Remove handleQuizSettingsSubmit as it's no longer needed
-  // const handleQuizSettingsSubmit = (e) => { ... };
+  const fetchArchivedQuizzes = useCallback(async () => {
+    setIsLoadingArchived(true);
+    try {
+      const data = await quizzesService.getArchivedQuizzes();
+      setArchivedQuizzes(data);
+    } catch (error) {
+      console.error("Failed to fetch archived quizzes", error);
+      setDialogTitle('Error');
+      setDialogMessage('Failed to load archived quizzes.');
+      setDialogOpen(true);
+    } finally {
+      setIsLoadingArchived(false);
+    }
+  }, []);
 
-  // Keep only one definition of handleRestoreQuiz
-  const handleRestoreQuiz = (quizId) => {
-    // TODO: Implement API call to restore quiz
-    console.log('Restoring quiz:', quizId);
-    alert('Quiz restore functionality not yet connected.');
-    // Example: Update local state after successful restore
-    // setArchivedQuizzes(prev => prev.filter(q => q.id !== quizId));
+  const handleRestoreQuiz = async (quizId) => {
+    try {
+      await quizzesService.restore(quizId);
+      setDialogTitle('Success');
+      setDialogMessage('Quiz restored successfully!');
+      setDialogOpen(true);
+      fetchArchivedQuizzes();
+    } catch (error) {
+      console.error(`Error restoring quiz ${quizId}:`, error);
+      setDialogTitle('Error');
+      setDialogMessage(`Failed to restore quiz: ${error.message}`);
+      setDialogOpen(true);
+    }
   };
 
   const handleSystemSettingChange = (e) => {
@@ -118,11 +181,13 @@ const SettingsPage = () => {
       ...prevSettings,
       [name]: value,
     }));
-    // TODO: Implement theme switching logic (e.g., update localStorage, apply class to body)
-    console.log('Changing theme to:', value);
-    alert('Theme switching functionality not yet fully connected.');
-  };
 
+    // Apply theme change using ThemeContext
+    if (name === 'theme') {
+      setThemeMode(value);
+      console.log('Theme changed to:', value);
+    }
+  };
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -130,309 +195,542 @@ const SettingsPage = () => {
       alert('Name cannot be empty.');
       return;
     }
-    setIsUpdatingProfile(true); // Set loading state
+    setIsUpdatingProfile(true);
     try {
-      // Update the user metadata
       const { error } = await supabase.auth.updateUser({
         data: { full_name: profileData.name }
       });
 
-      if (error) {
-        throw error; // Throw error to be caught by catch block
-      }
+      if (error) throw error;
 
-      // Show success dialog
       setDialogTitle('Success');
       setDialogMessage('Profile updated successfully!');
       setDialogOpen(true);
-      // Optionally, trigger a refresh of user data if AuthContext doesn't update automatically
-      // await refreshAuthData(); // Assuming such a function exists in AuthContext
-
     } catch (error) {
       console.error('Error updating profile:', error);
-      // Show error dialog
       setDialogTitle('Error');
       setDialogMessage(`Failed to update profile: ${error.message}`);
       setDialogOpen(true);
     } finally {
-      setIsUpdatingProfile(false); // Reset loading state
+      setIsUpdatingProfile(false);
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    // Basic validation
+
+    // Validate password requirements
+    const validation = validatePassword(passwordData.newPassword);
+    const hasFailedRules = validation.some(rule => !rule.passed);
+
+    if (hasFailedRules) {
+      setDialogTitle('Error');
+      setDialogMessage('Please ensure your new password meets all requirements.');
+      setDialogOpen(true);
+      return;
+    }
+
     if (!passwordData.currentPassword) {
       setDialogTitle('Error');
       setDialogMessage('Current password cannot be empty.');
       setDialogOpen(true);
       return;
     }
-    if (!passwordData.newPassword) {
-      setDialogTitle('Error');
-      setDialogMessage('New password cannot be empty.');
-      setDialogOpen(true);
-      return;
-    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setDialogTitle('Error');
       setDialogMessage("New passwords don't match!");
       setDialogOpen(true);
       return;
     }
-    // Add more complex password validation if needed (e.g., length, characters)
 
-    setIsChangingPassword(true); // Set loading state
+    setIsChangingPassword(true);
     try {
-      // 1. Verify current password by attempting sign-in
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email, // Get email from auth context
+        email: user.email,
         password: passwordData.currentPassword,
       });
 
       if (signInError) {
-        // If sign-in fails, it's likely the wrong current password
         console.error('Password verification failed:', signInError);
         setDialogTitle('Error');
         setDialogMessage('Incorrect current password.');
         setDialogOpen(true);
-        setIsChangingPassword(false); // Reset loading state early
-        return; // Stop the process
+        setIsChangingPassword(false);
+        return;
       }
 
-      // 2. If verification succeeds, update to the new password
       const { error: updateError } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
 
-      if (updateError) {
-        throw updateError; // Throw error to be caught by outer catch block
-      }
+      if (updateError) throw updateError;
 
       setDialogTitle('Success');
       setDialogMessage('Password changed successfully!');
       setDialogOpen(true);
-      // Clear password fields after successful change
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+        showCurrentPassword: false,
+        showNewPassword: false,
+        showConfirmPassword: false
+      });
 
     } catch (error) {
-      console.error('Error changing password:', error); // Catches errors from updateUser
+      console.error('Error changing password:', error);
       setDialogTitle('Error');
       setDialogMessage(`Failed to change password: ${error.message}`);
       setDialogOpen(true);
     } finally {
-      setIsChangingPassword(false); // Reset loading state
+      setIsChangingPassword(false);
     }
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-6">Settings</h1>
-
-      {/* User Account Settings */}
-      <section className="mb-8 p-4 border rounded shadow-sm">
-        <h2 className="text-xl font-medium mb-4">User Account</h2>
-        {/* Profile Information */}
-        {/* Profile Information */}
-        {/* Profile Information */}
-        <div className="mb-4">
-          <h3 className="text-lg font-medium mb-2">Profile Information</h3>
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="profileName" className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-              <input
-                id="profileName"
-                type="text"
-                name="name"
-                value={profileData.name}
-                onChange={handleProfileChange}
-                placeholder="Your full name"
-                className="w-full py-2 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="profileEmail" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-              <input
-                id="profileEmail"
-                type="email"
-                name="email"
-                value={profileData.email}
-                onChange={handleProfileChange}
-                placeholder="your.email@example.com"
-                className="w-full py-2 px-3 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed"
-                disabled // Typically email is not changed directly here, or requires verification
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isUpdatingProfile} // Disable button when loading
-              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                isUpdatingProfile
-                  ? 'bg-slate-400 cursor-not-allowed'
-                  : 'bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500'
-              }`}
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-800">
+      {/* Navigation Sidebar */}
+      <nav className="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-700 sticky top-0 h-screen">
+        {/* Removed redundant title */}
+        <ul className="space-y-2 mt-8"> {/* Added margin-top for spacing */}
+          <li>
+            <a
+              href="#account"
+              onClick={(e) => { e.preventDefault(); scrollToSection('account'); }}
+              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
             >
-              {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
-            </button>
-          </form>
-        </div>
-
-        {/* Password Change */}
-        <div>
-          <h3 className="text-lg font-medium mb-2">Change Password</h3>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 mb-1">Current Password</label>
-              <input
-                id="currentPassword"
-                type="password"
-                name="currentPassword" // Ensure name matches state key
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                placeholder="Enter your current password"
-                className="w-full py-2 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-                required // Make it required
-              />
-            </div>
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-1">New Password</label>
-              <input
-                id="newPassword"
-                type="password"
-                name="newPassword"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-                placeholder="Enter new password"
-                className="w-full py-2 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">Confirm New Password</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                name="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
-                placeholder="Confirm new password"
-                className="w-full py-2 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isChangingPassword} // Disable button when loading
-              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                isChangingPassword
-                  ? 'bg-slate-400 cursor-not-allowed'
-                  : 'bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500'
-              }`}
+              User Account
+            </a>
+          </li>
+          <li>
+            <a
+              href="#quiz"
+              onClick={(e) => { e.preventDefault(); scrollToSection('quiz'); }}
+              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
             >
-              {isChangingPassword ? 'Changing...' : 'Change Password'}
-            </button>
-          </form>
-        </div>
-      </section>
+              Quiz Preferences
+            </a>
+          </li>
+          <li>
+            <a
+              href="#archived"
+              onClick={(e) => { e.preventDefault(); scrollToSection('archived-section'); }} // Updated ID to avoid conflict with modal
+              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            >
+              Archived Quizzes
+            </a>
+          </li>
+          <li>
+            <a
+              href="#system"
+              onClick={(e) => { e.preventDefault(); scrollToSection('system'); }}
+              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            >
+              System Settings
+            </a>
+          </li>
+        </ul>
+      </nav>
 
-      {/* Quiz Settings */}
-      <section className="mb-8 p-4 border rounded shadow-sm">
-        <h2 className="text-xl font-medium mb-4">Quiz Creation Defaults (Preferences)</h2>
-        {/* Removed form tag as saving happens onChange */}
-        <div className="space-y-4"> {/* Added container div */}
-          {/* Default Quiz Timer */}
-          <div>
-            <label htmlFor="defaultTimer" className="block text-sm font-medium text-slate-700 mb-1">Default Quiz Timer (minutes)</label>
-            <input
-              id="defaultTimer"
-              type="number"
-              name="defaultTimer"
-              value={quizSettings.defaultTimer}
-              onChange={handleQuizSettingChange}
-              min="1"
-              className="w-full py-2 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-            />
-          </div>
-          {/* Default Question Randomization */}
-          <div className="mb-4 flex items-center">
-            <input
-              type="checkbox"
-              id="defaultQuestionRandomization"
-              name="defaultQuestionRandomization"
-              checked={quizSettings.defaultQuestionRandomization}
-              onChange={handleQuizSettingChange}
-              className="mr-2 h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded"
-            />
-            <label htmlFor="defaultQuestionRandomization" className="text-sm text-slate-700">Enable Default Question Randomization</label>
-          </div>
-          {/* Default Answer Option Randomization */}
-          <div className="mb-4 flex items-center">
-            <input
-              type="checkbox"
-              id="defaultAnswerRandomization"
-              name="defaultAnswerRandomization"
-              checked={quizSettings.defaultAnswerRandomization}
-              onChange={handleQuizSettingChange}
-              className="mr-2 h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded"
-            />
-            <label htmlFor="defaultAnswerRandomization" className="text-sm text-slate-700">Enable Default Answer Option Randomization</label>
-          </div>
-          {/* Removed Save Button */}
-        </div> {/* Close container div */}
+      {/* Main Content */}
+      <div className="flex-1 p-6 space-y-6">
+        <div className="space-y-6">
+          {/* User Account Settings */}
+          <section id="account" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-medium mb-4 dark:text-white">User Account</h2>
 
-        {/* Quiz Archiving */}
-        <div>
-          <h3 className="text-lg font-medium mb-4">Archived Quizzes</h3>
-          {archivedQuizzes.length > 0 ? (
-            <ul className="space-y-2">
-              {archivedQuizzes.map((quiz) => (
-                <li key={quiz.id} className="flex justify-between items-center p-2 border border-slate-200 rounded">
-                  <span className="text-sm text-slate-700">{quiz.title}</span>
-                  <button
-                    onClick={() => handleRestoreQuiz(quiz.id)}
-                    className="py-1 px-3 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-                  >
-                    Restore
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">No archived quizzes found.</p>
-          )}
-        </div>
-      </section>
+            {/* Profile Information */}
+            <div className="mb-8">
+              <h3 className="text-lg font-medium mb-4 dark:text-white">Profile Information</h3>
+              <form onSubmit={handleProfileSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="profileName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
+                  <input
+                    id="profileName"
+                    type="text"
+                    name="name"
+                    value={profileData.name}
+                    onChange={handleProfileChange}
+                    placeholder="Your full name"
+                    className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="profileEmail" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                  <input
+                    id="profileEmail"
+                    type="email"
+                    name="email"
+                    value={profileData.email}
+                    onChange={handleProfileChange}
+                    placeholder="your.email@example.com"
+                    className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 rounded-md bg-slate-100 dark:bg-slate-700 dark:text-slate-300 cursor-not-allowed"
+                    disabled
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                    isUpdatingProfile
+                      ? 'bg-slate-400 cursor-not-allowed'
+                      : 'bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500'
+                  }`}
+                >
+                  {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
+                </button>
+              </form>
+            </div>
 
-      {/* System Settings */}
-      <section className="p-4 border rounded shadow-sm">
-        <h2 className="text-xl font-medium mb-4">System Settings</h2>
-        {/* Theme */}
-        {/* Theme */}
-        <div>
-          <h3 className="text-lg font-medium mb-2">Theme</h3>
-          <select
-            name="theme"
-            value={systemSettings.theme}
-            onChange={handleSystemSettingChange}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-slate-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md"
-          >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            {/* Add other themes if needed */}
-          </select>
-          {/* Consider adding a button to save system settings if needed, or save on change */}
+            {/* Password Change */}
+            <div>
+              <h3 className="text-lg font-medium mb-4 dark:text-white">Change Password</h3>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                {/* Current Password */}
+                <div className="space-y-1">
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="currentPassword"
+                      type={passwordData.showCurrentPassword ? 'text' : 'password'}
+                      name="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('showCurrentPassword')}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+                    >
+                      {passwordData.showCurrentPassword ? (
+                        <AiOutlineEyeInvisible className="h-5 w-5" />
+                      ) : (
+                        <AiOutlineEye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* New Password */}
+                <div className="space-y-1">
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="newPassword"
+                      type={passwordData.showNewPassword ? 'text' : 'password'}
+                      name="newPassword"
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('showNewPassword')}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+                    >
+                      {passwordData.showNewPassword ? (
+                        <AiOutlineEyeInvisible className="h-5 w-5" />
+                      ) : (
+                        <AiOutlineEye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Password Requirements */}
+                  <div className="mt-2 space-y-2">
+                    {passwordValidation.map((rule, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center text-sm ${
+                          rule.passed ? 'text-green-600' : 'text-slate-500'
+                        }`}
+                      >
+                        <svg
+                          className={`mr-2 h-4 w-4 ${
+                            rule.passed ? 'text-green-500' : 'text-slate-400'
+                          }`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          {rule.passed ? (
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          ) : (
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                              clipRule="evenodd"
+                            />
+                          )}
+                        </svg>
+                        {rule.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-1">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={passwordData.showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('showConfirmPassword')}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+                    >
+                      {passwordData.showConfirmPassword ? (
+                        <AiOutlineEyeInvisible className="h-5 w-5" />
+                      ) : (
+                        <AiOutlineEye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                    isChangingPassword
+                      ? 'bg-slate-400 cursor-not-allowed'
+                      : 'bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500'
+                  }`}
+                >
+                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </form>
+            </div>
+          </section>
+
+          {/* Quiz Settings */}
+          <section id="quiz" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-medium mb-4 dark:text-white">Quiz Creation Defaults</h2>
+            <div className="space-y-6">
+              {/* Default Quiz Timer with Slider */}
+              <div className="space-y-2">
+                <label htmlFor="defaultTimer" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Default Quiz Timer
+                  <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">{quizSettings.defaultTimer} minutes</span>
+                </label>
+                <input
+                  id="defaultTimer"
+                  type="range"
+                  name="defaultTimer"
+                  value={quizSettings.defaultTimer}
+                  onChange={handleQuizSettingChange}
+                  min="1"
+                  max="180"
+                  step="5"
+                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                />
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>1 min</span>
+                  <span>60 min</span>
+                  <span>180 min</span>
+                </div>
+              </div>
+
+              {/* Default Question Randomization */}
+              <div className="mb-4">
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      id="defaultQuestionRandomization"
+                      name="defaultQuestionRandomization"
+                      checked={quizSettings.defaultQuestionRandomization}
+                      onChange={handleQuizSettingChange}
+                      className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="ml-3">
+                    <label htmlFor="defaultQuestionRandomization" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Question Order Randomization
+                    </label>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Automatically shuffle the order of questions for each quiz attempt. This helps prevent memorization and promotes active learning.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Default Answer Option Randomization */}
+              <div className="mb-4">
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      id="defaultAnswerRandomization"
+                      name="defaultAnswerRandomization"
+                      checked={quizSettings.defaultAnswerRandomization}
+                      onChange={handleQuizSettingChange}
+                      className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="ml-3">
+                    <label htmlFor="defaultAnswerRandomization" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Answer Choice Randomization
+                    </label>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Shuffle the order of answer choices for multiple choice questions. This discourages position-based memorization.
+                    </p>
+                    <div className="mt-2 rounded-md bg-slate-50 dark:bg-slate-800 p-3 text-sm">
+                      <p className="text-slate-600 dark:text-slate-300">
+                        <span className="font-medium">Note:</span> This only affects multiple choice questions. True/False and other question types remain unchanged.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Settings Note */}
+              <div className="mt-6 rounded-md bg-teal-50 dark:bg-teal-900/30 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-teal-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-teal-700 dark:text-teal-300">
+                      Settings are automatically saved when changed. These preferences will be used as defaults when creating new quizzes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quiz Archiving Section */}
+            <div id="archived-section" className="mt-6 border-t pt-6"> {/* Added ID here */}
+              <h3 className="text-lg font-medium mb-2 dark:text-white">Archived Quizzes</h3>
+              <button
+                onClick={() => setIsArchiveModalOpen(true)}
+                className="inline-flex justify-center py-2 px-4 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+              >
+                Manage Archived Quizzes ({archivedQuizzes.length})
+              </button>
+            </div>
+          </section>
+
+          {/* System Settings */}
+          <section id="system" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-medium mb-4 dark:text-white">System Settings</h2>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium mb-2 dark:text-white">Theme</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div
+                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                    systemSettings.theme === 'light'
+                      ? 'border-teal-500 shadow-sm bg-white dark:bg-slate-800'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                  onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'light' } })}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="w-4 h-4 rounded-full bg-white border border-slate-300"></span>
+                    <span className="text-sm font-medium dark:text-white">Light Mode</span>
+                  </div>
+                </div>
+                <div
+                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                    systemSettings.theme === 'dark'
+                      ? 'border-teal-500 shadow-sm bg-slate-800 text-white'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                  onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'dark' } })}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-600"></span>
+                    <span className="text-sm font-medium">Dark Mode</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
 
       {/* Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        onConfirm={() => setDialogOpen(false)} // Simple close for info dialog
+        onConfirm={() => setDialogOpen(false)}
         title={dialogTitle}
         description={dialogMessage}
-        confirmButtonText="OK" // Change button text for info
-        // Hide cancel button if not needed for info dialog
-        // cancelButtonText="" // Or adjust component to hide it based on prop
+        confirmButtonText="OK"
       />
+
+      {/* Archived Quizzes Modal */}
+      <Dialog open={isArchiveModalOpen} onClose={() => setIsArchiveModalOpen(false)} className="relative z-50">
+        {/* Overlay */}
+        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+
+        {/* Modal Panel */}
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full">
+            <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+              Archived Quizzes
+            </Dialog.Title>
+
+            {/* List Content */}
+            <div className="max-h-96 overflow-y-auto mb-6 pr-2">
+              {isLoadingArchived ? (
+                <p className="text-slate-500 dark:text-slate-400">Loading archived quizzes...</p>
+              ) : archivedQuizzes.length > 0 ? (
+                <ul className="space-y-2">
+                  {archivedQuizzes.map((quiz) => (
+                    <li key={quiz.id} className="flex justify-between items-center p-2 border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-700">
+                      <span className="text-sm text-slate-700 dark:text-slate-300">{quiz.title}</span>
+                      <button
+                        onClick={() => handleRestoreQuiz(quiz.id)}
+                        className="py-1 px-3 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-500"
+                      >
+                        Restore
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">No archived quizzes found.</p>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsArchiveModalOpen(false)}
+                className="py-2 px-4 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-700 dark:text-white cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 };

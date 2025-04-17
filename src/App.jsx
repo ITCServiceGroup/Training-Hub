@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { useTheme } from './contexts/ThemeContext';
 
 // Layout Components
 import Layout from './components/layout/Layout';
@@ -32,13 +33,14 @@ const LoadingFallback = () => (
 
 function App() {
   const { loading } = useAuth();
+  const { theme } = useTheme();
 
   if (loading) {
     return <LoadingFallback />;
   }
 
   return (
-    <div className="app-container w-full min-h-screen">
+    <div className={`app-container w-full min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
       <Routes>
         {/* Main app routes */}
         <Route path="/" element={<Layout />}>
@@ -95,7 +97,7 @@ function App() {
                   <AdminStudyGuides />
                 </Suspense>
               } />
-              
+
               {/* Quiz Management Routes */}
               <Route path="quizzes/*" element={
                 <Suspense fallback={<LoadingFallback />}>

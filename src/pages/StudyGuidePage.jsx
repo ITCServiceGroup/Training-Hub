@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
+import { useTheme } from '../contexts/ThemeContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { studyGuidesService } from '../services/api/studyGuides';
@@ -10,6 +11,8 @@ import PublicStudyGuideList from '../components/PublicStudyGuideList'; // Main c
 import StudyGuideViewer from '../components/StudyGuideViewer';
 
 const StudyGuidePage = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { sectionId, categoryId, studyGuideId } = useParams();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -244,15 +247,15 @@ const StudyGuidePage = () => {
   // Render breadcrumb navigation (using derived state)
   const renderBreadcrumbs = () => {
     return (
-      <div className="flex items-center mb-6 text-sm text-slate-500">
-        <Link to="/study" className="text-teal-700 no-underline mr-2">Study Guides</Link>
+      <div className={`flex items-center mb-6 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+        <Link to="/study" className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-2`}>Study Guides</Link>
 
         {sectionId && (
           <>
             <span className="mx-2">›</span>
             <Link
               to={`/study/${sectionId}`}
-              className={`text-teal-700 no-underline mr-2 ${!categoryId ? 'font-bold' : 'font-normal'}`}
+              className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-2 ${!categoryId ? 'font-bold' : 'font-normal'}`}
             >
               {currentSection?.name || 'Section'}
             </Link>
@@ -264,7 +267,7 @@ const StudyGuidePage = () => {
             <span className="mx-2">›</span>
             <Link
               to={`/study/${sectionId}/${categoryId}`}
-              className={`text-teal-700 no-underline mr-2 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
+              className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-2 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
             >
               {currentCategory?.name || 'Category'}
             </Link>
@@ -274,7 +277,7 @@ const StudyGuidePage = () => {
         {studyGuideId && currentStudyGuide && (
           <>
             <span className="mx-2">›</span>
-            <span className="font-bold">{currentStudyGuide.title}</span>
+            <span className={`font-bold ${isDark ? 'text-white' : ''}`}>{currentStudyGuide.title}</span>
           </>
         )}
       </div>
@@ -287,12 +290,12 @@ const StudyGuidePage = () => {
   return (
     <div className="py-4 w-full">
       <div className="mb-2 flex justify-between items-center flex-wrap gap-4">
-        <h2 className="text-4xl text-teal-700 m-0">Study Guides</h2>
+        <h2 className={`text-4xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0`}>Study Guides</h2>
         <div className="flex items-center max-w-md w-full">
           <input
             type="text"
             placeholder="Search study guides..."
-            className="py-3 px-3 border border-slate-200 rounded text-base w-full"
+            className={`py-3 px-3 border rounded text-base w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -300,10 +303,10 @@ const StudyGuidePage = () => {
       </div>
 
       {/* Error messages */}
-      {sectionsError && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{sectionsError}</div>}
+      {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{sectionsError}</div>}
       {/* Removed categoriesError as it's covered by sectionsError */}
-      {studyGuidesError && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{studyGuidesError}</div>}
-      {studyGuideError && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{studyGuideError}</div>}
+      {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{studyGuidesError}</div>}
+      {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{studyGuideError}</div>}
 
       {/* Breadcrumb navigation */}
       {(sectionId || categoryId || studyGuideId) && renderBreadcrumbs()}
@@ -312,7 +315,7 @@ const StudyGuidePage = () => {
       {!sectionId ? (
         /* Section view (no section selected) */
         <>
-          <p>Select a section below to start learning.</p>
+          <p className={isDark ? 'text-gray-300' : ''}>Select a section below to start learning.</p>
           <SectionGrid
             sections={sectionsData} // Use context data
             isLoading={isLoadingSections} // Use context loading state
@@ -322,7 +325,7 @@ const StudyGuidePage = () => {
       ) : !categoryId ? (
         /* Category view (section selected, no category selected) */
         <>
-          <p>Select a category below to view study guides.</p>
+          <p className={isDark ? 'text-gray-300' : ''}>Select a category below to view study guides.</p>
           <CategoryGrid
             categories={categories} // Use derived categories state
             sectionId={sectionId}
@@ -335,7 +338,7 @@ const StudyGuidePage = () => {
           <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full">
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
-              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-20'} right-4 z-[60] p-3 bg-white rounded-lg shadow-lg text-teal-700 hover:text-teal-800 transition-colors`}
+              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-20'} right-4 z-[60] p-3 ${isDark ? 'bg-slate-800 text-teal-400 hover:text-teal-300' : 'bg-white text-teal-700 hover:text-teal-800'} rounded-lg shadow-lg transition-colors`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle menu"
             >
@@ -344,7 +347,7 @@ const StudyGuidePage = () => {
 
             {/* Backdrop for mobile */}
             {isSidebarOpen && (
-              <div 
+              <div
                 className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[50]"
                 onClick={() => setIsSidebarOpen(false)}
               />
@@ -356,7 +359,7 @@ const StudyGuidePage = () => {
               w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out overflow-y-auto
               ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[72px] h-[calc(100vh-72px)]'}
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-              bg-white md:bg-transparent
+              ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
             `}>
             <StudyGuideList
               studyGuides={studyGuides}

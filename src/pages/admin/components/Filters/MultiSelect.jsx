@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { quizResultsService } from '../../../../services/api/quizResults';
+import { useTheme } from '../../../../contexts/ThemeContext';
 
 const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
+  const { theme } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,34 +56,62 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
-      borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
-      boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : provided.boxShadow,
+      borderColor: state.isFocused ? '#14b8a6' : isDark ? '#475569' : '#d1d5db',
+      boxShadow: state.isFocused ? '0 0 0 1px #14b8a6' : provided.boxShadow,
+      backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
+      color: isDark ? '#f8fafc' : provided.color,
       '&:hover': {
-        borderColor: '#3b82f6'
+        borderColor: '#14b8a6'
+      }
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isFocused
+        ? isDark ? '#334155' : provided.backgroundColor
+        : isDark ? '#1e293b' : provided.backgroundColor,
+      color: isDark ? '#f8fafc' : provided.color,
+      '&:hover': {
+        backgroundColor: isDark ? '#475569' : '#f3f4f6',
       }
     }),
     multiValue: (provided) => ({
       ...provided,
-      backgroundColor: '#e5e7eb'
+      backgroundColor: isDark ? '#475569' : '#e5e7eb'
     }),
     multiValueLabel: (provided) => ({
       ...provided,
-      color: '#374151'
+      color: isDark ? '#f8fafc' : '#374151'
     }),
     multiValueRemove: (provided) => ({
       ...provided,
-      color: '#6b7280',
+      color: isDark ? '#cbd5e1' : '#6b7280',
       '&:hover': {
-        backgroundColor: '#d1d5db',
-        color: '#1f2937'
+        backgroundColor: isDark ? '#64748b' : '#d1d5db',
+        color: isDark ? '#f8fafc' : '#1f2937'
       }
-    })
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: isDark ? '#f8fafc' : provided.color,
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: isDark ? '#94a3b8' : provided.color,
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: isDark ? '#f8fafc' : provided.color,
+    }),
   };
 
   return (
     <div className="space-y-1 w-full">
       {!hideLabel && (
-        <label htmlFor={`filter-${type}`} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={`filter-${type}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {labels[type]}
         </label>
       )}

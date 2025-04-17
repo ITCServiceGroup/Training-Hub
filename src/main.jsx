@@ -4,6 +4,7 @@ import { HashRouter } from 'react-router-dom';
 import './index.css'; // Moved CSS import before App
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './utils/debugHelper';
 
 console.log('Main.jsx is executing...');
@@ -15,7 +16,9 @@ try {
     <React.StrictMode>
       <HashRouter>
         <AuthProvider>
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </AuthProvider>
       </HashRouter>
     </React.StrictMode>
@@ -23,12 +26,14 @@ try {
   console.log('React app has been rendered with Auth Context!');
 } catch (error) {
   console.error('Error rendering with Auth Context:', error);
-  
+
   // Fallback to render without AuthProvider if there's an error
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
       <HashRouter>
-        <App />
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
       </HashRouter>
     </React.StrictMode>
   );

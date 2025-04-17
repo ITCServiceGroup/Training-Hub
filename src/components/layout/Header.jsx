@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
+import { FiSun, FiMoon } from 'react-icons/fi';
 
 const Header = () => {
   const { isAuthenticated, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -19,7 +22,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-teal-700 text-white py-4 shadow-md relative z-[100]">
+    <header className="bg-teal-700 dark:bg-slate-800 text-white py-4 shadow-md relative z-[100]">
       <div className="w-full px-6">
         <div className="flex justify-between items-center">
           {/* Logo - smaller on mobile */}
@@ -92,6 +95,16 @@ const Header = () => {
                   </Link>
                 </li>
               )}
+              {/* Theme toggle button */}
+              <li>
+                <button
+                  onClick={toggleTheme}
+                  className="inline-flex items-center justify-center p-2 text-white bg-teal-600 dark:bg-slate-700 hover:bg-teal-500 dark:hover:bg-slate-600 rounded-md transition-colors"
+                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                >
+                  {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
+                </button>
+              </li>
             </ul>
           </nav>
         </div>
@@ -108,7 +121,7 @@ const Header = () => {
       />
       <div
         className={`
-          md:hidden fixed right-0 top-0 w-64 h-full bg-teal-700 shadow-lg
+          md:hidden fixed right-0 top-0 w-64 h-full bg-teal-700 dark:bg-slate-800 shadow-lg
           transform transition-transform duration-300 ease-in-out z-[95]
           ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
@@ -174,6 +187,18 @@ const Header = () => {
                   </Link>
                 </li>
               )}
+              {/* Theme toggle button */}
+              <li className="mt-4">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center w-full text-white font-medium hover:bg-teal-600 dark:hover:bg-slate-700 px-3 py-3 rounded-md transition-colors"
+                >
+                  <span className="mr-2">
+                    {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
+                  </span>
+                  {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                </button>
+              </li>
             </ul>
           </nav>
         </div>

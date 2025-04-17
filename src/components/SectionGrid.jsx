@@ -1,10 +1,13 @@
 import React from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
 /**
  * Component for displaying a grid of sections
  */
 const SectionGrid = ({ sections, isLoading, searchQuery }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const navigate = useNavigate();
 
   const handleSectionClick = (sectionId) => {
@@ -30,8 +33,8 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-12 text-slate-500">
-        <div className="w-8 h-8 rounded-full border-3 border-gray-200 border-t-teal-700 animate-spin mr-4"></div>
+      <div className={`flex justify-center items-center p-12 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-4`}></div>
         <span>Loading sections...</span>
       </div>
     );
@@ -47,7 +50,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
 
   if (filteredSections.length === 0) {
     return (
-      <div className="text-center p-12 text-slate-500">
+      <div className={`text-center p-12 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
         {searchQuery
           ? <p>No sections found matching "{searchQuery}"</p>
           : <p>No sections available</p>
@@ -65,7 +68,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
         return (
           <div
             key={section.id}
-            className="bg-white rounded-lg shadow p-6 cursor-pointer flex flex-col h-full transition-all hover:translate-y-[-5px] hover:shadow-md"
+            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 cursor-pointer flex flex-col h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
             onClick={() => handleSectionClick(section.id)}
           >
             <div
@@ -74,13 +77,13 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
             >
               <span>{icon}</span>
             </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900">{section.name}</h3>
-            <p className="text-slate-500 mb-4 flex-1">{section.description || 'No description available'}</p>
-            <div className="flex justify-between text-slate-400 text-sm mt-auto">
+            <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.name}</h3>
+            <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{section.description || 'No description available'}</p>
+            <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto`}>
               <span>{categoryCount} {categoryCount === 1 ? 'Category' : 'Categories'}</span>
             </div>
             <button
-              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full"
+              className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full`}
             >
               View Categories
             </button>

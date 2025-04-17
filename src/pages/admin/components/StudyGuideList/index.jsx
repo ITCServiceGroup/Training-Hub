@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import {
   DndContext,
   closestCenter,
@@ -64,6 +65,8 @@ const formatDate = (dateString) => {
 };
 
 const SortableStudyGuideItem = ({ guide, onSelect, selectedId, hoveredId, setHoveredId }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const {
     attributes,
     listeners,
@@ -85,16 +88,16 @@ const SortableStudyGuideItem = ({ guide, onSelect, selectedId, hoveredId, setHov
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-blue-500' : 'border border-gray-200'} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-lg opacity-80' : selectedId === guide.id ? 'shadow-md' : 'shadow'}`}
+      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-teal-600' : 'border border-gray-200 dark:border-slate-600'} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-lg opacity-80' : selectedId === guide.id ? 'shadow-md' : 'shadow'}`}
       onMouseEnter={() => !isDragging && setHoveredId(guide.id)}
       onMouseLeave={() => setHoveredId(null)}
       onClick={() => onSelect(guide)}
       {...attributes}
     >
-      <div className="bg-white cursor-pointer">
+      <div className="bg-white dark:bg-slate-700 cursor-pointer">
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-800 overflow-hidden text-ellipsis whitespace-nowrap">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
               {guide.title}
             </h3>
             <div
@@ -107,18 +110,18 @@ const SortableStudyGuideItem = ({ guide, onSelect, selectedId, hoveredId, setHov
               </svg>
             </div>
           </div>
-          <div className="text-sm text-gray-600 line-clamp-2">
+          <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
             {extractPreview(guide.content)}
           </div>
         </div>
-        <div className="bg-gray-50 px-4 py-2 border-t border-gray-100 flex justify-between items-center">
-          <div className="text-xs text-gray-500 flex items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 px-4 py-2 border-t border-gray-100 dark:border-slate-600 flex justify-between items-center">
+          <div className="text-xs text-gray-500 dark:text-gray-300 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Updated {formatDate(guide.updated_at)}
           </div>
-          <div className={`text-xs font-medium text-blue-500 transition-opacity duration-200 ${hoveredId === guide.id || selectedId === guide.id ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`text-xs font-medium text-teal-600 dark:text-teal-400 transition-opacity duration-200 ${hoveredId === guide.id || selectedId === guide.id ? 'opacity-100' : 'opacity-0'}`}>
             Click to edit
           </div>
         </div>
@@ -134,6 +137,7 @@ const StudyGuideList = ({
   onReorder
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
+  const { theme } = useTheme();
   const { sectionsData, selectedCategory } = useContext(CategoryContext);
 
   // Combine prop data with context data
@@ -187,12 +191,12 @@ const StudyGuideList = ({
 
   if (!studyGuidesToDisplay.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-600">
         <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
-        <p className="text-gray-500 mb-2">No study guides found in this category.</p>
-        <p className="text-gray-400 text-sm">Click the "Create New Study Guide" button to add content.</p>
+        <p className="text-gray-500 dark:text-gray-300 mb-2">No study guides found in this category.</p>
+        <p className="text-gray-400 dark:text-gray-300 text-sm">Click the "Create New Study Guide" button to add content.</p>
       </div>
     );
   }

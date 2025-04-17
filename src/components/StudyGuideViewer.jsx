@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 /**
  * Component for displaying study guide content with interactive element support (Web Component Method)
  */
 const StudyGuideViewer = ({ studyGuide, isLoading }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const iframeRef = useRef(null); // Ref for the main content iframe
 
   // Effect to inject component definition scripts after the main iframe loads
@@ -87,9 +90,9 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   // Loading and Empty states remain the same
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg p-8 shadow h-full overflow-auto w-full">
-        <div className="flex justify-center items-center p-8 text-slate-500">
-          <div className="w-6 h-6 rounded-full border-2 border-gray-200 border-t-teal-700 animate-spin mr-3"></div>
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-8 shadow h-full overflow-auto w-full`}>
+        <div className={`flex justify-center items-center p-8 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+          <div className={`w-6 h-6 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-3`}></div>
           <span>Loading study guide...</span>
         </div>
       </div>
@@ -98,8 +101,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   if (!studyGuide) {
     return (
-      <div className="bg-white rounded-lg p-8 shadow h-full overflow-auto w-full">
-        <div className="text-center p-8 text-slate-500 flex flex-col items-center justify-center h-full">
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-8 shadow h-full overflow-auto w-full`}>
+        <div className={`text-center p-8 ${isDark ? 'text-gray-400' : 'text-slate-500'} flex flex-col items-center justify-center h-full`}>
           <p>Select a study guide to view its content</p>
         </div>
       </div>
@@ -190,6 +193,9 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           /* Reset potential interfering styles */
           text-size-adjust: none;
           -webkit-text-size-adjust: none;
+          /* Dark mode support */
+          background-color: ${isDark ? '#1e293b' : '#ffffff'};
+          color: ${isDark ? '#f8fafc' : '#1e293b'};
         }
 
         /* Ensure web components have proper display */
@@ -250,13 +256,13 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
         /* Image Style Options */
         .image-grid-wrapper > .image-cell > img.border-thin {
-          border: 1px solid #e0e0e0;
+          border: 1px solid ${isDark ? '#475569' : '#e0e0e0'};
         }
         .image-grid-wrapper > .image-cell > img.border-medium {
-          border: 2px solid #e0e0e0;
+          border: 2px solid ${isDark ? '#475569' : '#e0e0e0'};
         }
         .image-grid-wrapper > .image-cell > img.border-thick {
-          border: 4px solid #e0e0e0;
+          border: 4px solid ${isDark ? '#475569' : '#e0e0e0'};
         }
         /* Custom border colors will be applied as inline styles */
         .image-grid-wrapper > .image-cell > img.border-color-custom {
@@ -275,19 +281,19 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         }
         /* Border Color Options */
         .image-grid-wrapper > .image-cell > img.border-color-gray {
-          border-color: #e0e0e0;
+          border-color: ${isDark ? '#475569' : '#e0e0e0'};
         }
         .image-grid-wrapper > .image-cell > img.border-color-black {
-          border-color: #000000;
+          border-color: ${isDark ? '#f8fafc' : '#000000'};
         }
         .image-grid-wrapper > .image-cell > img.border-color-blue {
-          border-color: #2563eb;
+          border-color: ${isDark ? '#14b8a6' : '#0f766e'}; /* Changed from blue to teal */
         }
         .image-grid-wrapper > .image-cell > img.border-color-red {
-          border-color: #dc2626;
+          border-color: ${isDark ? '#f87171' : '#dc2626'};
         }
         .image-grid-wrapper > .image-cell > img.border-color-green {
-          border-color: #16a34a;
+          border-color: ${isDark ? '#34d399' : '#16a34a'};
         }
 
         /* Fallback: Apply solid border style when thickness is present but no style is specified */
@@ -341,13 +347,13 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Main component return statement
   return (
-    <div className="bg-white rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full"> {/* Changed p-8 to p-2 sm:p-8 */}
-      <div className="flex justify-between items-center mb-6 border-b border-slate-200 pb-3">
-        <h2 className="text-2xl text-slate-900">{studyGuide.title}</h2>
+    <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full`}> {/* Changed p-8 to p-2 sm:p-8 */}
+      <div className={`flex justify-between items-center mb-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} pb-3`}>
+        <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
         {studyGuide && studyGuide.category_id && (
           <button
             onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}
-            className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2"
+            className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
           >
             <span>📝</span> Take Practice Quiz
           </button>

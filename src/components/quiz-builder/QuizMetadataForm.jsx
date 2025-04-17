@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { sectionsService } from '../../services/api/sections';
 import { categoriesService } from '../../services/api/categories';
 
 const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [sections, setSections] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedSectionId, setSelectedSectionId] = useState(null);
@@ -56,12 +59,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
           Quiz Title
         </label>
         <input
           type="text"
-          className="w-full py-2 px-3 border border-slate-300 rounded-md"
+          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
           value={quiz.title}
           onChange={(e) => handleChange('title', e.target.value)}
           disabled={isLoading}
@@ -71,11 +74,11 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
           Description
         </label>
         <textarea
-          className="w-full py-2 px-3 border border-slate-300 rounded-md"
+          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
           value={quiz.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
           rows={3}
@@ -86,12 +89,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
             Time Limit (minutes)
           </label>
           <input
             type="number"
-            className="w-full py-2 px-3 border border-slate-300 rounded-md"
+            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
             value={quiz.time_limit ? Math.floor(quiz.time_limit / 60) : ''}
             onChange={(e) => {
               const minutes = parseInt(e.target.value, 10);
@@ -104,12 +107,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
             Passing Score (%)
           </label>
           <input
             type="number"
-            className="w-full py-2 px-3 border border-slate-300 rounded-md"
+            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
             value={quiz.passing_score || ''}
             onChange={(e) => handleChange('passing_score', parseFloat(e.target.value))}
             min="0"
@@ -122,7 +125,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-2">Quiz Mode Options</h3>
+          <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Quiz Mode Options</h3>
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="flex items-center">
@@ -142,7 +145,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                   }}
                   disabled={isLoading}
                 />
-                <span className="ml-2 text-sm text-slate-700">
+                <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                   Practice Quiz Only (no access code required, immediate feedback)
                 </span>
               </label>
@@ -164,14 +167,14 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                   }}
                   disabled={isLoading}
                 />
-                <span className="ml-2 text-sm text-slate-700">
+                <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                   Enable Practice Mode (allows practice attempts alongside regular quiz)
                 </span>
               </label>
             </div>
 
-            <div className="border-t border-slate-200 pt-4">
-              <h4 className="text-sm font-medium text-slate-700 mb-2">Randomization Options</h4>
+            <div className={`border-t ${isDark ? 'border-slate-600' : 'border-slate-200'} pt-4`}>
+              <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Randomization Options</h4>
               <div className="space-y-2">
                 <label className="flex items-center">
                   <input
@@ -181,7 +184,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                     onChange={(e) => handleChange('randomize_questions', e.target.checked)}
                     disabled={isLoading}
                   />
-                  <span className="ml-2 text-sm text-slate-700">
+                  <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                     Randomize question order for all attempts
                   </span>
                 </label>
@@ -194,15 +197,15 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                     onChange={(e) => handleChange('randomize_answers', e.target.checked)}
                     disabled={isLoading}
                   />
-                  <span className="ml-2 text-sm text-slate-700">
+                  <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                     Randomize answer options for all attempts
                   </span>
                 </label>
               </div>
             </div>
           </div>
-          <p className="mt-2 text-sm text-slate-500">
-            {quiz.is_practice 
+          <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+            {quiz.is_practice
               ? "Practice-only quizzes are always accessible without access codes and provide immediate feedback."
               : quiz.has_practice_mode
                 ? "This quiz will be available as both a regular quiz (requires access code) and a practice quiz."
@@ -212,11 +215,11 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
           Filter Categories by Section
         </label>
         <select
-          className="w-full py-2 px-3 border border-slate-300 rounded-md"
+          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
           value={selectedSectionId || ''}
           onChange={(e) => setSelectedSectionId(e.target.value || null)}
           disabled={isLoading}
@@ -231,27 +234,27 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
           Select Categories
         </label>
-        <div className="max-h-60 overflow-y-auto border border-slate-300 rounded-md p-2">
+        <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
           {filteredCategories.map(category => (
-            <label key={category.id} className="flex items-center p-2 hover:bg-slate-50">
+            <label key={category.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
               <input
                 type="checkbox"
-                className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
                 checked={quiz.category_ids.includes(category.id)}
                 onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
                 disabled={isLoading}
               />
-              <span className="ml-2 text-sm text-slate-700">
+              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                 {category.name}
               </span>
             </label>
           ))}
 
           {filteredCategories.length === 0 && (
-            <p className="text-sm text-slate-500 p-2">No categories found</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No categories found</p>
           )}
         </div>
       </div>

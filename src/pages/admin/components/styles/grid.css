@@ -29,8 +29,8 @@
 
 /* Add placeholder styling */
 .admin-grid .placeholder {
-  background-color: rgba(59, 130, 246, 0.1);
-  border: 2px dashed #3B82F6;
+  background-color: rgba(20, 184, 166, 0.1); /* Changed from blue to teal */
+  border: 2px dashed #14B8A6; /* Changed from blue to teal */
   border-radius: 0.5rem;
 }
 

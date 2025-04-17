@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react'; // Import useContext
+import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaPlus, FaLayerGroup, FaBars } from 'react-icons/fa';
 import {
   DndContext,
@@ -35,6 +36,8 @@ const CategoryAdminGrid = ({
   onReorder, // This prop likely handles the API call for categories
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   // Consume sectionsData and optimistic update function from context
   const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const sensors = useSensors(
@@ -108,7 +111,7 @@ const CategoryAdminGrid = ({
       <div
         ref={setNodeRef}
         style={style}
-        className={`admin-grid-item bg-white rounded-lg border border-gray-200 shadow overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
+        className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
         onMouseEnter={() => !isDragging && setHoveredId(category.id)}
         onMouseLeave={() => setHoveredId(null)}
       >
@@ -136,9 +139,9 @@ const CategoryAdminGrid = ({
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Manage Categories</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Manage Categories</h2>
           {section && (
-            <div className="flex items-center text-lg font-semibold text-gray-800 mt-3 py-2 px-3 bg-gray-100 rounded-md border border-gray-200">
+            <div className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mt-3 py-2 px-3 bg-gray-100 dark:bg-slate-700 rounded-md border border-gray-200 dark:border-slate-600">
               <FaLayerGroup className="mr-2 text-base" />
               <span>Section: {section.name}</span>
             </div>
@@ -146,7 +149,7 @@ const CategoryAdminGrid = ({
         </div>
         {!isCreating && (
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
+            className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
             onClick={() => setIsCreating(true)}
           >
             <FaPlus />
@@ -156,14 +159,14 @@ const CategoryAdminGrid = ({
       </div>
 
       {error && (
-        <div className="bg-red-100 text-red-600 p-4 rounded-md mb-6">
+        <div className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-md mb-6">
           {error}
         </div>
       )}
 
       {isLoading ? (
-        <div className="flex justify-center items-center p-12 text-gray-500">
-          <div className="w-8 h-8 rounded-full border-3 border-gray-200 border-t-blue-500 animate-spin mr-3"></div>
+        <div className="flex justify-center items-center p-12 text-gray-500 dark:text-gray-300">
+          <div className="w-8 h-8 rounded-full border-3 border-gray-200 dark:border-gray-600 border-t-teal-600 animate-spin mr-3"></div>
           <span>Loading categories...</span>
         </div>
       ) : isCreating ? (
@@ -174,7 +177,7 @@ const CategoryAdminGrid = ({
           darkMode={true}
         />
       ) : displayCategories.length === 0 ? (
-        <div className="text-center p-12 text-gray-500 bg-gray-100 rounded-lg">
+        <div className="text-center p-12 text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-lg">
           <p>No categories available. Click "Add Category" to create one.</p>
         </div>
       ) : (

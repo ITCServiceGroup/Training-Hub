@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import html2pdf from 'html2pdf.js';
 import { supabase } from '../../config/supabase';
@@ -44,6 +45,8 @@ const isAnswerCorrect = (question, answerData, isPractice) => {
 
 
 const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   // Refs
   const pdfContentRef = useRef(null);
   const timeoutPromiseRef = useRef(null);
@@ -74,7 +77,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
       try {
         let quizData;
-        
+
         if (accessCode) {
           // Validate access code first
           const codeData = await accessCodesService.validateCode(accessCode);
@@ -84,12 +87,12 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             return;
           }
           setAccessCodeData(codeData);
-          
+
           // Use quiz ID from access code
           quizData = await quizzesService.getWithQuestions(codeData.quiz_id);
           // Force practice mode off when using access code
           quizData.is_practice = false;
-          
+
           // Apply randomization if enabled
           if (quizData.randomize_questions) {
             quizData.questions = shuffleArray(quizData.questions);
@@ -97,22 +100,22 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           if (quizData.randomize_answers) {
             quizData.questions = quizData.questions.map(q => shuffleQuestionOptions(q));
           }
-          
+
           setQuiz(quizData);
         } else if (quizId) {
           // Load quiz directly if ID is provided
           quizData = await quizzesService.getWithQuestions(quizId);
-          
+
           // Validate quiz access
           if (!quizData.is_practice && !quizData.has_practice_mode) {
             setError('This quiz requires an access code');
             setIsLoading(false);
             return;
           }
-          
+
           // Force practice mode on for direct access
           quizData.is_practice = true;
-          
+
           // Apply randomization if enabled
           if (quizData.randomize_questions) {
             quizData.questions = shuffleArray(quizData.questions);
@@ -120,7 +123,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           if (quizData.randomize_answers) {
             quizData.questions = quizData.questions.map(q => shuffleQuestionOptions(q));
           }
-          
+
           setQuiz(quizData);
         }
       } catch (error) {
@@ -293,7 +296,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     return () => {
       if (timer) clearInterval(timer);
       if (timeoutTimeoutRef.current) clearTimeout(timeoutTimeoutRef.current);
-      
+
       // Cleanup pending submission promise *without* setting state here
       if (timeoutPromiseRef.current) {
         timeoutPromiseRef.current
@@ -328,7 +331,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       questions = questions.map(q => shuffleQuestionOptions(q));
     }
     setQuiz({ ...quiz, questions });
-    
+
     setQuizStarted(true);
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
@@ -343,7 +346,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   // Handle answer selection and provide immediate feedback in practice mode
   const handleSelectAnswer = (answer) => {
     const currentQuestion = quiz.questions[currentQuestionIndex];
-    
+
     // For practice mode, check answer immediately
     if (quiz.is_practice) {
       let isCorrect = false;
@@ -353,7 +356,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           break;
         case 'check_all_that_apply':
           if (Array.isArray(answer) && Array.isArray(currentQuestion.correct_answer)) {
-            isCorrect = 
+            isCorrect =
               answer.length === currentQuestion.correct_answer.length &&
               answer.every(a => currentQuestion.correct_answer.includes(a));
           }
@@ -406,19 +409,19 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   };
 
   if (isLoading) {
-    return <div className="text-center p-8">Loading quiz...</div>;
+    return <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>Loading quiz...</div>;
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-700">{error}</p>
+      <div className={`p-6 ${isDark ? 'bg-red-900/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700'} border rounded-lg`}>
+        <p>{error}</p>
       </div>
     );
   }
 
   if (!quiz) {
-    return <div className="text-center p-8">Quiz not found</div>;
+    return <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>Quiz not found</div>;
   }
 
   // Quiz completed screen
@@ -457,31 +460,31 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   // Quiz start screen
   if (!quizStarted) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-slate-900 mb-4">{quiz.title}</h2>
+      <div className={`max-w-2xl mx-auto p-6 ${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow`}>
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>{quiz.title}</h2>
         {quiz.description && (
-          <p className="text-slate-600 mb-6">{quiz.description}</p>
+          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-6`}>{quiz.description}</p>
         )}
-        
+
         <div className="flex gap-8 mb-8">
           <div>
-            <p className="text-sm text-slate-500">Questions</p>
-            <p className="font-bold">{quiz.questions.length}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Questions</p>
+            <p className={`font-bold ${isDark ? 'text-white' : ''}`}>{quiz.questions.length}</p>
           </div>
           {quiz.time_limit && (
             <div>
-              <p className="text-sm text-slate-500">Time Limit</p>
-              <p className="font-bold">{Math.floor(quiz.time_limit / 60)} minutes</p>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Time Limit</p>
+              <p className={`font-bold ${isDark ? 'text-white' : ''}`}>{Math.floor(quiz.time_limit / 60)} minutes</p>
             </div>
           )}
           <div>
-            <p className="text-sm text-slate-500">Passing Score</p>
-            <p className="font-bold">{quiz.passing_score || 70}%</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Passing Score</p>
+            <p className={`font-bold ${isDark ? 'text-white' : ''}`}>{quiz.passing_score || 70}%</p>
           </div>
         </div>
 
         <button
-          className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+          className={`w-full py-3 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white font-medium rounded-lg transition-colors`}
           onClick={handleStartQuiz}
         >
           Start Quiz
@@ -498,8 +501,8 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     <div className="max-w-3xl mx-auto">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{quiz.title}</h2>
-          <p className="text-slate-500">Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{quiz.title}</h2>
+          <p className={isDark ? 'text-gray-400' : 'text-slate-500'}>Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
         </div>
 
         {timeLeft !== null && (
@@ -512,14 +515,14 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-slate-100 rounded-full mb-8">
+      <div className={`h-2 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded-full mb-8`}>
         <div
-          className="h-full bg-teal-600 rounded-full transition-all duration-300"
+          className={`h-full ${isDark ? 'bg-teal-500' : 'bg-teal-600'} rounded-full transition-all duration-300`}
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
         <QuestionDisplay
           question={currentQuestion}
           selectedAnswer={quiz.is_practice ? selectedAnswers[currentQuestion.id]?.answer : selectedAnswers[currentQuestion.id]}
@@ -529,9 +532,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           isCorrect={quiz.is_practice && selectedAnswers[currentQuestion.id]?.isCorrect}
         />
 
-        <div className="flex justify-between mt-8 pt-6 border-t border-slate-200">
+        <div className={`flex justify-between mt-8 pt-6 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
           <button
-            className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-6 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             onClick={handlePrevQuestion}
             disabled={currentQuestionIndex === 0}
           >
@@ -539,7 +542,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           </button>
 
           <button
-            className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-6 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             onClick={handleNextQuestion}
             disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
           >

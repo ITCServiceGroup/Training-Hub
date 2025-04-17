@@ -32,18 +32,18 @@ const ConfirmationDialog = ({
 
       {/* Modal Panel */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-          <Dialog.Title className="text-lg font-bold text-slate-900 mb-3">
+        <Dialog.Panel className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+          <Dialog.Title className="text-lg font-bold text-slate-900 dark:text-white mb-3">
             {title}
           </Dialog.Title>
-          <Dialog.Description className="text-sm text-slate-600 mb-5">
+          <Dialog.Description className="text-sm text-slate-600 dark:text-slate-300 mb-5">
             {description}
           </Dialog.Description>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="py-2 px-4 bg-white border border-slate-300 rounded-md text-sm text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors"
+              className="py-2 px-4 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
             >
               {cancelButtonText}
             </button>

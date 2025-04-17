@@ -1,26 +1,29 @@
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-const QuizResults = ({ 
-  quiz, 
-  selectedAnswers, 
-  score, 
-  timeTaken, 
-  onRetry = () => {}, 
-  onExit, 
-  isPractice = false 
+const QuizResults = ({
+  quiz,
+  selectedAnswers,
+  score,
+  timeTaken,
+  onRetry = () => {},
+  onExit,
+  isPractice = false
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   // Get result message based on score
   const getResultMessage = () => {
     const passingScore = quiz.passing_score || 70;
-    
+
     if (score.percentage >= passingScore) {
       if (score.percentage >= 90) return 'Excellent work!';
       if (score.percentage >= 80) return 'Great job!';
       return 'Good job!';
     }
-    
+
     return 'Keep practicing!';
   };
 
@@ -35,7 +38,7 @@ const QuizResults = ({
   // Check if answer was correct
   const isAnswerCorrect = (question, answerData) => {
     if (answerData === undefined) return false;
-    
+
     const answer = isPractice ? answerData.answer : answerData;
     if (answer === undefined) return false;
 
@@ -61,8 +64,8 @@ const QuizResults = ({
           <div className={classNames(
             "inline-flex items-center justify-center w-32 h-32 rounded-full text-4xl font-bold",
             score.percentage >= (quiz.passing_score || 70)
-              ? "bg-green-100 text-green-700"
-              : "bg-amber-100 text-amber-700"
+              ? isDark ? "bg-green-900/30 text-green-400" : "bg-green-100 text-green-700"
+              : isDark ? "bg-amber-900/30 text-amber-400" : "bg-amber-100 text-amber-700"
           )}>
             {score.percentage}%
           </div>
@@ -71,13 +74,13 @@ const QuizResults = ({
         <h2 className={classNames(
           "text-2xl font-bold mb-2",
           score.percentage >= (quiz.passing_score || 70)
-            ? "text-green-700"
-            : "text-amber-700"
+            ? isDark ? "text-green-400" : "text-green-700"
+            : isDark ? "text-amber-400" : "text-amber-700"
         )}>
           {getResultMessage()}
         </h2>
 
-        <div className="flex justify-center gap-8 text-slate-600">
+        <div className={`flex justify-center gap-8 ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
           <div>
             <p className="text-sm">Score</p>
             <p className="font-bold">{score.correct} / {score.total}</p>
@@ -91,16 +94,16 @@ const QuizResults = ({
 
       <div className="flex justify-center gap-4 mb-12">
         <button
-          className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+          className={`px-6 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors`}
           // onClick={onExit} // Original prop might be admin-specific
           onClick={() => window.location.hash = '/quiz'} // Navigate to public quiz list
         >
           Back to Quizzes
         </button>
-        
+
         {isPractice && (
           <button
-            className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors"
+            className={`px-6 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded-lg font-medium transition-colors`}
             onClick={onRetry}
           >
             Try Again
@@ -109,7 +112,7 @@ const QuizResults = ({
       </div>
 
       <div className="space-y-8">
-        <h3 className="text-xl font-bold text-slate-900 border-b pb-2">
+        <h3 className={`text-xl font-bold ${isDark ? 'text-white border-slate-700' : 'text-slate-900 border-slate-200'} border-b pb-2`}>
           Question Review
         </h3>
 
@@ -119,13 +122,13 @@ const QuizResults = ({
           const answer = isPractice ? answerData?.answer : answerData;
 
           return (
-            <div 
+            <div
               key={question.id}
               className={classNames(
                 "p-6 rounded-lg border",
-                isCorrect 
-                  ? "bg-green-50 border-green-200" 
-                  : "bg-red-50 border-red-200"
+                isCorrect
+                  ? isDark ? "bg-green-900/30 border-green-800" : "bg-green-50 border-green-200"
+                  : isDark ? "bg-red-900/30 border-red-800" : "bg-red-50 border-red-200"
               )}
             >
               <div className="flex items-start gap-3 mb-4">
@@ -136,12 +139,14 @@ const QuizResults = ({
                   {isCorrect ? "✓" : "✗"}
                 </span>
                 <div>
-                  <p className="font-medium text-slate-900">
+                  <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     Question {index + 1}: {question.question_text}
                   </p>
                   <p className={classNames(
                     "text-sm mt-1",
-                    isCorrect ? "text-green-700" : "text-red-700"
+                    isCorrect
+                      ? isDark ? "text-green-400" : "text-green-700"
+                      : isDark ? "text-red-400" : "text-red-700"
                   )}>
                     {answer === undefined ? "Incorrect (Unanswered)" : (isCorrect ? "Correct" : "Incorrect")}
                   </p>
@@ -161,13 +166,16 @@ const QuizResults = ({
                         className={classNames(
                           "p-3 rounded",
                           {
-                            'bg-green-100 border border-green-500': isCorrectOption, // Highlight correct option always
-                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption, // Highlight selected *wrong* option
-                            'bg-white border border-slate-200': !isCorrectOption && !isSelected // Default for non-correct, non-selected
+                              'bg-green-100 border border-green-500': isCorrectOption && !isDark, // Highlight correct option (light)
+                            'bg-green-900/30 border border-green-700': isCorrectOption && isDark, // Highlight correct option (dark)
+                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption && !isDark, // Highlight selected wrong option (light)
+                            'bg-red-900/30 border border-red-700': isSelected && !isCorrectOption && isDark, // Highlight selected wrong option (dark)
+                            'bg-white border border-slate-200': !isCorrectOption && !isSelected && !isDark, // Default (light)
+                            'bg-slate-800 border border-slate-700': !isCorrectOption && !isSelected && isDark // Default (dark)
                           }
                         )}
                       >
-                        {option}
+                        <span className={isDark && !isCorrectOption && !isSelected ? 'text-white' : ''}>{option}</span>
                         {/* Show check only for the correct option */}
                         {isCorrectOption && <span className="ml-2 text-green-600">✓</span>}
                         {/* Show cross only if this specific option was selected and it's wrong */}
@@ -188,13 +196,16 @@ const QuizResults = ({
                         className={classNames(
                           "p-3 rounded",
                           {
-                            'bg-green-100 border border-green-500': isCorrectOption, // Highlight correct options always
-                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption, // Highlight selected *wrong* options
-                            'bg-white border border-slate-200': !isCorrectOption && !isSelected // Default for non-correct, non-selected
+                            'bg-green-100 border border-green-500': isCorrectOption && !isDark, // Highlight correct options (light)
+                            'bg-green-900/30 border border-green-700': isCorrectOption && isDark, // Highlight correct options (dark)
+                            'bg-red-100 border border-red-500': isSelected && !isCorrectOption && !isDark, // Highlight selected wrong options (light)
+                            'bg-red-900/30 border border-red-700': isSelected && !isCorrectOption && isDark, // Highlight selected wrong options (dark)
+                            'bg-white border border-slate-200': !isCorrectOption && !isSelected && !isDark, // Default (light)
+                            'bg-slate-800 border border-slate-700': !isCorrectOption && !isSelected && isDark // Default (dark)
                           }
                         )}
                       >
-                        {option}
+                        <span className={isDark && !isCorrectOption && !isSelected ? 'text-white' : ''}>{option}</span>
                         {/* Show check only for the correct options */}
                         {isCorrectOption && <span className="ml-2 text-green-600">✓</span>}
                         {/* Show cross only if this specific option was selected and it's wrong */}
@@ -210,13 +221,16 @@ const QuizResults = ({
                         className={classNames(
                           "p-3 text-center rounded",
                           {
-                            'bg-green-100 border border-green-500': question.correct_answer === true, // Highlight correct True
-                            'bg-red-100 border border-red-500': answer === true && question.correct_answer === false, // Selected True, but was False
-                            'bg-white border border-slate-200': question.correct_answer === false && answer !== true // Default if correct is False and user didn't select True
+                            'bg-green-100 border border-green-500': question.correct_answer === true && !isDark, // Highlight correct True (light)
+                            'bg-green-900/30 border border-green-700': question.correct_answer === true && isDark, // Highlight correct True (dark)
+                            'bg-red-100 border border-red-500': answer === true && question.correct_answer === false && !isDark, // Selected True, but was False (light)
+                            'bg-red-900/30 border border-red-700': answer === true && question.correct_answer === false && isDark, // Selected True, but was False (dark)
+                            'bg-white border border-slate-200': question.correct_answer === false && answer !== true && !isDark, // Default (light)
+                            'bg-slate-800 border border-slate-700': question.correct_answer === false && answer !== true && isDark // Default (dark)
                           }
                         )}
                       >
-                        True
+                        <span className={isDark && question.correct_answer === false && answer !== true ? 'text-white' : ''}>True</span>
                         {question.correct_answer === true && <span className="ml-2 text-green-600">✓</span>}
                         {answer === true && question.correct_answer === false && <span className="ml-2 text-red-600">✗</span>}
                     </div>
@@ -224,13 +238,16 @@ const QuizResults = ({
                         className={classNames(
                           "p-3 text-center rounded",
                           {
-                            'bg-green-100 border border-green-500': question.correct_answer === false, // Highlight correct False
-                            'bg-red-100 border border-red-500': answer === false && question.correct_answer === true, // Selected False, but was True
-                            'bg-white border border-slate-200': question.correct_answer === true && answer !== false // Default if correct is True and user didn't select False
+                            'bg-green-100 border border-green-500': question.correct_answer === false && !isDark, // Highlight correct False (light)
+                            'bg-green-900/30 border border-green-700': question.correct_answer === false && isDark, // Highlight correct False (dark)
+                            'bg-red-100 border border-red-500': answer === false && question.correct_answer === true && !isDark, // Selected False, but was True (light)
+                            'bg-red-900/30 border border-red-700': answer === false && question.correct_answer === true && isDark, // Selected False, but was True (dark)
+                            'bg-white border border-slate-200': question.correct_answer === true && answer !== false && !isDark, // Default (light)
+                            'bg-slate-800 border border-slate-700': question.correct_answer === true && answer !== false && isDark // Default (dark)
                           }
                         )}
                       >
-                        False
+                        <span className={isDark && question.correct_answer === true && answer !== false ? 'text-white' : ''}>False</span>
                         {question.correct_answer === false && <span className="ml-2 text-green-600">✓</span>}
                         {answer === false && question.correct_answer === true && <span className="ml-2 text-red-600">✗</span>}
                     </div>
@@ -238,9 +255,9 @@ const QuizResults = ({
                 )}
 
                 {!isCorrect && question.explanation && (
-                  <div className="mt-4 p-3 bg-white border border-red-200 rounded">
-                    <p className="font-medium text-red-800">Explanation:</p>
-                    <p className="mt-1 text-red-700">{question.explanation}</p>
+                  <div className={`mt-4 p-3 rounded border ${isDark ? 'bg-slate-800 border-red-800' : 'bg-white border-red-200'}`}>
+                    <p className={`font-medium ${isDark ? 'text-red-400' : 'text-red-800'}`}>Explanation:</p>
+                    <p className={`mt-1 ${isDark ? 'text-red-400' : 'text-red-700'}`}>{question.explanation}</p>
                   </div>
                 )}
               </div>

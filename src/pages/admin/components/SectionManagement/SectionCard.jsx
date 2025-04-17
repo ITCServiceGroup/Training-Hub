@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaEdit, FaTrash, FaChevronRight, FaBars } from 'react-icons/fa'; // Added FaBars
 import SectionForm from '../CategoryTree/SectionForm';
 
 // Accept sortableProps
 const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered, sortableProps }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
   // isHovered state is now controlled by parent via prop
 
@@ -23,24 +26,24 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
   // Using Tailwind classes instead of inline styles
 
   return (
-    <div className="p-0 flex flex-col h-full bg-white cursor-pointer">
+    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer">
       {!isEditing ? (
         <>
           {/* Card Header */}
-          <div className="flex justify-between items-center py-3 px-6 border-b border-gray-200 flex-shrink-0">
+          <div className="flex justify-between items-center py-3 px-6 border-b border-gray-200 dark:border-slate-600 flex-shrink-0">
              <div className="flex items-center gap-3 flex-grow min-w-0">
                 {/* Drag Handle */}
                 <span
                   {...sortableProps.attributes}
                   {...sortableProps.listeners}
-                  className="text-gray-400 cursor-grab p-1 rounded flex items-center justify-center"
+                  className="text-gray-400 dark:text-gray-300 cursor-grab p-1 rounded flex items-center justify-center"
                   onClick={stopPropagation} // Prevent card click
                   data-dnd-handle // Add attribute for click detection
                 >
                   <FaBars />
                 </span>
                 {/* Title */}
-                <h3 className="text-lg font-bold text-gray-800 m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={section.name}>{section.name}</h3>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={section.name}>{section.name}</h3>
              </div>
             {/* Action Buttons */}
             <div className={`${isHovered ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
@@ -66,10 +69,10 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
             className="p-4 px-6 flex-1 flex flex-col min-h-0"
             onClick={handleCardClick}
           >
-            <p className="text-gray-500 text-sm mb-4 flex-grow">
+            <p className="text-gray-500 dark:text-gray-300 text-sm mb-4 flex-grow">
               {section.description || 'No description available'}
             </p>
-            <div className="flex items-center text-gray-500 text-sm mt-2 flex-shrink-0">
+            <div className="flex items-center text-gray-500 dark:text-gray-300 text-sm mt-2 flex-shrink-0">
               {/* Display category count for SectionCard */}
               {section.v2_categories?.length || 0} Categories
             </div>
@@ -78,7 +81,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
           {/* Footer Button Area */}
            <div className="px-6 pb-6 mt-auto flex-shrink-0">
              <button
-               className="bg-blue-500 hover:bg-blue-600 text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
+               className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
                onClick={(e) => { stopPropagation(e); onViewCategories(section); }}
              >
                <span>View Categories</span>

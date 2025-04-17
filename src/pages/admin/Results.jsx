@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { quizResultsService } from '../../services/api/quizResults';
 import ResultsTable from './components/ResultsTable';
 import ChartSection from './components/ChartSection';
@@ -9,6 +10,7 @@ import MultiSelect from './components/Filters/MultiSelect';
 import NumberRangeFilter from './components/Filters/NumberRangeFilter';
 
 const Results = () => {
+  const { theme } = useTheme(); // Get current theme
   // State for filters, data, loading, etc.
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,14 +105,14 @@ const Results = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-8">
-        <h2 className="text-xl font-semibold mb-6">Filters</h2>
+      <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-8">
+        <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">Filters</h2>
         <div className="space-y-6">
           {/* Row 1: Range Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             {/* Date Range */}
             <div className="flex flex-col justify-center h-full">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Date Range</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Date Range</label>
               <DateFilter
                 value={dateFilter}
                 onChange={setDateFilter}
@@ -118,7 +120,7 @@ const Results = () => {
             </div>
             {/* Score Range */}
             <div className="flex flex-col justify-center h-full">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Score Range</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Score Range</label>
               <NumberRangeFilter
                 type="score"
                 value={scoreRange}
@@ -128,7 +130,7 @@ const Results = () => {
             </div>
             {/* Time Range */}
             <div className="flex flex-col justify-center h-full">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Time Range</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Time Range</label>
               <NumberRangeFilter
                 type="time"
                 value={timeRange}
@@ -138,12 +140,12 @@ const Results = () => {
             </div>
           </div>
           {/* Divider */}
-          <div className="border-t border-gray-200" />
+          <div className="border-t-2 border-gray-200 dark:border-slate-500 my-2" />
           {/* Row 2: Selection Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Supervisors */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Supervisors</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Supervisors</label>
               <MultiSelect
                 type="supervisors"
                 value={selectedSupervisors}
@@ -153,7 +155,7 @@ const Results = () => {
             </div>
             {/* LDAPs */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">LDAPs</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">LDAPs</label>
               <MultiSelect
                 type="ldaps"
                 value={selectedLdaps}
@@ -163,7 +165,7 @@ const Results = () => {
             </div>
             {/* Markets */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Markets</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Markets</label>
               <MultiSelect
                 type="markets"
                 value={selectedMarkets}
@@ -176,7 +178,7 @@ const Results = () => {
           <div className="flex flex-col md:flex-row justify-end items-center gap-3 pt-4">
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-secondary dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600"
               onClick={() => {
                 setDateFilter({ preset: 'last_month', startDate: null, endDate: null });
                 setSelectedSupervisors([]);
@@ -190,7 +192,7 @@ const Results = () => {
             </button>
             <button
               type="button"
-              className="btn-primary"
+              className="btn-primary dark:bg-teal-600 dark:hover:bg-teal-700"
               // "Apply" is visually present; actual filtering is handled by useEffect on filter state
               onClick={() => { /* No-op, filters auto-apply */ }}
             >
@@ -200,11 +202,11 @@ const Results = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Results</h2>
+      <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Results</h2>
 
         {error ? (
-          <div className="p-4 text-center text-red-600">
+          <div className="p-4 text-center text-red-600 dark:text-red-400">
             {error}
           </div>
         ) : (

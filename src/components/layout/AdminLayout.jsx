@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react'; // Added useEffect, useCallback
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import SidebarCategoryTree from './SidebarCategoryTree';
 import { createContext } from 'react';
 import { sectionsService } from '../../services/api/sections'; // Import sectionsService
@@ -24,6 +25,7 @@ export const CategoryContext = createContext({
 
 const AdminLayout = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
@@ -115,7 +117,7 @@ const AdminLayout = () => {
       }}
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0">
-        <div className="w-[250px] bg-slate-800 text-white py-8 flex-shrink-0 mt-0">
+        <div className="w-[250px] bg-slate-800 dark:bg-slate-900 text-white py-8 flex-shrink-0 mt-0">
           <ul className="list-none p-0 m-0">
             <li
               className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
@@ -197,19 +199,19 @@ const AdminLayout = () => {
           </ul>
         </div>
 
-        <div className="flex-1 p-4 bg-slate-50 min-w-0 w-full overflow-auto mt-0">
+        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-auto mt-0">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[1.75rem] text-slate-900 m-0">
+            <h2 className="text-[1.75rem] text-slate-900 dark:text-white m-0">
               {getPageTitle()}
             </h2>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-teal-700 text-white flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-full bg-teal-700 dark:bg-teal-600 text-white flex items-center justify-center font-bold">
                 {getInitials(user?.email)}
               </div>
               <div>
-                <div className="font-bold">{user?.email || 'Administrator'}</div>
-                <div className="text-xs text-slate-500">Admin</div>
+                <div className="font-bold dark:text-white">{user?.email || 'Administrator'}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-300">Admin</div>
               </div>
             </div>
           </div>

@@ -396,8 +396,8 @@ const StudyGuides = () => {
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg shadow p-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm min-h-[500px]">
+    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg shadow dark:shadow-lg p-6">
+      <div className="bg-white dark:bg-slate-700 p-6 rounded-lg shadow-sm dark:shadow-md min-h-[500px]">
         {renderContent()}
       </div>
     </div>

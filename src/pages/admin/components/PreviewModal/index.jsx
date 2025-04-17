@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import { Dialog } from '@headlessui/react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -145,6 +146,8 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const mountedRef = useRef(true);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -175,13 +178,13 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
       aria-labelledby="preview-modal-title"
     >
       <div className="fixed inset-0 bg-black/75 flex items-start justify-center p-[5px] pt-[60px] z-[110]" aria-hidden="true">
-        <Dialog.Panel className="bg-white rounded-lg w-full max-w-[1400px] max-h-[calc(100vh-80px)] h-[calc(100vh-80px)] flex flex-col relative">
-          <div className="py-[6px] px-3 border-b border-gray-200 flex justify-between items-center h-10 flex-shrink-0">
-            <Dialog.Title id="preview-modal-title" className="text-base font-semibold text-gray-900">
+        <Dialog.Panel className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg w-full max-w-[1400px] max-h-[calc(100vh-80px)] h-[calc(100vh-80px)] flex flex-col relative`}>
+          <div className={`py-[6px] px-3 border-b ${isDark ? 'border-slate-700' : 'border-gray-200'} flex justify-between items-center h-10 flex-shrink-0`}>
+            <Dialog.Title id="preview-modal-title" className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {title || 'Study Guide Preview'}
             </Dialog.Title>
             <button
-              className="p-1 rounded border-none bg-transparent cursor-pointer text-gray-500 hover:text-gray-900 flex items-center justify-center"
+              className={`p-1 rounded border-none bg-transparent cursor-pointer ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} flex items-center justify-center`}
               onClick={onClose}
               aria-label="Close preview"
             >
@@ -190,17 +193,17 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
           </div>
           <div className="flex-1 flex flex-col overflow-hidden p-0 h-[calc(100vh-120px)] min-h-0 relative">
             <div
-              className={`absolute inset-0 bg-white flex items-center justify-center z-10 transition-opacity duration-200 ${isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+              className={`absolute inset-0 ${isDark ? 'bg-slate-800' : 'bg-white'} flex items-center justify-center z-10 transition-opacity duration-200 ${isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
               role="status"
               aria-label="Loading preview content"
             >
-              <div className="text-gray-500 text-sm font-medium flex items-center gap-2">
+              <div className={`${isDark ? 'text-gray-300' : 'text-gray-500'} text-sm font-medium flex items-center gap-2`}>
                 <span>Loading preview</span>
                 <div className="flex gap-1">
                   {[0, 1, 2].map((i) => (
                     <span
                       key={i}
-                      className="w-[6px] h-[6px] bg-gray-500 rounded-full animate-pulse"
+                      className={`w-[6px] h-[6px] ${isDark ? 'bg-gray-300' : 'bg-gray-500'} rounded-full animate-pulse`}
                       style={{ animationDelay: `${i * 0.2}s` }}
                     />
                   ))}
@@ -217,7 +220,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
             {isOpen && ( // Only render iframe when modal is open
               <iframe
                 key={iframeKey} // Force remount when key changes
-                className={`flex-1 w-full h-full border-none rounded-none bg-white block transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                className={`flex-1 w-full h-full border-none rounded-none ${isDark ? 'bg-white' : 'bg-white'} block transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                 sandbox="allow-scripts allow-same-origin"
                 title="Study Guide Preview"
                 ref={iframeRef}
@@ -414,7 +417,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
         border-color: #000000;
       }
       .image-grid-wrapper > .image-cell > img.border-color-blue {
-        border-color: #2563eb;
+        border-color: #0f766e; /* Changed from blue to teal */
       }
       .image-grid-wrapper > .image-cell > img.border-color-red {
         border-color: #dc2626;

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import {
   extractBodyContent,
@@ -14,6 +15,8 @@ const HtmlModeView = ({
   initialContent, // Needed for script/style extraction for preview
   title // Needed for preview iframe title (though not currently used in iframe logic)
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Effect to manually update iframe content in HTML mode with interactive element support
   useEffect(() => {
@@ -404,13 +407,13 @@ const HtmlModeView = ({
         <PanelGroup direction="horizontal" className="h-full">
           <Panel defaultSize={50} minSize={30}>
             <div className="flex flex-col gap-2 h-full min-h-0 overflow-hidden">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'}`}>
                 HTML Editor (Full Document)
               </label>
               <textarea
                 value={htmlModeContent}
                 onChange={onHtmlContentChange} // Use the passed handler
-                className="w-full h-[calc(100%-30px)] font-mono text-sm p-2 border border-gray-300 rounded-md resize-none overflow-auto focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className={`w-full h-[calc(100%-30px)] font-mono text-sm p-2 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md resize-none overflow-auto focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
                 placeholder="Enter full HTML document content"
               />
             </div>
@@ -425,11 +428,11 @@ const HtmlModeView = ({
           <Panel defaultSize={50} minSize={30}>
             {/* Make this outer div full height flex column */}
             <div className="flex flex-col gap-2 h-full">
-              <label className="text-sm font-medium text-gray-700 flex-shrink-0"> {/* Prevent label from shrinking */}
+              <label className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} flex-shrink-0`}> {/* Prevent label from shrinking */}
                  Preview
                </label>
                {/* Let this div grow and handle overflow */}
-               <div className="border border-gray-300 rounded-md p-4 flex-grow">
+               <div className={`border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-gray-300 bg-white'} rounded-md p-4 flex-grow`}>
 <iframe
   ref={iframeRef} // Use the passed ref
   className="w-full h-full border-none block"

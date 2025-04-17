@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../../../../contexts/ThemeContext';
+import tinymce from 'tinymce/tinymce';
 import { Dialog } from '@headlessui/react';
 import { Editor } from '@tinymce/tinymce-react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
@@ -33,6 +35,10 @@ const StudyGuideEditor = ({
   onDelete,
   isNew = false
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  // Reference to the TinyMCE editor instance
+  const editorRef = useRef(null);
   const [content, setContent] = useState(''); // State now holds only BODY content
   const [title, setTitle] = useState(initialTitle);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,14 +138,28 @@ const StudyGuideEditor = ({
     await handleSave(false);
   };
 
-  // Reference to the TinyMCE editor instance
-  const editorRef = useRef(null);
-
   // Debug state to track content changes
   const [debugInfo, setDebugInfo] = useState({
     lastRichTextContent: '',
     lastHtmlContent: ''
   });
+
+  // Effect to update editor theme when app theme changes
+  useEffect(() => {
+    if (editorRef.current && !isHtmlMode) {
+      // Get the editor container
+      const container = editorRef.current.getContainer();
+
+      // Update the skin and content CSS
+      editorRef.current.options.set('skin', isDark ? 'oxide-dark' : 'oxide');
+      editorRef.current.options.set('content_css', isDark ? 'dark' : 'default');
+
+      // Force a UI refresh
+      editorRef.current.ui.styleSheetLoader.unload('oxide-dark');
+      editorRef.current.ui.styleSheetLoader.unload('oxide');
+      editorRef.current.ui.styleSheetLoader.load(isDark ? 'oxide-dark' : 'oxide');
+    }
+  }, [theme, isHtmlMode]);
 
   const toggleMode = () => {
     if (!isHtmlMode) {
@@ -232,6 +252,8 @@ const StudyGuideEditor = ({
   const editorConfig = {
     ...baseEditorConfig, // Spread the static config
     height: 850, // Keep dynamic height setting here
+    skin: isDark ? 'oxide-dark' : 'oxide', // Use dark skin when in dark mode
+    content_css: isDark ? 'dark' : 'default', // Use dark content CSS when in dark mode
     // Setup function remains here as it needs component scope (state, refs, handlers)
     setup: function(editor) {
       // Helper to get selected image (remains inside setup as it uses editor directly)
@@ -564,7 +586,7 @@ const StudyGuideEditor = ({
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full h-full px-3 border border-gray-300 rounded-md text-sm box-border outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className={`w-full h-full px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
             placeholder="Enter study guide title"
             required
           />
@@ -575,7 +597,7 @@ const StudyGuideEditor = ({
           <button
             type="button"
             onClick={toggleMode}
-            className="h-full px-4 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 rounded-md text-sm text-gray-700 cursor-pointer whitespace-nowrap box-border outline-none transition-colors"
+            className={`h-full px-4 ${isDark ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500 text-white' : 'bg-white hover:bg-gray-100 border-gray-300 hover:border-gray-400 text-gray-700'} rounded-md text-sm cursor-pointer whitespace-nowrap box-border outline-none transition-colors`}
           >
             {isHtmlMode ? 'Switch to Rich Text' : 'Switch to HTML'}
           </button>
@@ -626,7 +648,7 @@ const StudyGuideEditor = ({
           <button
             type="button"
             onClick={() => setIsDeleteModalOpen(true)}
-            className="py-2 px-4 bg-white hover:bg-red-50 border border-red-600 text-red-600 rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5"
+            className={`py-2 px-4 ${isDark ? 'bg-slate-800 hover:bg-red-900/30' : 'bg-white hover:bg-red-50'} border border-red-600 text-red-600 rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5`}
           >
             Delete
           </button>
@@ -635,7 +657,7 @@ const StudyGuideEditor = ({
         <button
           type="button"
           onClick={onCancel}
-          className="py-2 px-4 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 rounded-md text-sm text-gray-700 cursor-pointer transition-colors"
+          className={`py-2 px-4 ${isDark ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500 text-white' : 'bg-white hover:bg-gray-100 border-gray-300 hover:border-gray-400 text-gray-700'} rounded-md text-sm cursor-pointer transition-colors`}
         >
           Cancel
         </button>
@@ -643,7 +665,7 @@ const StudyGuideEditor = ({
           type="button"
           onClick={handleSaveAndContinue}
           disabled={isSaving}
-          className={`py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isSaving ? 'Saving...' : 'Save and Continue'}
         </button>
@@ -651,7 +673,7 @@ const StudyGuideEditor = ({
           type="button"
           onClick={() => handleSave(true)}
           disabled={isSaving}
-          className={`py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save and Exit')}
         </button>
@@ -664,18 +686,18 @@ const StudyGuideEditor = ({
         className="relative z-50"
       >
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Dialog.Panel className="bg-white p-6 rounded-lg max-w-md w-[90%]">
-            <Dialog.Title className="text-lg font-bold text-gray-900 mb-3">
+          <Dialog.Panel className={`${isDark ? 'bg-slate-800' : 'bg-white'} p-6 rounded-lg max-w-md w-[90%]`}>
+            <Dialog.Title className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-3`}>
               Delete Study Guide
             </Dialog.Title>
-            <Dialog.Description className="text-sm text-gray-600 mb-5">
+            <Dialog.Description className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'} mb-5`}>
               Are you sure you want to delete this study guide? This action cannot be undone and all associated data will be permanently lost.
             </Dialog.Description>
             <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="py-2 px-4 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 rounded-md text-sm text-gray-700 cursor-pointer transition-colors"
+                className={`py-2 px-4 ${isDark ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500 text-white' : 'bg-white hover:bg-gray-100 border-gray-300 hover:border-gray-400 text-gray-700'} rounded-md text-sm cursor-pointer transition-colors`}
               >
                 Cancel
               </button>

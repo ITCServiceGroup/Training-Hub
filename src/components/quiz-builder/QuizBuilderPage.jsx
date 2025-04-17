@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quizzesService } from '../../services/api/quizzes';
 import QuizMetadataForm from './QuizMetadataForm';
@@ -6,19 +7,39 @@ import QuestionManager from './QuestionManager';
 import QuizPreview from './QuizPreview';
 import ConfirmationDialog from '../common/ConfirmationDialog'; // Import the new modal
 
-const QuizBuilderPage = () => {
-  const { quizId } = useParams();
-  const navigate = useNavigate();
-  const [quiz, setQuiz] = useState({
+// Helper function to get initial state with preferences
+const getInitialQuizState = () => {
+  const defaultTimerMins = localStorage.getItem('quizDefaultTimer');
+  const defaultQRand = localStorage.getItem('quizDefaultQuestionRandomization');
+  const defaultARand = localStorage.getItem('quizDefaultAnswerRandomization');
+
+  // Convert timer from minutes to seconds, handle null/invalid
+  const timeLimitSeconds = defaultTimerMins ? parseInt(defaultTimerMins, 10) * 60 : null;
+
+  return {
     title: '',
     description: '',
     category_ids: [],
-    time_limit: null,
-    passing_score: 70,
+    time_limit: !isNaN(timeLimitSeconds) && timeLimitSeconds > 0 ? timeLimitSeconds : null, // Store as seconds or null
+    passing_score: 70, // Default passing score
     is_practice: false,
+    has_practice_mode: false, // Add default for this field if needed
+    randomize_questions: defaultQRand !== null ? JSON.parse(defaultQRand) : true, // Default to true if not set
+    randomize_answers: defaultARand !== null ? JSON.parse(defaultARand) : true, // Default to true if not set
     questions: []
-  });
-  const [initialQuizState, setInitialQuizState] = useState(null); // Store initial state
+  };
+};
+
+
+const QuizBuilderPage = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const { quizId } = useParams();
+  const navigate = useNavigate();
+  // Initialize state using the helper function
+  const [quiz, setQuiz] = useState(getInitialQuizState());
+  const [initialQuizState, setInitialQuizState] = useState(null); // Store initial state for change detection
+  // Removed duplicate initialQuizState line and stray closing brace
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('metadata');
@@ -31,15 +52,17 @@ const QuizBuilderPage = () => {
         setIsLoading(true);
         try {
           const data = await quizzesService.getWithQuestions(quizId);
-          setQuiz(data);
-          setInitialQuizState(JSON.parse(JSON.stringify(data))); // Deep copy for comparison
+          // Ensure all fields exist in fetched data, merging with defaults if necessary
+          const mergedData = { ...getInitialQuizState(), ...data };
+          setQuiz(mergedData);
+          setInitialQuizState(JSON.parse(JSON.stringify(mergedData))); // Deep copy for comparison
         } catch (error) {
           setError('Failed to load quiz');
         } finally {
           setIsLoading(false);
         }
       };
-      
+
       fetchQuiz();
     }
   }, [quizId]);
@@ -55,7 +78,7 @@ const QuizBuilderPage = () => {
       } else {
         savedQuizData = await quizzesService.create(quiz);
         // Navigate to edit page for the new quiz, but stay on the page for updates
-        navigate(`/admin/quizzes/edit/${savedQuizData.id}`, { replace: true }); 
+        navigate(`/admin/quizzes/edit/${savedQuizData.id}`, { replace: true });
       }
       // Update initial state after successful save
       setInitialQuizState(JSON.parse(JSON.stringify(savedQuizData)));
@@ -95,7 +118,7 @@ const QuizBuilderPage = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center p-8">Loading quiz...</div>;
+    return <div className={`text-center p-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading quiz...</div>;
   }
 
   return (
@@ -103,7 +126,7 @@ const QuizBuilderPage = () => {
       {/* Back Button */}
       <div className="mb-6">
         <button
-          className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors"
+          className={`px-4 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'} font-medium rounded-lg transition-colors`}
           onClick={handleBack}
         >
           ← Back to Quizzes
@@ -112,11 +135,11 @@ const QuizBuilderPage = () => {
 
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h2 className="text-4xl text-teal-700 m-0">
+          <h2 className={`text-4xl ${isDark ? 'text-teal-500' : 'text-teal-700'} m-0`}>
             {quizId ? 'Edit Quiz' : 'Create Quiz'}
           </h2>
           {quizId && quiz.title && (
-            <h3 className="text-xl text-slate-600 mt-2 mb-0 font-normal">
+            <h3 className={`text-xl ${isDark ? 'text-gray-300' : 'text-slate-600'} mt-2 mb-0 font-normal`}>
               {quiz.title}
             </h3>
           )}
@@ -131,21 +154,23 @@ const QuizBuilderPage = () => {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{error}</div>
+        <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{error}</div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6`}>
         <div className="flex mb-6 relative">
           {/* Add bottom border that spans the full width */}
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-slate-200"></div>
-          
+          <div className={`absolute bottom-0 left-0 right-0 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
+
           <div className="flex gap-1">
             {/* Quiz Details Tab */}
             <button
               className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                 activeTab === 'metadata'
                   ? 'bg-teal-700 text-white border-slate-200 z-10' // Active: teal bg, white text
-                  : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: darker gray, even darker on hover
+                  : isDark
+                    ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
+                    : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: darker gray, even darker on hover
               }`}
               onClick={() => setActiveTab('metadata')}
             >
@@ -157,7 +182,9 @@ const QuizBuilderPage = () => {
               className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                 activeTab === 'questions'
                   ? 'bg-teal-700 text-white border-slate-200 z-10'
-                  : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
+                  : isDark
+                    ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
+                    : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
               }`}
               onClick={() => setActiveTab('questions')}
             >
@@ -169,7 +196,9 @@ const QuizBuilderPage = () => {
               className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                 activeTab === 'preview'
                   ? 'bg-teal-700 text-white border-slate-200 z-10'
-                  : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
+                  : isDark
+                    ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
+                    : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
               }`}
               onClick={() => setActiveTab('preview')}
             >
@@ -208,7 +237,7 @@ const QuizBuilderPage = () => {
         description="Are you sure you want to leave? Your changes will not be saved."
         confirmButtonText="Leave"
         cancelButtonText="Stay"
-        confirmButtonVariant="danger" 
+        confirmButtonVariant="danger"
       />
     </div>
   );

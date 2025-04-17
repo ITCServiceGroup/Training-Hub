@@ -1,9 +1,13 @@
 import React, { useEffect } from 'react';
 import Flatpickr from 'react-flatpickr';
 import PropTypes from 'prop-types';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import 'flatpickr/dist/themes/light.css';
+import 'flatpickr/dist/themes/dark.css';
 
 const DateFilter = ({ value, onChange }) => {
+  const { theme } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
   const presetOptions = [
     { value: 'custom', label: 'Custom' },
     { value: 'last_7_days', label: 'Last 7 Days' },
@@ -89,10 +93,10 @@ const DateFilter = ({ value, onChange }) => {
       <div className="flex flex-row gap-2 mb-1">
         <div className="w-full md:w-40" />
         <div className="w-full md:w-36">
-          <span className="text-sm font-medium text-gray-700 block text-left">Start</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block text-left">Start</span>
         </div>
         <div className="w-full md:w-36">
-          <span className="text-sm font-medium text-gray-700 block text-left">End</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block text-left">End</span>
         </div>
       </div>
       <div className="flex flex-col md:flex-row items-stretch gap-2 w-full">
@@ -100,7 +104,7 @@ const DateFilter = ({ value, onChange }) => {
         <select
           value={value.preset}
           onChange={handlePresetChange}
-          className="block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="block w-full md:w-40 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
         >
           {presetOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -120,7 +124,7 @@ const DateFilter = ({ value, onChange }) => {
                 startDate: date ? date.toISOString().split('T')[0] : null
               });
             }}
-            className="block w-full md:w-36 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="block w-full md:w-36 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
             options={{
               dateFormat: 'Y-m-d',
               maxDate: value.endDate || 'today'
@@ -139,7 +143,7 @@ const DateFilter = ({ value, onChange }) => {
                 endDate: date ? date.toISOString().split('T')[0] : null
               });
             }}
-            className="block w-full md:w-36 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="block w-full md:w-36 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
             options={{
               dateFormat: 'Y-m-d',
               minDate: value.startDate,

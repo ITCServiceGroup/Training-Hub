@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
 
 // Helper to create initial answers state from questions
@@ -11,6 +12,8 @@ const createInitialAnswers = (questions) => {
 };
 
 const QuizPreview = ({ quiz }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questionData, setQuestionData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,8 +66,8 @@ const QuizPreview = ({ quiz }) => {
                 key={index}
                 className={`p-3 border rounded-md cursor-pointer transition-colors ${
                   selectedAnswers[question.id] === option
-                    ? 'border-teal-500 bg-teal-50'
-                    : 'border-slate-200 hover:border-teal-500'
+                    ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
+                    : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
                 }`}
                 onClick={() => setSelectedAnswers({
                   ...selectedAnswers,
@@ -75,11 +78,11 @@ const QuizPreview = ({ quiz }) => {
                   <input
                     type="radio"
                     name={`preview-answer-${question.id}`}
-                    className="h-4 w-4 text-teal-600 border-slate-300"
+                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}
                     checked={selectedAnswers[question.id] === option}
                     onChange={() => {}}
                   />
-                  <span className="ml-2">{option}</span>
+                  <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>{option}</span>
                 </label>
               </div>
             ))}
@@ -94,8 +97,8 @@ const QuizPreview = ({ quiz }) => {
                 key={index}
                 className={`p-3 border rounded-md cursor-pointer transition-colors ${
                   selectedAnswers[question.id]?.includes(option)
-                    ? 'border-teal-500 bg-teal-50'
-                    : 'border-slate-200 hover:border-teal-500'
+                    ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
+                    : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -115,12 +118,12 @@ const QuizPreview = ({ quiz }) => {
                 <div className="flex items-center cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded pointer-events-none"
+                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'} rounded pointer-events-none`}
                     checked={selectedAnswers[question.id]?.includes(option)}
                     onChange={() => {}} // Empty handler to prevent React warning
                     tabIndex={-1}
                   />
-                  <span className="ml-2">{option}</span>
+                  <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>{option}</span>
                 </div>
               </div>
             ))}
@@ -133,8 +136,8 @@ const QuizPreview = ({ quiz }) => {
             <div
               className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors ${
                 selectedAnswers[question.id] === 'true'
-                  ? 'border-teal-500 bg-teal-50'
-                  : 'border-slate-200 hover:border-teal-500'
+                  ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
+                  : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
               }`}
               onClick={() => setSelectedAnswers({
                 ...selectedAnswers,
@@ -145,18 +148,18 @@ const QuizPreview = ({ quiz }) => {
                 <input
                   type="radio"
                   name={`preview-answer-${question.id}`}
-                  className="h-4 w-4 text-teal-600 border-slate-300"
+                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}
                   checked={selectedAnswers[question.id] === 'true'}
                   onChange={() => {}}
                 />
-                <span className="ml-2">True</span>
+                <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>True</span>
               </label>
             </div>
             <div
               className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors ${
                 selectedAnswers[question.id] === 'false'
-                  ? 'border-teal-500 bg-teal-50'
-                  : 'border-slate-200 hover:border-teal-500'
+                  ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
+                  : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
               }`}
               onClick={() => setSelectedAnswers({
                 ...selectedAnswers,
@@ -167,11 +170,11 @@ const QuizPreview = ({ quiz }) => {
                 <input
                   type="radio"
                   name={`preview-answer-${question.id}`}
-                  className="h-4 w-4 text-teal-600 border-slate-300"
+                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}
                   checked={selectedAnswers[question.id] === 'false'}
                   onChange={() => {}}
                 />
-                <span className="ml-2">False</span>
+                <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>False</span>
               </label>
             </div>
           </div>
@@ -185,40 +188,40 @@ const QuizPreview = ({ quiz }) => {
   return (
     <div>
       <div className="mb-8">
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">{quiz.title}</h3>
+        <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>{quiz.title}</h3>
         {quiz.description && (
-          <p className="text-slate-600 mb-4">{quiz.description}</p>
+          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-4`}>{quiz.description}</p>
         )}
-        <div className="flex gap-4 text-sm text-slate-500">
+        <div className={`flex gap-4 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
           <div>Time Limit: {formatTime(quiz.time_limit)}</div>
           <div>Passing Score: {quiz.passing_score}%</div>
           {quiz.is_practice && (
-            <div className="text-teal-600 font-medium">Practice Quiz</div>
+            <div className={`${isDark ? 'text-teal-400' : 'text-teal-600'} font-medium`}>Practice Quiz</div>
           )}
         </div>
       </div>
 
       {isLoading ? (
         <div className="text-center p-8">
-          <p className="text-slate-600">Loading questions...</p>
+          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>Loading questions...</p>
         </div>
       ) : questionData && questionData.length > 0 ? (
         <div>
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <div className="text-sm text-slate-500">
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
                 Question {currentQuestionIndex + 1} of {questionData.length}
               </div>
               <div className="flex gap-2">
                 <button
-                  className="px-3 py-1 text-sm border border-slate-200 rounded hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`px-3 py-1 text-sm border rounded ${isDark ? 'border-slate-600 text-gray-300 hover:border-slate-500' : 'border-slate-200 text-slate-700 hover:border-slate-300'} disabled:opacity-50 disabled:cursor-not-allowed`}
                   onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
                   disabled={currentQuestionIndex === 0}
                 >
                   Previous
                 </button>
                 <button
-                  className="px-3 py-1 text-sm border border-slate-200 rounded hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`px-3 py-1 text-sm border rounded ${isDark ? 'border-slate-600 text-gray-300 hover:border-slate-500' : 'border-slate-200 text-slate-700 hover:border-slate-300'} disabled:opacity-50 disabled:cursor-not-allowed`}
                   onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
                   disabled={currentQuestionIndex === questionData.length - 1}
                 >
@@ -226,7 +229,7 @@ const QuizPreview = ({ quiz }) => {
                 </button>
               </div>
             </div>
-            <div className="h-1 bg-slate-100 rounded overflow-hidden">
+            <div className={`h-1 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded overflow-hidden`}>
               <div
                 className="h-full bg-teal-500 transition-all duration-300"
                 style={{ width: `${((currentQuestionIndex + 1) / questionData.length) * 100}%` }}
@@ -234,16 +237,16 @@ const QuizPreview = ({ quiz }) => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <p className="text-lg font-medium mb-6">
+          <div className={`rounded-lg p-6 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+            <p className={`text-lg font-medium mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>
               {questionData[currentQuestionIndex].question_text}
             </p>
             {renderQuestion(questionData[currentQuestionIndex])}
           </div>
         </div>
       ) : (
-        <div className="text-center p-8 bg-slate-50 rounded-lg border border-slate-200">
-          <p className="text-slate-600">No questions added to this quiz yet.</p>
+        <div className={`text-center p-8 rounded-lg border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>No questions added to this quiz yet.</p>
         </div>
       )}
     </div>

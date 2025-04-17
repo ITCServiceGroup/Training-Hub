@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'; // Removed useContext
 import { listMedia, uploadMedia } from '../../../../services/api/media'; // Added uploadMedia
 import { useAuth } from '../../../../contexts/AuthContext'; // Changed import to useAuth hook
+import { useTheme } from '../../../../contexts/ThemeContext'; // Import ThemeContext for dark mode
 
 // Reusable Media Grid Component (adapted from MediaLibraryPage)
 // Note: Removed edit/delete buttons for selection context
-const MediaGridSelect = ({ mediaItems, onSelectItem }) => (
+const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
+  const { theme } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  return (
   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-3 overflow-y-auto"> {/* Removed h-full */}
-    {mediaItems.length === 0 && <p className="col-span-full text-center text-gray-500">No media items found matching the criteria.</p>}
+    {mediaItems.length === 0 && <p className="col-span-full text-center text-gray-500 dark:text-gray-300">No media items found matching the criteria.</p>}
     {mediaItems.map((item) => (
       <div
         key={item.id}
-        className="border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+        className="border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all bg-white dark:bg-slate-700 dark:border-slate-600"
         onClick={() => onSelectItem(item)}
         title={`Select ${item.file_name}`}
       >
         {item.mime_type.startsWith('image/') ? (
-          <div className="w-full h-28 flex items-center justify-center bg-gray-100 overflow-hidden">
+          <div className="w-full h-28 flex items-center justify-center bg-gray-100 dark:bg-slate-800 overflow-hidden">
             <img
               src={item.public_url}
               alt={item.alt_text || item.file_name}
@@ -28,7 +33,7 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => (
             />
           </div>
         ) : item.mime_type.startsWith('video/') ? (
-          <div className="w-full h-28 bg-gray-800 flex items-center justify-center relative">
+          <div className="w-full h-28 bg-gray-800 dark:bg-slate-900 flex items-center justify-center relative">
              <video muted className="w-full h-full object-cover max-h-28">
                <source src={item.public_url} type={item.mime_type} />
              </video>
@@ -40,20 +45,22 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => (
              </div>
           </div>
         ) : (
-          <div className="w-full h-28 bg-gray-200 flex items-center justify-center text-gray-500 text-xs p-1 break-all">
+          <div className="w-full h-28 bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-gray-300 text-xs p-1 break-all">
             <span>{item.mime_type}</span>
           </div>
         )}
-        <div className="p-1.5 text-xs bg-gray-50">
-          <p className="font-medium truncate" title={item.file_name}>{item.file_name}</p>
+        <div className="p-1.5 text-xs bg-gray-50 dark:bg-slate-600">
+          <p className="font-medium truncate text-gray-800 dark:text-white" title={item.file_name}>{item.file_name}</p>
         </div>
       </div>
     ))}
   </div>
-);
+  );
+};
 
 
 const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType }) => {
+  const { theme } = useTheme(); // Get current theme
   const [mediaItems, setMediaItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading media list
   const [error, setError] = useState(null); // Error fetching media list
@@ -162,10 +169,10 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold">Select Media</h2>
+        <div className="flex justify-between items-center p-4 border-b dark:border-slate-700">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Media</h2>
           <button
             onClick={onClose}
             className="text-white bg-teal-600 hover:bg-teal-700 rounded text-2xl w-8 h-8 flex items-center justify-center" // Updated styles: green bg, white text, square, centered
@@ -176,18 +183,18 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
         </div>
 
         {/* Search Bar */}
-        <div className="p-3 border-b">
+        <div className="p-3 border-b dark:border-slate-700">
           <input
             type="text"
             placeholder={`Search media... (Type: ${filterFileType || 'any'})`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         {/* Upload Section */}
-        <div className="p-3 border-b">
+        <div className="p-3 border-b dark:border-slate-700">
            <input
              type="file"
              ref={fileInputRef}
@@ -200,20 +207,20 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
              disabled={isUploading}
              className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${
                isUploading
-                 ? 'bg-gray-400 cursor-not-allowed'
-                 : 'bg-blue-600 hover:bg-blue-700'
+                 ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                 : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'
              }`}
            >
              {isUploading ? 'Uploading...' : 'Upload New Media'}
            </button>
-           {uploadError && <p className="text-red-500 text-sm mt-2 text-center">{uploadError}</p>}
+           {uploadError && <p className="text-red-500 dark:text-red-400 text-sm mt-2 text-center">{uploadError}</p>}
         </div>
 
 
         {/* Media Grid Area */}
         <div className="flex-grow min-h-0 overflow-y-auto"> {/* Added overflow-y-auto here */}
-          {isLoading && <p className="text-center p-4">Loading media...</p>}
-          {error && <p className="text-center p-4 text-red-500">{error}</p>}
+          {isLoading && <p className="text-center p-4 text-gray-500 dark:text-gray-300">Loading media...</p>}
+          {error && <p className="text-center p-4 text-red-500 dark:text-red-400">{error}</p>}
           {!isLoading && !error && (
             <MediaGridSelect
               mediaItems={filteredMedia}

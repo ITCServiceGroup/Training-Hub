@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const ChartSection = ({ data }) => {
   const scoreChartRef = useRef(null);
@@ -20,10 +21,47 @@ const ChartSection = ({ data }) => {
     { bg: 'rgba(255, 159, 64, 0.5)', border: 'rgb(255, 159, 64)' }
   ];
 
+  // Get theme from context
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+
+  // Set chart colors based on theme
+  const textColor = isDarkMode ? '#f8fafc' : '#1e293b';
+  const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
   const baseChartOptions = {
     responsive: true,
     maintainAspectRatio: true,
-    aspectRatio: 1.3
+    aspectRatio: 1.3,
+    color: textColor,
+    plugins: {
+      legend: {
+        labels: {
+          color: textColor
+        }
+      },
+      title: {
+        color: textColor
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          color: gridColor
+        },
+        ticks: {
+          color: textColor
+        }
+      },
+      y: {
+        grid: {
+          color: gridColor
+        },
+        ticks: {
+          color: textColor
+        }
+      }
+    }
   };
 
   useEffect(() => {
@@ -300,25 +338,25 @@ const ChartSection = ({ data }) => {
   // Using Tailwind classes instead of inline styles
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 max-w-[1400px] mx-auto">
-      <h2 className="text-xl font-semibold mb-6">Charts/Graphs</h2>
+    <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 max-w-[1400px] mx-auto">
+      <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">Charts/Graphs</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center border border-slate-200 dark:border-slate-600 shadow-sm">
           <canvas ref={scoreChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center border border-slate-200 dark:border-slate-600 shadow-sm">
           <canvas ref={timeChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center border border-slate-200 dark:border-slate-600 shadow-sm">
           <canvas ref={trendChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center border border-slate-200 dark:border-slate-600 shadow-sm">
           <canvas ref={supervisorChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center border border-slate-200 dark:border-slate-600 shadow-sm">
           <canvas ref={marketChartRef} />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center">
+        <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg max-h-[400px] min-h-[350px] flex justify-center items-center border border-slate-200 dark:border-slate-600 shadow-sm">
           <canvas ref={scatterChartRef} />
         </div>
       </div>

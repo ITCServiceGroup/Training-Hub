@@ -1,8 +1,33 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  darkMode: 'class', // Enable class-based dark mode
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        // Define custom colors for light/dark mode
+        primary: {
+          light: '#0f766e', // teal-700
+          dark: '#14b8a6', // teal-500
+        },
+        secondary: {
+          light: '#7e22ce', // purple-700
+          dark: '#a855f7', // purple-500
+        },
+        background: {
+          light: '#f8fafc', // slate-50
+          dark: '#1e293b', // slate-800
+        },
+        surface: {
+          light: '#ffffff', // white
+          dark: '#334155', // slate-700
+        },
+        text: {
+          light: '#1e293b', // slate-800
+          dark: '#f8fafc', // slate-50
+        },
+      },
+    },
     container: {
       center: true,
       padding: '1rem',

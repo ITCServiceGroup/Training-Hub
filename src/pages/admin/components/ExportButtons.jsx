@@ -1,7 +1,10 @@
 import React from 'react';
+import { useTheme } from '../../../contexts/ThemeContext';
 import html2pdf from 'html2pdf.js';
 
 const ExportButtons = ({ data }) => {
+  const { theme } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
 
   const exportCSV = () => {
     try {
@@ -130,7 +133,7 @@ const ExportButtons = ({ data }) => {
     <div className="flex gap-6 py-4 pb-6">
       <button
         onClick={exportCSV}
-        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        className="flex items-center px-3 py-2 bg-teal-600 dark:bg-teal-700 text-white rounded hover:bg-teal-700 dark:hover:bg-teal-800 transition-colors"
       >
         <svg
           className="w-4 h-4 mr-2"
@@ -149,7 +152,7 @@ const ExportButtons = ({ data }) => {
       </button>
       <button
         onClick={exportPDF}
-        className="flex items-center px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+        className="flex items-center px-3 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-800 transition-colors"
       >
         <svg
           className="w-4 h-4 mr-2"

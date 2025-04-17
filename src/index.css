@@ -3,15 +3,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global styles to prevent link hover effects */
+/* Global styles */
 @layer base {
   a:hover {
     text-decoration: none !important;
     color: inherit !important;
   }
+
+  /* Apply dark mode styles */
+  .dark body {
+    color: #f8fafc;
+    background-color: #1e293b;
+  }
+
+  .dark .card {
+    background-color: #334155;
+  }
+
+  .dark .loading-screen {
+    background-color: #1e293b;
+  }
+
+  .dark .spinner {
+    border-color: rgba(255, 255, 255, 0.1);
+    border-top-color: #14b8a6;
+  }
 }
 
-:root { /* Uncommented custom CSS */
+:root { /* Light mode variables */
   --primary-color: #0f766e;
   --primary-dark: #0c5e57;
   --primary-light: #14b8a6;
@@ -25,6 +44,34 @@
   --border-radius: 0.25rem;
   --max-width: 100%;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  /* Theme colors */
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+}
+
+.dark { /* Dark mode variables */
+  --primary-color: #14b8a6;
+  --primary-dark: #0f766e;
+  --primary-light: #2dd4bf;
+  --secondary-color: #a855f7;
+  --dark-color: #f8fafc;
+  --light-color: #1e293b;
+  --danger-color: #f87171;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --info-color: #60a5fa;
+  --shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+
+  /* Theme colors */
+  --color-bg-primary: #1e293b;
+  --color-bg-secondary: #334155;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-border: #475569;
 }
 
 * { /* Uncommented custom CSS */

@@ -71,7 +71,7 @@ const AdminDashboard = () => {
         // Get recent results
         logAdmin('Fetching recent quiz results...');
         const results = await quizResultsService.getRecentResults(5);
-        
+
         // Results are already formatted by the service
         logAdmin('Received quiz results:', results);
         setRecentActivity(results);
@@ -96,9 +96,9 @@ const AdminDashboard = () => {
   const getBadgeClasses = (type) => {
     switch (type) {
       case 'quiz_completion':
-        return 'bg-teal-100 text-teal-700';
+        return 'bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-700';
       default:
-        return 'bg-gray-100 text-gray-500';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700';
     }
   };
 
@@ -135,10 +135,10 @@ const AdminDashboard = () => {
   // Error display
   if (error) {
     return (
-      <div className="p-8 bg-red-100 rounded-lg text-red-700 mb-4">
-        <h2>Dashboard Error</h2>
-        <div>{error}</div>
-        <p>Please try <a href="/login">logging in</a> again.</p>
+      <div className="p-8 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-700 dark:text-red-300 mb-4">
+        <h2 className="font-bold mb-2">Dashboard Error</h2>
+        <div className="mb-2">{error}</div>
+        <p>Please try <a href="/login" className="text-red-700 dark:text-red-300 underline hover:no-underline">logging in</a> again.</p>
       </div>
     );
   }
@@ -146,45 +146,45 @@ const AdminDashboard = () => {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
-          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.studyGuides}</div>
-          <div className="text-sm text-slate-500">Study Guides</div>
+        <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
+          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.studyGuides}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Study Guides</div>
         </div>
-        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
-          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.questions}</div>
-          <div className="text-sm text-slate-500">Questions</div>
+        <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
+          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.questions}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Questions</div>
         </div>
-        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
-          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.quizzes}</div>
-          <div className="text-sm text-slate-500">Quizzes</div>
+        <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
+          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.quizzes}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Quizzes</div>
         </div>
-        <div className="bg-white rounded-lg p-6 shadow flex flex-col">
-          <div className="text-4xl font-bold text-teal-700 mb-2">{quizStats.completions}</div>
-          <div className="text-sm text-slate-500">Quiz Completions</div>
+        <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
+          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.completions}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Quiz Completions</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow mb-8">
+      <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-slate-900 m-0">Recent Activity</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white m-0">Recent Activity</h3>
         </div>
 
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Type</th>
-              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">User</th>
-              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Item</th>
-              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Date</th>
-              <th className="text-left p-3 border-b border-slate-200 text-slate-500 font-normal">Score</th>
+              <th className="text-left p-3 border-b-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium">Type</th>
+              <th className="text-left p-3 border-b-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium">User</th>
+              <th className="text-left p-3 border-b-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium">Item</th>
+              <th className="text-left p-3 border-b-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium">Date</th>
+              <th className="text-left p-3 border-b-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium">Score</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" className="p-3 text-center text-slate-500">
+                <td colSpan="5" className="p-3 text-center text-slate-500 dark:text-slate-300">
                   <div className="flex justify-center items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-t-teal-500 border-slate-200 rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-t-teal-500 border-slate-200 dark:border-slate-600 rounded-full animate-spin"></div>
                     <span>Loading...</span>
                   </div>
                 </td>
@@ -192,20 +192,20 @@ const AdminDashboard = () => {
             ) : recentActivity.length > 0 ? (
               recentActivity.map(activity => (
                 <tr key={activity.id}>
-                  <td className="p-3 border-b border-slate-200">
+                  <td className="p-3 border-b border-slate-200 dark:border-slate-600">
                     <span className={`px-2 py-1 rounded text-xs font-bold ${getBadgeClasses(activity.type)}`}>
                       {getActivityTypeLabel(activity.type)}
                     </span>
                   </td>
-                  <td className="p-3 border-b border-slate-200">{activity.user}</td>
-                  <td className="p-3 border-b border-slate-200">{activity.item}</td>
-                  <td className="p-3 border-b border-slate-200">{formatDate(activity.date)}</td>
-                  <td className="p-3 border-b border-slate-200">{activity.score}</td>
+                  <td className="p-3 border-b border-slate-200 dark:border-slate-600 dark:text-white">{activity.user}</td>
+                  <td className="p-3 border-b border-slate-200 dark:border-slate-600 dark:text-white">{activity.item}</td>
+                  <td className="p-3 border-b border-slate-200 dark:border-slate-600 dark:text-white">{formatDate(activity.date)}</td>
+                  <td className="p-3 border-b border-slate-200 dark:border-slate-600 dark:text-white">{activity.score}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="p-3 text-center text-slate-500">
+                <td colSpan="5" className="p-3 text-center text-slate-500 dark:text-slate-300">
                   No recent activity
                 </td>
               </tr>
@@ -214,18 +214,18 @@ const AdminDashboard = () => {
         </table>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow mb-8">
+      <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-slate-900 m-0">Quick Actions</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white m-0">Quick Actions</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
-            <div className="w-[50px] h-[50px] rounded-full bg-teal-700 flex items-center justify-center text-2xl mb-4">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
+            <div className="w-[50px] h-[50px] rounded-full bg-teal-700 dark:bg-teal-600 flex items-center justify-center text-2xl mb-4 shadow-md">
               <span>📚</span>
             </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900">Study Guides</h3>
-            <p className="text-slate-500 mb-4 flex-1">Manage study guide content and categories.</p>
+            <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Study Guides</h3>
+            <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Manage study guide content and categories.</p>
             <Link
               to="/admin/study-guides"
               className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
@@ -234,12 +234,12 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
-            <div className="w-[50px] h-[50px] rounded-full bg-cyan-700 flex items-center justify-center text-2xl mb-4">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
+            <div className="w-[50px] h-[50px] rounded-full bg-cyan-700 dark:bg-cyan-600 flex items-center justify-center text-2xl mb-4 shadow-md">
               <span>❓</span>
             </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900">Questions</h3>
-            <p className="text-slate-500 mb-4 flex-1">Create and edit questions for quizzes.</p>
+            <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Questions</h3>
+            <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Create and edit questions for quizzes.</p>
             <Link
               to="/admin/questions"
               className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
@@ -248,12 +248,12 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
-            <div className="w-[50px] h-[50px] rounded-full bg-blue-900 flex items-center justify-center text-2xl mb-4">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
+            <div className="w-[50px] h-[50px] rounded-full bg-blue-900 dark:bg-blue-800 flex items-center justify-center text-2xl mb-4 shadow-md">
               <span>📝</span>
             </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900">Quizzes</h3>
-            <p className="text-slate-500 mb-4 flex-1">Create and manage quizzes and access codes.</p>
+            <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Quizzes</h3>
+            <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Create and manage quizzes and access codes.</p>
             <Link
               to="/admin/quizzes"
               className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
@@ -262,12 +262,12 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col h-full">
-            <div className="w-[50px] h-[50px] rounded-full bg-blue-700 flex items-center justify-center text-2xl mb-4">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
+            <div className="w-[50px] h-[50px] rounded-full bg-blue-700 dark:bg-blue-600 flex items-center justify-center text-2xl mb-4 shadow-md">
               <span>📊</span>
             </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900">Results</h3>
-            <p className="text-slate-500 mb-4 flex-1">View quiz results and analytics.</p>
+            <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Results</h3>
+            <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">View quiz results and analytics.</p>
             <Link
               to="/admin/results"
               className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"

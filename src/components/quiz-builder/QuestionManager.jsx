@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
 import QuestionForm from './QuestionForm';
 import { supabase } from '../../config/supabase';
 import ConfirmationDialog from '../common/ConfirmationDialog';
 
 const QuestionManager = ({ quiz, onChange, isLoading }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -147,14 +150,14 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
   return (
     <div>
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+        <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>
           {error}
         </div>
       )}
 
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-xl font-bold">Questions</h3>
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Questions</h3>
           <button
             className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-3 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
@@ -167,15 +170,15 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
           </button>
         </div>
         {categories[0] && (
-          <div className="text-sm text-slate-500">
+          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
             Category: {categories[0].name}
           </div>
         )}
       </div>
 
       {!quiz.category_ids[0] ? (
-        <div className="text-center p-8 bg-slate-50 rounded-lg border border-slate-200">
-          <p className="text-slate-600">Please select a category to manage questions.</p>
+        <div className={`text-center p-8 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'} rounded-lg border`}>
+          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>Please select a category to manage questions.</p>
         </div>
       ) : isAddingQuestion ? (
         <QuestionForm
@@ -194,19 +197,19 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
               key={question.id}
               className={`p-4 rounded-lg border ${
                 isQuestionIncluded(question.id)
-                  ? 'border-teal-200 bg-teal-50'
-                  : 'border-slate-200 bg-white'
+                  ? isDark ? 'border-teal-700 bg-teal-900/30' : 'border-teal-200 bg-teal-50'
+                  : isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
               }`}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="font-medium mb-2">{question.question_text}</p>
+                  <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{question.question_text}</p>
                   <div className="text-sm text-slate-500">
-                    <span className="inline-block px-2 py-1 bg-slate-100 rounded mr-2">
+                    <span className={`inline-block px-2 py-1 ${isDark ? 'bg-slate-700 text-gray-300' : 'bg-slate-100 text-slate-700'} rounded mr-2`}>
                       {question.question_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </span>
                     {question.explanation && (
-                      <span className="text-teal-600">Has Explanation</span>
+                      <span className="text-teal-500">Has Explanation</span>
                     )}
                   </div>
                 </div>
@@ -214,8 +217,8 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                   <button
                     className={`px-3 py-1 text-sm rounded ${
                       isQuestionIncluded(question.id)
-                        ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? isDark ? 'bg-teal-900/50 text-teal-400 hover:bg-teal-800' : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                        : isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                     onClick={() => {
                       if (isQuestionIncluded(question.id)) {
@@ -228,7 +231,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                     {isQuestionIncluded(question.id) ? 'Remove' : 'Add'}
                   </button>
                   <button
-                    className="px-3 py-1 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 rounded"
+                    className={`px-3 py-1 text-sm rounded ${isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                     onClick={() => {
                       setSelectedQuestion(question);
                       setIsAddingQuestion(true);
@@ -237,7 +240,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                     Edit
                   </button>
                   <button
-                    className="px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded"
+                    className={`px-3 py-1 text-sm rounded ${isDark ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
                     onClick={() => openDeleteConfirmation(question.id)}
                   >
                     Delete
@@ -248,8 +251,8 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
           ))}
 
           {questions.length === 0 && (
-            <div className="text-center p-8 bg-slate-50 rounded-lg">
-              <p className="text-slate-600">No questions found in this category.</p>
+            <div className={`text-center p-8 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+              <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>No questions found in this category.</p>
             </div>
           )}
         </div>
