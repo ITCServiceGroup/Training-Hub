@@ -1,0 +1,388 @@
+/* CraftEditor Styles */
+
+/* Viewport */
+.viewport {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Toolbox */
+.toolbox-item {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  cursor: move;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.dark .toolbox-item {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+.toolbox-item:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.dark .toolbox-item:hover {
+  background-color: #475569;
+  color: #f8fafc;
+}
+
+/* Craft Node Styles */
+.craftjs-node-selected {
+  position: relative;
+}
+
+/* Ensure labels are properly positioned */
+.craft-node-label {
+  position: absolute !important;
+  top: -26px !important;
+  left: 0 !important;
+  z-index: 11 !important;
+  background-color: #0d9488 !important; /* teal-600 */
+  color: white !important;
+  padding: 4px 6px !important;
+  font-size: 12px !important;
+  border-radius: 3px !important;
+  cursor: default !important;
+  user-select: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  pointer-events: auto !important;
+}
+
+/* Style the move handle */
+.move-handle {
+  cursor: move !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px !important;
+  border-radius: 3px !important;
+  transition: background-color 0.2s !important;
+  width: 24px !important;
+  height: 24px !important;
+  pointer-events: auto !important;
+}
+
+.move-handle:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.move-handle:active {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Make sure the move handle is always visible and clickable */
+.craft-node-label .move-handle {
+  z-index: 999 !important;
+  position: relative !important;
+}
+
+/* Dark mode support */
+.dark .craftjs-node-selected {
+  outline: none !important; /* Remove default outline */
+}
+
+.dark .craft-node-indicator {
+  outline-color: #0d9488 !important; /* teal-600 in dark mode */
+}
+
+.dark .react-resizable {
+  border-color: #4b5563 !important; /* gray-600 in dark mode */
+}
+
+/* Container styles */
+.craft-container {
+  min-height: 50px;
+  transition: border-color 0.2s;
+  width: 100%;
+  height: 100%;
+  /* Ensure Container components have no default border/outline */
+  border: none !important; /* Use !important if necessary to override other styles */
+  outline: none !important;
+}
+
+/* Text styles */
+[contenteditable] {
+  outline: none;
+  cursor: text;
+}
+
+/* Text components should have solid border when selected, but dashed when hovered */
+[contenteditable].component-selected::after {
+  border-style: solid !important;
+}
+
+[contenteditable].component-hovered::after {
+  border-style: dashed !important;
+}
+
+/* Button styles */
+.craft-button {
+  transition: all 0.2s;
+}
+
+.craft-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Button components should have solid border when selected, but dashed when hovered */
+.craft-button.component-selected::after {
+  border-style: solid !important;
+}
+
+.craft-button.component-hovered::after {
+  border-style: dashed !important;
+}
+
+/* Image styles */
+.craft-image-container {
+  position: relative;
+}
+
+.craft-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Image components should have solid border when selected, but dashed when hovered */
+.craft-image-container.component-selected::after {
+  border-style: solid !important;
+}
+
+.craft-image-container.component-hovered::after {
+  border-style: dashed !important;
+}
+
+/* Card styles */
+.craft-card {
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+/* Card components should have solid border when selected, but dashed when hovered */
+.craft-card.component-selected::after {
+  border-style: solid !important;
+}
+
+.craft-card.component-hovered::after {
+  border-style: dashed !important;
+}
+
+/* Toolbar styles */
+.craft-toolbar {
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.toolbar-button {
+  transition: all 0.2s ease;
+}
+
+.toolbar-button:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Drag and drop styles */
+.craftjs-renderer [data-dragging] {
+  opacity: 0.5;
+  position: relative;
+  z-index: 100;
+}
+
+.craftjs-renderer [data-dragging]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(13, 148, 136, 0.1);
+  border: 2px dashed #0d9488;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.craftjs-renderer [data-drag-hover] {
+  position: relative;
+  z-index: 1;
+  outline: 2px dashed #0d9488 !important;
+  outline-offset: -2px;
+  background-color: rgba(13, 148, 136, 0.05) !important;
+}
+
+/* Resizable styles */
+.react-resizable {
+  position: relative;
+}
+
+.resizable-border {
+  position: relative;
+}
+
+.resizable-border::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px dashed #ccc;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dark .resizable-border::after {
+  border-color: #4b5563;
+}
+
+/* Resize indicators are now applied directly in the Resizer component */
+
+/* Ensure the Resizable component's border aligns with resize handles */
+.react-resizable {
+  box-sizing: border-box;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #0d9488;
+  border-radius: 50%;
+  z-index: 999;
+}
+
+.react-resizable-handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
+.react-resizable-handle-sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+
+.react-resizable-handle-nw {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+
+.react-resizable-handle-ne {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+
+.react-resizable-handle-n {
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: n-resize;
+}
+
+.react-resizable-handle-s {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: s-resize;
+}
+
+.react-resizable-handle-w {
+  left: -5px;
+  top: 50%;
+  margin-top: -5px;
+  cursor: w-resize;
+}
+
+.react-resizable-handle-e {
+  right: -5px;
+  top: 50%;
+  margin-top: -5px;
+  cursor: e-resize;
+}
+
+/* Node indicator styles */
+.craft-node-indicator {
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+/* Selected component styles */
+.component-selected {
+  position: relative; /* Needed for ::after */
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 260px;
+}
+
+/* Renderer styles */
+.craftjs-renderer {
+  background-color: #f9fafb;
+  min-height: 500px;
+}
+
+.dark .craftjs-renderer {
+  background-color: #1e293b;
+}
+
+/* Component Selection and Hover Styles - Based on Craft.js Landing Example */
+
+/* Base style for selected components */
+.component-selected, .component-hovered {
+  position: relative;
+}
+
+/* Border style for all selected components using ::after pseudo-element */
+.component-selected::after {
+  content: ' ';
+  border: 2px dashed #0d9488; /* teal-600 color */
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  display: block;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+/* Border style for all hovered components using ::after pseudo-element */
+.component-hovered::after {
+  content: ' ';
+  border: 2px dashed #0d9488; /* teal-600 color */
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  display: block;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+
+/* Ensure resizable elements have proper overflow handling */
+.react-resizable {
+  overflow: visible !important; /* Ensure borders aren't clipped */
+  box-sizing: border-box !important;
+}

@@ -1,0 +1,56 @@
+/* CraftRenderer.css */
+.craft-renderer {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  border-radius: 4px;
+}
+
+.craft-renderer.dark-mode {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+.craft-renderer.light-mode {
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+/* Override Craft.js default styles */
+.craft-renderer [data-craftjs-element] {
+  position: relative;
+  width: 100%;
+}
+
+/* Make sure text is visible */
+.craft-renderer .text-component {
+  color: inherit;
+}
+
+/* Container styling */
+.craft-renderer .container-component {
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+/* Button styling */
+.craft-renderer .button-component {
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Image styling */
+.craft-renderer .image-component img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Card styling */
+.craft-renderer .card-component {
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}

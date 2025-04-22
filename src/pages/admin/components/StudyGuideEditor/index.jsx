@@ -24,6 +24,7 @@ import {
   unwrapImageFromGrid,
 } from './utils/imageGridUtils';
 import { baseEditorConfig } from './tinymceConfig';
+import { getThemeAppliedHex, getBaseHex } from '../../../../utils/themeColors'; // Import theme color utilities (Removed getThemeColorCssVariables)
 import HtmlModeView from './HtmlModeView'; // Import the new component
 
 
@@ -144,23 +145,6 @@ const StudyGuideEditor = ({
     lastHtmlContent: ''
   });
 
-  // Effect to update editor theme when app theme changes
-  useEffect(() => {
-    if (editorRef.current && !isHtmlMode) {
-      // Get the editor container
-      const container = editorRef.current.getContainer();
-
-      // Update the skin and content CSS
-      editorRef.current.options.set('skin', isDark ? 'oxide-dark' : 'oxide');
-      editorRef.current.options.set('content_css', isDark ? 'dark' : 'default');
-
-      // Force a UI refresh
-      editorRef.current.ui.styleSheetLoader.unload('oxide-dark');
-      editorRef.current.ui.styleSheetLoader.unload('oxide');
-      editorRef.current.ui.styleSheetLoader.load(isDark ? 'oxide-dark' : 'oxide');
-    }
-  }, [theme, isHtmlMode]);
-
   const toggleMode = () => {
     if (!isHtmlMode) {
       // Switching from Rich Text to HTML mode
@@ -248,12 +232,20 @@ const StudyGuideEditor = ({
     setIsMediaModalOpen(true);
   };
 
+  // --- Generate Theme Override Styles for Editor Content ---
+  // REMOVED: const themeVariables = getThemeColorCssVariables();
+  // REMOVED: const themeOverrideStyles = `...`;
+  // --- End Theme Override Styles ---
+
   // Combine base config with dynamic parts
   const editorConfig = {
-    ...baseEditorConfig, // Spread the static config
+    ...baseEditorConfig, // Spread the static config (color_map is now static from base)
+    // REMOVED: content_style: `${baseEditorConfig.content_style || ''}\n\n${themeOverrideStyles}`,
+    content_css: isDark ? '/tinymce/content-dark.css' : '/tinymce/content-light.css', // Load theme-specific CSS
+    content_style: baseEditorConfig.content_style || '', // Keep base content styles if any
     height: 850, // Keep dynamic height setting here
     skin: isDark ? 'oxide-dark' : 'oxide', // Use dark skin when in dark mode
-    content_css: isDark ? 'dark' : 'default', // Use dark content CSS when in dark mode
+    body_class: isDark ? 'mce-dark-mode' : '', // Add dark mode class via config
     // Setup function remains here as it needs component scope (state, refs, handlers)
     setup: function(editor) {
       // Helper to get selected image (remains inside setup as it uses editor directly)
@@ -261,79 +253,6 @@ const StudyGuideEditor = ({
         const node = editor.selection.getNode();
         return node.nodeName === 'IMG' ? node : null;
       };
-
-      // Add a special handler for the content cell
-      editor.on('keydown', function(e) {
-        // Check if we're inside a content cell
-        const node = editor.selection.getNode();
-        const contentCell = editor.dom.getParent(node, '.content-cell');
-
-        if (contentCell && e.keyCode === 13) { // Enter key inside content cell
-          e.preventDefault(); // Prevent default Enter behavior
-
-          // Get the current selection range
-          const rng = editor.selection.getRng();
-          const currentNode = rng.startContainer;
-
-          // Find the current paragraph or parent element
-          let currentParagraph = node;
-          if (currentNode.nodeType === 3) { // Text node
-            currentParagraph = currentNode.parentNode;
-          }
-
-          // Find the closest paragraph or div
-          while (currentParagraph && currentParagraph.nodeName !== 'P' && currentParagraph.nodeName !== 'DIV' && !editor.dom.hasClass(currentParagraph, 'content-cell')) {
-            currentParagraph = currentParagraph.parentNode;
-          }
-
-          // Handle text splitting if we're in the middle of text
-          if (currentNode.nodeType === 3 && rng.startOffset > 0 && rng.startOffset < currentNode.nodeValue.length) {
-            // We're in the middle of a text node, split it
-            const textBefore = currentNode.nodeValue.substring(0, rng.startOffset);
-            const textAfter = currentNode.nodeValue.substring(rng.startOffset);
-
-            // Update current text node with text before cursor
-            currentNode.nodeValue = textBefore;
-
-            // Create a new paragraph with text after cursor
-            const newP = editor.dom.create('p');
-            if (textAfter.trim()) {
-              newP.appendChild(editor.dom.doc.createTextNode(textAfter));
-            } else {
-              newP.appendChild(editor.dom.create('br'));
-            }
-
-            // Insert the new paragraph after the current paragraph
-            if (currentParagraph && (currentParagraph.nodeName === 'P' || currentParagraph.nodeName === 'DIV') && !editor.dom.hasClass(currentParagraph, 'content-cell')) {
-              editor.dom.insertAfter(newP, currentParagraph);
-            } else {
-              // If we couldn't find a paragraph, insert at the end of the content cell
-              contentCell.appendChild(newP);
-            }
-
-            // Set cursor to beginning of new paragraph
-            editor.selection.setCursorLocation(newP, 0);
-          } else {
-            // Create a new empty paragraph
-            const newP = editor.dom.create('p', {}, '<br>');
-
-            // Insert the new paragraph after the current paragraph
-            if (currentParagraph && (currentParagraph.nodeName === 'P' || currentParagraph.nodeName === 'DIV') && !editor.dom.hasClass(currentParagraph, 'content-cell')) {
-              editor.dom.insertAfter(newP, currentParagraph);
-            } else {
-              // If we couldn't find a paragraph, insert at the end of the content cell
-              contentCell.appendChild(newP);
-            }
-
-            // Set cursor to the new paragraph
-            editor.selection.setCursorLocation(newP, 0);
-          }
-
-          return false; // Prevent further handling
-        }
-      });
-
-
 
       // Process existing content to ensure all image grids have proper structure
       editor.on('SetContent', function() {
@@ -367,31 +286,10 @@ const StudyGuideEditor = ({
         }
       });
 
-      // Preserve empty paragraphs on save
-      editor.on('GetContent', function(e) {
-        // Make sure empty paragraphs are preserved
-        if (e.content) {
-          // Find all paragraphs with only <br> and ensure they're preserved
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = e.content;
-
-          // Find all paragraphs with only <br>
-          const emptyParagraphs = tempDiv.querySelectorAll('p');
-          emptyParagraphs.forEach(p => {
-            if (p.innerHTML === '<br>' || p.innerHTML === '<br/>') {
-              // Replace with a div that has height and margin
-              const emptyDiv = document.createElement('div');
-              emptyDiv.className = 'empty-line';
-              emptyDiv.style.height = '1em';
-              emptyDiv.style.display = 'block';
-              emptyDiv.style.margin = '1em 0';
-              p.parentNode.replaceChild(emptyDiv, p);
-            }
-          });
-
-          e.content = tempDiv.innerHTML;
-        }
-      });
+      // Preserve empty paragraphs on save - REMOVED - Now handled by prepareContentForPreview
+      // editor.on('GetContent', function(e) {
+      //  ... logic removed ...
+      // });
 
       editor.on('init', function() {
         // Ensure TinyMCE preserves inline styles
@@ -517,37 +415,135 @@ const StudyGuideEditor = ({
                 applyGridWrapper(editor, img, item.alignment); // Pass editor instance
               }
             },
-            // Update button state based on current selection's wrapper class
+            // Update button state based on current selection's wrapper class using NodeChange
             onSetup: (buttonApi) => {
-               const unbind = editor.selection.selectorChangedWithUnbind(
-                 'img, .image-grid-wrapper', // Check if image or wrapper is selected/focused
-                 (state, args) => {
-                    const node = args.node;
-                    let currentAlignment = 'none';
-                    // Use refactored getGridWrapper, passing editor instance
-                    const wrapper = getGridWrapper(editor, node);
+              const nodeChangeHandler = () => {
+                const node = editor.selection.getNode(); // Get the currently selected node
+                let currentAlignment = 'none';
+                // Use refactored getGridWrapper, passing editor instance
+                const wrapper = getGridWrapper(editor, node);
 
-                    if (wrapper) {
-                       if (editor.dom.hasClass(wrapper, 'align-left')) currentAlignment = 'left';
-                       else if (editor.dom.hasClass(wrapper, 'align-center')) currentAlignment = 'center';
-                       else if (editor.dom.hasClass(wrapper, 'align-right')) currentAlignment = 'right';
-                    } else if (node.nodeName === 'IMG' && !wrapper) {
-                       // If it's an image not in a wrapper, it's effectively 'none'
-                       currentAlignment = 'none';
-                    }
+                if (wrapper) {
+                  if (editor.dom.hasClass(wrapper, 'align-left')) currentAlignment = 'left';
+                  else if (editor.dom.hasClass(wrapper, 'align-center')) currentAlignment = 'center';
+                  else if (editor.dom.hasClass(wrapper, 'align-right')) currentAlignment = 'right';
+                } else if (node.nodeName === 'IMG' && !wrapper) {
+                  // If it's an image not in a wrapper, it's effectively 'none'
+                  currentAlignment = 'none';
+                }
+                // Check if buttonApi and setActive exist before calling
+                if (buttonApi && typeof buttonApi.setActive === 'function') {
+                   buttonApi.setActive(currentAlignment === item.alignment);
+                } else {
+                   console.warn('buttonApi.setActive is not available for', item.name);
+                }
+              };
 
-                    buttonApi.setActive(currentAlignment === item.alignment);
-                    // Disable if no image is selected? Or rely on quickbar context?
-                    // buttonApi.setDisabled(!getSelectedImage()); // Maybe not needed if quickbar handles context
-                 }
-               ).unbind;
-               return unbind; // Return the unbind function for cleanup
-            }
+              // Listen to NodeChange event
+              editor.on('NodeChange', nodeChangeHandler);
+
+              // Return the cleanup function
+              return () => editor.off('NodeChange', nodeChangeHandler);
+            },
           });
-        });
-        // --- End Custom Quickbar Buttons ---
+         });
+         // --- End Custom Quickbar Buttons ---
 
-      }); // End editor.on('init')
+         // --- Intercept Color Application Commands ---
+         editor.on('ExecCommand', (e) => {
+           const command = e.command;
+           const value = e.value;
+
+           // Check for commands that apply colors
+           if ((command === 'mceApplyTextcolor' || command === 'ForeColor') && value?.color) {
+             const baseHex = value.color.replace('#', '');
+             const themeHex = getThemeAppliedHex(baseHex, isDark);
+             console.log(`Intercepted ${command}: Base=${baseHex}, Theme=${themeHex}, isDark=${isDark}`);
+             e.preventDefault(); // Prevent original command
+             editor.formatter.apply('forecolor', { value: '#' + themeHex });
+           } else if ((command === 'mceApplyBackColor' || command === 'HiliteColor') && value?.color) {
+             const baseHex = value.color.replace('#', '');
+             const themeHex = getThemeAppliedHex(baseHex, isDark);
+             console.log(`Intercepted ${command}: Base=${baseHex}, Theme=${themeHex}, isDark=${isDark}`);
+             e.preventDefault(); // Prevent original command
+             editor.formatter.apply('backcolor', { value: '#' + themeHex });
+           } else if (command === 'mceSetInlineStyle' && value?.key === 'border-color') {
+             // --- NEW: Intercept border color application to apply CSS classes ---
+             const originalSelectedHex = value.value.replace('#', '').toUpperCase();
+             console.log(`Intercepted ${command} for border-color: Original=${originalSelectedHex}`);
+             e.preventDefault(); // Prevent original command
+
+             const imgNode = getSelectedImage(); // Assumes getSelectedImage() is available
+             if (imgNode) {
+                 // 1. Map original hex to class suffix
+                 const colorNameToSuffix = (hex) => {
+                     // Map based on baseColorMap and user table hexes
+                     const map = {
+                         '34495E': 'navy-blue',
+                         '000000': 'black',
+                         'FFFFFF': 'white',
+                         'ECF0F1': 'light-gray', // User table hex
+                         '7E8C8D': 'dark-gray',  // User table hex
+                         'CED4D9': 'medium-gray',// User table hex
+                         '95A5A6': 'gray',       // User table hex
+                         'BFEDD2': 'light-green',
+                         'FBEEB8': 'light-yellow',
+                         'F8CAC6': 'light-red',
+                         'ECCAFA': 'light-purple',
+                         'C2E0F4': 'light-blue', // Base hex for Light Blue
+                         '2DC26B': 'green',
+                         'F1C40F': 'yellow',
+                         'E03E2D': 'red',
+                         'B96AD9': 'purple',
+                         '3598DB': 'blue',
+                         '169179': 'dark-turquoise',
+                         'E67E23': 'orange',
+                         'BA372A': 'dark-red',
+                         '843FA1': 'dark-purple',
+                         '236FA1': 'dark-blue',
+                     };
+                     return map[hex] || null; // Return null if no match
+                 };
+
+                 const classSuffix = colorNameToSuffix(originalSelectedHex);
+
+                 // Get existing classes to remove old border class
+                 const existingClasses = editor.dom.getAttrib(imgNode, 'class') || '';
+                 const classesToRemove = existingClasses.split(' ').filter(cls => cls.startsWith('img-border-'));
+
+                 // Remove existing border classes first
+                 classesToRemove.forEach(cls => editor.dom.removeClass(imgNode, cls));
+
+                 // Remove inline border styles
+                 editor.dom.setStyle(imgNode, 'border-color', null);
+                 editor.dom.setStyle(imgNode, 'border-style', null);
+                 editor.dom.setStyle(imgNode, 'border-width', null);
+                 // Remove data attribute if it exists
+                 editor.dom.setAttrib(imgNode, 'data-base-border-color', null);
+
+
+                 if (classSuffix) {
+                     // Add the new class if a valid color was selected
+                     const newClass = `img-border-${classSuffix}`;
+                     console.log(`Applying class: ${newClass}`);
+                     editor.dom.addClass(imgNode, newClass);
+                 } else {
+                     // If no class suffix (e.g., 'Remove color' or unknown hex),
+                     // we've already removed the classes and styles above.
+                     console.log(`No class suffix found for hex: ${originalSelectedHex}. Border removed.`);
+                 }
+             } else {
+                 console.warn('Could not get selected image node to apply border class');
+             }
+             // --- End NEW border color logic ---
+           }
+           // Add more command checks if needed
+         });
+         // --- End Color Application Interception ---
+
+         // --- REMOVED Post-processing logic ---
+
+       }); // End editor.on('init')
 
       // Process content before it's loaded into the editor
       editor.on('BeforeSetContent', function(e) {
@@ -636,6 +632,7 @@ const StudyGuideEditor = ({
                 console.log("TinyMCE editor initialized");
               }}
               init={editorConfig}
+              key={theme} // Force re-initialization when theme changes
               tinymceScriptSrc="/tinymce/tinymce.min.js"
             />
           </div>

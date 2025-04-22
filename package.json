@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@craftjs/core": "^0.2.12",
     "@cubejs-client/core": "^1.0.11",
     "@cubejs-client/react": "^1.0.11",
     "@dnd-kit/core": "^6.3.1",
@@ -25,6 +26,7 @@
     "html2pdf.js": "^0.10.3",
     "postcss": "^8.5.3",
     "react": "^18.2.0",
+    "react-contenteditable": "^3.3.7",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.8",
     "react-flatpickr": "^4.0.0",

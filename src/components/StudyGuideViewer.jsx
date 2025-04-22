@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import CraftRenderer from './craft/CraftRenderer';
 
 /**
  * Component for displaying study guide content with interactive element support (Web Component Method)
@@ -8,6 +9,15 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const iframeRef = useRef(null); // Ref for the main content iframe
+
+  // State to track if debug mode is enabled
+  const [showDebug, setShowDebug] = useState(false);
+
+  // Check for debug mode on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    setShowDebug(urlParams.get('debug') === 'true');
+  }, []);
 
   // Effect to inject component definition scripts after the main iframe loads
   useEffect(() => {
@@ -149,11 +159,14 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     // Replace consecutive <br> tags with empty lines
     processedContent = processedContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
 
+    // Handle TinyMCE specific empty paragraphs (only if they are visually empty)
+    processedContent = processedContent.replace(/<p data-mce-empty="1">(?:<br>|\s|&nbsp;)*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+
     // Log the processed content for debugging
-    console.log('Processed content (after empty line handling):', processedContent);
+    console.log('Processed content (after ALL empty line handling):', processedContent);
 
     // Replace shortcodes with custom elements wrapped in centering div
-    processedContent = processedContent.replace(/\[interactive name="([^"]+)"\]/g, (match, name) => {
+    processedContent = processedContent.replace(/\[interactive name="([^"]+)"\]/g, (_, name) => {
       if (!/^[a-zA-Z0-9-]+$/.test(name)) {
         console.warn(`Invalid interactive element name found in viewer: ${name}`);
         return `<p style="color: red; border: 1px solid red; padding: 5px;">[Invalid interactive element: ${name}]</p>`;
@@ -166,11 +179,171 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     return processedContent;
   };
 
+  // Check if content is JSON or HTML
+  const isJsonContent = (() => {
+    try {
+      if (!studyGuide.content) return false;
+
+      // Log the content type and a preview for debugging
+      console.log('StudyGuideViewer content type:', typeof studyGuide.content);
+      console.log('Content preview:', typeof studyGuide.content === 'string' ? studyGuide.content.substring(0, 100) : 'Non-string content');
+
+      // If it's an object, it's likely JSON
+      if (typeof studyGuide.content === 'object') {
+        console.log('Content is already an object, likely Craft.js JSON');
+        return true;
+      }
+
+      // If it's a string, check if it looks like Craft.js JSON
+      if (typeof studyGuide.content === 'string') {
+        // Simple check: if it contains "resolvedName" and "props", it's likely Craft.js JSON
+        if (studyGuide.content.includes('resolvedName') && studyGuide.content.includes('props')) {
+          console.log('Content appears to be Craft.js JSON');
+          return true;
+        }
+
+        // Check if it contains "ROOT" or "root", which are common in Craft.js JSON
+        if (studyGuide.content.includes('"ROOT"') || studyGuide.content.includes('"root"')) {
+          console.log('Content appears to contain ROOT/root node, likely Craft.js JSON');
+          return true;
+        }
+
+        // Try to parse it as JSON
+        try {
+          const parsed = JSON.parse(studyGuide.content);
+          // If it has ROOT or nodes, it's likely Craft.js JSON
+          if (parsed.ROOT || parsed.root ||
+              (typeof parsed === 'object' && Object.values(parsed).some(v => v && v.props && v.props.text))) {
+            console.log('Content is valid JSON with Craft.js structure');
+            return true;
+          }
+        } catch (parseError) {
+          // If parsing fails, it's not valid JSON
+          console.log('Content is not valid JSON');
+        }
+      }
+
+      return false;
+    } catch (e) {
+      // If any error occurs, assume it's not JSON
+      console.error('Error checking if content is JSON:', e);
+      return false;
+    }
+  })();
+
+  // If it's JSON content, use the CraftRenderer
+  if (isJsonContent) {
+    return (
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full`}>
+        <div className={`flex justify-between items-center mb-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} pb-3`}>
+          <div className="flex items-center gap-2">
+            <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
+            <button
+              onClick={() => setShowDebug(!showDebug)}
+              className={`ml-2 px-2 py-1 text-xs rounded ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+            >
+              {showDebug ? 'Hide Debug' : 'Debug'}
+            </button>
+          </div>
+          {studyGuide && studyGuide.category_id && (
+            <button
+              onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}
+              className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
+            >
+              <span>📝</span> Take Practice Quiz
+            </button>
+          )}
+        </div>
+        <div className="h-full" style={{ height: 'calc(100% - 60px)' }}>
+          {/* Use CraftRenderer to display the content from the JSON */}
+          <CraftRenderer jsonContent={studyGuide.content} />
+
+          {/* Show debug info if debug mode is enabled */}
+          {showDebug && (
+            <div className="mt-4 border-t border-gray-300 dark:border-slate-700 pt-4">
+              <div className="mb-4">
+                <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Debug Information</h3>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Raw JSON content:</p>
+                <pre className={`mt-2 p-2 rounded text-xs overflow-auto max-h-96 ${isDark ? 'bg-slate-900 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
+                  {typeof studyGuide.content === 'string' ? studyGuide.content : JSON.stringify(studyGuide.content, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // For HTML content, continue with the existing approach
   // Extract styles and body, process body, then construct srcDoc
   const fullContent = studyGuide.content || '';
   const styles = extractStyleContent(fullContent);
   const bodyContent = extractBodyContent(fullContent);
   const processedBody = processBodyContentForWebComponents(bodyContent);
+
+  // Define CSS variables and override rules based on theme
+  const themeStyles = `
+    /* Theme Swapping Colors */
+    :root {
+      /* Light Mode Values */
+      --swap-navy-blue: #34495E;
+      --swap-black: #000000;
+      --swap-white: #FFFFFF;
+      --swap-light-gray: #7E8C8D; /* Uses Dark Gray hex in light mode */
+      --swap-dark-gray: #7E8C8D;
+      --swap-medium-gray: #95A5A6; /* Uses Gray hex in light mode */
+      --swap-gray: #95A5A6;
+    }
+    body.dark-theme {
+      /* Dark Mode Values */
+      --swap-navy-blue: #C2E0F4; /* Becomes Light Blue */
+      --swap-black: #FFFFFF; /* Becomes White */
+      --swap-white: #000000; /* Becomes Black */
+      --swap-light-gray: #ECF0F1;
+      --swap-dark-gray: #ECF0F1; /* Becomes Light Gray */
+      --swap-medium-gray: #CED4D9;
+      --swap-gray: #CED4D9; /* Becomes Medium Gray */
+    }
+
+    /* --- Theme Color Overrides for Inline Styles --- */
+
+    /* Dark Mode Viewing: Override light mode inline styles */
+    /* Navy Blue (#34495E) -> Light Blue (#C2E0F4) */
+    body.dark-theme [style*="color: #34495E"], body.dark-theme [style*="color: #34495e"] { color: var(--swap-navy-blue) !important; }
+    body.dark-theme [style*="border-color: #34495E"], body.dark-theme [style*="border-color: #34495e"] { border-color: var(--swap-navy-blue) !important; }
+    /* Black (#000000) -> White (#FFFFFF) */
+    body.dark-theme [style*="color: #000000"] { color: var(--swap-black) !important; }
+    body.dark-theme [style*="border-color: #000000"] { border-color: var(--swap-black) !important; }
+    /* White (#FFFFFF) -> Black (#000000) */
+    body.dark-theme [style*="color: #FFFFFF"], body.dark-theme [style*="color: #ffffff"] { color: var(--swap-white) !important; }
+    body.dark-theme [style*="border-color: #FFFFFF"], body.dark-theme [style*="border-color: #ffffff"] { border-color: var(--swap-white) !important; }
+    /* Light Gray (saved as Dark Gray #7E8C8D in light mode) -> becomes Light Gray #ECF0F1 in dark */
+    body.dark-theme [style*="color: #7E8C8D"], body.dark-theme [style*="color: #7e8c8d"] { color: var(--swap-light-gray) !important; }
+    body.dark-theme [style*="border-color: #7E8C8D"], body.dark-theme [style*="border-color: #7e8c8d"] { border-color: var(--swap-light-gray) !important; }
+    /* Medium Gray (saved as Gray #95A5A6 in light mode) -> becomes Medium Gray #CED4D9 in dark */
+    body.dark-theme [style*="color: #95A5A6"], body.dark-theme [style*="color: #95a5a6"] { color: var(--swap-medium-gray) !important; }
+    body.dark-theme [style*="border-color: #95A5A6"], body.dark-theme [style*="border-color: #95a5a6"] { border-color: var(--swap-medium-gray) !important; }
+
+
+    /* Light Mode Viewing: Override dark mode inline styles */
+    /* Light Blue (#C2E0F4) -> Navy Blue (#34495E) */
+    body:not(.dark-theme) [style*="color: #C2E0F4"], body:not(.dark-theme) [style*="color: #c2e0f4"] { color: var(--swap-navy-blue) !important; }
+    body:not(.dark-theme) [style*="border-color: #C2E0F4"], body:not(.dark-theme) [style*="border-color: #c2e0f4"] { border-color: var(--swap-navy-blue) !important; }
+    /* White (#FFFFFF) -> Black (#000000) */
+    body:not(.dark-theme) [style*="color: #FFFFFF"], body:not(.dark-theme) [style*="color: #ffffff"] { color: var(--swap-black) !important; }
+    body:not(.dark-theme) [style*="border-color: #FFFFFF"], body:not(.dark-theme) [style*="border-color: #ffffff"] { border-color: var(--swap-black) !important; }
+    /* Black (#000000) -> White (#FFFFFF) */
+    body:not(.dark-theme) [style*="color: #000000"] { color: var(--swap-white) !important; }
+    body:not(.dark-theme) [style*="border-color: #000000"] { border-color: var(--swap-white) !important; }
+    /* Dark Gray (saved as Light Gray #ECF0F1 in dark mode) -> becomes Dark Gray #7E8C8D in light */
+    body:not(.dark-theme) [style*="color: #ECF0F1"], body:not(.dark-theme) [style*="color: #ecf0f1"] { color: var(--swap-dark-gray) !important; }
+    body:not(.dark-theme) [style*="border-color: #ECF0F1"], body:not(.dark-theme) [style*="border-color: #ecf0f1"] { border-color: var(--swap-dark-gray) !important; }
+    /* Gray (saved as Medium Gray #CED4D9 in dark mode) -> becomes Gray #95A5A6 in light */
+    body:not(.dark-theme) [style*="color: #CED4D9"], body:not(.dark-theme) [style*="color: #ced4d9"] { color: var(--swap-gray) !important; }
+    body:not(.dark-theme) [style*="border-color: #CED4D9"], body:not(.dark-theme) [style*="border-color: #ced4d9"] { border-color: var(--swap-gray) !important; }
+    /* --- End Theme Color Overrides --- */
+  `;
 
   // Construct the full HTML for the iframe srcDoc
   const iframeHtml = `
@@ -198,6 +371,11 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           color: ${isDark ? '#f8fafc' : '#1e293b'};
         }
 
+        /* Dark mode heading colors */
+        h1, h2, h3 {
+          color: ${isDark ? '#f1f5f9' : '#1e293b'}; /* Lighter color for headings in dark mode */
+        }
+
         /* Ensure web components have proper display */
         router-simulator-simulator {
           display: block;
@@ -213,10 +391,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         }
         /* Preserve whitespace in paragraphs */
         p { white-space: pre-wrap; }
-        /* Ensure empty paragraphs have height */
-        p[data-empty="true"] { min-height: 1em; display: block; }
-        /* Ensure consecutive empty paragraphs are visible */
-        p + p[data-empty="true"] { margin-top: 1em; }
+        /* Empty line divs have inline styles, no specific class rule needed here */
+        /* Remove potentially conflicting rules for p[data-empty] */
         /* Image Grid Layout Styles */
         .image-grid-wrapper {
           display: grid !important;
@@ -335,10 +511,13 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         }
         /* Inject styles extracted from saved content */
         ${styles}
+
+        /* Inject theme-specific variables and overrides */
+        ${themeStyles}
       </style>
       <link rel="stylesheet" href="/fonts/inter.css"> <!-- Ensure fonts are loaded -->
     </head>
-    <body>
+    <body class="${isDark ? 'dark-theme' : ''}">
       ${processedBody}
     </body>
     </html>

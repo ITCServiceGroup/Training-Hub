@@ -25,25 +25,22 @@ export const prepareContentForPreview = (htmlContent) => {
     return htmlContent;
   }
 
-  // Process empty paragraphs
+  // Process empty paragraphs on the *entire* content first
   let processedContent = htmlContent;
+  processedContent = processedContent.replace(/<p><br><\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+  processedContent = processedContent.replace(/<p>[\s&nbsp;]*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
+  processedContent = processedContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
+  // Handle TinyMCE specific empty paragraphs (only if they are visually empty)
+  processedContent = processedContent.replace(/<p data-mce-empty="1">(?:<br>|\s|&nbsp;)*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
 
-  // Extract body content to process
-  const bodyMatch = processedContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  if (bodyMatch && bodyMatch[1]) {
-    let bodyContent = bodyMatch[1];
 
-    // Replace empty paragraphs with divs that have height
-    bodyContent = bodyContent.replace(/<p><br><\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
-
-    // Also handle paragraphs with non-breaking spaces or just spaces
-    bodyContent = bodyContent.replace(/<p>[\s&nbsp;]*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
-
-    // Replace consecutive <br> tags with empty lines
-    bodyContent = bodyContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
-
-    // Replace the body content in the full HTML
-    processedContent = processedContent.replace(bodyMatch[0], `<body class="preview-content">${bodyContent}</body>`);
+  // Ensure body tag has the preview class (if body exists)
+  const bodyMatch = processedContent.match(/<body[^>]*>/i);
+  if (bodyMatch) {
+      if (!bodyMatch[0].includes('class="preview-content"')) {
+          const newBodyTag = bodyMatch[0].replace('>', ' class="preview-content">');
+          processedContent = processedContent.replace(bodyMatch[0], newBodyTag);
+      }
   }
 
   // Add a comment to help with debugging

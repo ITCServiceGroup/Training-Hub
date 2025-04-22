@@ -26,6 +26,59 @@ const HtmlModeView = ({
       const iframe = iframeRef.current;
       const iframeDoc = iframe.contentWindow.document;
 
+      // Define theme-swapping styles
+      const themeStyles = `
+        /* Theme Swapping Colors */
+        :root {
+          /* Light Mode Values */
+          --swap-navy-blue: #34495E;
+          --swap-black: #000000;
+          --swap-white: #FFFFFF;
+          --swap-light-gray: #7E8C8D; /* Uses Dark Gray hex in light mode */
+          --swap-dark-gray: #7E8C8D;
+          --swap-medium-gray: #95A5A6; /* Uses Gray hex in light mode */
+          --swap-gray: #95A5A6;
+        }
+        body.dark-theme {
+          /* Dark Mode Values */
+          --swap-navy-blue: #C2E0F4; /* Becomes Light Blue */
+          --swap-black: #FFFFFF; /* Becomes White */
+          --swap-white: #000000; /* Becomes Black */
+          --swap-light-gray: #ECF0F1;
+          --swap-dark-gray: #ECF0F1; /* Becomes Light Gray */
+          --swap-medium-gray: #CED4D9;
+          --swap-gray: #CED4D9; /* Becomes Medium Gray */
+        }
+
+        /* --- Theme Color Overrides for Inline Styles --- */
+
+        /* Dark Mode Viewing: Override light mode inline styles */
+        body.dark-theme [style*="color: #34495E"], body.dark-theme [style*="color: #34495e"] { color: var(--swap-navy-blue) !important; }
+        body.dark-theme [style*="border-color: #34495E"], body.dark-theme [style*="border-color: #34495e"] { border-color: var(--swap-navy-blue) !important; }
+        body.dark-theme [style*="color: #000000"] { color: var(--swap-black) !important; }
+        body.dark-theme [style*="border-color: #000000"] { border-color: var(--swap-black) !important; }
+        body.dark-theme [style*="color: #FFFFFF"], body.dark-theme [style*="color: #ffffff"] { color: var(--swap-white) !important; }
+        body.dark-theme [style*="border-color: #FFFFFF"], body.dark-theme [style*="border-color: #ffffff"] { border-color: var(--swap-white) !important; }
+        body.dark-theme [style*="color: #7E8C8D"], body.dark-theme [style*="color: #7e8c8d"] { color: var(--swap-light-gray) !important; }
+        body.dark-theme [style*="border-color: #7E8C8D"], body.dark-theme [style*="border-color: #7e8c8d"] { border-color: var(--swap-light-gray) !important; }
+        body.dark-theme [style*="color: #95A5A6"], body.dark-theme [style*="color: #95a5a6"] { color: var(--swap-medium-gray) !important; }
+        body.dark-theme [style*="border-color: #95A5A6"], body.dark-theme [style*="border-color: #95a5a6"] { border-color: var(--swap-medium-gray) !important; }
+
+
+        /* Light Mode Viewing: Override dark mode inline styles */
+        body:not(.dark-theme) [style*="color: #C2E0F4"], body:not(.dark-theme) [style*="color: #c2e0f4"] { color: var(--swap-navy-blue) !important; }
+        body:not(.dark-theme) [style*="border-color: #C2E0F4"], body:not(.dark-theme) [style*="border-color: #c2e0f4"] { border-color: var(--swap-navy-blue) !important; }
+        body:not(.dark-theme) [style*="color: #FFFFFF"], body:not(.dark-theme) [style*="color: #ffffff"] { color: var(--swap-black) !important; }
+        body:not(.dark-theme) [style*="border-color: #FFFFFF"], body:not(.dark-theme) [style*="border-color: #ffffff"] { border-color: var(--swap-black) !important; }
+        body:not(.dark-theme) [style*="color: #000000"] { color: var(--swap-white) !important; }
+        body:not(.dark-theme) [style*="border-color: #000000"] { border-color: var(--swap-white) !important; }
+        body:not(.dark-theme) [style*="color: #ECF0F1"], body:not(.dark-theme) [style*="color: #ecf0f1"] { color: var(--swap-dark-gray) !important; }
+        body:not(.dark-theme) [style*="border-color: #ECF0F1"], body:not(.dark-theme) [style*="border-color: #ecf0f1"] { border-color: var(--swap-dark-gray) !important; }
+        body:not(.dark-theme) [style*="color: #CED4D9"], body:not(.dark-theme) [style*="color: #ced4d9"] { color: var(--swap-gray) !important; }
+        body:not(.dark-theme) [style*="border-color: #CED4D9"], body:not(.dark-theme) [style*="border-color: #ced4d9"] { border-color: var(--swap-gray) !important; }
+        /* --- End Theme Color Overrides --- */
+      `;
+
       // Extract parts from the full HTML content in the textarea
       const fullHtml = htmlModeContent;
       const styleContent = extractStyleContent(fullHtml);
@@ -37,7 +90,10 @@ const HtmlModeView = ({
       processedBodyContent = processedBodyContent.replace(/<p><br><\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
       processedBodyContent = processedBodyContent.replace(/<p>[\s&nbsp;]*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
       processedBodyContent = processedBodyContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
+      // Handle TinyMCE specific empty paragraphs (only if they are visually empty)
+      processedBodyContent = processedBodyContent.replace(/<p data-mce-empty="1">(?:<br>|\s|&nbsp;)*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
       processedBodyContent = processContentForWebComponents(processedBodyContent);
+
 
       // Construct the complete HTML document with styles and content
       const combinedStyles = styleContent || `
@@ -161,7 +217,16 @@ const HtmlModeView = ({
             html {
               font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
             }
+            body {
+              background-color: ${isDark ? '#1e293b' : '#ffffff'};
+              color: ${isDark ? '#f8fafc' : '#1e293b'};
+            }
             ${combinedStyles}
+            /* Empty line divs have inline styles, no specific class rule needed here */
+            /* Remove potentially conflicting rules for p[data-empty] */
+
+            /* Inject theme-specific variables and overrides */
+            ${themeStyles}
 
             /* Force all style overrides */
             html body .image-grid-wrapper > .image-cell > img[class*="border-"],
@@ -239,7 +304,7 @@ const HtmlModeView = ({
             }
           </style>
         </head>
-        <body>
+        <body class="${isDark ? 'dark-theme' : ''}">
           <div class="loading">Loading interactive elements...</div>
           ${processedBodyContent}
           <script>
@@ -399,7 +464,7 @@ const HtmlModeView = ({
     };
 
     setupIframeContent();
-  }, [htmlModeContent, initialContent, iframeRef]);
+  }, [htmlModeContent, initialContent, iframeRef, isDark]); // Added isDark dependency
 
   return (
     <div className="w-full flex flex-col flex-grow h-[850px]">

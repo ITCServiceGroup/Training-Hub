@@ -1,0 +1,45 @@
+/* v2/public/tinymce/content-light.css - Light Theme Image Border Styles */
+
+/* Swapping Colors */
+img.img-border-navy-blue { border: 1px solid #34495E !important; }
+img.img-border-black     { border: 1px solid #000000 !important; }
+img.img-border-white     { border: 1px solid #FFFFFF !important; outline: 1px solid #DDDDDD; /* Subtle outline for visibility */ }
+img.img-border-light-gray{ border: 1px solid #ECF0F1 !important; } /* Light Gray (Base) */
+img.img-border-dark-gray { border: 1px solid #7E8C8D !important; } /* Dark Gray (Base) */
+img.img-border-medium-gray{ border: 1px solid #CED4D9 !important; } /* Medium Gray (Base) */
+img.img-border-gray      { border: 1px solid #95A5A6 !important; } /* Gray (Base) */
+
+/* Non-Swapping Colors (Using baseColorMap from themeColors.js) */
+img.img-border-light-green { border: 1px solid #BFEDD2 !important; }
+img.img-border-light-yellow { border: 1px solid #FBEEB8 !important; }
+img.img-border-light-red { border: 1px solid #F8CAC6 !important; }
+img.img-border-light-purple { border: 1px solid #ECCAFA !important; }
+img.img-border-light-blue { border: 1px solid #C2E0F4 !important; } /* Note: This is Dark Mode for Navy Blue, but might be selectable */
+
+img.img-border-green { border: 1px solid #2DC26B !important; }
+img.img-border-yellow { border: 1px solid #F1C40F !important; }
+img.img-border-red { border: 1px solid #E03E2D !important; }
+img.img-border-purple { border: 1px solid #B96AD9 !important; }
+img.img-border-blue { border: 1px solid #3598DB !important; }
+
+img.img-border-dark-turquoise { border: 1px solid #169179 !important; }
+img.img-border-orange { border: 1px solid #E67E23 !important; }
+img.img-border-dark-red { border: 1px solid #BA372A !important; }
+img.img-border-dark-purple { border: 1px solid #843FA1 !important; }
+img.img-border-dark-blue { border: 1px solid #236FA1 !important; }
+
+/* Ensure all images with these classes have a border */
+img[class*="img-border-"] {
+  border-style: solid;
+  border-width: 1px;
+  box-sizing: border-box; /* Include border in element's total width/height */
+}
+
+/* --- Text Color Overrides (Light Mode Viewing) --- */
+/* Override dark mode inline styles with light equivalents */
+[style*="color: #C2E0F4"], [style*="color: #c2e0f4"] { color: #34495E !important; } /* Light Blue -> Navy Blue */
+/* Black (#000000) inline style doesn't need override in light mode */
+[style*="color: #FFFFFF"], [style*="color: #ffffff"] { color: #000000 !important; } /* White -> Black */
+[style*="color: #ECF0F1"], [style*="color: #ecf0f1"] { color: #7E8C8D !important; } /* Light Gray -> Dark Gray */
+[style*="color: #CED4D9"], [style*="color: #ced4d9"] { color: #95A5A6 !important; } /* Medium Gray -> Gray */
+/* Add other non-swapping dark colors if they become unreadable in light mode */
