@@ -1,4 +1,5 @@
 import { useNode } from '@craftjs/core';
+import { Resizer } from '../Resizer';
 import React from 'react';
 import { ImageSettings } from './ImageSettings';
 
@@ -39,16 +40,14 @@ export const Image = ({
     : 'none';
 
   return (
-    <div
-      ref={(ref) => connect(drag(ref))}
+    <Resizer
+      propKey={{ width: 'width', height: 'height' }}
       style={{
-        width,
         margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
         padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
         display: 'flex',
         justifyContent: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start'
       }}
-      className="craft-image-container"
     >
       <img
         src={src}
@@ -62,7 +61,7 @@ export const Image = ({
         }}
         className="craft-image"
       />
-    </div>
+    </Resizer>
   );
 };
 
@@ -85,7 +84,7 @@ Image.craft = {
   },
   rules: {
     canDrag: () => true,
-    canDrop: () => false,
+    canDrop: () => true,
     canMoveIn: () => false,
     canMoveOut: () => true
   },

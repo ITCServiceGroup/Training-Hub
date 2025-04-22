@@ -124,10 +124,14 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
         return acc;
       }, {})}
       className={classNames({
-        'm-auto': isRootNode,
-        'flex': true
+        'm-auto': isRootNode
       })}
-      style={{ boxSizing: 'border-box', minHeight: '50px', position: 'relative' }}
+      style={{
+        boxSizing: 'border-box',
+        minHeight: '50px',
+        position: 'relative',
+        width: '100%'
+      }}
       ref={(ref) => {
         if (ref) {
           resizable.current = ref;
@@ -194,7 +198,14 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
       }}
       {...props}
     >
-      {children}
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        ...(props.style || {})
+      }}>
+        {children}
+      </div>
       {active && (
         <div className="resize-indicators" style={{
           position: 'absolute',
