@@ -161,7 +161,8 @@ export const ImageSettings = () => {
                   type="text"
                   value={width}
                   onChange={(e) => actions.setProp((props) => { props.width = e.target.value; })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100"
+                  style={{ WebkitAppearance: 'inner-spin-button' }}
                   placeholder="100%, 300px"
                 />
               </div>
@@ -171,7 +172,8 @@ export const ImageSettings = () => {
                   type="text"
                   value={height}
                   onChange={(e) => actions.setProp((props) => { props.height = e.target.value; })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100"
+                  style={{ WebkitAppearance: 'inner-spin-button' }}
                   placeholder="auto, 200px"
                 />
               </div>
@@ -218,6 +220,134 @@ export const ImageSettings = () => {
         </div>
       </div>
 
+      {/* Spacing Section */}
+      <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-800 dark:text-white mb-3">Spacing</h3>
+        <div className="space-y-3">
+          {/* Margin Controls */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Margin (px)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Top</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(margin[0]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.margin[0] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Right</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(margin[1]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.margin[1] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bottom</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(margin[2]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.margin[2] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Left</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(margin[3]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.margin[3] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Padding Controls */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Padding (px)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Top</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(padding[0]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.padding[0] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Right</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(padding[1]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.padding[1] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bottom</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(padding[2]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.padding[2] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Left</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={parseInt(padding[3]) || 0}
+                  onChange={(e) => actions.setProp((props) => {
+                    props.padding[3] = `${e.target.value}px`;
+                  })}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Border & Effects Section */}
       <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
         <h3 className="text-sm font-medium text-gray-800 dark:text-white mb-3">Border & Effects</h3>
@@ -248,9 +378,9 @@ export const ImageSettings = () => {
           {border.style !== 'none' && (
             <>
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Border Width
-                </label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Border Width
+            </label>
                 <div className="flex items-center">
                   <input
                     type="range"
@@ -258,7 +388,7 @@ export const ImageSettings = () => {
                     min={0}
                     max={10}
                     onChange={(e) => actions.setProp((props) => {
-                      props.border = { ...props.border, width: parseInt(e.target.value) };
+                      props.border.width = parseInt(e.target.value);
                     })}
                     className="w-full mr-2 accent-teal-600"
                   />

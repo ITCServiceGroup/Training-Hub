@@ -64,33 +64,50 @@ export const Image = ({
   }
 
   return (
-    <Resizer
-      propKey={{ width: 'width', height: 'height' }}
-      style={{
-        margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-        display: 'block',
-        backgroundColor: bgColor,
-        overflow: 'hidden'
-      }}
-    >
-      <img
-        src={src}
-        alt={alt}
+    <div style={{ 
+      display: 'block',
+      margin: margin.join(' ') // Margin on the outer block container
+    }}>
+      <Resizer
+        propKey={{ width: 'width', height: 'height' }}
         style={{
           display: 'block',
-          maxWidth: '100%',
-          height,
-          objectFit,
-          aspectRatio: formattedAspectRatio,
-          borderRadius: `${radius}px`,
-          border: borderStyle,
-          boxShadow: shadowStyle,
-          ...alignmentStyles
+          backgroundColor: bgColor,
+          overflow: 'hidden',
+          position: 'relative'
         }}
-        className="craft-image"
-      />
-    </Resizer>
+      >
+        <div style={{
+          position: 'absolute',
+          top: `${parseInt(padding[0])}px`,
+          right: `${parseInt(padding[1])}px`,
+          bottom: `${parseInt(padding[2])}px`,
+          left: `${parseInt(padding[3])}px`,
+          display: 'flex',
+          justifyContent: alignment === 'left' ? 'flex-start' : 
+                         alignment === 'right' ? 'flex-end' : 'center',
+          alignItems: 'center'
+        }}>
+          <img
+            src={src}
+            alt={alt}
+            style={{
+              display: 'block',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              height: 'auto',
+              width: 'auto',
+              objectFit,
+              aspectRatio: formattedAspectRatio,
+              borderRadius: `${radius}px`,
+              border: borderStyle,
+              boxShadow: shadowStyle
+            }}
+            className="craft-image"
+          />
+        </div>
+      </Resizer>
+    </div>
   );
 };
 
