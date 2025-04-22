@@ -17,13 +17,14 @@ export const Viewport = ({ children }) => {
     <div className="viewport">
       <div className="flex h-full overflow-hidden flex-row w-full">
         <Toolbox />
-        <div className="page-container flex flex-1 h-full flex-col">
+        <div className="page-container flex flex-1 h-full flex-col overflow-hidden">
           <Header />
           <div
-            className={`craftjs-renderer flex-1 h-full w-full transition pb-8 overflow-auto ${enabled ? 'bg-gray-100 dark:bg-slate-800' : ''}`}
+            className={`craftjs-renderer flex-1 w-full transition pb-8 overflow-auto ${enabled ? 'bg-gray-100 dark:bg-slate-800' : ''}`}
             ref={(ref) => {
               connectors.select(connectors.hover(ref, null), null);
             }}
+            style={{ maxHeight: 'calc(100% - 48px)' }} /* 48px accounts for the header height */
           >
             <div className="relative flex-col flex items-center pt-8">
               {children}

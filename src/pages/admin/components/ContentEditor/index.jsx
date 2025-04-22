@@ -56,7 +56,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   useEffect(() => {
     const studyGuideId = selectedStudyGuide?.id || 'new';
     const draft = loadDraft(studyGuideId);
-    
+
     if (draft && draft.content !== editorJson) {
       setTitle(draft.title);
       actions.deserialize(JSON.parse(draft.content));
@@ -192,7 +192,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       </div>
 
       {/* Main Editor Area - Viewport and Frame */}
-      <div className="flex flex-grow gap-4" style={{ flex: '1 1 auto', minHeight: '600px' }}> {/* Added container div */}
+      <div className="flex flex-grow gap-4 overflow-hidden" style={{ flex: '1 1 auto', height: 'calc(100% - 100px)' }}> {/* Updated container div */}
         <Viewport>
           <CraftFrame>
             {/* Always render the default content */}
@@ -269,7 +269,7 @@ const ContentEditor = ({
 }) => {
 
   return (
-    <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full" style={{ minHeight: 'calc(100vh - 200px)' }}>
+    <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
       <Editor
           resolver={{ Container, Text, Button, Image, Card, Interactive }}
           enabled={true}
@@ -279,22 +279,22 @@ const ContentEditor = ({
           onNodesChange={(query) => {
             // Only process changes if we have a callback and the editor is ready
             if (!onJsonChange || !query) return;
-            
+
             try {
               const currentJson = JSON.stringify(query.serialize());
               const currentNodes = query.getNodes();
-              
+
               // Skip if no content yet or content hasn't changed
               if (!currentJson || currentJson === editorJson) return;
-              
+
               // Skip initial setup updates
               if (Object.keys(currentNodes).length <= 2 && !editorJson) return;
-              
+
               // Use ref for debouncing
               if (window.jsonChangeTimeout) {
                 clearTimeout(window.jsonChangeTimeout);
               }
-              
+
               window.jsonChangeTimeout = setTimeout(() => {
                 const latestJson = JSON.stringify(query.serialize());
                 if (latestJson !== editorJson) {
@@ -307,7 +307,7 @@ const ContentEditor = ({
                   onJsonChange(latestJson);
                 }
               }, 1000);
-              
+
             } catch (error) {
               console.error("Error serializing editor state in onNodesChange:", error);
             }
