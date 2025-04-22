@@ -2,6 +2,36 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Editor, Frame as CraftFrame, Element as CraftElement, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../contexts/ThemeContext';
 
+// Storage utility functions
+const getStorageKey = (studyGuideId) => `content_editor_${studyGuideId}_draft`;
+
+const saveDraft = (studyGuideId, { title, content }) => {
+  const key = getStorageKey(studyGuideId);
+  const draft = {
+    title,
+    content,
+    timestamp: Date.now(),
+    lastSavedVersion: content
+  };
+  localStorage.setItem(key, JSON.stringify(draft));
+};
+
+const loadDraft = (studyGuideId) => {
+  try {
+    const key = getStorageKey(studyGuideId);
+    const draft = localStorage.getItem(key);
+    return draft ? JSON.parse(draft) : null;
+  } catch (error) {
+    console.error('Error loading draft:', error);
+    return null;
+  }
+};
+
+const clearDraft = (studyGuideId) => {
+  const key = getStorageKey(studyGuideId);
+  localStorage.removeItem(key);
+};
+
 import { Viewport } from './components/editor/Viewport';
 import { RenderNode } from './components/editor/RenderNode';
 import { Container } from './components/selectors/Container';
@@ -14,12 +44,37 @@ import { Interactive } from './components/selectors/Interactive';
 import './styles.css';
 
 // Wrapper component to access editor actions and render the actual editor UI
-const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew }) => {
-  const { actions, query } = useEditor(); // Get actions and query from context
+const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide }) => {
+  const { actions, query } = useEditor();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [title, setTitle] = useState(initialTitle);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Auto-restore draft on mount
+  useEffect(() => {
+    const studyGuideId = selectedStudyGuide?.id || 'new';
+    const draft = loadDraft(studyGuideId);
+    
+    if (draft && draft.content !== editorJson) {
+      setTitle(draft.title);
+      actions.deserialize(JSON.parse(draft.content));
+    }
+  }, [selectedStudyGuide, editorJson, actions]);
+
+  // Add beforeunload event listener for unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   // Create a ref to store the previous editorJson value
   const prevEditorJsonRef = useRef(null);
@@ -80,6 +135,11 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         shouldExit
       });
 
+      // Clear draft after successful save
+      const studyGuideId = selectedStudyGuide?.id || 'new';
+      clearDraft(studyGuideId);
+      setHasUnsavedChanges(false);
+
       console.log('Content save initiated successfully');
     } catch (error) {
       console.error('Error saving content:', error);
@@ -93,8 +153,22 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     await handleSave(false);
   };
 
+  const handleCancelClick = () => {
+    const studyGuideId = selectedStudyGuide?.id || 'new';
+    if (hasUnsavedChanges) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+        clearDraft(studyGuideId);
+        onCancel();
+      }
+    } else {
+      onCancel();
+    }
+  };
+
   const handleDeleteClick = () => {
     if (window.confirm('Are you sure you want to delete this content? This action cannot be undone.')) {
+      const studyGuideId = selectedStudyGuide?.id || 'new';
+      clearDraft(studyGuideId);
       onDelete(); // Call the onDelete prop passed down
     }
   };
@@ -155,7 +229,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         <div className="flex-1"></div>
         <button
           type="button"
-          onClick={onCancel} // Use the onCancel prop passed down
+          onClick={handleCancelClick}
           className={`py-2 px-4 ${isDark ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500 text-white' : 'bg-white hover:bg-gray-100 border-gray-300 hover:border-gray-400 text-gray-700'} rounded-md text-sm cursor-pointer transition-colors`}
         >
           Cancel
@@ -224,6 +298,12 @@ const ContentEditor = ({
               window.jsonChangeTimeout = setTimeout(() => {
                 const latestJson = JSON.stringify(query.serialize());
                 if (latestJson !== editorJson) {
+                  // Save draft to localStorage
+                  const studyGuideId = selectedStudyGuide?.id || 'new';
+                  saveDraft(studyGuideId, {
+                    title: document.getElementById('title')?.value || '',
+                    content: latestJson
+                  });
                   onJsonChange(latestJson);
                 }
               }, 1000);
@@ -235,13 +315,13 @@ const ContentEditor = ({
         >
           {/* Render the inner component that contains the actual UI and uses the editor context */}
           <EditorInner
-            editorJson={editorJson}           // Pass the JSON state down
-            initialTitle={initialTitle}       // Pass title down
-            onSave={onSave}                   // Pass save handler down
-            onCancel={onCancel}               // Pass cancel handler down
-            onDelete={onDelete}               // Pass delete handler down
-            isNew={isNew}                     // Pass isNew flag down
-            // selectedStudyGuide is available via options, no need to pass down unless EditorInner specifically needs it
+            editorJson={editorJson}
+            initialTitle={initialTitle}
+            onSave={onSave}
+            onCancel={onCancel}
+            onDelete={onDelete}
+            isNew={isNew}
+            selectedStudyGuide={selectedStudyGuide}
           />
         </Editor>
     </div>
