@@ -203,28 +203,30 @@ const ContentEditor = ({
           options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
           indicator={{ success: '#0d9488', error: '#ef4444' }}
           onNodesChange={(query) => {
-            // Call the parent's onJsonChange callback whenever the editor state changes internally
-            if (!onJsonChange) return;
+            // Only process changes if we have a callback and the editor is ready
+            if (!onJsonChange || !query) return;
             
             try {
               const currentJson = JSON.stringify(query.serialize());
+              const currentNodes = query.getNodes();
               
-              // Avoid calling onJsonChange if the content hasn't actually changed
-              if (currentJson === editorJson) return;
+              // Skip if no content yet or content hasn't changed
+              if (!currentJson || currentJson === editorJson) return;
               
-              // Use ref for debouncing instead of window object
+              // Skip initial setup updates
+              if (Object.keys(currentNodes).length <= 2 && !editorJson) return;
+              
+              // Use ref for debouncing
               if (window.jsonChangeTimeout) {
                 clearTimeout(window.jsonChangeTimeout);
               }
               
-              // Debounce updates with a longer delay
               window.jsonChangeTimeout = setTimeout(() => {
-                // Double-check content hasn't changed during debounce
                 const latestJson = JSON.stringify(query.serialize());
                 if (latestJson !== editorJson) {
                   onJsonChange(latestJson);
                 }
-              }, 1000); // Increased to 1000ms for better debouncing
+              }, 1000);
               
             } catch (error) {
               console.error("Error serializing editor state in onNodesChange:", error);

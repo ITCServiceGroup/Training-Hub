@@ -332,23 +332,33 @@ const StudyGuides = () => {
 
   // Memoized callback for ContentEditor to update the state
   const handleJsonChange = useCallback((newJson) => {
-    // Validate JSON structure before updating
+    // Handle empty or null content
+    if (!newJson) {
+      setCurrentEditorJson(null);
+      return;
+    }
+
     try {
-      if (newJson) {
-        const parsed = JSON.parse(newJson);
-        if (!parsed || !parsed.ROOT) {
-          console.warn('Invalid editor content structure');
-          return;
-        }
-      }
+      const parsed = JSON.parse(newJson);
       
+      // Basic structure check
+      if (!parsed || typeof parsed !== 'object') {
+        return;
+      }
+
+      // Check for ROOT node
+      if (!parsed.ROOT || typeof parsed.ROOT !== 'object') {
+        return;
+      }
+
+      // Valid structure found, update state if changed
       setCurrentEditorJson(prevJson => {
-        // Only update if content has actually changed
         if (newJson !== prevJson) {
           return newJson;
         }
         return prevJson;
       });
+      
     } catch (error) {
       console.error('Error processing editor content:', error);
     }
