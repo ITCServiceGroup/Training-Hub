@@ -45,10 +45,6 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
   const nodeDimensions = useRef(null);
   nodeDimensions.current = { width: nodeWidth, height: nodeHeight };
 
-  /**
-   * Using an internal value to ensure the width/height set in the node is converted to px
-   * because the <re-resizable /> library does not work well with percentages.
-   */
   const [internalDimensions, setInternalDimensions] = useState({
     width: nodeWidth,
     height: nodeHeight,
@@ -107,6 +103,19 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
       window.removeEventListener('resize', listener);
     };
   }, [updateInternalDimensionsWithOriginal]);
+
+  const handleStyles = {
+    position: 'absolute',
+    width: '10px',
+    height: '10px',
+    backgroundColor: '#0d9488',
+    borderRadius: '50%',
+    display: 'block',
+    border: '2px solid #fff',
+    boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
+    zIndex: 2,
+    pointerEvents: 'auto'
+  };
 
   return (
     <Resizable
@@ -176,7 +185,6 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
           height = editingDimensions.current.height + d.height + 'px';
         }
 
-        // Update with debounce to improve performance
         actions.setProp((prop) => {
           prop[propKey.width] = width;
           prop[propKey.height] = height;
@@ -186,7 +194,6 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
         isResizing.current = false;
         updateInternalDimensionsWithOriginal();
 
-        // Call the onResize callback if provided
         if (typeof onResize === 'function') {
           const dom = resizable.current.resizable;
           if (dom) {
@@ -202,46 +209,19 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
         width: '100%',
         height: '100%',
         display: 'flex',
+        position: 'relative',
         ...(props.style || {})
       }}>
         {children}
       </div>
       {active && (
-        <div className="resize-indicators" style={{
-          position: 'fixed',
-          top: resizable.current ? resizable.current.resizable.getBoundingClientRect().top : 0,
-          left: resizable.current ? resizable.current.resizable.getBoundingClientRect().left : 0,
-          width: resizable.current ? resizable.current.resizable.getBoundingClientRect().width : '100%',
-          height: resizable.current ? resizable.current.resizable.getBoundingClientRect().height : '100%',
-          pointerEvents: 'none',
-          zIndex: 999999
-        }}>
-          {/* Corner handles with consistent styling */}
-          {[
-            { top: '-5px', left: '-5px', cursor: 'nw-resize' },
-            { top: '-5px', right: '-5px', cursor: 'ne-resize' },
-            { bottom: '-5px', left: '-5px', cursor: 'sw-resize' },
-            { bottom: '-5px', right: '-5px', cursor: 'se-resize' }
-          ].map((position, index) => (
-            <span
-              key={index}
-              style={{
-                position: 'absolute',
-                width: '10px',
-                height: '10px',
-                backgroundColor: '#0d9488', // teal-600
-                borderRadius: '50%',
-                display: 'block',
-                boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
-                zIndex: 999999,
-                pointerEvents: 'auto',
-                cursor: position.cursor,
-                border: '2px solid #fff',
-                ...position
-              }}
-            />
-          ))}
-        </div>
+        <>
+          {/* Corner resize handles */}
+          <div style={{...handleStyles, top: '-5px', left: '-5px', cursor: 'nw-resize'}} />
+          <div style={{...handleStyles, top: '-5px', right: '-5px', cursor: 'ne-resize'}} />
+          <div style={{...handleStyles, bottom: '-5px', left: '-5px', cursor: 'sw-resize'}} />
+          <div style={{...handleStyles, bottom: '-5px', right: '-5px', cursor: 'se-resize'}} />
+        </>
       )}
     </Resizable>
   );

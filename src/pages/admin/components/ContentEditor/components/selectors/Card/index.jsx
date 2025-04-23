@@ -49,6 +49,15 @@ export const Card = (props) => {
     children,
   } = props;
 
+  const {
+    connectors: { connect },
+    selected,
+    hovered
+  } = useNode((node) => ({
+    selected: node.events.selected,
+    hovered: node.events.hovered
+  }));
+
   // Calculate border style
   const borderStyle = border.style !== 'none'
     ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})`
@@ -57,6 +66,7 @@ export const Card = (props) => {
   return (
     <Resizer
       propKey={{ width: 'width', height: 'height' }}
+      ref={connect}
       style={{
         width: fillSpace === 'yes' ? '100%' : width,
         height,
@@ -77,7 +87,7 @@ export const Card = (props) => {
         minHeight: '50px',
         position: 'relative'
       }}
-      className="craft-card"
+      className={`craft-card ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
     >
       {children}
     </Resizer>

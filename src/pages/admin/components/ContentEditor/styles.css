@@ -172,16 +172,21 @@
 /* Card styles */
 .craft-card {
   transition: all 0.2s;
-  overflow: hidden;
+  /* Remove overflow: hidden to prevent clipping of resize handles */
 }
 
-/* Card components should have solid border when selected, but dashed when hovered */
+/* Card components should have dashed border when selected or hovered */
 .craft-card.component-selected::after {
-  border-style: solid !important;
+  border: 2px dashed #0d9488 !important;
 }
 
 .craft-card.component-hovered::after {
-  border-style: dashed !important;
+  border: 2px dashed #0d9488 !important;
+}
+
+/* Ensure proper z-index for card components */
+.craft-card.craftjs-node-selected {
+  z-index: 1;
 }
 
 /* Toolbar styles */
@@ -327,38 +332,19 @@
   box-sizing: border-box !important;
 }
 
-/* Resize handle styles */
+/* Hide default resize handles from re-resizable */
 .react-resizable-handle {
-  position: absolute;
-  width: 10px !important;
-  height: 10px !important;
-  background-color: #0d9488;
-  border-radius: 50% !important;
-  border: 2px solid white;
-  box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.25);
-  z-index: 2;
+  display: none;
 }
 
-.react-resizable-handle-se {
-  bottom: -6px;
-  right: -6px;
-  cursor: se-resize;
+/* Ensure proper stacking context for resize handles */
+.craft-image-container.craftjs-node-selected,
+.craft-card.craftjs-node-selected,
+.craft-container.craftjs-node-selected {
+  z-index: 1;
 }
 
-.react-resizable-handle-sw {
-  bottom: -6px;
-  left: -6px;
-  cursor: sw-resize;
-}
-
-.react-resizable-handle-nw {
-  top: -6px;
-  left: -6px;
-  cursor: nw-resize;
-}
-
-.react-resizable-handle-ne {
-  top: -6px;
-  right: -6px;
-  cursor: ne-resize;
+/* Ensure resizable container doesn't clip resize handles */
+.react-resizable {
+  overflow: visible !important;
 }
