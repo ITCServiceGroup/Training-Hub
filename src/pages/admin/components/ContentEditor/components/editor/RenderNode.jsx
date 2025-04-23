@@ -73,16 +73,47 @@ export const RenderNode = ({ render }) => {
     }
   }, [dom, isSelected, isHovered, isRoot]); // Dependencies updated
 
-  // Add scroll event listener for toolbar positioning
+  // Handle scroll events and selection state
   useEffect(() => {
     const craftJsRenderer = document.querySelector('.craftjs-renderer');
     if (craftJsRenderer) {
+      // Scroll handling
       craftJsRenderer.addEventListener('scroll', scroll);
+
+      // Handle click outside without clearing selection unnecessarily
+      const handleClickOutside = (e) => {
+        const isToolbar = e.target.closest('.px-2.py-2.text-white.bg-teal-600');
+        const isSettingsPanel = e.target.closest('.settings-panel'); // Don't clear when clicking settings
+        const isEditor = e.target.closest('.craftjs-renderer');
+        
+        // Only clear if clicking outside editor area completely
+        if (isSelected && dom && !dom.contains(e.target) && !isToolbar && !isSettingsPanel && !isEditor) {
+          actions.clearEvents();
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      
       return () => {
         craftJsRenderer.removeEventListener('scroll', scroll);
+        document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [scroll]);
+  }, [scroll, isSelected, dom, actions]);
+
+  // Initialize selection on mount if this node was previously selected
+  useEffect(() => {
+    const studyGuideId = query.getOptions().studyGuideId;
+    const selectedNodeId = localStorage.getItem(`content_editor_${studyGuideId}_selected_node`);
+    
+    if (selectedNodeId === id) {
+      // Set this node as selected
+      actions.setNodeEvent(id, 'selected', true);
+      
+      // Also ensure the node is visible in the settings panel
+      actions.selectNode(id);
+    }
+  }, [id, actions, query]);
 
   // Button style
   const btnStyle = {

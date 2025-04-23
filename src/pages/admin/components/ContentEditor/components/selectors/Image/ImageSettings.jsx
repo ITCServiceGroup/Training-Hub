@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNode } from '@craftjs/core';
 import { FaImage } from 'react-icons/fa';
 import { MediaLibrarySelector } from './MediaLibrarySelector';
@@ -9,6 +9,10 @@ export const ImageSettings = () => {
   }));
 
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const [inputValues, setInputValues] = useState({
+    margin: ['0', '0', '0', '0'],
+    padding: ['0', '0', '0', '0']
+  });
 
   const {
     src,
@@ -53,6 +57,29 @@ export const ImageSettings = () => {
       aspectRatio: props.aspectRatio || 'auto',
     };
   });
+
+  // Initialize or update input values when props change
+  useEffect(() => {
+    setInputValues({
+      margin: margin.map(m => m.replace('px', '')),
+      padding: padding.map(p => p.replace('px', ''))
+    });
+  }, [margin, padding]);
+
+  const handleSpacingChange = (type, index, value) => {
+    // Update local state
+    setInputValues(prev => ({
+      ...prev,
+      [type]: prev[type].map((v, i) => i === index ? value : v)
+    }));
+
+    // Only update prop if we have a value
+    if (value !== '') {
+      actions.setProp((props) => {
+        props[type][index] = `${value}px`;
+      });
+    }
+  };
 
   const handleMediaSelect = (item) => {
     actions.setProp((props) => {
@@ -230,58 +257,19 @@ export const ImageSettings = () => {
               Margin (px)
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Top</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(margin[0]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.margin[0] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Right</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(margin[1]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.margin[1] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bottom</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(margin[2]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.margin[2] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Left</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(margin[3]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.margin[3] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
+              {['Top', 'Right', 'Bottom', 'Left'].map((label, index) => (
+                <div key={label}>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={inputValues.margin[index] || ''}
+                    onChange={(e) => handleSpacingChange('margin', index, e.target.value)}
+                    className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                    placeholder="0"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -291,58 +279,19 @@ export const ImageSettings = () => {
               Padding (px)
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Top</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(padding[0]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.padding[0] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Right</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(padding[1]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.padding[1] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bottom</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(padding[2]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.padding[2] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Left</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={parseInt(padding[3]) || 0}
-                  onChange={(e) => actions.setProp((props) => {
-                    props.padding[3] = `${e.target.value}px`;
-                  })}
-                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                  placeholder="0"
-                />
-              </div>
+              {['Top', 'Right', 'Bottom', 'Left'].map((label, index) => (
+                <div key={label}>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={inputValues.padding[index] || ''}
+                    onChange={(e) => handleSpacingChange('padding', index, e.target.value)}
+                    className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                    placeholder="0"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>

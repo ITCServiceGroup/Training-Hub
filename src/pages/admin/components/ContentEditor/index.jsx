@@ -4,6 +4,51 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 
 // Storage utility functions
 const getStorageKey = (studyGuideId) => `content_editor_${studyGuideId}_draft`;
+const getSelectedNodeKey = (studyGuideId) => `content_editor_${studyGuideId}_selected_node`;
+const getSelectionMetaKey = (studyGuideId) => `content_editor_${studyGuideId}_selection_meta`;
+
+const saveSelectedNode = (studyGuideId, nodeId, extraMeta = {}) => {
+  if (!nodeId) {
+    clearSelectedNode(studyGuideId);
+    return;
+  }
+
+  localStorage.setItem(getSelectedNodeKey(studyGuideId), nodeId);
+  localStorage.setItem(getSelectionMetaKey(studyGuideId), JSON.stringify({
+    timestamp: Date.now(),
+    nodeId,
+    ...extraMeta
+  }));
+};
+
+const loadSelectedNode = (studyGuideId) => {
+  const nodeId = localStorage.getItem(getSelectedNodeKey(studyGuideId));
+  try {
+    const meta = JSON.parse(localStorage.getItem(getSelectionMetaKey(studyGuideId)) || '{}');
+    return { nodeId, meta };
+  } catch (err) {
+    return { nodeId, meta: {} };
+  }
+};
+
+const clearSelectedNode = (studyGuideId) => {
+  localStorage.removeItem(getSelectedNodeKey(studyGuideId));
+  localStorage.removeItem(getSelectionMetaKey(studyGuideId));
+};
+
+// Helper function for exponential backoff retry
+const retryWithBackoff = async (fn, maxAttempts = 5, initialDelay = 100) => {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const result = await fn();
+      if (result) return result;
+    } catch (err) {
+      console.warn(`Attempt ${attempt + 1} failed:`, err);
+    }
+    await new Promise(r => setTimeout(r, initialDelay * Math.pow(2, attempt)));
+  }
+  return null;
+};
 
 const saveDraft = (studyGuideId, { title, content }) => {
   const key = getStorageKey(studyGuideId);
@@ -52,16 +97,90 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Auto-restore draft on mount
+  // Content and selection state management
   useEffect(() => {
     const studyGuideId = selectedStudyGuide?.id || 'new';
+    let contentLoaded = false;
+    
+    // Load draft content first
     const draft = loadDraft(studyGuideId);
-
     if (draft && draft.content !== editorJson) {
       setTitle(draft.title);
       actions.deserialize(JSON.parse(draft.content));
+      contentLoaded = true;
     }
-  }, [selectedStudyGuide, editorJson, actions]);
+
+    // Selection restoration function with retry
+    const restoreSelection = async () => {
+      const { nodeId, meta } = loadSelectedNode(studyGuideId);
+      if (!nodeId) return;
+
+      const attemptRestore = () => {
+        try {
+          const node = query.node(nodeId).get();
+          if (node) {
+            actions.selectNode(nodeId);
+            actions.setNodeEvent(nodeId, 'selected', true);
+            return true;
+          }
+        } catch (err) {
+          return false;
+        }
+      };
+
+      await retryWithBackoff(attemptRestore);
+    };
+
+    // Visibility change handler
+    const handleVisibilityChange = async () => {
+      if (document.hidden) {
+        // Page is being hidden, save current selection
+        const selectedNodes = query.getState().events.selected;
+        if (selectedNodes.size > 0) {
+          const nodeId = Array.from(selectedNodes)[0];
+          saveSelectedNode(studyGuideId, nodeId, { 
+            fromVisibilityChange: true,
+            timestamp: Date.now()
+          });
+        }
+      } else {
+        // Page is becoming visible, restore selection
+        await restoreSelection();
+      }
+    };
+
+    // Focus/blur handlers
+    const handleFocus = async () => {
+      await restoreSelection();
+    };
+
+    const handleBlur = () => {
+      const selectedNodes = query.getState().events.selected;
+      if (selectedNodes.size > 0) {
+        const nodeId = Array.from(selectedNodes)[0];
+        saveSelectedNode(studyGuideId, nodeId, { 
+          fromBlur: true,
+          timestamp: Date.now()
+        });
+      }
+    };
+
+    // Set up event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+
+    // Initial selection restoration
+    if (contentLoaded || editorJson) {
+      restoreSelection();
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [selectedStudyGuide, editorJson, actions, query]);
 
   // Add beforeunload event listener for unsaved changes
   useEffect(() => {
@@ -169,6 +288,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     if (window.confirm('Are you sure you want to delete this content? This action cannot be undone.')) {
       const studyGuideId = selectedStudyGuide?.id || 'new';
       clearDraft(studyGuideId);
+      clearSelectedNode(studyGuideId); // Clear selection when content is deleted
       onDelete(); // Call the onDelete prop passed down
     }
   };
@@ -277,6 +397,18 @@ const ContentEditor = ({
           options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
           indicator={{ success: '#0d9488', error: '#ef4444' }}
           onNodesChange={(query) => {
+            const studyGuideId = selectedStudyGuide?.id || 'new';
+
+            // Handle selection state
+            const selectedNodes = query.getState().events.selected;
+            if (selectedNodes.size > 0) {
+              const selectedNode = Array.from(selectedNodes)[0];
+              saveSelectedNode(studyGuideId, selectedNode);
+            } else {
+              // Clear selection when nothing is selected
+              clearSelectedNode(studyGuideId);
+            }
+
             // Only process changes if we have a callback and the editor is ready
             if (!onJsonChange || !query) return;
 

@@ -555,7 +555,7 @@ const StudyGuides = () => {
       // Pass the state and callback to ContentEditor
       return (
         <ContentEditor
-          key={`editor-${selectedStudyGuide?.id || 'new'}-${Date.now()}-${currentEditorJson ? 'loaded' : 'empty'}`} // Add key to force remount
+          key={`editor-${selectedStudyGuide?.id || 'new'}`} // Only remount when switching guides or modes
           initialTitle={selectedStudyGuide?.title || ''}
           editorJson={currentEditorJson} // Pass current JSON state
           onJsonChange={handleJsonChange} // Pass callback to update state
