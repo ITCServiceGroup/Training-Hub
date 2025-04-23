@@ -31,83 +31,63 @@ export const Image = ({
 }) => {
   const {
     connectors: { connect, drag },
+    selected,
+    hovered
   } = useNode((node) => ({
     selected: node.events.selected,
+    hovered: node.events.hovered
   }));
 
-  // Calculate border style
   const borderStyle = border.style !== 'none'
     ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})`
     : 'none';
 
-  // Calculate shadow style
   const shadowStyle = shadow.enabled
     ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
     : 'none';
 
-  // Calculate background color
   const bgColor = `rgba(${Object.values(backgroundColor)})`;
 
-  // Format aspect ratio correctly
   const formattedAspectRatio = aspectRatio !== 'auto' 
-    ? aspectRatio.replace('/', ' / ') // Proper CSS format needs a space around the slash
+    ? aspectRatio.replace('/', ' / ')
     : 'auto';
 
-  // Calculate alignment styles for the image
-  let alignmentStyles = {};
-  if (alignment === 'left') {
-    alignmentStyles = { marginRight: 'auto' };
-  } else if (alignment === 'center') {
-    alignmentStyles = { marginLeft: 'auto', marginRight: 'auto' };
-  } else if (alignment === 'right') {
-    alignmentStyles = { marginLeft: 'auto' };
-  }
-
   return (
-    <div style={{ 
-      display: 'block',
-      margin: margin.join(' ') // Margin on the outer block container
-    }}>
-      <Resizer
-        propKey={{ width: 'width', height: 'height' }}
+    <Resizer
+      propKey={{ width: 'width', height: 'height' }}
+      ref={connect}
+      style={{
+        margin: margin.map(m => `${parseInt(m)}px`).join(' '),
+        padding: padding.map(p => `${parseInt(p)}px`).join(' '),
+        backgroundColor: bgColor,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: alignment === 'left' ? 'flex-start' : 
+                       alignment === 'right' ? 'flex-end' : 'center',
+        width: width,
+        height: height,
+        position: 'relative'
+      }}
+      className={`craft-image-container ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
+    >
+      <img
+        ref={drag}
+        src={src}
+        alt={alt}
         style={{
-          display: 'block',
-          backgroundColor: bgColor,
-          overflow: 'hidden',
-          position: 'relative'
+          maxWidth: '100%',
+          maxHeight: '100%',
+          width: 'auto',
+          height: 'auto',
+          objectFit,
+          aspectRatio: formattedAspectRatio,
+          borderRadius: `${radius}px`,
+          border: borderStyle,
+          boxShadow: shadowStyle
         }}
-      >
-        <div style={{
-          position: 'absolute',
-          top: `${parseInt(padding[0])}px`,
-          right: `${parseInt(padding[1])}px`,
-          bottom: `${parseInt(padding[2])}px`,
-          left: `${parseInt(padding[3])}px`,
-          display: 'flex',
-          justifyContent: alignment === 'left' ? 'flex-start' : 
-                         alignment === 'right' ? 'flex-end' : 'center',
-          alignItems: 'center'
-        }}>
-          <img
-            src={src}
-            alt={alt}
-            style={{
-              display: 'block',
-              maxWidth: '100%',
-              maxHeight: '100%',
-              height: 'auto',
-              width: 'auto',
-              objectFit,
-              aspectRatio: formattedAspectRatio,
-              borderRadius: `${radius}px`,
-              border: borderStyle,
-              boxShadow: shadowStyle
-            }}
-            className="craft-image"
-          />
-        </div>
-      </Resizer>
-    </div>
+        className="craft-image"
+      />
+    </Resizer>
   );
 };
 
@@ -142,7 +122,7 @@ Image.craft = {
   rules: {
     canDrag: () => true,
     canDrop: () => true,
-    canMoveIn: () => false,
+    canMoveIn: () => true,
     canMoveOut: () => true
   },
   related: {

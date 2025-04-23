@@ -73,6 +73,21 @@ export const RenderNode = ({ render }) => {
     }
   }, [dom, isSelected, isHovered, isRoot]); // Dependencies updated
 
+  // Utility function to check if element is within editor UI
+  const isEditorUiElement = useCallback((target) => {
+    return Boolean(
+      target.closest('.px-2.py-2.text-white.bg-teal-600') || // Toolbar
+      target.closest('.settings-panel') || // Settings panel
+      target.closest('.settings-panel-content') || // Settings content
+      target.closest('.settings-panel-body') || // Settings body
+      target.closest('.craftjs-renderer') || // Editor area
+      target.closest('.editor-menu') || // Editor menus
+      document.activeElement?.tagName === 'INPUT' || // Focused input
+      document.activeElement?.tagName === 'TEXTAREA' || // Focused textarea
+      document.activeElement?.tagName === 'SELECT' // Focused select
+    );
+  }, []);
+
   // Handle scroll events and selection state
   useEffect(() => {
     const craftJsRenderer = document.querySelector('.craftjs-renderer');
@@ -82,13 +97,24 @@ export const RenderNode = ({ render }) => {
 
       // Handle click outside without clearing selection unnecessarily
       const handleClickOutside = (e) => {
-        const isToolbar = e.target.closest('.px-2.py-2.text-white.bg-teal-600');
-        const isSettingsPanel = e.target.closest('.settings-panel'); // Don't clear when clicking settings
-        const isEditor = e.target.closest('.craftjs-renderer');
+        const clickedElement = e.target;
         
         // Only clear if clicking outside editor area completely
-        if (isSelected && dom && !dom.contains(e.target) && !isToolbar && !isSettingsPanel && !isEditor) {
-          actions.clearEvents();
+        if (isSelected && dom && !dom.contains(clickedElement) && !isEditorUiElement(clickedElement)) {
+          // Save selection state before clearing
+          const studyGuideId = query.getOptions().studyGuideId;
+          localStorage.setItem(`content_editor_${studyGuideId}_selection_meta`, JSON.stringify({
+            nodeId: id,
+            timestamp: Date.now(),
+            clearedBy: 'clickOutside'
+          }));
+          
+          // Use setTimeout to let any click handlers in the settings panel execute first
+          setTimeout(() => {
+            if (!isEditorUiElement(document.activeElement)) {
+              actions.clearEvents();
+            }
+          }, 0);
         }
       };
 
@@ -99,7 +125,7 @@ export const RenderNode = ({ render }) => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [scroll, isSelected, dom, actions]);
+  }, [scroll, isSelected, dom, actions, query, id, isEditorUiElement]);
 
   // Initialize selection on mount if this node was previously selected
   useEffect(() => {

@@ -17,7 +17,11 @@ const defaultProps = {
     color: { r: 229, g: 231, b: 235, a: 1 } // gray-200
   },
   width: '100%',
-  height: 'auto'
+  height: 'auto',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  fillSpace: 'no'
 };
 
 // Card component using Resizer
@@ -36,6 +40,12 @@ export const Card = (props) => {
     shadow,
     radius,
     border,
+    width,
+    height,
+    flexDirection,
+    alignItems,
+    justifyContent,
+    fillSpace,
     children,
   } = props;
 
@@ -48,6 +58,8 @@ export const Card = (props) => {
     <Resizer
       propKey={{ width: 'width', height: 'height' }}
       style={{
+        width: fillSpace === 'yes' ? '100%' : width,
+        height,
         background: `rgba(${Object.values(background)})`,
         color: `rgba(${Object.values(color)})`,
         padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
@@ -59,7 +71,9 @@ export const Card = (props) => {
         border: borderStyle,
         boxSizing: 'border-box',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection,
+        alignItems,
+        justifyContent,
         minHeight: '50px',
         position: 'relative'
       }}

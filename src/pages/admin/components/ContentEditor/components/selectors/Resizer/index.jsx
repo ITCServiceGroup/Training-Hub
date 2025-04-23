@@ -208,70 +208,39 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
       </div>
       {active && (
         <div className="resize-indicators" style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
+          position: 'fixed',
+          top: resizable.current ? resizable.current.resizable.getBoundingClientRect().top : 0,
+          left: resizable.current ? resizable.current.resizable.getBoundingClientRect().left : 0,
+          width: resizable.current ? resizable.current.resizable.getBoundingClientRect().width : '100%',
+          height: resizable.current ? resizable.current.resizable.getBoundingClientRect().height : '100%',
           pointerEvents: 'none',
-          zIndex: 10
+          zIndex: 999999
         }}>
-          <span style={{
-            position: 'absolute',
-            width: '10px',
-            height: '10px',
-            backgroundColor: '#0d9488',
-            borderRadius: '50%',
-            display: 'block',
-            boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
-            zIndex: 99999,
-            pointerEvents: 'none',
-            border: '2px solid #fff',
-            top: '-5px',
-            left: '-5px'
-          }}></span>
-          <span style={{
-            position: 'absolute',
-            width: '10px',
-            height: '10px',
-            backgroundColor: '#0d9488',
-            borderRadius: '50%',
-            display: 'block',
-            boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
-            zIndex: 99999,
-            pointerEvents: 'none',
-            border: '2px solid #fff',
-            top: '-5px',
-            right: '-5px'
-          }}></span>
-          <span style={{
-            position: 'absolute',
-            width: '10px',
-            height: '10px',
-            backgroundColor: '#0d9488',
-            borderRadius: '50%',
-            display: 'block',
-            boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
-            zIndex: 99999,
-            pointerEvents: 'none',
-            border: '2px solid #fff',
-            bottom: '-5px',
-            left: '-5px'
-          }}></span>
-          <span style={{
-            position: 'absolute',
-            width: '10px',
-            height: '10px',
-            backgroundColor: '#0d9488',
-            borderRadius: '50%',
-            display: 'block',
-            boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
-            zIndex: 99999,
-            pointerEvents: 'none',
-            border: '2px solid #fff',
-            bottom: '-5px',
-            right: '-5px'
-          }}></span>
+          {/* Corner handles with consistent styling */}
+          {[
+            { top: '-5px', left: '-5px', cursor: 'nw-resize' },
+            { top: '-5px', right: '-5px', cursor: 'ne-resize' },
+            { bottom: '-5px', left: '-5px', cursor: 'sw-resize' },
+            { bottom: '-5px', right: '-5px', cursor: 'se-resize' }
+          ].map((position, index) => (
+            <span
+              key={index}
+              style={{
+                position: 'absolute',
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#0d9488', // teal-600
+                borderRadius: '50%',
+                display: 'block',
+                boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
+                zIndex: 999999,
+                pointerEvents: 'auto',
+                cursor: position.cursor,
+                border: '2px solid #fff',
+                ...position
+              }}
+            />
+          ))}
         </div>
       )}
     </Resizable>
