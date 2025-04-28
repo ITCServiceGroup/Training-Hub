@@ -12,6 +12,7 @@ export const Text = ({
   shadow = 0,
   text = 'Text',
   margin = ['0', '0', '0', '0'],
+  padding = ['0', '0', '0', '0'],
 }) => {
   const {
     connectors: { connect },
@@ -34,6 +35,7 @@ export const Text = ({
       style={{
         width: '100%',
         margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
+        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
         color: `rgba(${Object.values(color)})`,
         textShadow: `0px 0px 2px rgba(0,0,0,${shadow / 100})`,
         fontSize: `${fontSize}px`,
@@ -52,6 +54,7 @@ Text.craft = {
     fontWeight: '500',
     color: { r: 92, g: 90, b: 90, a: 1 },
     margin: ['0', '0', '0', '0'],
+    padding: ['0', '0', '0', '0'],
     shadow: 0,
     text: 'Text',
   },

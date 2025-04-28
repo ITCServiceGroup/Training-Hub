@@ -97,15 +97,21 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  // Log initial title for debugging
+  console.log('EditorInner initialized with initialTitle:', initialTitle, 'for study guide:', selectedStudyGuide?.id || 'new');
+
   // Content and selection state management
   useEffect(() => {
     const studyGuideId = selectedStudyGuide?.id || 'new';
     let contentLoaded = false;
-    
+
     // Load draft content first
     const draft = loadDraft(studyGuideId);
     if (draft && draft.content !== editorJson) {
-      setTitle(draft.title);
+      // Only set the title from draft if it's not empty and initialTitle is empty
+      if (draft.title && draft.title.trim() !== '' && (!initialTitle || initialTitle.trim() === '')) {
+        setTitle(draft.title);
+      }
       actions.deserialize(JSON.parse(draft.content));
       contentLoaded = true;
     }
@@ -138,7 +144,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         const selectedNodes = query.getState().events.selected;
         if (selectedNodes.size > 0) {
           const nodeId = Array.from(selectedNodes)[0];
-          saveSelectedNode(studyGuideId, nodeId, { 
+          saveSelectedNode(studyGuideId, nodeId, {
             fromVisibilityChange: true,
             timestamp: Date.now()
           });
@@ -158,7 +164,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       const selectedNodes = query.getState().events.selected;
       if (selectedNodes.size > 0) {
         const nodeId = Array.from(selectedNodes)[0];
-        saveSelectedNode(studyGuideId, nodeId, { 
+        saveSelectedNode(studyGuideId, nodeId, {
           fromBlur: true,
           timestamp: Date.now()
         });
@@ -228,7 +234,10 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 
   // Update title when initialTitle changes (e.g., selecting a different guide)
   useEffect(() => {
-    setTitle(initialTitle);
+    if (initialTitle && initialTitle.trim() !== '') {
+      setTitle(initialTitle);
+      console.log('Setting title from initialTitle:', initialTitle);
+    }
   }, [initialTitle]);
 
   const handleSave = async (shouldExit = true) => {

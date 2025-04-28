@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback, forwardRef } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { ROOT_NODE } from '@craftjs/utils';
 import ReactDOM from 'react-dom';
-import { FaArrowsAlt, FaTrash, FaArrowUp } from 'react-icons/fa';
+import { FaArrowsAlt, FaTrash, FaArrowUp, FaCopy } from 'react-icons/fa';
 
 export const RenderNode = ({ render }) => {
   const { id, dom, name, isHovered, isSelected, parent, data, connectors } = useNode((node) => ({
@@ -98,7 +98,7 @@ export const RenderNode = ({ render }) => {
       // Handle click outside without clearing selection unnecessarily
       const handleClickOutside = (e) => {
         const clickedElement = e.target;
-        
+
         // Only clear if clicking outside editor area completely
         if (isSelected && dom && !dom.contains(clickedElement) && !isEditorUiElement(clickedElement)) {
           // Save selection state before clearing
@@ -108,7 +108,7 @@ export const RenderNode = ({ render }) => {
             timestamp: Date.now(),
             clearedBy: 'clickOutside'
           }));
-          
+
           // Use setTimeout to let any click handlers in the settings panel execute first
           setTimeout(() => {
             if (!isEditorUiElement(document.activeElement)) {
@@ -119,7 +119,7 @@ export const RenderNode = ({ render }) => {
       };
 
       document.addEventListener('mousedown', handleClickOutside);
-      
+
       return () => {
         craftJsRenderer.removeEventListener('scroll', scroll);
         document.removeEventListener('mousedown', handleClickOutside);
@@ -131,11 +131,11 @@ export const RenderNode = ({ render }) => {
   useEffect(() => {
     const studyGuideId = query.getOptions().studyGuideId;
     const selectedNodeId = localStorage.getItem(`content_editor_${studyGuideId}_selected_node`);
-    
+
     if (selectedNodeId === id) {
       // Set this node as selected
       actions.setNodeEvent(id, 'selected', true);
-      
+
       // Also ensure the node is visible in the settings panel
       actions.selectNode(id);
     }
@@ -192,6 +192,250 @@ export const RenderNode = ({ render }) => {
                   style={btnStyle}
                 >
                   <FaArrowUp size={14} />
+                </a>
+              )}
+              {isDeletable && (
+                <a
+                  className="mr-2 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    try {
+                      console.log('Starting node duplication for node ID:', id);
+
+                      // Get the node to duplicate
+                      const node = query.node(id).get();
+                      console.log('Node to duplicate:', node);
+
+                      // Get the current parent of the node
+                      // This ensures we add the duplicated node to the same container
+                      const currentParent = node.data.parent;
+                      console.log('Current parent:', currentParent);
+
+                      // Check if this is a container with children
+                      const isContainer = node.data.isCanvas;
+                      const hasChildren = node.data.nodes && node.data.nodes.length > 0;
+
+                      if (isContainer && hasChildren) {
+                        // For containers with children, we need to duplicate the entire node tree
+                        console.log('Duplicating container with children');
+
+                        try {
+                          // Start a batch of actions that will be treated as a single undo step
+                          // This ensures that all the duplication operations can be undone with a single undo
+                          const throttledActions = actions.history.throttle(100);
+
+                          // Define a recursive function to duplicate a node and all its children
+                          const duplicateNodeWithChildren = (nodeId, newParentId) => {
+                            // Get the node to duplicate
+                            const nodeToDuplicate = query.node(nodeId).get();
+                            console.log(`Duplicating node ${nodeId}:`, nodeToDuplicate);
+
+                            // Create a fresh node with the same properties
+                            const freshNode = {
+                              data: {
+                                type: nodeToDuplicate.data.type,
+                                props: { ...nodeToDuplicate.data.props },
+                                custom: nodeToDuplicate.data.custom ? { ...nodeToDuplicate.data.custom } : undefined,
+                                isCanvas: !!nodeToDuplicate.data.isCanvas,
+                                displayName: nodeToDuplicate.data.displayName,
+                              }
+                            };
+
+                            // Create the new node
+                            const newNode = query.parseFreshNode(freshNode).toNode();
+                            console.log(`New node created for ${nodeId}:`, newNode);
+
+                            // Add the new node to the specified parent using the throttled actions
+                            // This ensures all additions are part of the same undo step
+                            throttledActions.add(newNode, newParentId);
+
+                            // If this node has children, recursively duplicate them
+                            if (nodeToDuplicate.data.nodes && nodeToDuplicate.data.nodes.length > 0) {
+                              console.log(`Node ${nodeId} has children:`, nodeToDuplicate.data.nodes);
+
+                              // Process each child node
+                              nodeToDuplicate.data.nodes.forEach(childId => {
+                                // Recursively duplicate the child and its descendants
+                                duplicateNodeWithChildren(childId, newNode.id);
+                              });
+                            }
+
+                            return newNode;
+                          };
+
+                          // Get the original node's index in its parent's nodes array
+                          // This will help us place the duplicated container right after the original
+                          const parentNode = query.node(currentParent).get();
+                          const nodeIndex = parentNode.data.nodes.indexOf(id);
+                          console.log('Original node index in parent:', nodeIndex);
+
+                          // Create a new container with the same properties
+                          const containerType = node.data.type;
+                          const containerProps = { ...node.data.props };
+
+                          // Create a fresh container node
+                          const freshContainerNode = {
+                            data: {
+                              type: containerType,
+                              props: containerProps,
+                              custom: node.data.custom ? { ...node.data.custom } : undefined,
+                              isCanvas: true, // Ensure it's still a canvas
+                              displayName: node.data.displayName,
+                            }
+                          };
+
+                          // Create the new container node
+                          const newContainerNode = query.parseFreshNode(freshContainerNode).toNode();
+                          console.log('New container node created:', newContainerNode);
+
+                          // Add the new container to the same parent as the original, right after it
+                          console.log('Adding new container to parent:', currentParent, 'at index:', nodeIndex + 1);
+                          throttledActions.add(newContainerNode, currentParent, nodeIndex + 1);
+
+                          // Now duplicate each child node and add it to the new container
+                          const childNodeIds = node.data.nodes || [];
+                          console.log('Child nodes to duplicate:', childNodeIds);
+
+                          // Process each child node
+                          childNodeIds.forEach(childId => {
+                            // Use the recursive function to duplicate each child and its descendants
+                            duplicateNodeWithChildren(childId, newContainerNode.id);
+                          });
+
+                          console.log('Container and all nested children duplicated successfully');
+                        } catch (containerError) {
+                          console.error('Error duplicating container with children:', containerError);
+                          console.log('Falling back to simple container duplication without children');
+
+                          console.log('Attempting simplified duplication approach');
+
+                          // Start a batch of actions that will be treated as a single undo step
+                          const throttledActions = actions.history.throttle(100);
+
+                          // Define a simpler recursive function for the fallback
+                          const simpleDuplicateNodeWithChildren = (nodeId, newParentId) => {
+                            try {
+                              // Get the node to duplicate
+                              const nodeToDuplicate = query.node(nodeId).get();
+
+                              // Create a fresh node with the same properties
+                              const freshNode = {
+                                data: {
+                                  type: nodeToDuplicate.data.type,
+                                  props: { ...nodeToDuplicate.data.props },
+                                  custom: nodeToDuplicate.data.custom ? { ...nodeToDuplicate.data.custom } : undefined,
+                                  isCanvas: !!nodeToDuplicate.data.isCanvas,
+                                  displayName: nodeToDuplicate.data.displayName,
+                                }
+                              };
+
+                              // Create the new node
+                              const newNode = query.parseFreshNode(freshNode).toNode();
+
+                              // Add the new node to the specified parent using throttled actions
+                              throttledActions.add(newNode, newParentId);
+
+                              return newNode;
+                            } catch (error) {
+                              console.error(`Error duplicating node ${nodeId}:`, error);
+                              return null;
+                            }
+                          };
+
+                          // Get the original node's index in its parent's nodes array
+                          const parentNode = query.node(currentParent).get();
+                          const nodeIndex = parentNode.data.nodes.indexOf(id);
+
+                          // Create a fresh node with the same properties
+                          const freshNode = {
+                            data: {
+                              type: node.data.type,
+                              props: { ...node.data.props },
+                              custom: node.data.custom ? { ...node.data.custom } : undefined,
+                              isCanvas: true, // Ensure it's still a canvas
+                              displayName: node.data.displayName,
+                            }
+                          };
+
+                          // Create a new container node
+                          const newNode = query.parseFreshNode(freshNode).toNode();
+                          console.log('New container node created:', newNode);
+
+                          // Add the new container to the same parent as the original, right after it
+                          throttledActions.add(newNode, currentParent, nodeIndex + 1);
+
+                          // Try to duplicate at least the direct children
+                          const childNodeIds = node.data.nodes || [];
+                          childNodeIds.forEach(childId => {
+                            simpleDuplicateNodeWithChildren(childId, newNode.id);
+                          });
+
+                          console.log('Container duplicated with simplified approach');
+                        }
+                      } else {
+                        // For regular components, just duplicate the node itself
+                        console.log('Duplicating regular component');
+
+                        try {
+                          // Start a batch of actions that will be treated as a single undo step
+                          const throttledActions = actions.history.throttle(100);
+
+                          // Get the original node's index in its parent's nodes array
+                          // This will help us place the duplicated component right after the original
+                          const parentNode = query.node(currentParent).get();
+                          const nodeIndex = parentNode.data.nodes.indexOf(id);
+                          console.log('Original node index in parent:', nodeIndex);
+
+                          // Create a fresh node with the same properties
+                          const freshNode = {
+                            data: {
+                              type: node.data.type,
+                              props: { ...node.data.props },
+                              custom: node.data.custom ? { ...node.data.custom } : undefined,
+                              isCanvas: !!node.data.isCanvas,
+                              displayName: node.data.displayName,
+                            }
+                          };
+
+                          // Create a new node
+                          const newNode = query.parseFreshNode(freshNode).toNode();
+                          console.log('New node created:', newNode);
+
+                          // Add the new node to the same parent as the original node, right after it
+                          console.log('Adding new node to parent:', currentParent, 'at index:', nodeIndex + 1);
+                          throttledActions.add(newNode, currentParent, nodeIndex + 1);
+
+                          console.log('Node duplicated successfully');
+                        } catch (error) {
+                          console.error('Error getting node index:', error);
+
+                          // Fallback: just add to the parent without specifying index
+                          // Still use throttled actions for consistent undo behavior
+                          const throttledActions = actions.history.throttle(100);
+
+                          const freshNode = {
+                            data: {
+                              type: node.data.type,
+                              props: { ...node.data.props },
+                              custom: node.data.custom ? { ...node.data.custom } : undefined,
+                              isCanvas: !!node.data.isCanvas,
+                              displayName: node.data.displayName,
+                            }
+                          };
+
+                          const newNode = query.parseFreshNode(freshNode).toNode();
+                          throttledActions.add(newNode, currentParent);
+                          console.log('Node duplicated successfully (fallback method)');
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error duplicating node:', error);
+                    }
+                  }}
+                  style={btnStyle}
+                >
+                  <FaCopy size={14} />
                 </a>
               )}
               {isDeletable ? (

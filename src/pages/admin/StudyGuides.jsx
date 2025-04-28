@@ -653,11 +653,12 @@ const StudyGuides = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg shadow dark:shadow-lg p-6" style={{ height: 'calc(100vh - 100px)' }}>
+    /* Removed gray background (bg-gray-50 dark:bg-slate-800) and padding (p-6) from this outer div */
+    <div className="rounded-lg shadow dark:shadow-lg" style={{ height: 'calc(100vh - 100px)' }}>
       <div
         className="bg-white dark:bg-slate-700 p-6 rounded-lg shadow-sm dark:shadow-md"
         style={{
-          height: 'calc(100vh - 150px)',
+          height: 'calc(100vh - 150px)', /* Adjusted height to fill the parent */
           minHeight: '700px',
           display: 'flex',
           flexDirection: 'column'

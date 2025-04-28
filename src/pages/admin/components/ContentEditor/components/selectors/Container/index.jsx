@@ -1,5 +1,5 @@
-import React from 'react';
-import { useEditor } from '@craftjs/core';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { useEditor, useNode } from '@craftjs/core';
 import { ContainerSettings } from './ContainerSettings';
 import { Resizer } from '../Resizer';
 
@@ -26,17 +26,97 @@ export const Container = (props) => {
     ...props,
   };
 
-  // Get query via useEditor for the localStorage logic
-  const { query } = useEditor((_, query) => {
-    return {
-      query: query
+  // Reference to the container's DOM element
+  const containerRef = useRef(null);
+
+  // Get node actions
+  const { actions } = useNode();
+
+  // Get query for localStorage
+  const { query } = useEditor();
+
+  // Get the node ID
+  const { id } = useNode(node => ({ id: node.id }));
+
+  // Simple debug log function
+  const debug = process.env.NODE_ENV === 'development';
+  const log = (message, data) => {
+    if (debug) {
+      console.log(`[Container ${id}] ${message}`, data || '');
     }
-  });
+  };
 
-  // Get the node ID from the current node in the editor state
-  // This is used for localStorage persistence
-  const id = props.id || 'default';
+  // Function to check if content is overflowing and resize if needed
+  const checkOverflow = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
+    // Find the content div
+    const contentDiv = container.querySelector('div > div');
+    if (!contentDiv) {
+      log('Content div not found');
+      return;
+    }
+
+    // Calculate total content height (including padding)
+    const computedStyle = window.getComputedStyle(contentDiv);
+    const paddingTop = parseFloat(computedStyle.paddingTop);
+    const paddingBottom = parseFloat(computedStyle.paddingBottom);
+    const contentHeight = contentDiv.scrollHeight + paddingTop + paddingBottom;
+    const containerHeight = container.clientHeight;
+    const isOverflowing = contentHeight > containerHeight;
+
+    log('Checking overflow', {
+      contentHeight,
+      containerHeight,
+      isOverflowing,
+      currentHeight: container.style.height
+    });
+
+    // Always set to auto when content changes, it will naturally collapse if not needed
+    if (isOverflowing) {
+      log('Content overflow detected, setting height to auto');
+      actions.setProp((props) => {
+        props.height = 'auto';
+      });
+    }
+  }, [actions, log]);
+
+  // Effect to set up auto-resize
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    log('Setting up auto-resize observer');
+
+    // Create a MutationObserver to watch for changes
+    const observer = new MutationObserver((mutations) => {
+      // Force a check whenever any change occurs
+      log('Content changed, checking for overflow');
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        checkOverflow();
+      }, 100);
+    });
+
+    // Start observing the container
+    observer.observe(containerRef.current, {
+      childList: true,  // Watch for added/removed children
+      subtree: true,    // Watch all descendants
+      characterData: true, // Watch for text changes
+      attributes: true // Watch for attribute changes
+    });
+
+    // Initial check
+    checkOverflow();
+
+    // Clean up on unmount
+    return () => {
+      observer.disconnect();
+      log('Observer disconnected');
+    };
+  }, [checkOverflow, log]);
+
+  // Extract props
   const {
     flexDirection,
     alignItems,
@@ -51,44 +131,57 @@ export const Container = (props) => {
   } = props;
 
   return (
-    <Resizer
-      propKey={{ width: 'width', height: 'height' }}
-      style={{
-        justifyContent,
-        flexDirection,
-        alignItems,
-        background: `rgba(${Object.values(background)})`,
-        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-        margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-        boxShadow: shadow === 0 ? 'none' : `0px 3px 100px ${shadow}px rgba(0, 0, 0, 0.13)`,
-        borderRadius: `${radius}px`,
-        flexGrow: fillSpace === 'yes' ? 1 : 0,
-        flexShrink: 0,
-        flexBasis: 'auto',
-        boxSizing: 'border-box',
-        minHeight: '50px',
-        position: 'relative'
-      }}
-      onResize={(width, height) => {
-        try {
-          // Get the parent study guide ID
-          const studyGuideId = query.getState().options.studyGuideId || 'default';
-          const storageKey = `container_${studyGuideId}_${id}`;
-
-          // Store the dimensions in localStorage
-          localStorage.setItem(storageKey, JSON.stringify({ width, height }));
-
-          // Only log in development environment
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`Saved dimensions for container ${id}:`, { width, height });
+    <div style={{
+      marginTop: `${margin[0]}px`,
+      width: '100%'
+    }}>
+      <Resizer
+        ref={containerRef}
+        propKey={{ width: 'width', height: 'height' }}
+        style={{
+          position: 'relative',
+          display: 'flex',
+          marginBottom: `${margin[2]}px`,
+          minHeight: '50px',
+          width: '100%',
+          boxSizing: 'border-box',
+          flexGrow: fillSpace === 'yes' ? 1 : 0,
+          flexShrink: 0,
+          flexBasis: 'auto',
+          paddingLeft: margin[3] ? `${margin[3]}px` : 0,
+          paddingRight: margin[1] ? `${margin[1]}px` : 0,
+        }}
+        onResize={(width, height) => {
+          try {
+            log('Manual resize', { width, height });
+            // Apply the manual resize dimensions
+            actions.setProp((props) => {
+              props.width = width;
+              props.height = height;
+            });
+            // Force a check after manual resize
+            setTimeout(checkOverflow, 100);
+          } catch (error) {
+            console.error('Error applying resize:', error);
           }
-        } catch (error) {
-          console.error('Error saving container dimensions:', error);
-        }
-      }}
-    >
-      {children}
-    </Resizer>
+        }}
+      >
+        <div style={{
+            flex: '1 1 100%',
+            display: 'flex',
+            justifyContent,
+            flexDirection,
+            alignItems,
+            background: `rgba(${Object.values(background)})`,
+            padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
+            boxShadow: shadow === 0 ? 'none' : `0px 3px 100px ${shadow}px rgba(0, 0, 0, 0.13)`,
+            borderRadius: `${radius}px`,
+          }}
+        >
+          {children}
+        </div>
+      </Resizer>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useNode, useEditor } from '@craftjs/core';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, forwardRef } from 'react';
 import { Resizable } from 're-resizable';
 import { debounce } from 'debounce';
 import classNames from 'classnames';
@@ -11,30 +11,23 @@ import {
   getElementDimensions,
 } from '../../../utils/numToMeasurement';
 
-export const Resizer = ({ propKey, children, onResize, ...props }) => {
+// Convert to forwardRef to properly handle refs
+export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, forwardedRef) => {
   const {
     id,
     actions,
     connectors: { connect },
-    fillSpace,
     nodeWidth,
     nodeHeight,
-    parent,
     active,
   } = useNode((node) => ({
-    parent: node.data.parent,
     active: node.events.selected,
     nodeWidth: node.data.props[propKey.width],
     nodeHeight: node.data.props[propKey.height],
-    fillSpace: node.data.props.fillSpace,
   }));
 
-  const { isRootNode, parentDirection } = useEditor((state, query) => {
+  const { isRootNode } = useEditor((_, query) => {
     return {
-      parentDirection:
-        parent &&
-        state.nodes[parent] &&
-        state.nodes[parent].data.props.flexDirection,
       isRootNode: query.node(id).isRoot(),
     };
   });
@@ -144,7 +137,17 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
       ref={(ref) => {
         if (ref) {
           resizable.current = ref;
+          // Handle both the internal connect ref and the forwarded ref
           connect(resizable.current.resizable);
+
+          // Forward the ref if provided
+          if (forwardedRef) {
+            if (typeof forwardedRef === 'function') {
+              forwardedRef(resizable.current.resizable);
+            } else {
+              forwardedRef.current = resizable.current.resizable;
+            }
+          }
         }
       }}
       size={internalDimensions}
@@ -225,4 +228,4 @@ export const Resizer = ({ propKey, children, onResize, ...props }) => {
       )}
     </Resizable>
   );
-};
+});

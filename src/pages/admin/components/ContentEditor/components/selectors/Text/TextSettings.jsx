@@ -14,6 +14,7 @@ export const TextSettings = () => {
     color,
     shadow,
     margin,
+    padding,
   } = useNode((node) => {
     const props = node.data.props || {};
     return {
@@ -24,6 +25,7 @@ export const TextSettings = () => {
       color: props.color || { r: 92, g: 90, b: 90, a: 1 },
       shadow: props.shadow || 0,
       margin: props.margin || [0, 0, 0, 0],
+      padding: props.padding || [0, 0, 0, 0],
     };
   });
 
@@ -248,6 +250,67 @@ export const TextSettings = () => {
                 const newMargin = [...margin];
                 newMargin[3] = parseInt(e.target.value);
                 actions.setProp((props) => { props.margin = newMargin; });
+              }}
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Padding Section */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Padding
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Top</label>
+            <input
+              type="number"
+              value={padding[0]}
+              onChange={(e) => {
+                const newPadding = [...padding];
+                newPadding[0] = parseInt(e.target.value);
+                actions.setProp((props) => { props.padding = newPadding; });
+              }}
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Right</label>
+            <input
+              type="number"
+              value={padding[1]}
+              onChange={(e) => {
+                const newPadding = [...padding];
+                newPadding[1] = parseInt(e.target.value);
+                actions.setProp((props) => { props.padding = newPadding; });
+              }}
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bottom</label>
+            <input
+              type="number"
+              value={padding[2]}
+              onChange={(e) => {
+                const newPadding = [...padding];
+                newPadding[2] = parseInt(e.target.value);
+                actions.setProp((props) => { props.padding = newPadding; });
+              }}
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Left</label>
+            <input
+              type="number"
+              value={padding[3]}
+              onChange={(e) => {
+                const newPadding = [...padding];
+                newPadding[3] = parseInt(e.target.value);
+                actions.setProp((props) => { props.padding = newPadding; });
               }}
               className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
             />

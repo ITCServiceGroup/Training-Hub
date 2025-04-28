@@ -1,13 +1,13 @@
 import { useEditor } from '@craftjs/core';
 import React, { useState } from 'react';
-import { FaUndo, FaRedo, FaEye, FaEyeSlash, FaCode, FaTrash, FaCopy } from 'react-icons/fa';
+import { FaUndo, FaRedo, FaEye, FaEyeSlash, FaCode, FaCopy } from 'react-icons/fa';
 import classNames from 'classnames';
 
 export const Header = () => {
-  const { actions, query, enabled, canUndo, canRedo } = useEditor((state) => ({
+  const { actions, query, enabled, canUndo, canRedo } = useEditor((state, query) => ({
     enabled: state.options.enabled,
-    canUndo: state.options.history && state.options.history.undoStack.length > 0,
-    canRedo: state.options.history && state.options.history.redoStack.length > 0,
+    canUndo: query.history.canUndo(),
+    canRedo: query.history.canRedo(),
   }));
 
   const [showPreview, setShowPreview] = useState(false);
@@ -30,11 +30,7 @@ export const Header = () => {
     setShowJSON(!showJSON);
   };
 
-  const resetEditor = () => {
-    if (window.confirm('Are you sure you want to reset the editor? This will delete all content.')) {
-      actions.deserialize('{"ROOT":{"type":"div","isCanvas":true,"props":{},"displayName":"div","custom":{},"hidden":false,"nodes":[],"linkedNodes":{}}}');
-    }
-  };
+  // Reset Editor functionality removed
 
   return (
     <div className="header bg-white dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between h-12 px-4">
@@ -90,13 +86,7 @@ export const Header = () => {
         >
           <FaCopy size={14} />
         </button>
-        <button
-          className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-          onClick={resetEditor}
-          title="Reset Editor"
-        >
-          <FaTrash size={14} />
-        </button>
+        {/* Reset Editor button removed */}
       </div>
 
       {showJSON && (
