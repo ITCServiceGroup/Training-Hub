@@ -13,25 +13,57 @@ export const Text = ({
   text = 'Text',
   margin = ['0', '0', '0', '0'],
   padding = ['0', '0', '0', '0'],
+  inTable = false,
+  onChange = null,
 }) => {
   const {
     connectors: { connect },
     actions: { setProp },
-  } = useNode();
-  
+    dom,
+    selected
+  } = useNode((node) => ({
+    dom: node.dom,
+    selected: node.events.selected
+  }));
+
   const { enabled } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
-  
+
+  // Check if this Text component is inside a table cell
+  const isInTableCell = React.useMemo(() => {
+    if (inTable) return true;
+    if (!dom) return false;
+    return !!dom.closest('td');
+  }, [dom, inTable]);
+
+  // Handle click to prevent selection change when in a table
+  const handleClick = React.useCallback((e) => {
+    if (isInTableCell && !selected) {
+      // If in a table and not already selected, prevent default selection behavior
+      e.stopPropagation();
+    }
+  }, [isInTableCell, selected]);
+
   return (
     <ContentEditable
       innerRef={connect}
-      html={text} // innerHTML of the editable div
+      html={text || (isInTableCell ? ' ' : 'Click to edit')} // Always have content in table cells
       disabled={!enabled}
+      onClick={handleClick}
       onChange={(e) => {
-        setProp((prop) => (prop.text = e.target.value), 500);
+        const newValue = e.target.value;
+        if (isInTableCell) {
+          // Immediate update for table cells
+          setProp((prop) => (prop.text = newValue));
+          // If custom onChange handler is provided (for table cells), call it
+          if (onChange) onChange(newValue);
+        } else {
+          // Keep the debounce for regular text editing
+          setProp((prop) => (prop.text = newValue), 500);
+        }
       }}
-      tagName="h2" // Use a custom HTML tag (uses a div by default)
+      tagName="div" // Use div for better table cell compatibility
       style={{
         width: '100%',
         margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
@@ -41,6 +73,10 @@ export const Text = ({
         fontSize: `${fontSize}px`,
         fontWeight,
         textAlign,
+        minHeight: isInTableCell ? '24px' : 'auto',
+        cursor: 'text',
+        // Add a subtle indicator for table cells to help with selection
+        outline: isInTableCell && selected ? '1px solid rgba(13, 148, 136, 0.5)' : 'none'
       }}
     />
   );
@@ -57,6 +93,7 @@ Text.craft = {
     padding: ['0', '0', '0', '0'],
     shadow: 0,
     text: 'Text',
+    inTable: false,
   },
   related: {
     toolbar: TextSettings,

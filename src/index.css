@@ -28,6 +28,56 @@
     border-color: rgba(255, 255, 255, 0.1);
     border-top-color: #14b8a6;
   }
+
+  /* Custom form focus styles - with stronger specificity */
+  input:focus,
+  select:focus,
+  textarea:focus,
+  [type='text']:focus,
+  [type='email']:focus,
+  [type='url']:focus,
+  [type='password']:focus,
+  [type='number']:focus,
+  [type='date']:focus,
+  [type='datetime-local']:focus,
+  [type='month']:focus,
+  [type='search']:focus,
+  [type='tel']:focus,
+  [type='time']:focus,
+  [type='week']:focus,
+  [multiple]:focus,
+  [type='checkbox']:focus,
+  [type='radio']:focus {
+    --tw-ring-color: #0d9488 !important; /* teal-700 for light mode */
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
+    border-color: #0f766e !important;
+    outline: 1px solid transparent !important;
+    outline-offset: 1px !important;
+  }
+
+  .dark input:focus,
+  .dark select:focus,
+  .dark textarea:focus,
+  .dark [type='text']:focus,
+  .dark [type='email']:focus,
+  .dark [type='url']:focus,
+  .dark [type='password']:focus,
+  .dark [type='number']:focus,
+  .dark [type='date']:focus,
+  .dark [type='datetime-local']:focus,
+  .dark [type='month']:focus,
+  .dark [type='search']:focus,
+  .dark [type='tel']:focus,
+  .dark [type='time']:focus,
+  .dark [type='week']:focus,
+  .dark [multiple]:focus,
+  .dark [type='checkbox']:focus,
+  .dark [type='radio']:focus {
+    --tw-ring-color: #14b8a6 !important; /* teal-500 for dark mode */
+    border-color: #14b8a6 !important;
+  }
 }
 
 :root { /* Light mode variables */

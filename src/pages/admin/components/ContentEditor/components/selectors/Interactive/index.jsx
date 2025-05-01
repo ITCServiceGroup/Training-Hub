@@ -39,7 +39,7 @@ export const Interactive = ({ name, title, description }) => {
   if (!enabled && name) {
     // Use the InteractiveRenderer component for proper isolation
     return (
-      <div className="interactive-element-wrapper w-full flex justify-center my-4">
+      <div className="interactive-element-wrapper w-full my-4" style={{ width: '100%', maxWidth: '100%', display: 'block' }}>
         <InteractiveRenderer name={name} />
       </div>
     );
@@ -56,7 +56,7 @@ export const Interactive = ({ name, title, description }) => {
         {elementData ? (
           <>
             <img
-              src={elementData.thumbnailUrl}
+              src={elementData.iconUrl}
               alt={elementData.title}
               className="w-16 h-16 mb-2 object-contain"
             />

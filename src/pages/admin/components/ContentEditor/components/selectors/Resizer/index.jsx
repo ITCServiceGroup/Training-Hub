@@ -132,7 +132,10 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
         boxSizing: 'border-box',
         minHeight: '50px',
         position: 'relative',
-        width: '100%'
+        width: '100%',
+        height: '100%',
+        // Special handling for tables to ensure they don't block pointer events
+        pointerEvents: props.className?.includes('table-fix') ? 'none' : 'auto'
       }}
       ref={(ref) => {
         if (ref) {
@@ -209,15 +212,19 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
       {...props}
     >
       <div style={{
+        // Remove display: 'flex' from this inner wrapper
         width: '100%',
         height: '100%',
-        display: 'flex',
+        // display: 'flex', // REMOVED
         position: 'relative',
+        boxSizing: 'border-box',
+        // Special handling for tables to ensure they don't block pointer events
+        pointerEvents: props.className?.includes('table-fix') && !active ? 'none' : 'auto',
         ...(props.style || {})
       }}>
         {children}
       </div>
-      {active && (
+      {active && !props.className?.includes('craft-table') && (
         <>
           {/* Corner resize handles */}
           <div style={{...handleStyles, top: '-5px', left: '-5px', cursor: 'nw-resize'}} />

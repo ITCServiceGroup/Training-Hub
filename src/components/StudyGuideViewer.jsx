@@ -165,7 +165,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     // Log the processed content for debugging
     console.log('Processed content (after ALL empty line handling):', processedContent);
 
-    // Replace shortcodes with custom elements wrapped in centering div
+    // Replace shortcodes with custom elements wrapped in full-width div
     processedContent = processedContent.replace(/\[interactive name="([^"]+)"\]/g, (_, name) => {
       if (!/^[a-zA-Z0-9-]+$/.test(name)) {
         console.warn(`Invalid interactive element name found in viewer: ${name}`);
@@ -173,7 +173,104 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
       }
       const tagName = `${name}-simulator`;
       console.log(`Viewer replacing shortcode for "${name}" with <${tagName}>`);
-      return `<div style="display: block;"><${tagName}></${tagName}></div>`; // Removed text-align: center
+
+      // Add a script to override the viewport meta tag and styles for this specific interactive element
+      return `
+        <div style="display: block; width: 100%; box-sizing: border-box;">
+          <${tagName} style="width: 100%; max-width: 100%; box-sizing: border-box;"></${tagName}>
+          <script>
+            // Find the closest iframe containing this element
+            (function() {
+              // Force desktop layout by overriding any media queries
+              const style = document.createElement('style');
+              style.textContent = \`
+                @media (max-width: 1350px) {
+                  #vis-container {
+                    grid-template-columns: repeat(12, 1fr) !important;
+                    grid-template-rows: repeat(1, auto) !important;
+                  }
+                }
+                @media (max-width: 768px) {
+                  #vis-container {
+                    grid-template-columns: repeat(12, 1fr) !important;
+                    grid-template-rows: repeat(1, auto) !important;
+                  }
+                  .node {
+                    max-width: 60px !important;
+                    font-size: 0.8em !important;
+                  }
+                  .trace-row {
+                    grid-template-columns: 35px repeat(3, 65px) 20px auto !important;
+                  }
+                  .trace-header-row span:nth-child(4),
+                  .trace-row span:nth-child(4) {
+                    display: inline-block !important;
+                  }
+                  .trace-col-sep { grid-column: 5 !important; }
+                  .trace-col-ip { grid-column: 6 !important; }
+                  #trace-output-container { font-size: 14px !important; }
+                }
+              \`;
+              document.head.appendChild(style);
+
+              // Find and update any viewport meta tags
+              const viewportMeta = document.querySelector('meta[name="viewport"]');
+              if (viewportMeta) {
+                viewportMeta.setAttribute('content', 'width=1400, initial-scale=1.0');
+              } else {
+                const meta = document.createElement('meta');
+                meta.setAttribute('name', 'viewport');
+                meta.setAttribute('content', 'width=1400, initial-scale=1.0');
+                document.head.appendChild(meta);
+              }
+
+              // Wait for the custom element to be defined and rendered
+              setTimeout(() => {
+                // Override the max-width of the vis-container
+                const visContainer = document.getElementById('vis-container');
+                if (visContainer) {
+                  visContainer.style.maxWidth = '100%';
+                  visContainer.style.width = '100%';
+                  visContainer.style.margin = '0';
+                }
+
+                // Override the max-width of the simulator-container
+                const simulatorContainer = document.querySelector('.simulator-container');
+                if (simulatorContainer) {
+                  simulatorContainer.style.maxWidth = '100%';
+                  simulatorContainer.style.width = '100%';
+                }
+
+                // Override the max-width of the host element
+                const customElement = document.querySelector('${tagName}');
+                if (customElement && customElement.shadowRoot) {
+                  const styleElement = document.createElement('style');
+                  styleElement.textContent = \`
+                    :host {
+                      width: 100% !important;
+                      max-width: 100% !important;
+                      box-sizing: border-box !important;
+                      margin: 0 !important;
+                    }
+                    .simulator-container {
+                      width: 100% !important;
+                      max-width: 100% !important;
+                      box-sizing: border-box !important;
+                    }
+                    #vis-container {
+                      width: 100% !important;
+                      max-width: 100% !important;
+                      box-sizing: border-box !important;
+                      margin: 0 !important;
+                    }
+                  \`;
+                  customElement.shadowRoot.appendChild(styleElement);
+                }
+              }, 500);
+            })();
+          </script>
+        </div>
+      `;
     });
 
     return processedContent;
@@ -377,17 +474,68 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         }
 
         /* Ensure web components have proper display */
-        router-simulator-simulator {
-          display: block;
-          margin: 0 auto;
-          width: fit-content !important;
+        /* Target all interactive elements with the -simulator suffix */
+        [class$="-simulator"], [id$="-simulator"], *[id$="-simulator"], *[class$="-simulator"],
+        *-simulator, *-simulator-simulator, router-simulator-simulator,
+        fiber-fault-simulator, mac-address-explorer-simulator, channel-overlap-visualizer-simulator,
+        packet-loss-analyzer-simulator, traceroute-simulator-simulator, command-builder-simulator {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
           height: auto !important;
           overflow: visible !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Override simulator-container styles */
+        .simulator-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Override vis-container styles */
+        #vis-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          margin: 0 !important;
+        }
+
+        /* Force desktop layout for all interactive elements */
+        @media (max-width: 1350px) {
+          #vis-container {
+            grid-template-columns: repeat(12, 1fr) !important;
+            grid-template-rows: repeat(1, auto) !important;
+          }
+        }
+        @media (max-width: 768px) {
+          #vis-container {
+            grid-template-columns: repeat(12, 1fr) !important;
+            grid-template-rows: repeat(1, auto) !important;
+          }
+          .node {
+            max-width: 60px !important;
+            font-size: 0.8em !important;
+          }
+          .trace-row {
+            grid-template-columns: 35px repeat(3, 65px) 20px auto !important;
+          }
+          .trace-header-row span:nth-child(4),
+          .trace-row span:nth-child(4) {
+            display: inline-block !important;
+          }
+          .trace-col-sep { grid-column: 5 !important; }
+          .trace-col-ip { grid-column: 6 !important; }
+          #trace-output-container { font-size: 14px !important; }
         }
 
         /* Remove any inherited styles from parent document */
-        router-simulator-simulator * {
-          box-sizing: content-box;
+        [class$="-simulator"] *, [id$="-simulator"] *, *[id$="-simulator"] *, *[class$="-simulator"] *,
+        *-simulator *, *-simulator-simulator *, router-simulator-simulator *,
+        fiber-fault-simulator *, mac-address-explorer-simulator *, channel-overlap-visualizer-simulator *,
+        packet-loss-analyzer-simulator *, traceroute-simulator-simulator *, command-builder-simulator * {
+          box-sizing: border-box !important;
         }
         /* Preserve whitespace in paragraphs */
         p { white-space: pre-wrap; }

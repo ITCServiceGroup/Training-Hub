@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Editor, Frame as CraftFrame, Element as CraftElement, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { ToolbarZIndexProvider } from './contexts/ToolbarZIndexContext';
 
 // Storage utility functions
 const getStorageKey = (studyGuideId) => `content_editor_${studyGuideId}_draft`;
@@ -85,6 +86,7 @@ import { Button } from './components/selectors/Button';
 import { Image } from './components/selectors/Image';
 import { Card } from './components/selectors/Card';
 import { Interactive } from './components/selectors/Interactive';
+import { Table } from './components/selectors/Table';
 
 import './styles.css';
 
@@ -399,13 +401,14 @@ const ContentEditor = ({
 
   return (
     <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
-      <Editor
-          resolver={{ Container, Text, Button, Image, Card, Interactive }}
-          enabled={true}
-          onRender={RenderNode}
-          options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
-          indicator={{ success: '#0d9488', error: '#ef4444' }}
-          onNodesChange={(query) => {
+      <ToolbarZIndexProvider>
+          <Editor
+            resolver={{ Container, Text, Button, Image, Card, Interactive, Table }}
+            enabled={true}
+            onRender={RenderNode}
+            options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
+            indicator={{ success: '#0d9488', error: '#ef4444' }}
+            onNodesChange={(query) => {
             const studyGuideId = selectedStudyGuide?.id || 'new';
 
             // Handle selection state
@@ -465,6 +468,7 @@ const ContentEditor = ({
             selectedStudyGuide={selectedStudyGuide}
           />
         </Editor>
+      </ToolbarZIndexProvider>
     </div>
   );
 };

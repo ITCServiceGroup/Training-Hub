@@ -325,6 +325,12 @@
   z-index: 1;
 }
 
+/* Ensure table components don't get double borders */
+.craft-table.component-selected::after,
+.craft-table.component-hovered::after {
+  display: none !important;
+}
+
 
 /* Ensure resizable elements have proper overflow handling */
 .react-resizable {
@@ -337,14 +343,327 @@
   display: none;
 }
 
+/* Make default resize handles visible but transparent for tables */
+.craft-table .react-resizable-handle {
+  display: block !important;
+  opacity: 0 !important;
+  width: 30px !important;
+  height: 30px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  pointer-events: none !important; /* Default to none */
+}
+
+/* Only enable pointer events on resize handles when table is selected */
+.craft-table.component-selected .react-resizable-handle {
+  pointer-events: auto !important;
+}
+
 /* Ensure proper stacking context for resize handles */
 .craft-image-container.craftjs-node-selected,
 .craft-card.craftjs-node-selected,
-.craft-container.craftjs-node-selected {
+.craft-container.craftjs-node-selected,
+.craft-table.craftjs-node-selected {
   z-index: 1;
 }
 
 /* Ensure resizable container doesn't clip resize handles */
 .react-resizable {
   overflow: visible !important;
+}
+
+/* Special handling for re-resizable elements inside tables */
+.table-fix:not(.component-selected) .react-resizable,
+.table-fix:not(.component-selected) .react-resizable-handle {
+  pointer-events: none !important;
+}
+
+/* Table styles */
+.craft-table {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Add fixed table layout */
+  box-sizing: border-box !important;
+}
+
+/* Table cell container */
+.craft-table table {
+  width: 100%;
+  height: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+  box-sizing: border-box !important;
+}
+
+/* Style table cells */
+.craft-table td {
+  position: relative;
+  vertical-align: top;
+  min-width: 50px;
+  box-sizing: border-box !important;
+}
+
+/* Ensure Text components within table cells take full width */
+.craft-table td .craft-text {
+  width: 100%;
+  display: block;
+  min-height: 24px;
+}
+
+/* Table management buttons container */
+.craft-table-controls {
+  margin-bottom: 8px;
+}
+
+/* Table management controls */
+.craft-table-management-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.craft-table-management-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Table cell styles */
+.craft-table-cell {
+  padding: 8px;
+  position: relative;
+  vertical-align: top;
+  min-width: 50px;
+  box-sizing: border-box;
+}
+
+/* Dark mode table cells */
+.dark .craft-table {
+  border-color: #374151;
+}
+
+.dark .craft-table-cell {
+  border-color: #374151;
+}
+
+/* Table header cell styles */
+.craft-table-header {
+  background-color: #f3f4f6;
+  font-weight: 500;
+}
+
+.dark .craft-table-header {
+  background-color: #374151;
+}
+
+/* Alternating row styles */
+.craft-table-row-alternate {
+  background-color: #f9fafb;
+}
+
+.dark .craft-table-row-alternate {
+  background-color: #1f2937;
+}
+
+/* Column resize handle */
+.column-resize-handle {
+  background-color: transparent;
+  transition: background-color 0.2s;
+}
+
+.column-resize-handle:hover {
+  background-color: rgba(13, 148, 136, 0.5);
+}
+
+/* Row resize handle */
+.row-resize-handle {
+  background-color: transparent;
+  transition: background-color 0.2s;
+}
+
+.row-resize-handle:hover {
+  background-color: rgba(13, 148, 136, 0.5);
+}
+
+/* Table components should have dashed border when selected or hovered */
+.craft-table.component-selected::after,
+.craft-table.component-hovered::after {
+  display: none !important; /* Remove the inner border */
+}
+
+.craft-table.component-selected {
+  outline: 2px dashed #0d9488 !important;
+  outline-offset: 0px !important;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.craft-table.component-hovered {
+  outline: 2px dashed #0d9488 !important;
+  outline-offset: 0px !important;
+}
+
+/* Ensure the Resizer component's children take full width and height */
+.craft-table > div {
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Position the default resize handles for tables */
+.craft-table .react-resizable-handle-nw,
+.craft-table .react-resizable-handle-ne,
+.craft-table .react-resizable-handle-sw,
+.craft-table .react-resizable-handle-se {
+  position: absolute !important;
+  z-index: 998 !important;
+}
+
+/* Add custom resize handles for tables */
+.craft-table .table-handle-tl,
+.craft-table .table-handle-tr,
+.craft-table .table-handle-bl,
+.craft-table .table-handle-br {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #0d9488;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+  pointer-events: auto; /* These are only rendered when table is selected anyway */
+  cursor: pointer;
+  display: none; /* Hide by default */
+}
+
+/* Only show resize handles when table is selected */
+.craft-table.component-selected .table-handle-tl,
+.craft-table.component-selected .table-handle-tr,
+.craft-table.component-selected .table-handle-bl,
+.craft-table.component-selected .table-handle-br {
+  display: block;
+}
+
+/* Top-left handle */
+.craft-table .table-handle-tl {
+  top: -7px;
+  left: -7px;
+  cursor: nw-resize;
+  z-index: 999;
+}
+
+/* Top-right handle */
+.craft-table .table-handle-tr {
+  top: -7px;
+  right: -7px;
+  cursor: ne-resize;
+  z-index: 999;
+}
+
+/* Bottom-left handle */
+.craft-table .table-handle-bl {
+  bottom: -7px;
+  left: -7px;
+  cursor: sw-resize;
+  z-index: 999;
+}
+
+/* Bottom-right handle */
+.craft-table .table-handle-br {
+  bottom: -7px;
+  right: -7px;
+  cursor: se-resize;
+  z-index: 999;
+}
+
+/* Dark mode styling */
+.dark .craft-table.component-selected {
+  box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.5);
+}
+
+.dark .craft-table .table-handle-tl,
+.dark .craft-table .table-handle-tr,
+.dark .craft-table .table-handle-bl,
+.dark .craft-table .table-handle-br {
+  border-color: #1f2937;
+  background-color: #0d9488;
+  box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* Fix for table blocking pointer events to components below it - AGGRESSIVE VERSION */
+.table-outer-wrapper .table-fix {
+  pointer-events: none !important;
+}
+
+/* Only enable pointer events when the table is selected */
+.table-outer-wrapper .table-fix.component-selected {
+  pointer-events: auto !important;
+}
+
+/* Ensure all elements inside a selected table can receive pointer events */
+.table-outer-wrapper .table-fix.component-selected * {
+  pointer-events: auto !important;
+}
+
+/* Make sure the table outer wrapper doesn't block pointer events */
+.table-outer-wrapper {
+  pointer-events: none !important;
+}
+
+/* Special handling for the table content to make it clickable even when not selected */
+.table-outer-wrapper .table-fix:not(.component-selected) .table-content-wrapper {
+  pointer-events: auto !important;
+}
+
+/* Make sure the table itself can be clicked */
+.table-outer-wrapper .table-fix:not(.component-selected) .table-content-wrapper > table {
+  pointer-events: auto !important;
+}
+
+/* Ensure all other elements inside the table don't block pointer events when not selected */
+.table-outer-wrapper .table-fix:not(.component-selected) * {
+  pointer-events: none !important;
+}
+
+/* Override the above rule for the table and its direct wrapper */
+.table-outer-wrapper .table-fix:not(.component-selected) .table-content-wrapper,
+.table-outer-wrapper .table-fix:not(.component-selected) .table-content-wrapper > table {
+  pointer-events: auto !important;
+}
+
+/* Create a transparent overlay that can be clicked to select the table */
+.table-outer-wrapper .table-fix:not(.component-selected)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+/* Styling for the table outer wrapper */
+.table-outer-wrapper {
+  display: inline-block;
+  position: relative;
+  box-sizing: content-box;
+}
+
+/* Ensure the table wrapper doesn't affect the table's dimensions */
+.table-outer-wrapper .craft-table {
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Make sure the resize handles are positioned relative to the table, not the wrapper */
+.table-outer-wrapper .craft-table .react-resizable-handle,
+.table-outer-wrapper .craft-table .table-handle-tl,
+.table-outer-wrapper .craft-table .table-handle-tr,
+.table-outer-wrapper .craft-table .table-handle-bl,
+.table-outer-wrapper .craft-table .table-handle-br {
+  position: absolute;
 }

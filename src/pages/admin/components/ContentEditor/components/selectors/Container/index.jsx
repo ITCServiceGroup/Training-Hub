@@ -8,14 +8,13 @@ const defaultProps = {
   flexDirection: 'column',
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
-  fillSpace: 'no',
   padding: ['0', '0', '0', '0'],
   margin: ['0', '0', '0', '0'],
   background: { r: 255, g: 255, b: 255, a: 1 },
   shadow: 0,
   radius: 0,
-  width: '100%',
-  height: 'auto'
+  width: '100%', // Percentage-based width
+  height: 'auto' // Pixel-based height or 'auto'
 };
 
 // Container component directly using Resizer
@@ -25,6 +24,22 @@ export const Container = (props) => {
     ...defaultProps,
     ...props,
   };
+
+  // Extract props *after* merging defaults
+  const {
+    flexDirection,
+    alignItems,
+    justifyContent,
+    background,
+    padding,
+    margin,
+    shadow,
+    radius,
+    width,
+    height, // Use the height from props
+    children,
+  } = props;
+
 
   // Reference to the container's DOM element
   const containerRef = useRef(null);
@@ -58,6 +73,14 @@ export const Container = (props) => {
       return;
     }
 
+    // Check if current height is 'auto' before potentially resizing
+    const currentHeightSetting = props.height; // Use props.height here
+    if (currentHeightSetting !== 'auto') {
+        log('Height is manually set, skipping auto-resize check');
+        return; // Don't auto-resize if height is manually set
+    }
+
+
     // Calculate total content height (including padding)
     const computedStyle = window.getComputedStyle(contentDiv);
     const paddingTop = parseFloat(computedStyle.paddingTop);
@@ -66,21 +89,21 @@ export const Container = (props) => {
     const containerHeight = container.clientHeight;
     const isOverflowing = contentHeight > containerHeight;
 
-    log('Checking overflow', {
+    log('Checking overflow (height=auto)', {
       contentHeight,
       containerHeight,
       isOverflowing,
       currentHeight: container.style.height
     });
 
-    // Always set to auto when content changes, it will naturally collapse if not needed
+    // Only set to auto if it's currently auto and overflowing
     if (isOverflowing) {
-      log('Content overflow detected, setting height to auto');
-      actions.setProp((props) => {
-        props.height = 'auto';
-      });
+      log('Content overflow detected, ensuring height remains auto');
+      // No need to setProp if it's already 'auto' and overflowing,
+      // but we might need to ensure the visual height adjusts if it was previously fixed
+      // For simplicity, let's assume the browser handles this correctly when height is 'auto'
     }
-  }, [actions, log]);
+  }, [actions, log, props.height]); // Add props.height dependency
 
   // Effect to set up auto-resize
   useEffect(() => {
@@ -98,13 +121,17 @@ export const Container = (props) => {
       }, 100);
     });
 
-    // Start observing the container
-    observer.observe(containerRef.current, {
-      childList: true,  // Watch for added/removed children
-      subtree: true,    // Watch all descendants
-      characterData: true, // Watch for text changes
-      attributes: true // Watch for attribute changes
-    });
+    // Start observing the container's direct children wrapper
+     const contentDiv = containerRef.current.querySelector('div > div');
+     if (contentDiv) {
+        observer.observe(contentDiv, {
+          childList: true,  // Watch for added/removed children
+          subtree: true,    // Watch all descendants
+          characterData: true, // Watch for text changes
+          attributes: true // Watch for attribute changes like style
+        });
+     }
+
 
     // Initial check
     checkOverflow();
@@ -116,72 +143,91 @@ export const Container = (props) => {
     };
   }, [checkOverflow, log]);
 
-  // Extract props
-  const {
-    flexDirection,
-    alignItems,
-    justifyContent,
-    fillSpace,
-    background,
-    padding,
-    margin,
-    shadow,
-    radius,
-    children,
-  } = props;
 
   return (
-    <div style={{
-      marginTop: `${margin[0]}px`,
-      width: '100%'
-    }}>
-      <Resizer
-        ref={containerRef}
-        propKey={{ width: 'width', height: 'height' }}
-        style={{
-          position: 'relative',
-          display: 'flex',
-          marginBottom: `${margin[2]}px`,
-          minHeight: '50px',
-          width: '100%',
-          boxSizing: 'border-box',
-          flexGrow: fillSpace === 'yes' ? 1 : 0,
-          flexShrink: 0,
-          flexBasis: 'auto',
-          paddingLeft: margin[3] ? `${margin[3]}px` : 0,
-          paddingRight: margin[1] ? `${margin[1]}px` : 0,
-        }}
-        onResize={(width, height) => {
+    // Remove the outer wrapper div
+    <Resizer
+      ref={containerRef}
+      propKey={{ width: 'width', height: 'height' }}
+      // Apply margin directly to Resizer
+      style={{
+        position: 'relative',
+        display: 'flex', // Keep flex on Resizer
+        minHeight: '50px',
+        width: '100%',
+        boxSizing: 'border-box',
+        flexShrink: 0,
+        flexBasis: 'auto',
+        // Apply margin here
+        margin: `${parseInt(margin[0]) || 0}px ${parseInt(margin[3]) || 0}px ${parseInt(margin[2]) || 0}px ${parseInt(margin[1]) || 0}px`,
+        padding: 0, // Ensure no padding on Resizer itself
+        pointerEvents: 'auto'
+      }}
+      onResize={(width, height) => {
           try {
             log('Manual resize', { width, height });
-            // Apply the manual resize dimensions
             actions.setProp((props) => {
-              props.width = width;
-              props.height = height;
+              // Convert width to percentage
+              const widthNum = parseInt(width);
+              props.width = widthNum ? `${widthNum}%` : '100%';
+
+              // Convert height to pixels or auto
+              const heightNum = parseInt(height);
+              props.height = heightNum ? `${heightNum}px` : 'auto';
             });
-            // Force a check after manual resize
-            setTimeout(checkOverflow, 100);
+            // No automatic checkOverflow after manual resize
           } catch (error) {
             console.error('Error applying resize:', error);
           }
         }}
       >
-        <div style={{
-            flex: '1 1 100%',
-            display: 'flex',
-            justifyContent,
-            flexDirection,
-            alignItems,
+        <div
+          // No specific class needed here unless targeted by other CSS
+          style={{
+            display: 'flex', // Restore inline flex
+            justifyContent,  // Restore inline prop
+            flexDirection, // Restore inline prop
+            alignItems,    // Restore inline prop
+            width: '100%',
+            height: height || 'auto', // Use height from props
             background: `rgba(${Object.values(background)})`,
             padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
             boxShadow: shadow === 0 ? 'none' : `0px 3px 100px ${shadow}px rgba(0, 0, 0, 0.13)`,
             borderRadius: `${radius}px`,
           }}
         >
-          {children}
+          {/* --- NEW Child Handling Logic --- */}
+          {React.Children.map(children, child => {
+            if (!React.isValidElement(child)) {
+              return child; // Skip non-elements
+            }
+            let childStyle = { ...(child.props.style || {}) };
+            // Attempt to get the child's intended width from its style prop
+            const childWidth = child.props.style?.width || 'auto';
+
+            if (flexDirection === 'row') {
+              // Row: Set basis to 0, prevent grow, allow shrink, constrain with width/maxWidth
+              childStyle.flexGrow = 0; // Prevent growing into distributed space
+              childStyle.flexShrink = 1;
+              childStyle.flexBasis = '0%'; // Distribute space first!
+              childStyle.minWidth = 0;
+              childStyle.boxSizing = 'border-box';
+              childStyle.width = childWidth; // Set target width
+              childStyle.maxWidth = childWidth; // Ensure it doesn't exceed target width
+              // Remove shorthand flex property
+              delete childStyle.flex;
+            } else { // Column
+              // Column: Apply width: auto and alignSelf to respect parent's alignItems
+              childStyle.width = 'auto'; // Allow natural width (alignSelf handles horizontal pos)
+              childStyle.maxWidth = '100%'; // Prevent overflow
+              childStyle.alignSelf = alignItems; // Explicitly align child based on parent
+            }
+
+            return React.cloneElement(child, { style: childStyle });
+          })}
         </div>
-      </Resizer>
-    </div>
+    </Resizer>
+    // End of removed outer wrapper div
   );
 };
 

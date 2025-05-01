@@ -1,6 +1,6 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
 import React, { useState, useEffect } from 'react';
-import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaMousePointer, FaPuzzlePiece } from 'react-icons/fa';
+import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaMousePointer, FaPuzzlePiece, FaTable } from 'react-icons/fa';
 
 import { Container } from '../../selectors/Container';
 import { Text } from '../../selectors/Text';
@@ -8,6 +8,7 @@ import { Button } from '../../selectors/Button';
 import { Image } from '../../selectors/Image';
 import { Card } from '../../selectors/Card';
 import { Interactive } from '../../selectors/Interactive';
+import { Table } from '../../selectors/Table';
 import classNames from 'classnames';
 
 export const Toolbox = () => {
@@ -119,6 +120,28 @@ export const Toolbox = () => {
           </div>
         </div>
 
+        <div
+          ref={(ref) => {
+            create(
+              ref,
+              <CraftElement
+                is={Table}
+                width="100%"
+                tableData={{
+                  cells: {},
+                  rowCount: 4,
+                  columnCount: 4,
+                  hasHeader: true
+                }}
+              />
+            );
+          }}
+        >
+          <div className="toolbox-item" title="Table">
+            <FaTable size={24} />
+          </div>
+        </div>
+
         {/* Interactive Elements Button */}
         <div
           className="relative"
@@ -150,7 +173,7 @@ export const Toolbox = () => {
                     }}
                   >
                     <img
-                      src={element.thumbnailUrl}
+                      src={element.iconUrl}
                       alt={element.title}
                       className="w-10 h-10 mr-2 object-contain"
                     />

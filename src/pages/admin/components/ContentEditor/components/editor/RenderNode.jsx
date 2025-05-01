@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback, forwardRef } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
+import { useToolbarZIndex } from '../../contexts/ToolbarZIndexContext';
 import { ROOT_NODE } from '@craftjs/utils';
 import ReactDOM from 'react-dom';
 import { FaArrowsAlt, FaTrash, FaArrowUp, FaCopy } from 'react-icons/fa';
@@ -29,6 +30,7 @@ export const RenderNode = ({ render }) => {
 
   // Create a ref for the toolbar
   const toolbarRef = useRef(null);
+  const { updateZIndex, getZIndex } = useToolbarZIndex();
 
   // Function to get position for the toolbar
   const getPos = useCallback((domElement) => {
@@ -50,7 +52,7 @@ export const RenderNode = ({ render }) => {
     }
   }, [dom, getPos]);
 
-  // Add/remove classes based on hover/select state for all nodes (except ROOT)
+  // Update z-index and classes based on hover/select state for all nodes (except ROOT)
   useEffect(() => {
     if (dom && !isRoot) { // Exclude ROOT node
       // Handle selection state
@@ -60,11 +62,17 @@ export const RenderNode = ({ render }) => {
         dom.classList.remove('component-selected');
       }
 
-      // Handle hover state separately
+      // Handle hover state separately and update z-index
       if (isHovered && !isSelected) {
         dom.classList.add('component-hovered');
+        updateZIndex(id);
       } else {
         dom.classList.remove('component-hovered');
+      }
+      
+      // Update z-index when selected
+      if (isSelected) {
+        updateZIndex(id);
       }
     } else if (dom) {
       // Ensure classes are removed if it's the ROOT node or no longer hovered/selected
@@ -170,7 +178,7 @@ export const RenderNode = ({ render }) => {
                 height: '30px',
                 fontSize: '12px',
                 lineHeight: '12px',
-                zIndex: 9999,
+                zIndex: getZIndex(id),
               }}
             >
               <h2 className="flex-1 mr-4 truncate">{name || 'Element'}</h2>

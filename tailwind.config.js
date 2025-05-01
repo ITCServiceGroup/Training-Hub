@@ -27,6 +27,17 @@ module.exports = {
           dark: '#f8fafc', // slate-50
         },
       },
+      // Override the default ring and border colors for form elements
+      ringColor: {
+        DEFAULT: '#0f766e', // teal-700 for light mode
+      },
+      ringOffsetColor: {
+        DEFAULT: '#ffffff', // white for light mode
+      },
+      borderColor: {
+        DEFAULT: '#e5e7eb', // gray-200
+        focus: '#0f766e', // teal-700 for light mode
+      },
     },
     container: {
       center: true,
@@ -40,5 +51,9 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [
+    require('@tailwindcss/forms')({
+      strategy: 'class',
+    }),
+  ],
 }

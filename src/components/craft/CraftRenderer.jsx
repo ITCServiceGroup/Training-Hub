@@ -10,6 +10,7 @@ import { Button } from '../../pages/admin/components/ContentEditor/components/se
 import { Image } from '../../pages/admin/components/ContentEditor/components/selectors/Image';
 import { Card } from '../../pages/admin/components/ContentEditor/components/selectors/Card';
 import { Interactive } from '../../pages/admin/components/ContentEditor/components/selectors/Interactive';
+import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
 import InteractiveRenderer from '../../pages/admin/components/ContentEditor/components/selectors/Interactive/InteractiveRenderer';
 
 import './CraftRenderer.css';
@@ -146,7 +147,8 @@ const CraftRenderer = ({ jsonContent }) => {
             Button,
             Image,
             Card,
-            Interactive
+            Interactive,
+            Table
           }}
           enabled={false} // Disable editing
           onRender={({ render }) => render}

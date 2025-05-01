@@ -7,52 +7,51 @@
     "thumbnailUrl": "/interactive-elements/fiber-fault/thumbnail.png"
   },
   {
-    "name": "wifi-channels",
-    "path": "wifi-channels/",
-    "title": "WiFi Channel Visualizer",
-    "description": "Visualize WiFi channels and interference in a simulated environment.",
-    "thumbnailUrl": "/interactive-elements/wifi-channels/thumbnail.png"
-  },
-  {
     "name": "router-simulator",
     "path": "router-simulator/",
     "title": "Router Placement Simulator",
     "description": "Simulate optimal router placement for WiFi coverage.",
-    "thumbnailUrl": "/interactive-elements/router-simulator/thumbnail.png"
+    "thumbnailUrl": "/interactive-elements/router-simulator/thumbnail.png",
+    "iconUrl": "/interactive-elements/router-simulator/icon.png"
   },
   {
     "name": "mac-address-explorer",
     "path": "mac-address-explorer/",
     "title": "MAC Address Explorer",
     "description": "Explore the structure and meaning of MAC address bytes.",
-    "thumbnailUrl": "/interactive-elements/mac-address-explorer/thumbnail.png"
+    "thumbnailUrl": "/interactive-elements/mac-address-explorer/thumbnail.png",
+    "iconUrl": "/interactive-elements/mac-address-explorer/icon.png"
   },
   {
     "name": "channel-overlap-visualizer",
     "path": "channel-overlap-visualizer/",
     "title": "Channel Overlap Visualizer",
     "description": "Visualize 2.4GHz and 5GHz WiFi channel overlap and interference.",
-    "thumbnailUrl": "/interactive-elements/channel-overlap-visualizer/thumbnail.png"
+    "thumbnailUrl": "/interactive-elements/channel-overlap-visualizer/thumbnail.png",
+    "iconUrl": "/interactive-elements/channel-overlap-visualizer/icon.png"
   },
   {
     "name": "packet-loss-analyzer",
     "path": "packet-loss-analyzer/",
     "title": "Packet Loss Analyzer",
     "description": "Simulate and analyze the impact of packet loss on network performance.",
-    "thumbnailUrl": "/interactive-elements/packet-loss-analyzer/thumbnail.png"
+    "thumbnailUrl": "/interactive-elements/packet-loss-analyzer/thumbnail.png",
+    "iconUrl": "/interactive-elements/packet-loss-analyzer/icon.png"
   },
   {
     "name": "traceroute-simulator",
     "path": "traceroute-simulator/",
     "title": "Traceroute Simulator",
     "description": "Simulate traceroute paths and common network issues like latency and packet loss.",
-    "thumbnailUrl": "/interactive-elements/traceroute-simulator/thumbnail.png" 
+    "thumbnailUrl": "/interactive-elements/traceroute-simulator/thumbnail.png",
+    "iconUrl": "/interactive-elements/traceroute-simulator/icon.png"
   },
   {
     "name": "command-builder",
     "path": "command-builder/",
     "title": "Command Builder Sandbox",
     "description": "Interactive tool to learn and practice command-line network diagnostic tools.",
-    "thumbnailUrl": "/interactive-elements/command-builder/thumbnail.png"
+    "thumbnailUrl": "/interactive-elements/command-builder/thumbnail.png",
+    "iconUrl": "/interactive-elements/command-builder/icon.png"
   }
 ]
