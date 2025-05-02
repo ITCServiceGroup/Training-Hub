@@ -25,6 +25,20 @@ export const ContainerSettings = () => {
     height,
   } = useNode((node) => {
     const props = node.data.props || {};
+
+    // Handle backward compatibility for shadow
+    let shadowValue = props.shadow;
+    if (typeof shadowValue === 'number') {
+      shadowValue = {
+        enabled: shadowValue > 0,
+        x: 0,
+        y: 4,
+        blur: 8,
+        spread: 0,
+        color: { r: 0, g: 0, b: 0, a: 0.15 }
+      };
+    }
+
     return {
       background: props.background || { r: 255, g: 255, b: 255, a: 1 },
       padding: props.padding || ['0', '0', '0', '0'],
@@ -33,7 +47,14 @@ export const ContainerSettings = () => {
       alignItems: props.alignItems || 'flex-start',
       justifyContent: props.justifyContent || 'flex-start',
       radius: props.radius || 0,
-      shadow: props.shadow || 0,
+      shadow: shadowValue || {
+        enabled: false,
+        x: 0,
+        y: 4,
+        blur: 8,
+        spread: 0,
+        color: { r: 0, g: 0, b: 0, a: 0.15 }
+      },
       width: props.width || '100%',
       height: props.height || 'auto',
     };
@@ -139,7 +160,7 @@ export const ContainerSettings = () => {
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                     {flexDirection === 'column' ? 'Horizontal Alignment' : 'Vertical Alignment'}
                     <span className="ml-1 text-gray-400 dark:text-gray-500" title={
-                      flexDirection === 'column' 
+                      flexDirection === 'column'
                         ? "Set how items are aligned horizontally within the container"
                         : "Set how items are aligned vertically within the container"
                     }>(?)</span>
@@ -252,18 +273,203 @@ export const ContainerSettings = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Shadow</label>
-                <div className="flex items-center">
+                <div className="flex items-start mb-2">
                   <input
-                    type="range"
-                    value={shadow}
-                    min={0}
-                    max={100}
-                    onChange={(e) => actions.setProp((props) => { props.shadow = parseInt(e.target.value); })}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    type="checkbox"
+                    id="enableShadow"
+                    checked={shadow.enabled || false}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      actions.setProp((props) => {
+                        // Ensure shadow is an object
+                        if (typeof props.shadow === 'number') {
+                          props.shadow = {
+                            enabled: isChecked,
+                            x: 0,
+                            y: 4,
+                            blur: 8,
+                            spread: 0,
+                            color: { r: 0, g: 0, b: 0, a: 0.15 }
+                          };
+                        } else {
+                          props.shadow.enabled = isChecked;
+                        }
+                      });
+                    }}
+                    className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
                   />
-                  <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{shadow}</span>
+                  <label
+                    htmlFor="enableShadow"
+                    className="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer leading-none pt-1"
+                  >
+                    Enable Shadow
+                  </label>
                 </div>
+                {shadow.enabled && (
+                  <div className="space-y-2 pl-6">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">X Offset</label>
+                        <input
+                          type="number"
+                          value={shadow.x || 0}
+                          onChange={(e) => actions.setProp((props) => {
+                            if (typeof props.shadow === 'number') {
+                              props.shadow = {
+                                enabled: true,
+                                x: parseInt(e.target.value),
+                                y: 4,
+                                blur: 8,
+                                spread: 0,
+                                color: { r: 0, g: 0, b: 0, a: 0.15 }
+                              };
+                            } else {
+                              props.shadow.x = parseInt(e.target.value);
+                            }
+                          })}
+                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Y Offset</label>
+                        <input
+                          type="number"
+                          value={shadow.y || 4}
+                          onChange={(e) => actions.setProp((props) => {
+                            if (typeof props.shadow === 'number') {
+                              props.shadow = {
+                                enabled: true,
+                                x: 0,
+                                y: parseInt(e.target.value),
+                                blur: 8,
+                                spread: 0,
+                                color: { r: 0, g: 0, b: 0, a: 0.15 }
+                              };
+                            } else {
+                              props.shadow.y = parseInt(e.target.value);
+                            }
+                          })}
+                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Blur</label>
+                        <input
+                          type="number"
+                          value={shadow.blur || 8}
+                          onChange={(e) => actions.setProp((props) => {
+                            if (typeof props.shadow === 'number') {
+                              props.shadow = {
+                                enabled: true,
+                                x: 0,
+                                y: 4,
+                                blur: parseInt(e.target.value),
+                                spread: 0,
+                                color: { r: 0, g: 0, b: 0, a: 0.15 }
+                              };
+                            } else {
+                              props.shadow.blur = parseInt(e.target.value);
+                            }
+                          })}
+                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Spread</label>
+                        <input
+                          type="number"
+                          value={shadow.spread || 0}
+                          onChange={(e) => actions.setProp((props) => {
+                            if (typeof props.shadow === 'number') {
+                              props.shadow = {
+                                enabled: true,
+                                x: 0,
+                                y: 4,
+                                blur: 8,
+                                spread: parseInt(e.target.value),
+                                color: { r: 0, g: 0, b: 0, a: 0.15 }
+                              };
+                            } else {
+                              props.shadow.spread = parseInt(e.target.value);
+                            }
+                          })}
+                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Shadow Color</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={`#${Math.round((shadow.color?.r || 0)).toString(16).padStart(2, '0')}${Math.round((shadow.color?.g || 0)).toString(16).padStart(2, '0')}${Math.round((shadow.color?.b || 0)).toString(16).padStart(2, '0')}`}
+                          onChange={(e) => {
+                            const hex = e.target.value.substring(1);
+                            actions.setProp((props) => {
+                              if (typeof props.shadow === 'number') {
+                                props.shadow = {
+                                  enabled: true,
+                                  x: 0,
+                                  y: 4,
+                                  blur: 8,
+                                  spread: 0,
+                                  color: {
+                                    r: parseInt(hex.substring(0, 2), 16),
+                                    g: parseInt(hex.substring(2, 4), 16),
+                                    b: parseInt(hex.substring(4, 6), 16),
+                                    a: 0.15
+                                  }
+                                };
+                              } else if (!props.shadow.color) {
+                                props.shadow.color = {
+                                  r: parseInt(hex.substring(0, 2), 16),
+                                  g: parseInt(hex.substring(2, 4), 16),
+                                  b: parseInt(hex.substring(4, 6), 16),
+                                  a: 0.15
+                                };
+                              } else {
+                                props.shadow.color = {
+                                  ...props.shadow.color,
+                                  r: parseInt(hex.substring(0, 2), 16),
+                                  g: parseInt(hex.substring(2, 4), 16),
+                                  b: parseInt(hex.substring(4, 6), 16),
+                                };
+                              }
+                            });
+                          }}
+                          className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded"
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={shadow.color?.a || 0.15}
+                          onChange={(e) => actions.setProp((props) => {
+                            const opacity = parseFloat(e.target.value);
+                            if (typeof props.shadow === 'number') {
+                              props.shadow = {
+                                enabled: true,
+                                x: 0,
+                                y: 4,
+                                blur: 8,
+                                spread: 0,
+                                color: { r: 0, g: 0, b: 0, a: opacity }
+                              };
+                            } else if (!props.shadow.color) {
+                              props.shadow.color = { r: 0, g: 0, b: 0, a: opacity };
+                            } else {
+                              props.shadow.color.a = opacity;
+                            }
+                          })}
+                          className="flex-1 accent-teal-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

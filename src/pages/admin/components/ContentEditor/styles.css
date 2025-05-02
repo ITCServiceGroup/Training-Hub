@@ -325,6 +325,28 @@
   z-index: 1;
 }
 
+/* Special handling for Container component to account for top margin */
+/* Create a pseudo-element for the top margin */
+.container-with-top-margin::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: calc(-1 * var(--top-margin, 0px));
+  left: 0;
+  width: 100%;
+  height: var(--top-margin, 0px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Adjust the selection box to include the top margin */
+.container-with-top-margin.component-selected::after,
+.container-with-top-margin.component-hovered::after {
+  top: calc(-1 * var(--top-margin, 0px));
+  height: calc(100% + var(--top-margin, 0px));
+  z-index: 1;
+}
+
 /* Ensure table components don't get double borders */
 .craft-table.component-selected::after,
 .craft-table.component-hovered::after {
@@ -407,6 +429,24 @@
 
 /* Ensure Text components within table cells take full width */
 .craft-table td .craft-text {
+  width: 100%;
+  display: block;
+  min-height: 24px;
+}
+
+/* TableText component styles */
+.craft-table-text {
+  width: 100%;
+  display: block;
+  min-height: 24px;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  cursor: text;
+}
+
+/* Ensure TableText components are properly styled in table cells */
+.craft-table td .craft-table-text {
   width: 100%;
   display: block;
   min-height: 24px;

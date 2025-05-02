@@ -87,6 +87,7 @@ import { Image } from './components/selectors/Image';
 import { Card } from './components/selectors/Card';
 import { Interactive } from './components/selectors/Interactive';
 import { Table } from './components/selectors/Table';
+import { TableText } from './components/selectors/Table/TableText';
 
 import './styles.css';
 
@@ -403,7 +404,7 @@ const ContentEditor = ({
     <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
       <ToolbarZIndexProvider>
           <Editor
-            resolver={{ Container, Text, Button, Image, Card, Interactive, Table }}
+            resolver={{ Container, Text, Button, Image, Card, Interactive, Table, TableText }}
             enabled={true}
             onRender={RenderNode}
             options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}

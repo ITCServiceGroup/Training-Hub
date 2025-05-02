@@ -11,7 +11,14 @@ const defaultProps = {
   padding: ['0', '0', '0', '0'],
   margin: ['0', '0', '0', '0'],
   background: { r: 255, g: 255, b: 255, a: 1 },
-  shadow: 0,
+  shadow: {
+    enabled: false,
+    x: 0,
+    y: 4,
+    blur: 8,
+    spread: 0,
+    color: { r: 0, g: 0, b: 0, a: 0.15 }
+  },
   radius: 0,
   width: '100%', // Percentage-based width
   height: 'auto' // Pixel-based height or 'auto'
@@ -24,6 +31,19 @@ export const Container = (props) => {
     ...defaultProps,
     ...props,
   };
+
+  // Handle backward compatibility for shadow property
+  if (typeof props.shadow === 'number') {
+    const shadowValue = props.shadow;
+    props.shadow = {
+      enabled: shadowValue > 0,
+      x: 0,
+      y: 4,
+      blur: 8,
+      spread: 0,
+      color: { r: 0, g: 0, b: 0, a: 0.15 }
+    };
+  }
 
   // Extract props *after* merging defaults
   const {
@@ -144,25 +164,43 @@ export const Container = (props) => {
   }, [checkOverflow, log]);
 
 
+  // Extract margin values
+  const topMarginValue = parseInt(margin[0]) || 0;
+  const rightMarginValue = parseInt(margin[3]) || 0;
+  const bottomMarginValue = parseInt(margin[2]) || 0;
+  const leftMarginValue = parseInt(margin[1]) || 0;
+
+  // Create a wrapper div with only top margin
   return (
-    // Remove the outer wrapper div
-    <Resizer
-      ref={containerRef}
-      propKey={{ width: 'width', height: 'height' }}
-      // Apply margin directly to Resizer
-      style={{
-        position: 'relative',
-        display: 'flex', // Keep flex on Resizer
-        minHeight: '50px',
-        width: '100%',
-        boxSizing: 'border-box',
-        flexShrink: 0,
-        flexBasis: 'auto',
-        // Apply margin here
-        margin: `${parseInt(margin[0]) || 0}px ${parseInt(margin[3]) || 0}px ${parseInt(margin[2]) || 0}px ${parseInt(margin[1]) || 0}px`,
-        padding: 0, // Ensure no padding on Resizer itself
-        pointerEvents: 'auto'
-      }}
+    <>
+      {/* Invisible spacer div for top margin */}
+      {topMarginValue > 0 && (
+        <div
+          style={{
+            height: `${topMarginValue}px`,
+            width: '100%',
+            pointerEvents: 'none'
+          }}
+        />
+      )}
+
+      {/* The actual container with right, bottom, and left margins */}
+      <Resizer
+        ref={containerRef}
+        propKey={{ width: 'width', height: 'height' }}
+        style={{
+          position: 'relative',
+          display: 'flex',
+          minHeight: '50px',
+          width: '100%',
+          boxSizing: 'border-box',
+          flexShrink: 0,
+          flexBasis: 'auto',
+          // Apply only right, bottom, and left margins
+          margin: `0px ${rightMarginValue}px ${bottomMarginValue}px ${leftMarginValue}px`,
+          padding: 0,
+          pointerEvents: 'auto'
+        }}
       onResize={(width, height) => {
           try {
             log('Manual resize', { width, height });
@@ -192,7 +230,9 @@ export const Container = (props) => {
             height: height || 'auto', // Use height from props
             background: `rgba(${Object.values(background)})`,
             padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-            boxShadow: shadow === 0 ? 'none' : `0px 3px 100px ${shadow}px rgba(0, 0, 0, 0.13)`,
+            boxShadow: shadow.enabled
+              ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
+              : 'none',
             borderRadius: `${radius}px`,
           }}
         >
@@ -226,8 +266,8 @@ export const Container = (props) => {
             return React.cloneElement(child, { style: childStyle });
           })}
         </div>
-    </Resizer>
-    // End of removed outer wrapper div
+      </Resizer>
+    </>
   );
 };
 

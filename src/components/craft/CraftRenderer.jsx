@@ -11,6 +11,7 @@ import { Image } from '../../pages/admin/components/ContentEditor/components/sel
 import { Card } from '../../pages/admin/components/ContentEditor/components/selectors/Card';
 import { Interactive } from '../../pages/admin/components/ContentEditor/components/selectors/Interactive';
 import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
+import { TableText } from '../../pages/admin/components/ContentEditor/components/selectors/Table/TableText';
 import InteractiveRenderer from '../../pages/admin/components/ContentEditor/components/selectors/Interactive/InteractiveRenderer';
 
 import './CraftRenderer.css';
@@ -148,7 +149,8 @@ const CraftRenderer = ({ jsonContent }) => {
             Image,
             Card,
             Interactive,
-            Table
+            Table,
+            TableText
           }}
           enabled={false} // Disable editing
           onRender={({ render }) => render}

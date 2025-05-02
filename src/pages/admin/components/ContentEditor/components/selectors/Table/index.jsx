@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { useNode } from '@craftjs/core';
 import { Resizer } from '../Resizer';
-import { Text } from '../Text';
+import { TableText } from './TableText';
 import { TableSettings } from './TableSettings';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 
@@ -133,12 +133,11 @@ export const Table = (props) => {
               position: 'relative'
             }}
           >
-            <Text
+            <TableText
               text={cellContent}
               fontSize={isHeader ? headerFontSize.toString() : fontSize.toString()}
               fontWeight={isHeader ? '600' : '400'}
               textAlign={isHeader ? headerTextAlign : textAlign}
-              inTable={true}
               onChange={(newContent) => handleCellContentChange(i, j, newContent)}
             />
           </td>
