@@ -67,19 +67,23 @@ const formatTextWithListType = (text, listType) => {
 
   // If text already has list markup, extract the content
   let content = text;
-  if (content.includes('<ul>') || content.includes('<ol>')) {
+  if (content.includes('<ul') || content.includes('<ol')) {
     // Extract content from existing list
     content = content
-      .replace(/<\/?ul>/g, '')
-      .replace(/<\/?ol>/g, '')
-      .replace(/<li>/g, '')
+      .replace(/<ul[^>]*>/g, '')
+      .replace(/<\/ul>/g, '')
+      .replace(/<ol[^>]*>/g, '')
+      .replace(/<\/ol>/g, '')
+      .replace(/<li[^>]*>/g, '')
       .replace(/<\/li>/g, '\n')
       .trim();
   }
 
   // Split content by newlines to create list items
-  const lines = content.split('\n').filter(line => line.trim());
-  if (lines.length === 0) lines.push('Click to edit');
+  const lines = content.split('\n');
+  if (lines.length === 0 || (lines.length === 1 && !lines[0].trim())) {
+    lines[0] = 'Click to edit';
+  }
 
   if (listType === 'bullet') {
     // Use style attribute to ensure bullets are visible
@@ -117,8 +121,12 @@ export const Text = ({
   inTable = false,
   onChange = null,
 }) => {
-  // Use a ref to store the formatted HTML content
-  const htmlContent = useRef(formatTextWithListType(text || 'Click to edit', listType));
+  // Store the current text value in a ref to avoid re-renders
+  const textValue = useRef(text || 'Click to edit');
+
+  // Store the formatted HTML in a separate ref
+  const formattedHtml = useRef(formatTextWithListType(textValue.current, listType));
+
   const {
     connectors: { connect },
     actions: { setProp },
@@ -148,66 +156,79 @@ export const Text = ({
     }
   }, [isInTableCell, selected]);
 
-  // Update the HTML content when listType or text changes
+  // Update the formatted HTML when text or listType changes from props
   useEffect(() => {
-    htmlContent.current = formatTextWithListType(text || 'Click to edit', listType);
+    // Only update if the text from props is different from our current value
+    if (text !== textValue.current || listType !== prevListType.current) {
+      textValue.current = text;
+      formattedHtml.current = formatTextWithListType(text, listType);
 
-    // Only update props if we're mounted and have a valid node
-    if (dom) {
-      try {
-        // Force a re-render by setting a prop, but wrap in try/catch to handle node removal
-        setProp(props => {
-          // This is just to trigger a re-render, we're not actually changing any props
-          props._lastUpdate = Date.now();
-        });
-
-        // Force a refresh of the DOM element's HTML content
-        const element = dom;
-        if (element) {
-          element.innerHTML = htmlContent.current;
+      // Update the DOM if needed
+      if (dom) {
+        try {
+          // Force a re-render
+          setProp(props => {
+            props._lastUpdate = Date.now();
+          });
+        } catch (error) {
+          console.warn('Failed to update Text component props:', error);
         }
-      } catch (error) {
-        console.warn('Failed to update Text component props:', error);
       }
     }
-  }, [listType, text, setProp, dom]);
+  }, [text, listType, setProp, dom]);
+
+  // Keep track of the previous list type to detect changes
+  const prevListType = useRef(listType);
+
+  // Update prevListType when it changes
+  useEffect(() => {
+    prevListType.current = listType;
+  }, [listType]);
+
+  // Handle changes to the content
+  const handleChange = (e) => {
+    let newHtml = e.target.value;
+    let plainText = newHtml;
+
+    // Extract plain text from HTML
+    if (listType !== 'none') {
+      // Extract content from list structure
+      plainText = newHtml
+        .replace(/<ul[^>]*>/g, '')
+        .replace(/<\/ul>/g, '')
+        .replace(/<ol[^>]*>/g, '')
+        .replace(/<\/ol>/g, '')
+        .replace(/<li[^>]*>/g, '')
+        .replace(/<\/li>/g, '\n')
+        .trim();
+    } else {
+      // For regular text, preserve line breaks
+      plainText = newHtml.replace(/<br\s*\/?>/g, '\n');
+    }
+
+    // Update our refs
+    textValue.current = plainText;
+    formattedHtml.current = newHtml;
+
+    // Update the component props
+    if (isInTableCell) {
+      // Immediate update for table cells
+      setProp((prop) => (prop.text = plainText));
+      // If custom onChange handler is provided (for table cells), call it
+      if (onChange) onChange(plainText);
+    } else {
+      // Keep the debounce for regular text editing
+      setProp((prop) => (prop.text = plainText), 500);
+    }
+  };
 
   return (
     <ContentEditable
       innerRef={connect}
-      html={htmlContent.current} // Use the ref to ensure consistent rendering
+      html={formattedHtml.current}
       disabled={!enabled}
       onClick={handleClick}
-      onChange={(e) => {
-        let newValue = e.target.value;
-
-        // If we're in a list, preserve the list structure but update the content
-        if (listType !== 'none') {
-          // Extract content from the list structure
-          const listContent = newValue
-            .replace(/<\/?ul>/g, '')
-            .replace(/<\/?ol>/g, '')
-            .replace(/<li>/g, '')
-            .replace(/<\/li>/g, '\n')
-            .trim();
-
-          // Store the raw content without list markup
-          newValue = listContent;
-        } else {
-          // For regular text, preserve line breaks
-          newValue = newValue.replace(/<br\s*\/?>/g, '\n');
-        }
-
-        if (isInTableCell) {
-          // Immediate update for table cells
-          setProp((prop) => (prop.text = newValue));
-          // If custom onChange handler is provided (for table cells), call it
-          if (onChange) onChange(newValue);
-        } else {
-          // Keep the debounce for regular text editing
-          setProp((prop) => (prop.text = newValue), 500);
-        }
-      }}
+      onChange={handleChange}
       // These props are crucial for proper HTML rendering
       className="craft-text-component"
       tagName="div" // Use div for better table cell compatibility
