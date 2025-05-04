@@ -8,7 +8,7 @@ import { TextSettings } from './TextSettings';
 const listStyles = `
 /* Base component styles */
 .craft-text-component {
-  min-height: 50px !important;
+  min-height: 24px !important;
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
@@ -235,7 +235,9 @@ export const Text = ({
       style={{
         width: '100%',
         margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
+        padding: padding.every(p => p === '0' || p === 0)
+          ? '4px 0' // Default padding if none is set
+          : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
         color: `rgba(${Object.values(color)})`,
         textShadow: shadow.enabled
           ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${Object.values(shadow.color)})`
@@ -243,7 +245,7 @@ export const Text = ({
         fontSize: `${fontSize}px`,
         fontWeight,
         textAlign,
-        minHeight: isInTableCell ? '24px' : '50px',
+        minHeight: '24px',
         cursor: 'text',
         whiteSpace: 'pre-wrap',
         wordWrap: 'break-word',

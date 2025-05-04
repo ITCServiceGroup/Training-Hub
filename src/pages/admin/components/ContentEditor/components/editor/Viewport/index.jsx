@@ -25,6 +25,7 @@ export const Viewport = ({ children }) => {
               connectors.select(connectors.hover(ref, null), null);
             }}
             style={{ maxHeight: 'calc(100% - 48px)' }} /* 48px accounts for the header height */
+            data-editor-drag-area="true" /* Add this attribute to help with drag detection */
           >
             <div className="relative flex-col flex items-center pt-8">
               {children}

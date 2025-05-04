@@ -106,12 +106,51 @@
 /* Container styles */
 .craft-container {
   min-height: 50px;
-  transition: border-color 0.2s;
   width: 100%;
   height: 100%;
-  /* Ensure Container components have no default border/outline */
-  border: none !important; /* Use !important if necessary to override other styles */
+  border: none !important;
   outline: none !important;
+  background-color: transparent;
+  transition: background-color 0.2s ease, outline 0.2s ease;
+}
+
+.craft-container.is-canvas.is-dragging {
+  outline: none !important;
+  background-color: transparent !important;
+}
+
+.craft-container.is-canvas[data-can-drop="true"] {
+  outline: 2px dashed #0d9488 !important;
+  outline-offset: -2px;
+  background-color: rgba(13, 148, 136, 0.03) !important;
+}
+
+.craft-container.is-canvas.is-dragging[data-can-drop="true"] {
+  outline: 2px dashed #0d9488 !important;
+  outline-offset: -2px;
+  background-color: rgba(13, 148, 136, 0.05) !important;
+}
+
+/* Add nested container styles */
+.craft-container .craft-container.is-canvas[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.08) !important;
+}
+
+.craft-container .craft-container .craft-container.is-canvas[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.12) !important;
+}
+
+/* Drag depth styles */
+.craft-container.is-canvas.depth-1[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.05) !important;
+}
+
+.craft-container.is-canvas.depth-2[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.08) !important;
+}
+
+.craft-container.is-canvas.depth-3[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.12) !important;
 }
 
 /* Text styles */
@@ -204,31 +243,96 @@
 }
 
 /* Drag and drop styles */
-.craftjs-renderer [data-dragging] {
-  opacity: 0.5;
-  position: relative;
-  z-index: 100;
+/* Global editor state during drag operations */
+.craftjs-renderer {
+  transition: background-color 0.3s ease;
 }
 
-.craftjs-renderer [data-dragging]::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(13, 148, 136, 0.1);
-  border: 2px dashed #0d9488;
-  pointer-events: none;
-  z-index: 1;
+/* When dragging is active, change the background color of the entire editor */
+.craftjs-renderer.dragging-active {
+  background-color: rgba(13, 148, 136, 0.03) !important;
 }
 
-.craftjs-renderer [data-drag-hover] {
-  position: relative;
-  z-index: 1;
-  outline: 2px dashed #0d9488 !important;
-  outline-offset: -2px;
+/* Element being dragged */
+[draggable="true"] {
+  cursor: grabbing;
+}
+
+/* Container that can accept drops - base style */
+.craft-container[data-can-drop="true"] {
   background-color: rgba(13, 148, 136, 0.05) !important;
+  outline: 2px dashed rgba(13, 148, 136, 0.5) !important;
+  outline-offset: -2px;
+  transition: all 0.2s ease !important;
+}
+
+/* Depth-based styling for containers */
+.craft-container.depth-1[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.05) !important;
+}
+
+.craft-container.depth-2[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.08) !important;
+}
+
+.craft-container.depth-3[data-can-drop="true"] {
+  background-color: rgba(13, 148, 136, 0.12) !important;
+}
+
+/* Add a subtle pulse animation for containers during drag */
+@keyframes containerPulse {
+  0% {
+    outline-color: rgba(13, 148, 136, 0.3);
+  }
+  50% {
+    outline-color: rgba(13, 148, 136, 0.7);
+  }
+  100% {
+    outline-color: rgba(13, 148, 136, 0.3);
+  }
+}
+
+.craft-container[data-can-drop="true"] {
+  animation: containerPulse 1.5s infinite;
+}
+
+/* Element being hovered over during drag */
+.craft-container.drag-hover {
+  background-color: rgba(13, 148, 136, 0.15) !important;
+  outline: 3px dashed #0d9488 !important;
+  outline-offset: -3px;
+  z-index: 10 !important;
+  position: relative;
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1) !important;
+  animation: none !important;
+}
+
+/* Animation keyframes */
+@keyframes dragPulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dragTargetPulse {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.3;
+  }
 }
 
 /* Resizable styles */

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Editor, Frame as CraftFrame, Element as CraftElement, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { ToolbarZIndexProvider } from './contexts/ToolbarZIndexContext';
+import { useDragHighlight } from './hooks/useDragHighlight';
 
 // Storage utility functions
 const getStorageKey = (studyGuideId) => `content_editor_${studyGuideId}_draft`;
@@ -100,6 +101,9 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  // Use our custom hook to add visual feedback during drag operations
+  useDragHighlight();
+
   // Log initial title for debugging
   console.log('EditorInner initialized with initialTitle:', initialTitle, 'for study guide:', selectedStudyGuide?.id || 'new');
 
@@ -121,7 +125,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 
     // Selection restoration function with retry
     const restoreSelection = async () => {
-      const { nodeId, meta } = loadSelectedNode(studyGuideId);
+      const { nodeId } = loadSelectedNode(studyGuideId);
       if (!nodeId) return;
 
       const attemptRestore = () => {

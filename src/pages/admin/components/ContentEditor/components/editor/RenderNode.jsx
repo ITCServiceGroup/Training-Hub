@@ -5,10 +5,13 @@ import { ROOT_NODE } from '@craftjs/utils';
 import ReactDOM from 'react-dom';
 import { FaArrowsAlt, FaTrash, FaArrowUp, FaCopy } from 'react-icons/fa';
 
+
 export const RenderNode = ({ render }) => {
-  const { id, dom, name, isHovered, isSelected, parent, data, connectors } = useNode((node) => ({
+  const { id, dom, name, isHovered, isSelected, parent, data, connectors, isDragged, isDropTarget } = useNode((node) => ({
     isHovered: node.events.hovered,
     isSelected: node.events.selected,
+    isDragged: node.events.dragged,
+    isDropTarget: node.events.dropTarget,
     dom: node.dom,
     name: node.data.custom?.displayName || node.data.displayName || node.data.name,
     id: node.id,
@@ -18,8 +21,9 @@ export const RenderNode = ({ render }) => {
 
   const { actions, query } = useEditor();
 
-  // Check if the node is a container
+  // Check if the node is a container and can accept drops
   const isContainer = data.name === 'Container';
+  const canAcceptDrop = isContainer && data.custom?.isCanvas;
 
   // Check if the node is draggable and deletable
   const isDraggable = query.node(id).isDraggable();
@@ -27,6 +31,7 @@ export const RenderNode = ({ render }) => {
 
   // Skip ROOT element indicators
   const isRoot = id === 'ROOT';
+  const isCanvas = data.custom?.isCanvas || false;
 
   // Create a ref for the toolbar
   const toolbarRef = useRef(null);
@@ -69,7 +74,7 @@ export const RenderNode = ({ render }) => {
       } else {
         dom.classList.remove('component-hovered');
       }
-      
+
       // Update z-index when selected
       if (isSelected) {
         updateZIndex(id);
@@ -95,6 +100,82 @@ export const RenderNode = ({ render }) => {
       document.activeElement?.tagName === 'SELECT' // Focused select
     );
   }, []);
+
+  // Mark containers as potential drop targets during drag operations
+  useEffect(() => {
+    if (!dom) return;
+
+    // Handle dragging state for the element being dragged
+    if (isDragged) {
+      dom.setAttribute('data-dragging', 'true');
+
+      // Add dragging-active class to the renderer as a fallback for browsers that don't support :has()
+      const renderer = document.querySelector('.craftjs-renderer');
+      if (renderer) {
+        renderer.classList.add('dragging-active');
+      }
+    } else {
+      dom.removeAttribute('data-dragging');
+    }
+
+    // Handle drop target state for containers
+    if (canAcceptDrop) {
+      const isDragging = query.getState().events.dragged.size > 0;
+      if (isDragging && !isDragged) {
+        dom.setAttribute('data-can-drop', 'true');
+
+        // Add depth class to create visual hierarchy
+        const depth = getContainerDepth(id, query);
+        if (depth > 0) {
+          dom.classList.add(`depth-${depth}`);
+        }
+      } else {
+        dom.removeAttribute('data-can-drop');
+        // Remove depth classes
+        dom.classList.remove('depth-1', 'depth-2', 'depth-3');
+      }
+    }
+
+    // Handle drop hover state
+    if (isDropTarget) {
+      dom.setAttribute('data-drag-hover', 'true');
+    } else {
+      dom.removeAttribute('data-drag-hover');
+    }
+
+    // Clean up function to remove dragging-active class when component unmounts or drag ends
+    return () => {
+      if (isDragged) {
+        const renderer = document.querySelector('.craftjs-renderer');
+        if (renderer) {
+          renderer.classList.remove('dragging-active');
+        }
+      }
+    };
+  }, [dom, canAcceptDrop, isDragged, isDropTarget, query, id]);
+
+  // Helper function to determine container nesting depth
+  const getContainerDepth = (nodeId, query) => {
+    let depth = 0;
+    let currentId = nodeId;
+
+    while (currentId !== 'ROOT') {
+      try {
+        const parentId = query.node(currentId).get().data.parent;
+        if (parentId === 'ROOT') break;
+
+        currentId = parentId;
+        depth++;
+
+        // Prevent infinite loops
+        if (depth > 10) break;
+      } catch (e) {
+        break;
+      }
+    }
+
+    return Math.min(depth, 3); // Cap at depth-3 for styling
+  };
 
   // Handle scroll events and selection state
   useEffect(() => {
@@ -162,7 +243,6 @@ export const RenderNode = ({ render }) => {
 
   // Create a wrapper with position relative to contain the indicators
   // We need to use a wrapper for all elements to ensure consistent behavior
-  const isTextNode = data.name === 'Text';
 
   return (
     <>

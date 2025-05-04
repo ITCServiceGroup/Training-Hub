@@ -70,8 +70,15 @@ export const Container = (props) => {
   // Get query for localStorage
   const { query } = useEditor();
 
-  // Get the node ID
-  const { id } = useNode(node => ({ id: node.id }));
+  // Get the node ID and drag state
+  const { id, isActive, data, isDragged } = useNode(node => ({
+    id: node.id,
+    isActive: node.events.selected,
+    data: node.data,
+    isDragged: node.events.dragged
+  }));
+
+  const isContainer = data.custom?.isCanvas;
 
   // Simple debug log function
   const debug = process.env.NODE_ENV === 'development';
@@ -186,6 +193,12 @@ export const Container = (props) => {
 
       {/* The actual container with right, bottom, and left margins */}
       <Resizer
+        onDragOver={(e) => {
+          if (isContainer) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }
+        }}
         ref={containerRef}
         propKey={{ width: 'width', height: 'height' }}
         style={{
@@ -220,20 +233,23 @@ export const Container = (props) => {
         }}
       >
         <div
-          // No specific class needed here unless targeted by other CSS
+          data-can-drop={isContainer && isDragged ? 'true' : undefined}
+          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''}`}
           style={{
-            display: 'flex', // Restore inline flex
-            justifyContent,  // Restore inline prop
-            flexDirection, // Restore inline prop
-            alignItems,    // Restore inline prop
+            display: 'flex',
+            justifyContent,
+            flexDirection,
+            alignItems,
             width: '100%',
-            height: height || 'auto', // Use height from props
+            height: height || 'auto',
             background: `rgba(${Object.values(background)})`,
             padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
             boxShadow: shadow.enabled
               ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
               : 'none',
             borderRadius: `${radius}px`,
+            position: 'relative',
+            overflow: 'visible'
           }}
         >
           {/* --- NEW Child Handling Logic --- */}

@@ -80,7 +80,7 @@ export const TextSettings = () => {
             {/* Text Content */}
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Text Content (supports multi-line)
+                Text Content (supports HTML tags)
               </label>
               <textarea
                 value={text}
