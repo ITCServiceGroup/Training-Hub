@@ -3,6 +3,9 @@ import { Editor, Frame as CraftFrame, Element as CraftElement, useEditor } from 
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { ToolbarZIndexProvider } from './contexts/ToolbarZIndexContext';
 import { useDragHighlight } from './hooks/useDragHighlight';
+import { applyDirectCraftJsFix } from './patches/directCraftJsFix';
+import { CraftJsDirectPatch } from './patches/craftJsDirectPatch';
+import { applyCraftJsDragDropOverride } from './patches/craftJsDragDropOverride';
 
 // Storage utility functions
 const getStorageKey = (studyGuideId) => `content_editor_${studyGuideId}_draft`;
@@ -91,6 +94,7 @@ import { Table } from './components/selectors/Table';
 import { TableText } from './components/selectors/Table/TableText';
 
 import './styles.css';
+import './styles/dragFeedback.css';
 
 // Wrapper component to access editor actions and render the actual editor UI
 const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide }) => {
@@ -101,8 +105,24 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Use our custom hook to add visual feedback during drag operations
+  // Use our custom hooks to add visual feedback during drag operations
   useDragHighlight();
+
+  // Apply the drag and drop and move fixes
+  useEffect(() => {
+
+    // Apply the direct fix and store the cleanup function
+    const cleanup1 = applyDirectCraftJsFix();
+
+    // Apply the drag and drop override, passing the editor actions
+    const cleanup2 = applyCraftJsDragDropOverride(actions);
+
+    // Return cleanup function
+    return () => {
+      if (cleanup1) cleanup1();
+      if (cleanup2) cleanup2();
+    };
+  }, [actions]); // actions is the only dependency needed now for the override
 
   // Log initial title for debugging
   console.log('EditorInner initialized with initialTitle:', initialTitle, 'for study guide:', selectedStudyGuide?.id || 'new');
@@ -329,6 +349,9 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 
       {/* Main Editor Area - Viewport and Frame */}
       <div className="flex flex-grow gap-4 overflow-hidden" style={{ flex: '1 1 auto', height: 'calc(100% - 100px)' }}> {/* Updated container div */}
+        {/* Add the CraftJsDirectPatch component to inject our custom event handlers */}
+        <CraftJsDirectPatch />
+
         <Viewport>
           <CraftFrame>
             {/* Always render the default content */}
@@ -412,7 +435,7 @@ const ContentEditor = ({
             enabled={true}
             onRender={RenderNode}
             options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
-            indicator={{ success: '#0d9488', error: '#ef4444' }}
+            indicator={{ success: '#006aff', error: '#ef4444' }}
             onNodesChange={(query) => {
             const studyGuideId = selectedStudyGuide?.id || 'new';
 

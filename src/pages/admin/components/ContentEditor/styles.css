@@ -305,6 +305,14 @@
   position: relative;
   box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1) !important;
   animation: none !important;
+  transition: all 0.1s ease-in-out !important;
+}
+
+/* Enhance the hover effect for craft.js's native indicator */
+.indicator-box {
+  background-color: rgba(255, 152, 0, 0.5) !important; /* Orange color with higher opacity */
+  border: 2px solid #006aff !important; /* Orange color */
+  z-index: 9999 !important;
 }
 
 /* Animation keyframes */

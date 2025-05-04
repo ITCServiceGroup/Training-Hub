@@ -1,0 +1,31 @@
+/**
+ * Styles for immediate visual feedback during drag operations
+ */
+
+/* Global styles when dragging is active */
+body.craftjs-dragging {
+  cursor: grabbing !important;
+}
+
+/* Highlight potential drop targets immediately */
+body.craftjs-dragging .craft-container.is-canvas {
+  outline: 2px dashed rgba(13, 148, 136, 0.3) !important; /* Teal color with transparency */
+  outline-offset: -2px;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Style for the container being dragged over */
+.craft-container.drag-hover {
+  background-color: rgba(13, 148, 136, 0.1) !important; /* Teal color with transparency */
+  outline: 2px solid rgba(13, 148, 136, 0.8) !important; /* Teal color */
+  outline-offset: -2px;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Make the indicator more visible */
+.indicator-box {
+  background-color: rgba(0, 85, 255, 0.8) !important; /* Orange color */
+  border: 2px solid rgb(0, 85, 255) !important; /* Orange color */
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.5) !important;
+  transition: all 0.1s ease-in-out;
+}

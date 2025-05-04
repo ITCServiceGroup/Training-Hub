@@ -265,7 +265,14 @@ export const RenderNode = ({ render }) => {
               {isDraggable ? (
                 <a
                   className="mr-2 cursor-move"
-                  ref={(dom) => connectors.drag(dom)} // Match example pattern
+                  ref={(dom) => {
+                    if (dom) {
+                      // Make sure we're using the correct connector
+                      connectors.drag(dom);
+                      // Add a data attribute to help identify this as a drag handle
+                      dom.setAttribute('data-drag-handle', 'true');
+                    }
+                  }}
                   style={btnStyle}
                 >
                   <FaArrowsAlt size={14} />

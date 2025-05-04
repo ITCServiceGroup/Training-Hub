@@ -193,12 +193,6 @@ export const Container = (props) => {
 
       {/* The actual container with right, bottom, and left margins */}
       <Resizer
-        onDragOver={(e) => {
-          if (isContainer) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-          }
-        }}
         ref={containerRef}
         propKey={{ width: 'width', height: 'height' }}
         style={{
