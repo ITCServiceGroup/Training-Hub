@@ -293,30 +293,83 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
       // If it's a string, check if it looks like Craft.js JSON
       if (typeof studyGuide.content === 'string') {
-        // Simple check: if it contains "resolvedName" and "props", it's likely Craft.js JSON
-        if (studyGuide.content.includes('resolvedName') && studyGuide.content.includes('props')) {
-          console.log('Content appears to be Craft.js JSON');
-          return true;
-        }
+        const content = studyGuide.content.trim();
 
-        // Check if it contains "ROOT" or "root", which are common in Craft.js JSON
-        if (studyGuide.content.includes('"ROOT"') || studyGuide.content.includes('"root"')) {
-          console.log('Content appears to contain ROOT/root node, likely Craft.js JSON');
-          return true;
-        }
+        // Check if it's a JSON string (starts with { and ends with })
+        if (content.startsWith('{') && content.endsWith('}')) {
+          console.log('Content appears to be a JSON object string');
 
-        // Try to parse it as JSON
-        try {
-          const parsed = JSON.parse(studyGuide.content);
-          // If it has ROOT or nodes, it's likely Craft.js JSON
-          if (parsed.ROOT || parsed.root ||
-              (typeof parsed === 'object' && Object.values(parsed).some(v => v && v.props && v.props.text))) {
-            console.log('Content is valid JSON with Craft.js structure');
+          // Simple check: if it contains "resolvedName" and "props", it's likely Craft.js JSON
+          if (content.includes('resolvedName') && content.includes('props')) {
+            console.log('Content appears to be Craft.js JSON');
             return true;
           }
-        } catch (parseError) {
-          // If parsing fails, it's not valid JSON
-          console.log('Content is not valid JSON');
+
+          // Check if it contains "ROOT" or "root", which are common in Craft.js JSON
+          if (content.includes('"ROOT"') || content.includes('"root"')) {
+            console.log('Content appears to contain ROOT/root node, likely Craft.js JSON');
+            return true;
+          }
+
+          // Try to parse it as JSON
+          try {
+            const parsed = JSON.parse(content);
+            // If it has ROOT or nodes, it's likely Craft.js JSON
+            if (parsed.ROOT || parsed.root ||
+                (typeof parsed === 'object' && Object.values(parsed).some(v => v && v.props && v.props.text))) {
+              console.log('Content is valid JSON with Craft.js structure');
+              return true;
+            }
+          } catch (parseError) {
+            // If parsing fails, it's not valid JSON
+            console.log('Content is not valid JSON:', parseError.message);
+          }
+        }
+        // Check if it's a quoted JSON string (starts with " and ends with ")
+        else if (content.startsWith('"') && content.endsWith('"')) {
+          console.log('Content appears to be a quoted string, checking if it contains JSON');
+
+          try {
+            // Try to parse the quoted string
+            const unquoted = JSON.parse(content);
+
+            // If the result is a string and looks like JSON
+            if (typeof unquoted === 'string') {
+              const unquotedTrimmed = unquoted.trim();
+              if (unquotedTrimmed.startsWith('{') && unquotedTrimmed.endsWith('}')) {
+                console.log('Unquoted content appears to be a JSON string');
+
+                // Check for Craft.js indicators
+                if (unquoted.includes('resolvedName') ||
+                    unquoted.includes('"ROOT"') ||
+                    unquoted.includes('"root"')) {
+                  console.log('Unquoted content appears to be Craft.js JSON');
+                  return true;
+                }
+
+                // Try to parse the unquoted content
+                try {
+                  const parsedUnquoted = JSON.parse(unquoted);
+                  if (parsedUnquoted.ROOT || parsedUnquoted.root ||
+                      (typeof parsedUnquoted === 'object' &&
+                       Object.values(parsedUnquoted).some(v => v && v.props && v.props.text))) {
+                    console.log('Unquoted content is valid JSON with Craft.js structure');
+                    return true;
+                  }
+                } catch (innerParseError) {
+                  console.log('Failed to parse unquoted content as JSON:', innerParseError.message);
+                }
+              }
+            }
+          } catch (unquoteError) {
+            console.log('Failed to unquote content:', unquoteError.message);
+          }
+        }
+
+        // Additional check for HTML content
+        if (content.includes('<html') || content.includes('<body') || content.includes('<head')) {
+          console.log('Content appears to be HTML');
+          return false;
         }
       }
 
@@ -352,8 +405,31 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           )}
         </div>
         <div className="h-full" style={{ height: 'calc(100% - 60px)' }}>
-          {/* Use CraftRenderer to display the content from the JSON */}
-          <CraftRenderer jsonContent={studyGuide.content} />
+          {/* Process the content before passing it to CraftRenderer */}
+          {(() => {
+            // Prepare the content for the CraftRenderer
+            let processedContent = studyGuide.content;
+
+            // If it's a string that might be double-stringified JSON, try to parse it once
+            if (typeof processedContent === 'string') {
+              try {
+                // Check if it's a quoted JSON string
+                if (processedContent.trim().startsWith('"') && processedContent.trim().endsWith('"')) {
+                  const unquoted = JSON.parse(processedContent);
+                  if (typeof unquoted === 'string' &&
+                      (unquoted.includes('"ROOT"') || unquoted.includes('"root"') ||
+                       unquoted.includes('resolvedName'))) {
+                    processedContent = unquoted;
+                  }
+                }
+              } catch (e) {
+                console.log('Failed to pre-process content:', e.message);
+                // Continue with original content if pre-processing fails
+              }
+            }
+
+            return <CraftRenderer jsonContent={processedContent} />;
+          })()}
 
           {/* Show debug info if debug mode is enabled */}
           {showDebug && (

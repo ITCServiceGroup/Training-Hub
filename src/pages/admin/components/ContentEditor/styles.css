@@ -819,3 +819,71 @@
 .table-outer-wrapper .craft-table .table-handle-br {
   position: absolute;
 }
+
+/* Responsive Container Styles */
+/* Add a class for horizontal containers */
+.craft-container-horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Media query for small screens - stack horizontal containers vertically */
+@media (max-width: 768px) {
+  /* Force horizontal containers to stack vertically */
+  .craft-container-horizontal {
+    flex-direction: column !important;
+  }
+
+  /* Target the re-resizable component directly */
+  .craft-container-horizontal > .react-resizable {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Target the direct children of the Resizer component */
+  .craft-container-horizontal > .react-resizable > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Target nested Resizer components */
+  .craft-container-horizontal .react-resizable .react-resizable {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Override flex properties for all children */
+  .craft-container-horizontal .react-resizable,
+  .craft-container-horizontal .react-resizable > div,
+  .craft-container-horizontal .craft-container {
+    flex: none !important;
+    flex-basis: auto !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Override any inline styles with extremely high specificity */
+  .craft-container-horizontal div[style*="width"],
+  .craft-container-horizontal div[style*="max-width"],
+  .craft-container-horizontal div[style*="flex-basis"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-basis: auto !important;
+  }
+
+  /* Target the specific DOM structure of nested containers */
+  .craft-container-horizontal > .react-resizable > div > .react-resizable,
+  .craft-container-horizontal > .react-resizable > div > div > .react-resizable {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Remove margin from the last child to avoid extra spacing */
+  .craft-container-horizontal > .react-resizable:last-child,
+  .craft-container-horizontal .react-resizable .react-resizable:last-child {
+    margin-bottom: 0 !important;
+  }
+}

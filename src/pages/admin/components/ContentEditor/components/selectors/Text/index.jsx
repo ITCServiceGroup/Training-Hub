@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import ContentEditable from 'react-contenteditable';
 
 import { TextSettings } from './TextSettings';
+import { ICONS, ICON_NAME_MAP } from '@/components/icons';
 
 // Add global CSS for proper list rendering
 const listStyles = `
@@ -103,6 +104,7 @@ const formatTextWithListType = (text, listType) => {
 
 export const Text = ({
   fontSize = '15',
+  lineHeight = 1.5,
   textAlign = 'left',
   fontWeight = '500',
   color = { r: 92, g: 90, b: 90, a: 1 },
@@ -120,6 +122,9 @@ export const Text = ({
   listType = 'none', // none, bullet, number
   inTable = false,
   onChange = null,
+  hasIcon = false,
+  iconName = 'edit', // Default icon from new icon set
+  iconColor = { r: 92, g: 90, b: 90, a: 1 },
 }) => {
   // Store the current text value in a ref to avoid re-renders
   const textValue = useRef(text || 'Click to edit');
@@ -222,38 +227,61 @@ export const Text = ({
     }
   };
 
+  // Get the icon component if one is selected
+  const IconComponent = hasIcon ? ICONS[iconName] : null;
+
   return (
-    <ContentEditable
-      innerRef={connect}
-      html={formattedHtml.current}
-      disabled={!enabled}
-      onClick={handleClick}
-      onChange={handleChange}
-      // These props are crucial for proper HTML rendering
-      className="craft-text-component"
-      tagName="div" // Use div for better table cell compatibility
-      style={{
-        width: '100%',
-        margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-        padding: padding.every(p => p === '0' || p === 0)
-          ? '4px 0' // Default padding if none is set
-          : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-        color: `rgba(${Object.values(color)})`,
-        textShadow: shadow.enabled
-          ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${Object.values(shadow.color)})`
-          : 'none',
-        fontSize: `${fontSize}px`,
-        fontWeight,
-        textAlign,
-        minHeight: '24px',
-        cursor: 'text',
-        whiteSpace: 'pre-wrap',
-        wordWrap: 'break-word',
-        overflowWrap: 'break-word',
-        // Add a subtle indicator for table cells to help with selection
-        outline: isInTableCell && selected ? '1px solid rgba(13, 148, 136, 0.5)' : 'none'
-      }}
-    />
+    <div className="flex items-center" style={{ width: '100%' }}>
+      {hasIcon && IconComponent && (
+        <div 
+          className="flex-shrink-0 flex items-center"
+          title={ICON_NAME_MAP[iconName] || "Icon"}
+          style={{
+            padding: `${Math.max(2, fontSize * 0.1)}px`,
+            marginRight: `${Math.max(6, fontSize * 0.5)}px`,
+          }}
+        >
+          <IconComponent
+            style={{
+              width: `${Math.max(12, fontSize * 0.8)}px`,
+              height: `${Math.max(12, fontSize * 0.8)}px`,
+              fill: `rgba(${Object.values(iconColor)})`
+            }}
+          />
+        </div>
+      )}
+      <ContentEditable
+        innerRef={connect}
+        html={formattedHtml.current}
+        disabled={!enabled}
+        onClick={handleClick}
+        onChange={handleChange}
+        className="craft-text-component"
+        tagName="div"
+        style={{
+          width: '100%',
+          margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
+          padding: padding.every(p => p === '0' || p === 0)
+            ? '4px 0' // Default padding if none is set
+            : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
+          color: `rgba(${Object.values(color)})`,
+          textShadow: shadow.enabled
+            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${Object.values(shadow.color)})`
+            : 'none',
+          fontSize: `${fontSize}px`,
+          fontWeight,
+          textAlign,
+          lineHeight: lineHeight,
+          minHeight: '24px',
+          cursor: 'text',
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          // Add a subtle indicator for table cells to help with selection
+          outline: isInTableCell && selected ? '1px solid rgba(13, 148, 136, 0.5)' : 'none'
+        }}
+      />
+    </div>
   );
 };
 
@@ -261,6 +289,7 @@ Text.craft = {
   displayName: 'Text',
   props: {
     fontSize: '15',
+    lineHeight: 1.5,
     textAlign: 'left',
     fontWeight: '500',
     color: { r: 92, g: 90, b: 90, a: 1 },
@@ -277,7 +306,10 @@ Text.craft = {
     text: 'Text',
     listType: 'none',
     inTable: false,
-    _lastUpdate: 0, // Add this to help with re-rendering
+    hasIcon: false,
+    iconName: 'edit',
+    iconColor: { r: 92, g: 90, b: 90, a: 1 },
+    _lastUpdate: 0,
   },
   related: {
     toolbar: TextSettings,

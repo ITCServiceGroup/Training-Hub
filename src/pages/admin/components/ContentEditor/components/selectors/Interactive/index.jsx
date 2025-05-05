@@ -3,11 +3,10 @@ import { useNode, useEditor } from '@craftjs/core';
 import { InteractiveSettings } from './InteractiveSettings';
 import InteractiveRenderer from './InteractiveRenderer';
 
-export const Interactive = ({ name, title, description }) => {
-  const { connectors: { connect, drag }, selected, actions, isActive } = useNode((node) => ({
+export const Interactive = ({ name, title, description, iconUrl }) => {
+  const { connectors: { connect, drag }, selected } = useNode((node) => ({
     selected: node.events.selected,
-    dragged: node.events.dragged,
-    isActive: node.events.selected
+    dragged: node.events.dragged
   }));
 
   const { enabled } = useEditor((state) => ({
@@ -56,7 +55,7 @@ export const Interactive = ({ name, title, description }) => {
         {elementData ? (
           <>
             <img
-              src={elementData.iconUrl}
+              src={elementData.iconUrl || iconUrl || elementData.thumbnailUrl}
               alt={elementData.title}
               className="w-16 h-16 mb-2 object-contain"
             />
@@ -89,7 +88,8 @@ Interactive.craft = {
   props: {
     name: '',
     title: 'Interactive Element',
-    description: 'Select an interactive element from the settings'
+    description: 'Select an interactive element from the settings',
+    iconUrl: ''
   },
   rules: {
     canDrag: () => true,

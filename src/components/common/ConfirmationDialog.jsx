@@ -40,13 +40,15 @@ const ConfirmationDialog = ({
             {description}
           </Dialog.Description>
           <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="py-2 px-4 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
-            >
-              {cancelButtonText}
-            </button>
+            {cancelButtonText && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-2 px-4 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+              >
+                {cancelButtonText}
+              </button>
+            )}
             <button
               type="button"
               onClick={onConfirm}

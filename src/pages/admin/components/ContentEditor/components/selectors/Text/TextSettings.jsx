@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { FaChevronDown, FaListUl, FaListOl, FaTimes } from 'react-icons/fa';
+import { ICONS, ICON_CATEGORIES } from '@/components/icons';
 
 export const TextSettings = () => {
   const { actions, selected } = useNode((node) => ({
@@ -14,6 +15,7 @@ export const TextSettings = () => {
 
   const {
     fontSize,
+    lineHeight,
     textAlign,
     fontWeight,
     text,
@@ -22,6 +24,9 @@ export const TextSettings = () => {
     margin,
     padding,
     listType,
+    hasIcon,
+    iconName,
+    iconColor,
   } = useNode((node) => {
     const props = node.data.props || {};
 
@@ -40,6 +45,7 @@ export const TextSettings = () => {
 
     return {
       fontSize: props.fontSize || 16,
+      lineHeight: props.lineHeight || 1.5,
       textAlign: props.textAlign || 'left',
       fontWeight: props.fontWeight || '500',
       text: props.text || 'Text',
@@ -55,11 +61,15 @@ export const TextSettings = () => {
       listType: props.listType || 'none',
       margin: props.margin || [0, 0, 0, 0],
       padding: props.padding || [0, 0, 0, 0],
+      hasIcon: props.hasIcon || false,
+      iconName: props.iconName || 'edit',
+      iconColor: props.iconColor || { r: 92, g: 90, b: 90, a: 1 },
     };
   });
 
   return (
     <div className="text-settings">
+
       {/* Text Structure Section */}
       <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">
         <div
@@ -89,22 +99,6 @@ export const TextSettings = () => {
                 rows={4}
                 style={{ resize: 'vertical', minHeight: '80px' }}
               />
-            </div>
-            <div className="mb-3">
-              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Font Size
-              </label>
-              <div className="flex items-center">
-                <input
-                  type="range"
-                  value={fontSize}
-                  min={10}
-                  max={80}
-                  onChange={(e) => actions.setProp((props) => { props.fontSize = parseInt(e.target.value); })}
-                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{fontSize}px</span>
-              </div>
             </div>
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -244,6 +238,41 @@ export const TextSettings = () => {
           <div className="space-y-3 px-1 py-3 bg-white dark:bg-slate-700 border-t border-gray-200 dark:border-slate-600">
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Font Size
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="range"
+                  value={fontSize}
+                  min={10}
+                  max={80}
+                  onChange={(e) => actions.setProp((props) => { props.fontSize = parseInt(e.target.value); })}
+                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{fontSize}px</span>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Line Height
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="range"
+                  value={lineHeight}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  onChange={(e) => actions.setProp((props) => { props.lineHeight = parseFloat(e.target.value); })}
+                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400 w-12">{lineHeight.toFixed(1)}</span>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                 Text Color
               </label>
               <div className="flex items-center">
@@ -276,6 +305,94 @@ export const TextSettings = () => {
                 />
               </div>
             </div>
+            <div className="mb-3">
+              <div className="flex items-start mb-2">
+                <input
+                  type="checkbox"
+                  id="enableIcon"
+                  checked={hasIcon}
+                  onChange={(e) => actions.setProp((props) => { props.hasIcon = e.target.checked; })}
+                  className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
+                />
+                <label
+                  htmlFor="enableIcon"
+                  className="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer leading-none pt-1"
+                >
+                  Show Icon
+                </label>
+              </div>
+
+              {hasIcon && (
+                <>
+                  <div className="mt-3 mb-3 pl-6">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Select Icon
+                    </label>
+                    <div className="max-h-48 overflow-y-auto p-1">
+                      {Object.entries(ICON_CATEGORIES).map(([category, icons]) => (
+                        <div key={category} className="mb-3">
+                          <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{category}</h3>
+                          <div className="grid grid-cols-3 gap-2">
+                            {Object.entries(icons).map(([value, label]) => {
+                              const Icon = ICONS[value];
+                              return (
+                                <button
+                                  key={value}
+                                  className={`px-2 py-1 text-xs rounded flex items-center justify-center ${
+                                    iconName === value
+                                      ? 'bg-teal-600 text-white'
+                                      : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
+                                  }`}
+                                  onClick={() => actions.setProp((props) => { props.iconName = value; })}
+                                  title={label}
+                                >
+                                  <Icon size={20} className="p-1" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mb-3 pl-6">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Icon Color
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="color"
+                        value={`#${Math.round(iconColor.r).toString(16).padStart(2, '0')}${Math.round(iconColor.g).toString(16).padStart(2, '0')}${Math.round(iconColor.b).toString(16).padStart(2, '0')}`}
+                        onChange={(e) => {
+                          const hex = e.target.value.substring(1);
+                          const r = parseInt(hex.substring(0, 2), 16);
+                          const g = parseInt(hex.substring(2, 4), 16);
+                          const b = parseInt(hex.substring(4, 6), 16);
+                          actions.setProp((props) => {
+                            props.iconColor = { ...props.iconColor, r, g, b };
+                          });
+                        }}
+                        className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
+                      />
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={iconColor.a}
+                        onChange={(e) => {
+                          actions.setProp((props) => {
+                            props.iconColor = { ...props.iconColor, a: parseFloat(e.target.value) };
+                          });
+                        }}
+                        className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             <div className="mb-3">
               <div className="flex items-start mb-2">
                 <input
@@ -501,28 +618,6 @@ export const TextSettings = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
-                  <input
-                    type="number"
-                    value={margin[1] === 0 ? '' : margin[1]}
-                    min={0}
-                    max={100}
-                    onChange={(e) => {
-                      const newMargin = [...margin];
-                      // If the field is empty, set it to 0
-                      newMargin[1] = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
-                      actions.setProp((props) => { props.margin = newMargin; });
-                    }}
-                    onFocus={(e) => {
-                      // Clear the field if it's 0 when focused
-                      if (e.target.value === '0' || e.target.value === 0) {
-                        e.target.value = '';
-                      }
-                    }}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
-                  />
-                </div>
-                <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Bottom</label>
                   <input
                     type="number"
@@ -566,6 +661,28 @@ export const TextSettings = () => {
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
+                  <input
+                    type="number"
+                    value={margin[1] === 0 ? '' : margin[1]}
+                    min={0}
+                    max={100}
+                    onChange={(e) => {
+                      const newMargin = [...margin];
+                      // If the field is empty, set it to 0
+                      newMargin[1] = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                      actions.setProp((props) => { props.margin = newMargin; });
+                    }}
+                    onFocus={(e) => {
+                      // Clear the field if it's 0 when focused
+                      if (e.target.value === '0' || e.target.value === 0) {
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
+                  />
+                </div>
               </div>
             </div>
 
@@ -586,28 +703,6 @@ export const TextSettings = () => {
                       const newPadding = [...padding];
                       // If the field is empty, set it to 0
                       newPadding[0] = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
-                      actions.setProp((props) => { props.padding = newPadding; });
-                    }}
-                    onFocus={(e) => {
-                      // Clear the field if it's 0 when focused
-                      if (e.target.value === '0' || e.target.value === 0) {
-                        e.target.value = '';
-                      }
-                    }}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
-                  <input
-                    type="number"
-                    value={padding[1] === 0 ? '' : padding[1]}
-                    min={0}
-                    max={100}
-                    onChange={(e) => {
-                      const newPadding = [...padding];
-                      // If the field is empty, set it to 0
-                      newPadding[1] = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
                       actions.setProp((props) => { props.padding = newPadding; });
                     }}
                     onFocus={(e) => {
@@ -652,6 +747,28 @@ export const TextSettings = () => {
                       const newPadding = [...padding];
                       // If the field is empty, set it to 0
                       newPadding[3] = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                      actions.setProp((props) => { props.padding = newPadding; });
+                    }}
+                    onFocus={(e) => {
+                      // Clear the field if it's 0 when focused
+                      if (e.target.value === '0' || e.target.value === 0) {
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
+                  <input
+                    type="number"
+                    value={padding[1] === 0 ? '' : padding[1]}
+                    min={0}
+                    max={100}
+                    onChange={(e) => {
+                      const newPadding = [...padding];
+                      // If the field is empty, set it to 0
+                      newPadding[1] = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
                       actions.setProp((props) => { props.padding = newPadding; });
                     }}
                     onFocus={(e) => {

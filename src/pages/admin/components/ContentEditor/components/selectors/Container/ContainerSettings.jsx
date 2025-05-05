@@ -522,28 +522,6 @@ export const ContainerSettings = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
-                  <input
-                    type="number"
-                    value={margin[1] === '' || margin[1] === '0' ? '' : parseInt(margin[1])}
-                    min={0}
-                    max={100}
-                    onChange={(e) => {
-                      const newMargin = [...margin];
-                      // If the field is empty, set it to 0
-                      newMargin[1] = e.target.value === '' ? '0' : String(parseInt(e.target.value) || 0);
-                      actions.setProp((props) => { props.margin = newMargin; });
-                    }}
-                    onFocus={(e) => {
-                      // Clear the field if it's 0 when focused
-                      if (e.target.value === '0' || e.target.value === 0) {
-                        e.target.value = '';
-                      }
-                    }}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
-                  />
-                </div>
-                <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Bottom</label>
                   <input
                     type="number"
@@ -587,6 +565,28 @@ export const ContainerSettings = () => {
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
+                  <input
+                    type="number"
+                    value={margin[1] === '' || margin[1] === '0' ? '' : parseInt(margin[1])}
+                    min={0}
+                    max={100}
+                    onChange={(e) => {
+                      const newMargin = [...margin];
+                      // If the field is empty, set it to 0
+                      newMargin[1] = e.target.value === '' ? '0' : String(parseInt(e.target.value) || 0);
+                      actions.setProp((props) => { props.margin = newMargin; });
+                    }}
+                    onFocus={(e) => {
+                      // Clear the field if it's 0 when focused
+                      if (e.target.value === '0' || e.target.value === 0) {
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
+                  />
+                </div>
               </div>
             </div>
 
@@ -607,28 +607,6 @@ export const ContainerSettings = () => {
                       const newPadding = [...padding];
                       // If the field is empty, set it to 0
                       newPadding[0] = e.target.value === '' ? '0' : String(parseInt(e.target.value) || 0);
-                      actions.setProp((props) => { props.padding = newPadding; });
-                    }}
-                    onFocus={(e) => {
-                      // Clear the field if it's 0 when focused
-                      if (e.target.value === '0' || e.target.value === 0) {
-                        e.target.value = '';
-                      }
-                    }}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
-                  <input
-                    type="number"
-                    value={padding[1] === '' || padding[1] === '0' ? '' : parseInt(padding[1])}
-                    min={0}
-                    max={100}
-                    onChange={(e) => {
-                      const newPadding = [...padding];
-                      // If the field is empty, set it to 0
-                      newPadding[1] = e.target.value === '' ? '0' : String(parseInt(e.target.value) || 0);
                       actions.setProp((props) => { props.padding = newPadding; });
                     }}
                     onFocus={(e) => {
@@ -673,6 +651,28 @@ export const ContainerSettings = () => {
                       const newPadding = [...padding];
                       // If the field is empty, set it to 0
                       newPadding[3] = e.target.value === '' ? '0' : String(parseInt(e.target.value) || 0);
+                      actions.setProp((props) => { props.padding = newPadding; });
+                    }}
+                    onFocus={(e) => {
+                      // Clear the field if it's 0 when focused
+                      if (e.target.value === '0' || e.target.value === 0) {
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">Right</label>
+                  <input
+                    type="number"
+                    value={padding[1] === '' || padding[1] === '0' ? '' : parseInt(padding[1])}
+                    min={0}
+                    max={100}
+                    onChange={(e) => {
+                      const newPadding = [...padding];
+                      // If the field is empty, set it to 0
+                      newPadding[1] = e.target.value === '' ? '0' : String(parseInt(e.target.value) || 0);
                       actions.setProp((props) => { props.padding = newPadding; });
                     }}
                     onFocus={(e) => {

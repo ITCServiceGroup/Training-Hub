@@ -58,6 +58,98 @@ const CraftRenderer = ({ jsonContent }) => {
     return [...new Set(elements)]; // Return unique elements
   };
 
+  // Helper function to filter out default placeholder text nodes
+  const filterDefaultPlaceholders = (content) => {
+    // If content is not an object, return it as is
+    if (!content || typeof content !== 'object') return content;
+
+    // Create a deep copy to avoid mutating the original
+    const filteredContent = JSON.parse(JSON.stringify(content));
+
+    // List of default placeholder texts
+    const defaultTexts = [
+      "Click to edit this text",
+      "Double-click to edit",
+      "Edit this text",
+      "Enter text here"
+    ];
+
+    // Function to check if a node is a default placeholder
+    const isDefaultPlaceholder = (node) => {
+      return node &&
+             node.type &&
+             node.type.resolvedName === 'Text' &&
+             node.props &&
+             node.props.text &&
+             defaultTexts.includes(node.props.text);
+    };
+
+    // Function to process nodes recursively and return a list of node IDs to remove
+    const findPlaceholdersToRemove = (nodeId, nodes, parentId = null) => {
+      const node = nodes[nodeId];
+      let nodesToRemove = [];
+
+      // If this is a default placeholder text node, add it to the removal list
+      if (isDefaultPlaceholder(node)) {
+        nodesToRemove.push({ id: nodeId, parentId });
+      }
+
+      // Process child nodes
+      if (node && node.nodes && Array.isArray(node.nodes)) {
+        node.nodes.forEach(childId => {
+          if (nodes[childId]) {
+            const childNodesToRemove = findPlaceholdersToRemove(childId, nodes, nodeId);
+            nodesToRemove = [...nodesToRemove, ...childNodesToRemove];
+          }
+        });
+      }
+
+      // Process linked nodes
+      if (node && node.linkedNodes) {
+        Object.entries(node.linkedNodes).forEach(([key, childId]) => {
+          if (nodes[childId]) {
+            const childNodesToRemove = findPlaceholdersToRemove(childId, nodes, nodeId);
+            nodesToRemove = [...nodesToRemove, ...childNodesToRemove];
+          }
+        });
+      }
+
+      return nodesToRemove;
+    };
+
+    // Start processing from ROOT if it exists
+    if (filteredContent.ROOT) {
+      const nodesToRemove = findPlaceholdersToRemove('ROOT', filteredContent);
+
+      // Remove the placeholder nodes from their parent's nodes array
+      nodesToRemove.forEach(({ id, parentId }) => {
+        if (parentId && filteredContent[parentId] && filteredContent[parentId].nodes) {
+          // Remove from parent's nodes array
+          filteredContent[parentId].nodes = filteredContent[parentId].nodes.filter(
+            nodeId => nodeId !== id
+          );
+
+          // Also remove from linkedNodes if present
+          if (filteredContent[parentId].linkedNodes) {
+            Object.entries(filteredContent[parentId].linkedNodes).forEach(([key, linkedId]) => {
+              if (linkedId === id) {
+                delete filteredContent[parentId].linkedNodes[key];
+              }
+            });
+          }
+        }
+
+        // We could delete the node itself, but keeping it for reference
+        // Just mark it as hidden to be safe
+        if (filteredContent[id]) {
+          filteredContent[id].hidden = true;
+        }
+      });
+    }
+
+    return filteredContent;
+  };
+
   // Parse the JSON content when the component mounts or jsonContent changes
   React.useEffect(() => {
     console.log('CraftRenderer: Received content type:', typeof jsonContent);
@@ -71,44 +163,99 @@ const CraftRenderer = ({ jsonContent }) => {
 
       if (typeof jsonContent === 'string') {
         console.log('CraftRenderer: Attempting to parse string content');
-        try {
-          // First try direct parsing
-          parsed = JSON.parse(jsonContent);
-          console.log('CraftRenderer: First parse successful, result type:', typeof parsed);
 
-          // Check if the parsed content is also a string (double-stringified)
-          if (typeof parsed === 'string') {
-            console.log('CraftRenderer: Parsed result is still a string, attempting second parse');
-            parsed = JSON.parse(parsed);
-            console.log('CraftRenderer: Second parse successful, result type:', typeof parsed);
+        // Check if the content is already a valid JSON string
+        if (jsonContent.trim().startsWith('{') && jsonContent.trim().endsWith('}')) {
+          try {
+            // First try direct parsing
+            parsed = JSON.parse(jsonContent);
+            console.log('CraftRenderer: First parse successful, result type:', typeof parsed);
+
+            // Check if the parsed content is also a string (double-stringified)
+            if (typeof parsed === 'string') {
+              console.log('CraftRenderer: Parsed result is still a string, attempting second parse');
+              try {
+                parsed = JSON.parse(parsed);
+                console.log('CraftRenderer: Second parse successful, result type:', typeof parsed);
+              } catch (secondParseError) {
+                console.log('CraftRenderer: Second parse failed, treating first parse result as content:', secondParseError.message);
+                // If second parse fails, use the result from the first parse
+                // This handles cases where the content is a valid JSON string but not a Craft.js structure
+              }
+            }
+          } catch (parseError) {
+            console.log('CraftRenderer: Initial parse failed:', parseError.message);
+            // If that fails, try removing outer quotes and parsing again
+            if (jsonContent.startsWith('"') && jsonContent.endsWith('"')) {
+              console.log('CraftRenderer: Content appears to be quoted, attempting to unquote');
+              try {
+                // Handle escaped quotes properly
+                const unescaped = jsonContent.slice(1, -1).replace(/\\"/g, '"');
+                parsed = JSON.parse(unescaped);
+                console.log('CraftRenderer: Unquoted parse successful');
+              } catch (unescapeError) {
+                console.log('CraftRenderer: Unquoted parse failed:', unescapeError.message);
+                throw unescapeError;
+              }
+            } else {
+              console.log('CraftRenderer: Content is not quoted, cannot parse');
+              throw parseError; // Re-throw if we can't handle it
+            }
           }
-        } catch (parseError) {
-          console.log('CraftRenderer: Initial parse failed:', parseError.message);
-          // If that fails, try removing outer quotes and parsing again
-          if (jsonContent.startsWith('"') && jsonContent.endsWith('"')) {
-            console.log('CraftRenderer: Content appears to be quoted, attempting to unquote');
-            const unescaped = jsonContent.slice(1, -1).replace(/\\\"/, '\"');
-            parsed = JSON.parse(unescaped);
-            console.log('CraftRenderer: Unquoted parse successful');
-          } else {
-            console.log('CraftRenderer: Content is not quoted, cannot parse');
-            throw parseError; // Re-throw if we can't handle it
+        } else if (jsonContent.startsWith('"') && jsonContent.endsWith('"')) {
+          // Handle case where the entire content is a quoted string
+          console.log('CraftRenderer: Content appears to be a quoted string, attempting to unquote');
+          try {
+            // Handle escaped quotes properly
+            const unescaped = jsonContent.slice(1, -1).replace(/\\"/g, '"');
+
+            // Check if the unescaped content is a JSON object
+            if (unescaped.trim().startsWith('{') && unescaped.trim().endsWith('}')) {
+              parsed = JSON.parse(unescaped);
+              console.log('CraftRenderer: Unquoted parse successful');
+            } else {
+              console.log('CraftRenderer: Unquoted content is not a JSON object');
+              throw new Error('Unquoted content is not a valid JSON object');
+            }
+          } catch (unescapeError) {
+            console.log('CraftRenderer: Unquoted parse failed:', unescapeError.message);
+            throw unescapeError;
           }
+        } else {
+          console.log('CraftRenderer: Content does not appear to be JSON');
+          throw new Error('Content is not in a recognized JSON format');
         }
-      } else {
+      } else if (typeof jsonContent === 'object' && jsonContent !== null) {
         // If it's already an object, use it directly
         console.log('CraftRenderer: Content is already an object, using directly');
         parsed = jsonContent;
+      } else {
+        console.log('CraftRenderer: Content is neither a string nor an object');
+        throw new Error('Content must be a JSON string or object');
+      }
+
+      // Validate that the parsed content has the expected Craft.js structure
+      if (!parsed || typeof parsed !== 'object' || (!parsed.ROOT && !parsed.root)) {
+        console.error('CraftRenderer: Parsed content does not have the expected Craft.js structure');
+        setError('Content does not have the expected structure. It may not be a valid Craft.js JSON.');
+        return;
       }
 
       console.log('CraftRenderer: Successfully parsed JSON content');
-      setParsedContent(parsed);
+
+      // Filter out default placeholder text nodes
+      const filteredContent = filterDefaultPlaceholders(parsed);
+      console.log('CraftRenderer: Filtered out default placeholder text nodes');
+
+      setParsedContent(filteredContent);
       setError(null);
 
       // Find interactive elements in the content
-      const elements = findInteractiveElements(parsed);
+      const elements = findInteractiveElements(filteredContent);
       setInteractiveElements(elements);
       console.log('CraftRenderer: Found interactive elements:', elements);
+
+      console.log('CraftRenderer: Successfully parsed JSON content');
     } catch (err) {
       console.error('CraftRenderer: Error parsing JSON content:', err);
       setError(`Error parsing JSON: ${err.message}`);
@@ -153,7 +300,28 @@ const CraftRenderer = ({ jsonContent }) => {
             TableText
           }}
           enabled={false} // Disable editing
-          onRender={({ render }) => render}
+          onRender={({ render, node }) => {
+            // First check if node exists and has the necessary properties
+            if (node && node.data && node.data.type &&
+                node.data.type.resolvedName === 'Container' &&
+                node.data.props && node.data.props.flexDirection === 'row') {
+              // Add a class to ensure horizontal containers are properly styled
+              const originalRender = render;
+              return (props) => {
+                const element = originalRender(props);
+                // Ensure the craft-container-horizontal class is applied
+                if (element && element.props && element.props.className) {
+                  if (!element.props.className.includes('craft-container-horizontal')) {
+                    const newClassName = `${element.props.className} craft-container-horizontal`;
+                    return React.cloneElement(element, { className: newClassName });
+                  }
+                }
+                return element;
+              };
+            }
+            // Just return the original render function if conditions aren't met
+            return render;
+          }}
         >
           {/* Use the data prop as recommended in the Craft.js documentation */}
           <Frame data={parsedContent}>

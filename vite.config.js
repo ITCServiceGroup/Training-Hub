@@ -18,7 +18,8 @@ export default defineConfig({
   // Ensure we're using the correct HTML template
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
+      '@': resolve(__dirname, 'src'),
+      '@public': resolve(__dirname, 'public')
     }
   }
 });

@@ -42,6 +42,8 @@ export const InteractiveSettings = () => {
       props.name = element.name;
       props.title = element.title;
       props.description = element.description;
+      // Also store the iconUrl to ensure it's available for the component
+      props.iconUrl = element.iconUrl || element.thumbnailUrl;
     });
   };
 
@@ -63,7 +65,7 @@ export const InteractiveSettings = () => {
           {props.name ? `${props.title} (${props.name})` : 'None selected'}
         </div>
       </div>
-      
+
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Available Interactive Elements
@@ -79,7 +81,7 @@ export const InteractiveSettings = () => {
                 onClick={() => handleElementSelect(element)}
               >
                 <img
-                  src={element.thumbnailUrl}
+                  src={element.iconUrl || element.thumbnailUrl}
                   alt={element.title}
                   className="w-10 h-10 mr-3 object-contain"
                 />

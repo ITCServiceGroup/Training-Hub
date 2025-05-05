@@ -4,6 +4,9 @@ import ContentEditor from './components/ContentEditor';
 import StudyGuideManagement from './components/StudyGuideManagement';
 import SectionManagement from './components/SectionManagement';
 import CategoryManagement from './components/CategoryManagement';
+import CategorySelectionModal from './components/CategorySelectionModal';
+import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import { studyGuidesService } from '../../services/api/studyGuides';
 import { sectionsService } from '../../services/api/sections';
 import { CategoryContext } from '../../components/layout/AdminLayout';
@@ -182,6 +185,21 @@ const StudyGuides = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // State for copy/move modals
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [guideToAction, setGuideToAction] = useState(null);
+
+  // State for confirmation dialogs
+  const [isCopyConfirmOpen, setIsCopyConfirmOpen] = useState(false);
+  const [isMoveConfirmOpen, setIsMoveConfirmOpen] = useState(false);
+  const [isCopySuccessOpen, setIsCopySuccessOpen] = useState(false);
+  const [isMoveSuccessOpen, setIsMoveSuccessOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [selectedTargetCategoryId, setSelectedTargetCategoryId] = useState(null);
+  const [selectedTargetCategoryName, setSelectedTargetCategoryName] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
   // State to hold the current editor content as JSON string
   const [currentEditorJson, setCurrentEditorJson] = useState(null);
 
@@ -195,7 +213,7 @@ const StudyGuides = () => {
       newJson = getInitialJson(selectedStudyGuide, isCreating);
       shouldUpdate = true;
     }
-    
+
     // Case 2: Clearing selection
     if (!selectedStudyGuide && !isCreating && currentEditorJson !== null) {
       shouldUpdate = true;
@@ -291,6 +309,12 @@ const StudyGuides = () => {
     // State update happens via useEffect watching isCreating
   };
 
+  // Function to open the delete confirmation dialog
+  const handleDeleteInitiate = () => {
+    setIsDeleteConfirmOpen(true);
+  };
+
+  // Function to handle the actual deletion after confirmation
   const handleDelete = async () => {
     if (!selectedStudyGuide) return;
     try {
@@ -321,11 +345,17 @@ const StudyGuides = () => {
 
       // Make API call
       await studyGuidesService.delete(selectedStudyGuide.id);
+
+      // Close the confirmation dialog
+      setIsDeleteConfirmOpen(false);
+
+      // Reset state
       setSelectedStudyGuide(null);
       setCurrentEditorJson(null); // Clear editor state
     } catch (error) {
       console.error('Error deleting study guide:', error);
       await loadStudyGuides(); // Revert on error
+      setIsDeleteConfirmOpen(false);
       throw error;
     }
   };
@@ -340,7 +370,7 @@ const StudyGuides = () => {
 
     try {
       const parsed = JSON.parse(newJson);
-      
+
       // Basic structure check
       if (!parsed || typeof parsed !== 'object') {
         return;
@@ -358,7 +388,7 @@ const StudyGuides = () => {
         }
         return prevJson;
       });
-      
+
     } catch (error) {
       console.error('Error processing editor content:', error);
     }
@@ -548,90 +578,353 @@ const StudyGuides = () => {
     }
   };
 
+  // Handle initiating copy of a study guide
+  const handleCopyInitiate = (guide) => {
+    setGuideToAction(guide);
+    setIsCopyModalOpen(true);
+  };
+
+  // Handle initiating move of a study guide
+  const handleMoveInitiate = (guide) => {
+    setGuideToAction(guide);
+    setIsMoveModalOpen(true);
+  };
+
+  // Handle selecting a category for copy
+  const handleCopySelect = (targetCategoryId) => {
+    // Find the category name for the confirmation dialog
+    let categoryName = "the selected category";
+    sectionsData.forEach(section => {
+      if (section.v2_categories) {
+        section.v2_categories.forEach(category => {
+          if (category.id === targetCategoryId) {
+            categoryName = category.name;
+          }
+        });
+      }
+    });
+
+    // Set state for confirmation dialog
+    setSelectedTargetCategoryId(targetCategoryId);
+    setSelectedTargetCategoryName(categoryName);
+    setIsCopyModalOpen(false);
+    setIsCopyConfirmOpen(true);
+  };
+
+  // Handle confirming the copy after confirmation dialog
+  const handleCopyConfirm = async () => {
+    if (!guideToAction || !selectedTargetCategoryId) return;
+
+    try {
+      setIsLoading(true);
+
+      // Call the API to copy the study guide
+      const copiedGuide = await studyGuidesService.copyStudyGuide(guideToAction.id, selectedTargetCategoryId);
+
+      // If copying to the current category, update the local state
+      if (selectedTargetCategoryId === selectedCategory?.id) {
+        setStudyGuides(prev => [...prev, copiedGuide].sort((a, b) => a.display_order - b.display_order));
+
+        // Update context
+        const newSectionsData = sectionsData.map(section => {
+          if (section.v2_categories) {
+            return {
+              ...section,
+              v2_categories: section.v2_categories.map(category => {
+                if (category.id === selectedTargetCategoryId) {
+                  return {
+                    ...category,
+                    study_guides: [...(category.study_guides || []), copiedGuide]
+                      .sort((a, b) => a.display_order - b.display_order)
+                  };
+                }
+                return category;
+              })
+            };
+          }
+          return section;
+        });
+        optimisticallyUpdateSectionsOrder(newSectionsData);
+      }
+
+      // Set success message
+      setSuccessMessage(`Study guide "${guideToAction.title}" has been successfully copied to ${selectedTargetCategoryName}.`);
+
+      // Close confirmation dialog and open success dialog
+      setIsCopyConfirmOpen(false);
+      setIsCopySuccessOpen(true);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error copying study guide:', error);
+      setIsLoading(false);
+      setIsCopyConfirmOpen(false);
+    }
+  };
+
+  // Handle closing the copy success dialog
+  const handleCopySuccessClose = () => {
+    setIsCopySuccessOpen(false);
+    setGuideToAction(null);
+    setSelectedTargetCategoryId(null);
+    setSelectedTargetCategoryName('');
+  };
+
+  // Handle selecting a category for move
+  const handleMoveSelect = (targetCategoryId) => {
+    // Find the category name for the confirmation dialog
+    let categoryName = "the selected category";
+    sectionsData.forEach(section => {
+      if (section.v2_categories) {
+        section.v2_categories.forEach(category => {
+          if (category.id === targetCategoryId) {
+            categoryName = category.name;
+          }
+        });
+      }
+    });
+
+    // Set state for confirmation dialog
+    setSelectedTargetCategoryId(targetCategoryId);
+    setSelectedTargetCategoryName(categoryName);
+    setIsMoveModalOpen(false);
+    setIsMoveConfirmOpen(true);
+  };
+
+  // Handle confirming the move after confirmation dialog
+  const handleMoveConfirm = async () => {
+    if (!guideToAction || !selectedCategory || !selectedTargetCategoryId) return;
+
+    try {
+      setIsLoading(true);
+
+      // Call the API to move the study guide
+      const movedGuide = await studyGuidesService.moveStudyGuide(guideToAction.id, selectedTargetCategoryId);
+
+      // Remove the guide from the current category
+      setStudyGuides(prev => prev.filter(guide => guide.id !== guideToAction.id));
+
+      // Update context
+      const newSectionsData = sectionsData.map(section => {
+        if (section.v2_categories) {
+          return {
+            ...section,
+            v2_categories: section.v2_categories.map(category => {
+              if (category.id === selectedCategory.id) {
+                // Remove from current category
+                return {
+                  ...category,
+                  study_guides: (category.study_guides || []).filter(guide => guide.id !== guideToAction.id)
+                };
+              } else if (category.id === selectedTargetCategoryId) {
+                // Add to target category
+                const existingGuides = category.study_guides || [];
+                return {
+                  ...category,
+                  study_guides: [...existingGuides, movedGuide]
+                    .sort((a, b) => a.display_order - b.display_order)
+                };
+              }
+              return category;
+            })
+          };
+        }
+        return section;
+      });
+      optimisticallyUpdateSectionsOrder(newSectionsData);
+
+      // Set success message
+      setSuccessMessage(`Study guide "${guideToAction.title}" has been successfully moved to ${selectedTargetCategoryName}.`);
+
+      // Close confirmation dialog and open success dialog
+      setIsMoveConfirmOpen(false);
+      setIsMoveSuccessOpen(true);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error moving study guide:', error);
+      setIsLoading(false);
+      setIsMoveConfirmOpen(false);
+    }
+  };
+
+  // Handle closing the move success dialog
+  const handleMoveSuccessClose = () => {
+    setIsMoveSuccessOpen(false);
+    setGuideToAction(null);
+    setSelectedTargetCategoryId(null);
+    setSelectedTargetCategoryName('');
+  };
+
   // Using Tailwind classes instead of inline styles
 
   const renderContent = () => {
     if (selectedStudyGuide || isCreating) {
       // Pass the state and callback to ContentEditor
       return (
-        <ContentEditor
-          key={`editor-${selectedStudyGuide?.id || 'new'}`} // Only remount when switching guides or modes
-          initialTitle={selectedStudyGuide?.title || ''}
-          editorJson={currentEditorJson} // Pass current JSON state
-          onJsonChange={handleJsonChange} // Pass callback to update state
-          onSave={handleSave} // Pass modified handleSave
-          onCancel={() => {
-            setIsCreating(false);
-            setSelectedStudyGuide(null);
-            setCurrentEditorJson(null); // Clear editor state on cancel
-          }}
-          isNew={isCreating}
-          onDelete={handleDelete}
-          selectedStudyGuide={selectedStudyGuide} // Keep for context if needed
-        />
+        <>
+          <ContentEditor
+            key={`editor-${selectedStudyGuide?.id || 'new'}`} // Only remount when switching guides or modes
+            initialTitle={selectedStudyGuide?.title || ''}
+            editorJson={currentEditorJson} // Pass current JSON state
+            onJsonChange={handleJsonChange} // Pass callback to update state
+            onSave={handleSave} // Pass modified handleSave
+            onCancel={() => {
+              // Clear localStorage draft for 'new' study guide
+              const key = `content_editor_new_draft`;
+              localStorage.removeItem(key);
+
+              // Reset canceling flag
+              window.isCancelingContentEditor = false;
+
+              // Reset state
+              setIsCreating(false);
+              setSelectedStudyGuide(null);
+              setCurrentEditorJson(null); // Clear editor state on cancel
+            }}
+            isNew={isCreating}
+            onDelete={handleDeleteInitiate}
+            selectedStudyGuide={selectedStudyGuide} // Keep for context if needed
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <DeleteConfirmationDialog
+            isOpen={isDeleteConfirmOpen}
+            onClose={() => setIsDeleteConfirmOpen(false)}
+            onConfirm={handleDelete}
+            title="Delete Study Guide"
+            description={`Are you sure you want to delete "${selectedStudyGuide?.title}"? This action cannot be undone and all associated data will be permanently lost.`}
+          />
+        </>
       );
     }
 
     if (selectedCategory) {
       return (
-        <StudyGuideManagement
-          section={selectedSection}
-          category={selectedCategory}
-          studyGuides={studyGuides}
-          onSelect={handleStudyGuideSelect}
-          selectedId={selectedStudyGuide?.id}
-          onCreateNew={handleCreateNew}
-          isLoading={isLoading}
-          error={error}
-          onBackToCategories={handleBackToCategories}
-          onReorder={async (updates) => {
-            try {
-              if (!selectedCategory) return;
+        <>
+          <StudyGuideManagement
+            section={selectedSection}
+            category={selectedCategory}
+            studyGuides={studyGuides}
+            onSelect={handleStudyGuideSelect}
+            selectedId={selectedStudyGuide?.id}
+            onCreateNew={handleCreateNew}
+            isLoading={isLoading}
+            error={error}
+            onBackToCategories={handleBackToCategories}
+            onCopy={handleCopyInitiate}
+            onMove={handleMoveInitiate}
+            onReorder={async (updates) => {
+              try {
+                if (!selectedCategory) return;
 
-              // Optimistically update local state
-              const updatedGuides = [...studyGuides];
-              updates.forEach(update => {
-                const guide = updatedGuides.find(g => g.id === update.id);
-                if (guide) {
-                  guide.display_order = update.display_order;
-                }
-              });
-              updatedGuides.sort((a, b) => a.display_order - b.display_order);
-              setStudyGuides(updatedGuides);
+                // Optimistically update local state
+                const updatedGuides = [...studyGuides];
+                updates.forEach(update => {
+                  const guide = updatedGuides.find(g => g.id === update.id);
+                  if (guide) {
+                    guide.display_order = update.display_order;
+                  }
+                });
+                updatedGuides.sort((a, b) => a.display_order - b.display_order);
+                setStudyGuides(updatedGuides);
 
-              // Update context
-              const newSectionsData = sectionsData.map(section => {
-                if (section.v2_categories) {
-                  return {
-                    ...section,
-                    v2_categories: section.v2_categories.map(category => {
-                      if (category.id === selectedCategory.id) {
-                        return {
-                          ...category,
-                          study_guides: updatedGuides
-                        };
-                      }
-                      return category;
-                    })
-                  };
-                }
-                return section;
-              });
-              optimisticallyUpdateSectionsOrder(newSectionsData);
+                // Update context
+                const newSectionsData = sectionsData.map(section => {
+                  if (section.v2_categories) {
+                    return {
+                      ...section,
+                      v2_categories: section.v2_categories.map(category => {
+                        if (category.id === selectedCategory.id) {
+                          return {
+                            ...category,
+                            study_guides: updatedGuides
+                          };
+                        }
+                        return category;
+                      })
+                    };
+                  }
+                  return section;
+                });
+                optimisticallyUpdateSectionsOrder(newSectionsData);
 
-              // Make API call
-              const updatesWithCategory = updates.map(update => ({
-                ...update,
-                category_id: selectedCategory.id
-              }));
-              await studyGuidesService.updateOrder(updatesWithCategory);
-            } catch (err) {
-              console.error('Error updating order:', err);
-              await loadStudyGuides(); // Revert on error
-              alert('Failed to update order');
-            }
-          }}
-        />
+                // Make API call
+                const updatesWithCategory = updates.map(update => ({
+                  ...update,
+                  category_id: selectedCategory.id
+                }));
+                await studyGuidesService.updateOrder(updatesWithCategory);
+              } catch (err) {
+                console.error('Error updating order:', err);
+                await loadStudyGuides(); // Revert on error
+                alert('Failed to update order');
+              }
+            }}
+          />
+
+          {/* Copy Modal */}
+          <CategorySelectionModal
+            isOpen={isCopyModalOpen}
+            onClose={() => setIsCopyModalOpen(false)}
+            onSelect={handleCopySelect}
+            title="Select Destination Category"
+            actionButtonText="Select"
+            currentCategoryId={selectedCategory?.id}
+          />
+
+          {/* Move Modal */}
+          <CategorySelectionModal
+            isOpen={isMoveModalOpen}
+            onClose={() => setIsMoveModalOpen(false)}
+            onSelect={handleMoveSelect}
+            title="Select Destination Category"
+            actionButtonText="Select"
+            currentCategoryId={selectedCategory?.id}
+          />
+
+          {/* Copy Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={isCopyConfirmOpen}
+            onClose={() => setIsCopyConfirmOpen(false)}
+            onConfirm={handleCopyConfirm}
+            title="Copy Study Guide"
+            description={`Are you sure you want to copy "${guideToAction?.title}" to ${selectedTargetCategoryName}?`}
+            confirmButtonText="Copy"
+            confirmButtonVariant="primary"
+          />
+
+          {/* Move Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={isMoveConfirmOpen}
+            onClose={() => setIsMoveConfirmOpen(false)}
+            onConfirm={handleMoveConfirm}
+            title="Move Study Guide"
+            description={`Are you sure you want to move "${guideToAction?.title}" to ${selectedTargetCategoryName}?`}
+            confirmButtonText="Move"
+            confirmButtonVariant="primary"
+          />
+
+          {/* Copy Success Dialog */}
+          <ConfirmationDialog
+            isOpen={isCopySuccessOpen}
+            onClose={handleCopySuccessClose}
+            onConfirm={handleCopySuccessClose}
+            title="Success"
+            description={successMessage}
+            confirmButtonText="OK"
+            confirmButtonVariant="primary"
+          />
+
+          {/* Move Success Dialog */}
+          <ConfirmationDialog
+            isOpen={isMoveSuccessOpen}
+            onClose={handleMoveSuccessClose}
+            onConfirm={handleMoveSuccessClose}
+            title="Success"
+            description={successMessage}
+            confirmButtonText="OK"
+            confirmButtonVariant="primary"
+          />
+        </>
       );
     }
 

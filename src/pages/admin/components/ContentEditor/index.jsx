@@ -66,8 +66,13 @@ const saveDraft = (studyGuideId, { title, content }) => {
   localStorage.setItem(key, JSON.stringify(draft));
 };
 
-const loadDraft = (studyGuideId) => {
+const loadDraft = (studyGuideId, isNew = false) => {
   try {
+    // If this is a new study guide, don't load drafts
+    if (studyGuideId === 'new' && isNew) {
+      return null;
+    }
+
     const key = getStorageKey(studyGuideId);
     const draft = localStorage.getItem(key);
     return draft ? JSON.parse(draft) : null;
@@ -132,8 +137,8 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     const studyGuideId = selectedStudyGuide?.id || 'new';
     let contentLoaded = false;
 
-    // Load draft content first
-    const draft = loadDraft(studyGuideId);
+    // Load draft content first, passing isNew flag to prevent loading drafts for new study guides
+    const draft = loadDraft(studyGuideId, isNew);
     if (draft && draft.content !== editorJson) {
       // Only set the title from draft if it's not empty and initialTitle is empty
       if (draft.title && draft.title.trim() !== '' && (!initialTitle || initialTitle.trim() === '')) {
@@ -225,7 +230,11 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Reset the canceling flag when component unmounts
+      window.isCancelingContentEditor = false;
+    };
   }, [hasUnsavedChanges]);
 
   // Create a ref to store the previous editorJson value
@@ -310,23 +319,30 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 
   const handleCancelClick = () => {
     const studyGuideId = selectedStudyGuide?.id || 'new';
+
+    // Set a flag to indicate we're in the process of canceling
+    window.isCancelingContentEditor = true;
+
     if (hasUnsavedChanges) {
       if (window.confirm('You have unsaved changes. Are you sure you want to cancel?')) {
         clearDraft(studyGuideId);
         onCancel();
+      } else {
+        // If user cancels the confirmation, reset the flag
+        window.isCancelingContentEditor = false;
       }
     } else {
+      // Always clear draft when canceling, even if there are no unsaved changes
+      clearDraft(studyGuideId);
       onCancel();
     }
   };
 
   const handleDeleteClick = () => {
-    if (window.confirm('Are you sure you want to delete this content? This action cannot be undone.')) {
-      const studyGuideId = selectedStudyGuide?.id || 'new';
-      clearDraft(studyGuideId);
-      clearSelectedNode(studyGuideId); // Clear selection when content is deleted
-      onDelete(); // Call the onDelete prop passed down
-    }
+    const studyGuideId = selectedStudyGuide?.id || 'new';
+    clearDraft(studyGuideId);
+    clearSelectedNode(studyGuideId); // Clear selection when content is deleted
+    onDelete(); // Call the onDelete prop passed down (which now opens the custom confirmation dialog)
   };
 
   // Render the actual editor UI
@@ -472,10 +488,18 @@ const ContentEditor = ({
                 if (latestJson !== editorJson) {
                   // Save draft to localStorage
                   const studyGuideId = selectedStudyGuide?.id || 'new';
-                  saveDraft(studyGuideId, {
-                    title: document.getElementById('title')?.value || '',
-                    content: latestJson
-                  });
+
+                  // Check if we're in the process of canceling
+                  const isCanceling = window.isCancelingContentEditor;
+
+                  // Only save draft if we're not canceling
+                  if (!isCanceling) {
+                    saveDraft(studyGuideId, {
+                      title: document.getElementById('title')?.value || '',
+                      content: latestJson
+                    });
+                  }
+
                   onJsonChange(latestJson);
                 }
               }, 1000);

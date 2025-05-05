@@ -21,9 +21,15 @@ export const Header = () => {
   };
 
   const copyJSON = () => {
-    const json = query.serialize();
-    navigator.clipboard.writeText(JSON.stringify(json, null, 2));
-    alert('JSON copied to clipboard!');
+    try {
+      const json = query.serialize();
+      const parsedJson = JSON.parse(json);
+      navigator.clipboard.writeText(JSON.stringify(parsedJson, null, 2));
+      alert('JSON copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying JSON:', error);
+      alert('Error copying JSON. See console for details.');
+    }
   };
 
   const toggleJSON = () => {
@@ -90,11 +96,20 @@ export const Header = () => {
       </div>
 
       {showJSON && (
-        <div className="absolute top-12 right-0 w-96 h-96 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg rounded-bl-md overflow-auto z-50">
-          <div className="p-4">
+        <div className="absolute top-12 right-0 w-96 h-96 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg rounded-bl-md overflow-hidden z-50 flex flex-col">
+          <div className="p-4 flex flex-col h-full">
             <h4 className="text-sm font-medium text-gray-700 dark:text-white mb-2">JSON Output</h4>
-            <pre className="text-xs bg-gray-100 dark:bg-slate-900 p-2 rounded overflow-auto max-h-80">
-              {JSON.stringify(query.serialize(), null, 2)}
+            <pre className="text-xs bg-gray-100 dark:bg-slate-900 p-4 rounded overflow-auto flex-grow whitespace-pre-wrap">
+              {(() => {
+                try {
+                  const serialized = query.serialize();
+                  const parsed = JSON.parse(serialized);
+                  return JSON.stringify(parsed, null, 2);
+                } catch (error) {
+                  console.error('Error formatting JSON:', error);
+                  return 'Error formatting JSON. See console for details.';
+                }
+              })()}
             </pre>
           </div>
         </div>

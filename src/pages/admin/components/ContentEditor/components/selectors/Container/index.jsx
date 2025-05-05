@@ -228,7 +228,7 @@ export const Container = (props) => {
       >
         <div
           data-can-drop={isContainer && isDragged ? 'true' : undefined}
-          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''}`}
+          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''} ${flexDirection === 'row' ? 'craft-container-horizontal' : ''}`}
           style={{
             display: 'flex',
             justifyContent,
@@ -273,7 +273,11 @@ export const Container = (props) => {
               childStyle.alignSelf = alignItems; // Explicitly align child based on parent
             }
 
-            return React.cloneElement(child, { style: childStyle });
+            // We don't need to add a class to children anymore
+            // The CSS will target children of .craft-container-horizontal directly
+            return React.cloneElement(child, {
+              style: childStyle
+            });
           })}
         </div>
       </Resizer>

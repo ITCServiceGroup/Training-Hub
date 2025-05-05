@@ -179,6 +179,110 @@ class StudyGuidesService extends BaseService {
       return 0;
     }
   }
+
+  /**
+   * Copy a study guide to the same or different category
+   * @param {string} id - Study guide ID to copy
+   * @param {string} targetCategoryId - Target category ID
+   * @returns {Promise<Object>} - Newly created study guide
+   */
+  async copyStudyGuide(id, targetCategoryId) {
+    try {
+      // First get the study guide to copy
+      const { data: studyGuide, error: fetchError } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      // Get the highest display order in the target category
+      const { data: categoryGuides, error: orderError } = await supabase
+        .from(this.tableName)
+        .select('display_order')
+        .eq('category_id', targetCategoryId)
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      if (orderError) {
+        throw orderError;
+      }
+
+      const highestOrder = categoryGuides.length > 0 ? categoryGuides[0].display_order : -1;
+      const newDisplayOrder = highestOrder + 1;
+
+      // Create a new study guide with copied content
+      const newStudyGuide = {
+        title: `${studyGuide.title} (Copy)`,
+        content: studyGuide.content,
+        category_id: targetCategoryId,
+        display_order: newDisplayOrder
+      };
+
+      const { data: createdGuide, error: createError } = await supabase
+        .from(this.tableName)
+        .insert([newStudyGuide])
+        .select()
+        .single();
+
+      if (createError) {
+        throw createError;
+      }
+
+      return createdGuide;
+    } catch (error) {
+      console.error('Error copying study guide:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Move a study guide to a different category
+   * @param {string} id - Study guide ID to move
+   * @param {string} targetCategoryId - Target category ID
+   * @returns {Promise<Object>} - Updated study guide
+   */
+  async moveStudyGuide(id, targetCategoryId) {
+    try {
+      // Get the highest display order in the target category
+      const { data: categoryGuides, error: orderError } = await supabase
+        .from(this.tableName)
+        .select('display_order')
+        .eq('category_id', targetCategoryId)
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      if (orderError) {
+        throw orderError;
+      }
+
+      const highestOrder = categoryGuides.length > 0 ? categoryGuides[0].display_order : -1;
+      const newDisplayOrder = highestOrder + 1;
+
+      // Update the study guide with the new category and display order
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update({
+          category_id: targetCategoryId,
+          display_order: newDisplayOrder
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error moving study guide:', error.message);
+      throw error;
+    }
+  }
 }
 
 export const studyGuidesService = new StudyGuidesService();

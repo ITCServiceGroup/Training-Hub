@@ -1,10 +1,9 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
 import React, { useState, useEffect } from 'react';
-import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaMousePointer, FaPuzzlePiece, FaTable } from 'react-icons/fa';
+import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaPuzzlePiece, FaTable } from 'react-icons/fa';
 
 import { Container } from '../../selectors/Container';
 import { Text } from '../../selectors/Text';
-import { Button } from '../../selectors/Button';
 import { Image } from '../../selectors/Image';
 import { Card } from '../../selectors/Card';
 import { Interactive } from '../../selectors/Interactive';
@@ -73,18 +72,6 @@ export const Toolbox = () => {
         >
           <div className="toolbox-item" title="Text">
             <FaFont size={24} />
-          </div>
-        </div>
-        <div
-          ref={(ref) => {
-            create(
-              ref,
-              <CraftElement is={Button} text="Click Me" />
-            );
-          }}
-        >
-          <div className="toolbox-item" title="Button">
-            <FaMousePointer size={24} />
           </div>
         </div>
         <div

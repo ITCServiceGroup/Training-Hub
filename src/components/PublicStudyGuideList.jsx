@@ -2,13 +2,251 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
-// Helper function to extract a preview from HTML content (Copied from admin StudyGuideList)
-const extractPreview = (htmlContent, maxLength = 150) => {
-  if (!htmlContent) return '';
+// Helper function to extract a preview from HTML or JSON content
+const extractPreview = (content, maxLength = 150) => {
+  if (!content) return '';
+
+  // Check if content is JSON (Craft.js format)
+  const isJsonContent = (() => {
+    try {
+      // Check if it's a string that looks like JSON
+      if (typeof content === 'string') {
+        const trimmed = content.trim();
+
+        // Check for JSON object format
+        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+            (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+
+          // Look for Craft.js indicators
+          if (trimmed.includes('resolvedName') ||
+              trimmed.includes('"ROOT"') ||
+              trimmed.includes('"root"') ||
+              trimmed.includes('\\"ROOT\\"') ||
+              trimmed.includes('\\"root\\"') ||
+              trimmed.includes('\\"resolvedName\\"')) {
+            return true;
+          }
+
+          // Look for text properties which indicate content
+          if (trimmed.includes('"text"') || trimmed.includes('\\"text\\"')) {
+            return true;
+          }
+
+          // Try parsing it
+          try {
+            let parsed = JSON.parse(trimmed);
+
+            // Handle double-stringified JSON
+            if (typeof parsed === 'string') {
+              try {
+                parsed = JSON.parse(parsed);
+              } catch (innerError) {
+                // If we can't parse it as JSON, but it has text indicators, still treat as JSON
+                if (parsed.includes('"text"') || parsed.includes('\\"text\\"')) {
+                  return true;
+                }
+              }
+            }
+
+            // Check for Craft.js structure
+            if (parsed.ROOT || parsed.root ||
+                (typeof parsed === 'object' &&
+                 Object.values(parsed).some(v => v && v.props && v.props.text))) {
+              return true;
+            }
+          } catch (e) {
+            // Not valid JSON or not Craft.js format
+            // But if it has text indicators, still treat as JSON for extraction
+            if (trimmed.includes('"text"') || trimmed.includes('\\"text\\"')) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  // If it's JSON content, extract text from it
+  if (isJsonContent) {
+    try {
+      // Try to parse the JSON content
+      let parsed;
+      if (typeof content === 'string') {
+        try {
+          parsed = JSON.parse(content);
+          // Handle double-stringified JSON
+          if (typeof parsed === 'string') {
+            parsed = JSON.parse(parsed);
+          }
+        } catch (e) {
+          // If parsing fails, try to extract text directly
+          return "Interactive content created with Content Editor";
+        }
+      } else {
+        parsed = content;
+      }
+
+      // Extract text from Text components in the correct visual order
+      let textContent = [];
+
+      // Helper function to check if text is a default placeholder
+      const isDefaultText = (text) => {
+        const defaultTexts = [
+          "Click to edit this text",
+          "Double-click to edit",
+          "Edit this text",
+          "Enter text here"
+        ];
+        return defaultTexts.includes(text);
+      };
+
+      // Function to extract text following the visual hierarchy
+      const extractTextInVisualOrder = (rootNode, allNodes) => {
+        if (!rootNode || !allNodes) return;
+
+        // Skip processing if this is a hidden node
+        if (rootNode.hidden === true) return;
+
+        // If this is a Text component, add its text to our collection
+        if (rootNode.type && rootNode.type.resolvedName === 'Text' &&
+            rootNode.props && rootNode.props.text &&
+            typeof rootNode.props.text === 'string') {
+
+          // Skip default placeholder text
+          if (!isDefaultText(rootNode.props.text)) {
+            textContent.push(rootNode.props.text);
+          }
+        }
+
+        // Process child nodes in the order they appear in the nodes array
+        if (rootNode.nodes && Array.isArray(rootNode.nodes)) {
+          rootNode.nodes.forEach(nodeId => {
+            if (allNodes[nodeId]) {
+              extractTextInVisualOrder(allNodes[nodeId], allNodes);
+            }
+          });
+        }
+
+        // Process linked nodes
+        if (rootNode.linkedNodes) {
+          Object.values(rootNode.linkedNodes).forEach(nodeId => {
+            if (allNodes[nodeId]) {
+              extractTextInVisualOrder(allNodes[nodeId], allNodes);
+            }
+          });
+        }
+      };
+
+      // Recursive function for backward compatibility and to catch any nodes
+      // that might not be in the visual hierarchy
+      const extractTextFromNodes = (nodes) => {
+        if (!nodes) return;
+
+        Object.values(nodes).forEach(node => {
+          // Skip processing if this is a hidden node
+          if (node.hidden === true) return;
+
+          // Check for Text components
+          if (node.type && node.type.resolvedName === 'Text' &&
+              node.props && node.props.text &&
+              typeof node.props.text === 'string') {
+
+            // Skip default placeholder text
+            if (!isDefaultText(node.props.text)) {
+              // Only add if not already in the array
+              if (!textContent.includes(node.props.text)) {
+                textContent.push(node.props.text);
+              }
+            }
+          }
+
+          // Check for nodes property (for nested components)
+          if (node.nodes) {
+            extractTextFromNodes(node.nodes);
+          }
+
+          // Check for linkedNodes property
+          if (node.linkedNodes) {
+            extractTextFromNodes(node.linkedNodes);
+          }
+        });
+      };
+
+      // First try to extract text in visual order
+      if (parsed.ROOT) {
+        // Extract text following the visual hierarchy
+        extractTextInVisualOrder(parsed.ROOT, parsed);
+      }
+
+      // If we didn't get any text, fall back to the old method
+      if (textContent.length === 0) {
+        // Check different possible structures
+        if (parsed.nodes) {
+          extractTextFromNodes(parsed.nodes);
+        } else if (parsed.ROOT && parsed.ROOT.nodes) {
+          extractTextFromNodes(parsed.ROOT.nodes);
+        } else if (parsed.ROOT) {
+          // Try to extract from ROOT directly
+          extractTextFromNodes({ ROOT: parsed.ROOT });
+        } else {
+          // Try to extract from the entire object
+          extractTextFromNodes(parsed);
+        }
+      }
+
+      // If we found text content, use it
+      if (textContent.length > 0) {
+        const preview = textContent.join(' ').replace(/\s+/g, ' ').trim();
+        return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
+      }
+
+      // Try to extract any text from the JSON string as a last resort
+      if (typeof content === 'string') {
+        // Look for text patterns in the JSON string
+        const textMatches = content.match(/"text":"([^"]+)"/g);
+        if (textMatches && textMatches.length > 0) {
+          const extractedTexts = textMatches.map(match => {
+            return match.replace(/"text":"/, '').replace(/"$/, '');
+          });
+
+          if (extractedTexts.length > 0) {
+            const preview = extractedTexts.join(' ').replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
+            return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
+          }
+        }
+
+        // Try to handle double-escaped JSON strings
+        if (content.includes('\\"text\\"')) {
+          const doubleEscapedMatches = content.match(/\\"text\\":\\"([^\\]+)\\"/g);
+          if (doubleEscapedMatches && doubleEscapedMatches.length > 0) {
+            const extractedTexts = doubleEscapedMatches.map(match => {
+              return match.replace(/\\"text\\":\\"/, '').replace(/\\"$/, '');
+            });
+
+            if (extractedTexts.length > 0) {
+              const preview = extractedTexts.join(' ').replace(/\\\\/g, '\\').replace(/\s+/g, ' ').trim();
+              return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
+            }
+          }
+        }
+      }
+
+      // Default message if no text found
+      return "Interactive content created with Content Editor";
+    } catch (error) {
+      console.error("Error extracting preview from JSON:", error);
+      return "Interactive content created with Content Editor";
+    }
+  }
+
+  // For HTML content, use the DOMParser approach
   try {
     // Use DOMParser for safer parsing in modern browsers
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const doc = parser.parseFromString(content, 'text/html');
 
     // Remove unwanted tags
     const unwantedTags = doc.querySelectorAll('style, script, meta, link, head');
@@ -34,7 +272,7 @@ const extractPreview = (htmlContent, maxLength = 150) => {
   } catch (error) {
     console.error("Error extracting preview:", error);
     // Basic fallback if DOM parsing fails
-    const textContent = htmlContent
+    const textContent = content
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<[^>]*>/g, ' ')

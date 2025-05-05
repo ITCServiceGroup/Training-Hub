@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import {
   DndContext,
@@ -17,13 +17,252 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
+import { FaCopy, FaArrowRight, FaEllipsisV } from 'react-icons/fa';
 
-// Helper function to extract a preview from HTML content
-const extractPreview = (htmlContent, maxLength = 150) => {
-  if (!htmlContent) return '';
+// Helper function to extract a preview from HTML or JSON content
+const extractPreview = (content, maxLength = 150) => {
+  if (!content) return '';
+
+  // Check if content is JSON (Craft.js format)
+  const isJsonContent = (() => {
+    try {
+      // Check if it's a string that looks like JSON
+      if (typeof content === 'string') {
+        const trimmed = content.trim();
+
+        // Check for JSON object format
+        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+            (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+
+          // Look for Craft.js indicators
+          if (trimmed.includes('resolvedName') ||
+              trimmed.includes('"ROOT"') ||
+              trimmed.includes('"root"') ||
+              trimmed.includes('\\"ROOT\\"') ||
+              trimmed.includes('\\"root\\"') ||
+              trimmed.includes('\\"resolvedName\\"')) {
+            return true;
+          }
+
+          // Look for text properties which indicate content
+          if (trimmed.includes('"text"') || trimmed.includes('\\"text\\"')) {
+            return true;
+          }
+
+          // Try parsing it
+          try {
+            let parsed = JSON.parse(trimmed);
+
+            // Handle double-stringified JSON
+            if (typeof parsed === 'string') {
+              try {
+                parsed = JSON.parse(parsed);
+              } catch (innerError) {
+                // If we can't parse it as JSON, but it has text indicators, still treat as JSON
+                if (parsed.includes('"text"') || parsed.includes('\\"text\\"')) {
+                  return true;
+                }
+              }
+            }
+
+            // Check for Craft.js structure
+            if (parsed.ROOT || parsed.root ||
+                (typeof parsed === 'object' &&
+                 Object.values(parsed).some(v => v && v.props && v.props.text))) {
+              return true;
+            }
+          } catch (e) {
+            // Not valid JSON or not Craft.js format
+            // But if it has text indicators, still treat as JSON for extraction
+            if (trimmed.includes('"text"') || trimmed.includes('\\"text\\"')) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  // If it's JSON content, extract text from it
+  if (isJsonContent) {
+    try {
+      // Try to parse the JSON content
+      let parsed;
+      if (typeof content === 'string') {
+        try {
+          parsed = JSON.parse(content);
+          // Handle double-stringified JSON
+          if (typeof parsed === 'string') {
+            parsed = JSON.parse(parsed);
+          }
+        } catch (e) {
+          // If parsing fails, try to extract text directly
+          return "Interactive content created with Content Editor";
+        }
+      } else {
+        parsed = content;
+      }
+
+      // Extract text from Text components in the correct visual order
+      let textContent = [];
+
+      // Helper function to check if text is a default placeholder
+      const isDefaultText = (text) => {
+        const defaultTexts = [
+          "Click to edit this text",
+          "Double-click to edit",
+          "Edit this text",
+          "Enter text here"
+        ];
+        return defaultTexts.includes(text);
+      };
+
+      // Function to extract text following the visual hierarchy
+      const extractTextInVisualOrder = (rootNode, allNodes) => {
+        if (!rootNode || !allNodes) return;
+
+        // Skip processing if this is a hidden node
+        if (rootNode.hidden === true) return;
+
+        // If this is a Text component, add its text to our collection
+        if (rootNode.type && rootNode.type.resolvedName === 'Text' &&
+            rootNode.props && rootNode.props.text &&
+            typeof rootNode.props.text === 'string') {
+
+          // Skip default placeholder text
+          if (!isDefaultText(rootNode.props.text)) {
+            textContent.push(rootNode.props.text);
+          }
+        }
+
+        // Process child nodes in the order they appear in the nodes array
+        if (rootNode.nodes && Array.isArray(rootNode.nodes)) {
+          rootNode.nodes.forEach(nodeId => {
+            if (allNodes[nodeId]) {
+              extractTextInVisualOrder(allNodes[nodeId], allNodes);
+            }
+          });
+        }
+
+        // Process linked nodes
+        if (rootNode.linkedNodes) {
+          Object.values(rootNode.linkedNodes).forEach(nodeId => {
+            if (allNodes[nodeId]) {
+              extractTextInVisualOrder(allNodes[nodeId], allNodes);
+            }
+          });
+        }
+      };
+
+      // Recursive function for backward compatibility and to catch any nodes
+      // that might not be in the visual hierarchy
+      const extractTextFromNodes = (nodes) => {
+        if (!nodes) return;
+
+        Object.values(nodes).forEach(node => {
+          // Skip processing if this is a hidden node
+          if (node.hidden === true) return;
+
+          // Check for Text components
+          if (node.type && node.type.resolvedName === 'Text' &&
+              node.props && node.props.text &&
+              typeof node.props.text === 'string') {
+
+            // Skip default placeholder text
+            if (!isDefaultText(node.props.text)) {
+              // Only add if not already in the array
+              if (!textContent.includes(node.props.text)) {
+                textContent.push(node.props.text);
+              }
+            }
+          }
+
+          // Check for nodes property (for nested components)
+          if (node.nodes) {
+            extractTextFromNodes(node.nodes);
+          }
+
+          // Check for linkedNodes property
+          if (node.linkedNodes) {
+            extractTextFromNodes(node.linkedNodes);
+          }
+        });
+      };
+
+      // First try to extract text in visual order
+      if (parsed.ROOT) {
+        // Extract text following the visual hierarchy
+        extractTextInVisualOrder(parsed.ROOT, parsed);
+      }
+
+      // If we didn't get any text, fall back to the old method
+      if (textContent.length === 0) {
+        // Check different possible structures
+        if (parsed.nodes) {
+          extractTextFromNodes(parsed.nodes);
+        } else if (parsed.ROOT && parsed.ROOT.nodes) {
+          extractTextFromNodes(parsed.ROOT.nodes);
+        } else if (parsed.ROOT) {
+          // Try to extract from ROOT directly
+          extractTextFromNodes({ ROOT: parsed.ROOT });
+        } else {
+          // Try to extract from the entire object
+          extractTextFromNodes(parsed);
+        }
+      }
+
+      // If we found text content, use it
+      if (textContent.length > 0) {
+        const preview = textContent.join(' ').replace(/\s+/g, ' ').trim();
+        return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
+      }
+
+      // Try to extract any text from the JSON string as a last resort
+      if (typeof content === 'string') {
+        // Look for text patterns in the JSON string
+        const textMatches = content.match(/"text":"([^"]+)"/g);
+        if (textMatches && textMatches.length > 0) {
+          const extractedTexts = textMatches.map(match => {
+            return match.replace(/"text":"/, '').replace(/"$/, '');
+          });
+
+          if (extractedTexts.length > 0) {
+            const preview = extractedTexts.join(' ').replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
+            return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
+          }
+        }
+
+        // Try to handle double-escaped JSON strings
+        if (content.includes('\\"text\\"')) {
+          const doubleEscapedMatches = content.match(/\\"text\\":\\"([^\\]+)\\"/g);
+          if (doubleEscapedMatches && doubleEscapedMatches.length > 0) {
+            const extractedTexts = doubleEscapedMatches.map(match => {
+              return match.replace(/\\"text\\":\\"/, '').replace(/\\"$/, '');
+            });
+
+            if (extractedTexts.length > 0) {
+              const preview = extractedTexts.join(' ').replace(/\\\\/g, '\\').replace(/\s+/g, ' ').trim();
+              return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
+            }
+          }
+        }
+      }
+
+      // Default message if no text found
+      return "Interactive content created with Content Editor";
+    } catch (error) {
+      console.error("Error extracting preview from JSON:", error);
+      return "Interactive content created with Content Editor";
+    }
+  }
+
+  // For HTML content, use the original approach
   try {
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
+    tempDiv.innerHTML = content;
     const styleTags = tempDiv.querySelectorAll('style, script, meta, link, head');
     styleTags.forEach(tag => tag.remove());
     const contentElements = tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li');
@@ -40,7 +279,7 @@ const extractPreview = (htmlContent, maxLength = 150) => {
     }
     return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
   } catch (error) {
-    const textContent = htmlContent
+    const textContent = content
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<[^>]*>/g, ' ')
@@ -64,9 +303,19 @@ const formatDate = (dateString) => {
   });
 };
 
-const SortableStudyGuideItem = ({ guide, onSelect, selectedId, hoveredId, setHoveredId }) => {
+const SortableStudyGuideItem = ({
+  guide,
+  onSelect,
+  selectedId,
+  hoveredId,
+  setHoveredId,
+  onCopy,
+  onMove
+}) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [showActions, setShowActions] = useState(false);
+  const actionsRef = useRef(null);
   const {
     attributes,
     listeners,
@@ -82,7 +331,36 @@ const SortableStudyGuideItem = ({ guide, onSelect, selectedId, hoveredId, setHov
     zIndex: isDragging ? 1 : 0,
   };
 
-  // Using Tailwind classes instead of inline styles
+  // Close actions menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionsRef.current && !actionsRef.current.contains(event.target)) {
+        setShowActions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    setShowActions(false);
+    onCopy(guide);
+  };
+
+  const handleMove = (e) => {
+    e.stopPropagation();
+    setShowActions(false);
+    onMove(guide);
+  };
+
+  const toggleActions = (e) => {
+    e.stopPropagation();
+    setShowActions(!showActions);
+  };
 
   return (
     <div
@@ -100,14 +378,48 @@ const SortableStudyGuideItem = ({ guide, onSelect, selectedId, hoveredId, setHov
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
               {guide.title}
             </h3>
-            <div
-              {...listeners}
-              className={`text-gray-400 cursor-grab p-1 rounded ${hoveredId === guide.id ? 'bg-gray-100' : 'bg-transparent'}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            <div className="flex items-center gap-2">
+              {/* Actions menu button */}
+              <div
+                className={`relative text-gray-400 p-1 rounded ${hoveredId === guide.id ? 'visible' : 'invisible'} ${isDark ? 'hover:bg-slate-600' : 'hover:bg-gray-200'}`}
+                onClick={toggleActions}
+                ref={actionsRef}
+              >
+                <FaEllipsisV size={16} />
+
+                {/* Dropdown menu */}
+                {showActions && (
+                  <div className={`absolute right-0 top-full mt-1 w-40 rounded-md shadow-lg z-10 ${isDark ? 'bg-slate-700 border border-slate-600' : 'bg-white border border-gray-200'}`}>
+                    <div className="py-1">
+                      <button
+                        className={`flex items-center w-full px-4 py-2 text-sm ${isDark ? 'text-gray-200 hover:bg-slate-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                        onClick={handleCopy}
+                      >
+                        <FaCopy className="mr-2" size={14} />
+                        Copy
+                      </button>
+                      <button
+                        className={`flex items-center w-full px-4 py-2 text-sm ${isDark ? 'text-gray-200 hover:bg-slate-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                        onClick={handleMove}
+                      >
+                        <FaArrowRight className="mr-2" size={14} />
+                        Move
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Drag handle */}
+              <div
+                {...listeners}
+                className={`text-gray-400 cursor-grab p-1 rounded ${hoveredId === guide.id ? 'bg-gray-100 dark:bg-slate-600' : 'bg-transparent'}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </div>
             </div>
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
@@ -134,7 +446,9 @@ const StudyGuideList = ({
   studyGuides: propStudyGuides = [], // Allow direct prop injection
   onSelect,
   selectedId,
-  onReorder
+  onReorder,
+  onCopy,
+  onMove
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
   const { theme } = useTheme();
@@ -220,6 +534,8 @@ const StudyGuideList = ({
               selectedId={selectedId}
               hoveredId={hoveredId}
               setHoveredId={setHoveredId}
+              onCopy={onCopy}
+              onMove={onMove}
             />
           ))}
         </div>
