@@ -94,6 +94,7 @@ export const Table = (props) => {
   // Get cell content
   const getCellContent = (rowIndex, colIndex) => {
     const cellKey = `${rowIndex}-${colIndex}`;
+    // Return empty string if no content exists to trigger placeholder
     return tableData.cells && tableData.cells[cellKey] ? tableData.cells[cellKey] : '';
   };
 

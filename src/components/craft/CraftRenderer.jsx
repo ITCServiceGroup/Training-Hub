@@ -6,6 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 // These need to match exactly what's used in the ContentEditor
 import { Container } from '../../pages/admin/components/ContentEditor/components/selectors/Container';
 import { Text } from '../../pages/admin/components/ContentEditor/components/selectors/Text';
+import { CollapsibleSection } from '../../pages/admin/components/ContentEditor/components/selectors/CollapsibleSection';
 import { Button } from '../../pages/admin/components/ContentEditor/components/selectors/Button';
 import { Image } from '../../pages/admin/components/ContentEditor/components/selectors/Image';
 import { Card } from '../../pages/admin/components/ContentEditor/components/selectors/Card';
@@ -297,28 +298,42 @@ const CraftRenderer = ({ jsonContent }) => {
             Card,
             Interactive,
             Table,
-            TableText
+            TableText,
+            CollapsibleSection
           }}
           enabled={false} // Disable editing
           onRender={({ render, node }) => {
             // First check if node exists and has the necessary properties
-            if (node && node.data && node.data.type &&
-                node.data.type.resolvedName === 'Container' &&
-                node.data.props && node.data.props.flexDirection === 'row') {
-              // Add a class to ensure horizontal containers are properly styled
-              const originalRender = render;
-              return (props) => {
-                const element = originalRender(props);
-                // Ensure the craft-container-horizontal class is applied
-                if (element && element.props && element.props.className) {
-                  if (!element.props.className.includes('craft-container-horizontal')) {
-                    const newClassName = `${element.props.className} craft-container-horizontal`;
-                    return React.cloneElement(element, { className: newClassName });
+            if (node && node.data && node.data.type) {
+              // Handle horizontal containers
+              if (node.data.type.resolvedName === 'Container' &&
+                  node.data.props && node.data.props.flexDirection === 'row') {
+                // Add a class to ensure horizontal containers are properly styled
+                const originalRender = render;
+                return (props) => {
+                  const element = originalRender(props);
+                  // Ensure the craft-container-horizontal class is applied
+                  if (element && element.props && element.props.className) {
+                    if (!element.props.className.includes('craft-container-horizontal')) {
+                      const newClassName = `${element.props.className} craft-container-horizontal`;
+                      return React.cloneElement(element, { className: newClassName });
+                    }
                   }
+                  return element;
+                };
+              }
+
+              // Handle CollapsibleSection components - ensure they're collapsed by default
+              if (node.data.type.resolvedName === 'CollapsibleSection') {
+                // Modify the props to ensure expanded is false but keep the border
+                if (node.data.props) {
+                  node.data.props.expanded = false;
+
+                  // Keep the border style as is
                 }
-                return element;
-              };
+              }
             }
+
             // Just return the original render function if conditions aren't met
             return render;
           }}

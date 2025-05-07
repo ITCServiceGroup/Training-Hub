@@ -6,6 +6,7 @@ import { useDragHighlight } from './hooks/useDragHighlight';
 import { applyDirectCraftJsFix } from './patches/directCraftJsFix';
 import { CraftJsDirectPatch } from './patches/craftJsDirectPatch';
 import { applyCraftJsDragDropOverride } from './patches/craftJsDragDropOverride';
+import { useCollapsibleSectionPatch } from './patches/collapsibleSectionPatch';
 
 // Storage utility functions
 const getStorageKey = (studyGuideId) => `content_editor_${studyGuideId}_draft`;
@@ -97,6 +98,8 @@ import { Card } from './components/selectors/Card';
 import { Interactive } from './components/selectors/Interactive';
 import { Table } from './components/selectors/Table';
 import { TableText } from './components/selectors/Table/TableText';
+import { CollapsibleSection } from './components/selectors/CollapsibleSection';
+import { Tabs } from './components/selectors/Tabs';
 
 import './styles.css';
 import './styles/dragFeedback.css';
@@ -368,6 +371,9 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         {/* Add the CraftJsDirectPatch component to inject our custom event handlers */}
         <CraftJsDirectPatch />
 
+        {/* Add the CollapsibleSectionPatch to handle step-specific drag and drop */}
+        {useCollapsibleSectionPatch()}
+
         <Viewport>
           <CraftFrame>
             {/* Always render the default content */}
@@ -447,7 +453,7 @@ const ContentEditor = ({
     <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
       <ToolbarZIndexProvider>
           <Editor
-            resolver={{ Container, Text, Button, Image, Card, Interactive, Table, TableText }}
+            resolver={{ Container, Text, Button, Image, Card, Interactive, Table, TableText, CollapsibleSection, Tabs }}
             enabled={true}
             onRender={RenderNode}
             options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}

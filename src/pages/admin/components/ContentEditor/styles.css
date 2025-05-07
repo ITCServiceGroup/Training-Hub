@@ -557,6 +557,12 @@
   cursor: text;
 }
 
+/* Placeholder styling for table cells */
+.craft-table-text.placeholder {
+  opacity: 0.6;
+  font-style: italic;
+}
+
 /* Ensure TableText components are properly styled in table cells */
 .craft-table td .craft-table-text {
   width: 100%;
@@ -818,6 +824,48 @@
 .table-outer-wrapper .craft-table .table-handle-bl,
 .table-outer-wrapper .craft-table .table-handle-br {
   position: absolute;
+}
+
+/* CollapsibleSection Styles */
+.craft-collapsible-section {
+  position: relative;
+  width: 100%;
+}
+
+/* Style for the steps container */
+.craft-steps-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Style for each step canvas */
+.craft-step-content {
+  min-height: 100px;
+  width: 100%;
+  position: relative;
+  border: none;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+}
+
+/* Style for the step content when it's the target of a drag operation */
+.craft-step-content.drag-hover {
+  background-color: rgba(13, 148, 136, 0.15) !important;
+  outline: 3px dashed #0d9488 !important;
+  outline-offset: -3px;
+  box-shadow: 0 0 10px rgba(13, 148, 136, 0.3) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* CollapsibleSection components should have dashed border when selected or hovered */
+.craft-collapsible-section.component-selected::after {
+  border: 2px dashed #0d9488 !important;
+}
+
+.craft-collapsible-section.component-hovered::after {
+  border: 2px dashed #0d9488 !important;
 }
 
 /* Responsive Container Styles */

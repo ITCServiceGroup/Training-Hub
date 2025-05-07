@@ -68,7 +68,7 @@ export const ImageSettings = () => {
   };
 
   return (
-    <div className="image-settings">
+    <div className="image-settings" style={{ '--input-height': '30px' }}>
       {/* Image Source Section */}
       <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">
         <div
@@ -96,10 +96,12 @@ export const ImageSettings = () => {
                   value={src}
                   onChange={(e) => actions.setProp((props) => { props.src = e.target.value; })}
                   className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                  style={{ height: 'var(--input-height, 30px)' }}
                 />
                 <button
                   onClick={() => setIsMediaLibraryOpen(true)}
-                  className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center gap-1"
+                  className="px-3 bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center gap-1 h-[30px]"
+                  style={{ height: 'var(--input-height, 30px)' }}
                 >
                   <FaImage size={14} />
                   <span className="text-sm">Browse</span>

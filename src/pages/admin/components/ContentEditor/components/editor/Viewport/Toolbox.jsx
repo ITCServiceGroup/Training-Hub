@@ -1,6 +1,6 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
 import React, { useState, useEffect } from 'react';
-import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaPuzzlePiece, FaTable } from 'react-icons/fa';
+import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns } from 'react-icons/fa';
 
 import { Container } from '../../selectors/Container';
 import { Text } from '../../selectors/Text';
@@ -8,6 +8,8 @@ import { Image } from '../../selectors/Image';
 import { Card } from '../../selectors/Card';
 import { Interactive } from '../../selectors/Interactive';
 import { Table } from '../../selectors/Table';
+import { CollapsibleSection } from '../../selectors/CollapsibleSection';
+import { Tabs } from '../../selectors/Tabs';
 import classNames from 'classnames';
 
 export const Toolbox = () => {
@@ -126,6 +128,49 @@ export const Toolbox = () => {
         >
           <div className="toolbox-item" title="Table">
             <FaTable size={24} />
+          </div>
+        </div>
+
+        <div
+          ref={(ref) => {
+            create(
+              ref,
+              <CraftElement
+                canvas
+                is={CollapsibleSection}
+                width="100%"
+                background={{ r: 255, g: 255, b: 255, a: 1 }}
+                padding={['16', '16', '16', '16']}
+                title="Collapsible Section"
+                stepsEnabled={false}
+                numberOfSteps={3}
+              />
+            );
+          }}
+        >
+          <div className="toolbox-item" title="Collapsible Section">
+            <FaChevronDown size={24} />
+          </div>
+        </div>
+
+        <div
+          ref={(ref) => {
+            create(
+              ref,
+              <CraftElement
+                canvas
+                is={Tabs}
+                width="100%"
+                background={{ r: 255, g: 255, b: 255, a: 1 }}
+                padding={['16', '16', '16', '16']}
+                numberOfTabs={3}
+                tabTitles={['Tab 1', 'Tab 2', 'Tab 3']}
+              />
+            );
+          }}
+        >
+          <div className="toolbox-item" title="Tabs">
+            <FaColumns size={24} />
           </div>
         </div>
 

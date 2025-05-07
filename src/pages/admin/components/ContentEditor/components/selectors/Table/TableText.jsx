@@ -1,5 +1,5 @@
 import { useNode, useEditor } from '@craftjs/core';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ContentEditable from 'react-contenteditable';
 
 /**
@@ -14,9 +14,14 @@ export const TableText = ({
   text = 'Text',
   onChange = null,
 }) => {
+  // Track if this is a placeholder
+  const [isPlaceholder, setIsPlaceholder] = useState(text === '' || text === 'Click to edit');
+  // Track if the cell is focused
+  const [isFocused, setIsFocused] = useState(false);
+
   // Use a ref to store the HTML content
-  const htmlContent = useRef(text || 'Click to edit');
-  
+  const htmlContent = useRef(text || '');
+
   const {
     connectors: { connect },
     actions: { setProp },
@@ -29,21 +34,60 @@ export const TableText = ({
     enabled: state.options.enabled,
   }));
 
-  // Update the HTML content when text changes
+  // Update the HTML content when text changes from props
   useEffect(() => {
-    htmlContent.current = text || 'Click to edit';
-    
+    // Check if this is a placeholder text
+    const newIsPlaceholder = text === '' || text === 'Click to edit';
+    setIsPlaceholder(newIsPlaceholder);
+
+    // Only set the content if not focused or if it's not a placeholder
+    if (!isFocused || !newIsPlaceholder) {
+      htmlContent.current = newIsPlaceholder ? (isFocused ? '' : 'Click to edit') : text;
+    }
+
     // Force a re-render by setting a prop
     setProp(props => {
       props._lastUpdate = Date.now();
     });
-  }, [text, setProp]);
+  }, [text, setProp, isFocused]);
+
+  // Handle focus event
+  const handleFocus = () => {
+    setIsFocused(true);
+
+    // If this is a placeholder, clear the content when focused
+    if (isPlaceholder) {
+      htmlContent.current = '';
+      // Force a re-render
+      setProp(props => {
+        props._lastUpdate = Date.now();
+      });
+    }
+  };
+
+  // Handle blur event
+  const handleBlur = () => {
+    setIsFocused(false);
+
+    // If the content is empty, restore the placeholder
+    if (htmlContent.current === '') {
+      htmlContent.current = 'Click to edit';
+      setIsPlaceholder(true);
+
+      // Update the component props with empty string
+      // This ensures the actual stored value is empty, not "Click to edit"
+      setProp((prop) => (prop.text = ''));
+      if (onChange) onChange('');
+    }
+  };
 
   return (
     <ContentEditable
       innerRef={connect}
       html={htmlContent.current}
       disabled={!enabled}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       onClick={(e) => {
         // Prevent event propagation to allow selecting the text without selecting the table
         if (!selected) {
@@ -52,24 +96,30 @@ export const TableText = ({
       }}
       onChange={(e) => {
         const newValue = e.target.value;
-        
+        htmlContent.current = newValue;
+
+        // Update placeholder state
+        setIsPlaceholder(newValue === '' || newValue === 'Click to edit');
+
         // Immediate update for table cells
         setProp((prop) => (prop.text = newValue));
-        
+
         // If custom onChange handler is provided, call it
         if (onChange) onChange(newValue);
       }}
-      className="craft-table-text"
+      className={`craft-table-text ${isPlaceholder && !isFocused ? 'placeholder' : ''}`}
       tagName="div"
       style={{
         width: '100%',
-        color: `rgba(${Object.values(color)})`,
+        color: isPlaceholder && !isFocused
+          ? `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)` // Lighter color for placeholder
+          : `rgba(${Object.values(color)})`,
         fontSize: `${fontSize}px`,
         fontWeight,
         textAlign,
         minHeight: '24px',
         cursor: 'text',
-        outline: selected ? '1px solid rgba(13, 148, 136, 0.5)' : 'none'
+        outline: selected ? '1px solid rgba(13, 148, 136, 0.7)' : 'none'
       }}
     />
   );
@@ -82,7 +132,7 @@ TableText.craft = {
     textAlign: 'left',
     fontWeight: '500',
     color: { r: 92, g: 90, b: 90, a: 1 },
-    text: 'Text',
+    text: '', // Default to empty string to trigger placeholder
     _lastUpdate: 0, // Add this to help with re-rendering
   },
   related: {

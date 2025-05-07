@@ -31,7 +31,47 @@ export const RenderNode = ({ render }) => {
 
   // Skip ROOT element indicators
   const isRoot = id === 'ROOT';
-  const isCanvas = data.custom?.isCanvas || false;
+
+  // Check if this is a canvas element inside a CollapsibleSection
+  const isCollapsibleSectionCanvas = () => {
+    // Check if this is a canvas element
+    const isCanvas = data.custom?.isCanvas || data.isCanvas;
+
+    // Check if this is a step content or content canvas in CollapsibleSection
+    const isStepContent = dom?.classList?.contains('craft-step-content');
+    const isContentCanvas = dom?.classList?.contains('craft-container') &&
+                           dom?.classList?.contains('is-canvas') &&
+                           dom?.closest('.craft-collapsible-section');
+
+    // Direct check for our new specific class
+    const hasCollapsibleSectionCanvasClass = dom?.classList?.contains('collapsible-section-canvas');
+
+    // Also check by ID pattern for step canvases or content canvas
+    const isCanvasById = (id?.startsWith('step-') && id?.endsWith('-canvas')) || id === 'content-canvas';
+
+    // Check if this is the main CollapsibleSection component itself (not its canvas)
+    const isMainCollapsibleSection = dom?.classList?.contains('craft-collapsible-section') &&
+                                    dom?.classList?.contains('main-component');
+
+    // If this is the main CollapsibleSection component, we want to show the toolbar
+    if (isMainCollapsibleSection) {
+      return false;
+    }
+
+    // Also check by parent node type
+    let isChildOfCollapsibleSection = false;
+    if (parent && parent !== ROOT_NODE) {
+      try {
+        const parentNode = query.node(parent).get();
+        const parentName = parentNode.data.displayName || parentNode.data.name;
+        isChildOfCollapsibleSection = parentName === 'Collapsible Section';
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+
+    return (isCanvas && (isStepContent || isContentCanvas || isCanvasById || hasCollapsibleSectionCanvasClass || isChildOfCollapsibleSection));
+  };
 
   // Create a ref for the toolbar
   const toolbarRef = useRef(null);
@@ -244,9 +284,14 @@ export const RenderNode = ({ render }) => {
   // Create a wrapper with position relative to contain the indicators
   // We need to use a wrapper for all elements to ensure consistent behavior
 
+  // Check if we should hide the toolbar
+  const shouldHideToolbar = isCollapsibleSectionCanvas() ||
+                           // Direct check for our specific canvas class
+                           dom?.classList?.contains('collapsible-section-canvas');
+
   return (
     <>
-      {(isHovered || isSelected) && !isRoot
+      {(isHovered || isSelected) && !isRoot && !shouldHideToolbar
         ? ReactDOM.createPortal(
             <div
               ref={toolbarRef}

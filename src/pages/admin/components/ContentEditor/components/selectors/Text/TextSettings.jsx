@@ -318,7 +318,7 @@ export const TextSettings = () => {
                   htmlFor="enableIcon"
                   className="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer leading-none pt-1"
                 >
-                  Show Icon
+                  Add Icon
                 </label>
               </div>
 

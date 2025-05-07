@@ -73,6 +73,60 @@
   margin-bottom: 15px;
 }
 
+/* CollapsibleSection styling in StudyGuideViewer */
+.craft-renderer .craft-collapsible-section {
+  margin-bottom: 15px !important;
+}
+
+/* Specific styling for the in-viewer class */
+.craft-renderer .craft-collapsible-section.in-viewer {
+  margin-bottom: 15px !important;
+}
+
+.craft-renderer .craft-step-content {
+  border: none !important;
+  outline: none !important;
+}
+
+.craft-renderer .craft-container.is-canvas {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Style the collapsible header to make it more clickable */
+.craft-renderer .craft-collapsible-header {
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.craft-renderer .craft-collapsible-header:hover {
+  filter: brightness(0.95) !important;
+}
+
+/* Hide selection and hover borders in StudyGuideViewer */
+.craft-renderer .component-selected::after,
+.craft-renderer .component-hovered::after {
+  display: none !important;
+}
+
+/* Style the collapsible section in the viewer */
+.craft-renderer .craft-collapsible-section {
+  /* No border on the outer container */
+  border: none !important;
+}
+
+/* Style the header for visual separation */
+.craft-renderer .craft-collapsible-header {
+  /* Keep the borders on the header */
+  border-style: solid !important;
+}
+
+/* Style the content area */
+.craft-renderer .craft-collapsible-content {
+  /* Keep the borders on the content */
+  border-style: solid !important;
+}
+
 /* Interactive element styling */
 .craft-renderer iframe,
 .craft-renderer [class*="-simulator"],

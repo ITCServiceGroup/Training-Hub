@@ -1,9 +1,9 @@
-import React from 'react';
-import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { listMedia } from '../../../../../../../services/api/media';
-import { FaTimes, FaImage } from 'react-icons/fa';
+import React, { useRef } from 'react';
+import { listMedia, uploadMedia } from '../../../../../../../services/api/media';
+import { FaTimes, FaUpload } from 'react-icons/fa';
 import { MdOutlineAudioFile, MdOutlineInsertDriveFile } from 'react-icons/md';
 import { format } from 'date-fns';
+import { useAuth } from '../../../../../../../contexts/AuthContext';
 
 // Helper to format bytes
 const formatBytes = (bytes, decimals = 2) => {
@@ -18,23 +18,21 @@ const formatBytes = (bytes, decimals = 2) => {
 
 // Simple Media Grid Component
 const SimpleMediaGrid = ({ mediaItems, onSelect }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-2">
       {mediaItems.length === 0 && (
         <p className="col-span-full text-center text-gray-500 mt-4">No media items found.</p>
       )}
-      
+
       {mediaItems.map((item) => {
         const isImage = item.mime_type?.startsWith('image/');
         const isVideo = item.mime_type?.startsWith('video/');
         const isAudio = item.mime_type?.startsWith('audio/');
 
         return (
-          <div 
-            key={item.id} 
+          <div
+            key={item.id}
             className="border rounded-lg overflow-hidden shadow-sm bg-white dark:bg-slate-700 dark:border-slate-600 flex flex-col transition-shadow hover:shadow-md cursor-pointer"
             onClick={() => onSelect(item)}
           >
@@ -97,7 +95,10 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
   const [mediaItems, setMediaItems] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
-  const { theme } = useTheme();
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState(null);
+  const fileInputRef = useRef(null);
+  const { user } = useAuth();
 
   React.useEffect(() => {
     if (isOpen) {
@@ -119,11 +120,77 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
     }
   };
 
+  // Handle file selection from input
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Automatically trigger upload once a file is selected
+      handleUpload(file);
+    }
+    // Reset the input value so the same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle the upload process
+  const handleUpload = async (fileToUpload) => {
+    if (!fileToUpload) {
+      setUploadError('Please select a file first.');
+      return;
+    }
+    if (!user || !user.id) {
+      setUploadError('You must be logged in to upload media.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      console.log(`Uploading file: ${fileToUpload.name} by user: ${user.id}`);
+      const newMediaItem = await uploadMedia(fileToUpload, user.id);
+      console.log('Upload successful:', newMediaItem);
+      await fetchMedia(); // Refresh the media list
+    } catch (err) {
+      console.error("Failed to upload media:", err);
+      setUploadError(`Upload failed: ${err.message || 'Please try again.'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // When modal opens, hide any toolbars
+  React.useEffect(() => {
+    if (isOpen) {
+      // Hide all toolbars when modal is open
+      const toolbars = document.querySelectorAll('.px-2.py-2.text-white.bg-teal-600.fixed');
+      toolbars.forEach(toolbar => {
+        toolbar.style.display = 'none';
+      });
+    } else {
+      // Show toolbars again when modal closes
+      const toolbars = document.querySelectorAll('.px-2.py-2.text-white.bg-teal-600.fixed');
+      toolbars.forEach(toolbar => {
+        toolbar.style.display = '';
+      });
+    }
+
+    // Cleanup function to ensure toolbars are shown when component unmounts
+    return () => {
+      const toolbars = document.querySelectorAll('.px-2.py-2.text-white.bg-teal-600.fixed');
+      toolbars.forEach(toolbar => {
+        toolbar.style.display = '';
+      });
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center p-4"
+      style={{ zIndex: 99999 }} /* Use an extremely high z-index */
       onClick={onClose}
     >
       <div
@@ -133,7 +200,7 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-            Select Image
+            Media Library
           </h2>
           <button
             onClick={onClose}
@@ -141,6 +208,30 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
           >
             <FaTimes size={16} />
           </button>
+        </div>
+
+        {/* Upload Section */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden" // Hide the default input
+            accept="image/*,video/*,audio/*" // Accept images, videos, and audio
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()} // Trigger hidden input
+            disabled={isUploading}
+            className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors flex items-center justify-center gap-2 ${
+              isUploading
+                ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                : 'bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-800'
+            }`}
+          >
+            <FaUpload size={14} />
+            {isUploading ? 'Uploading...' : 'Upload New Media'}
+          </button>
+          {uploadError && <p className="text-red-500 dark:text-red-400 text-sm mt-2 text-center">{uploadError}</p>}
         </div>
 
         {/* Content */}

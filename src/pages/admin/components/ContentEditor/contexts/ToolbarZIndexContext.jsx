@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useCallback, useState } from 'react';
 
 const BASE_Z_INDEX = 9999;
+const MODAL_Z_INDEX = 10000; // Higher z-index for modals
 
 const ToolbarZIndexContext = createContext({
   updateZIndex: () => {},
   getZIndex: () => BASE_Z_INDEX,
+  getModalZIndex: () => MODAL_Z_INDEX,
   resetZIndices: () => {}
 });
 
@@ -26,8 +28,12 @@ export const ToolbarZIndexProvider = ({ children }) => {
     setCounter(BASE_Z_INDEX);
   }, []);
 
+  const getModalZIndex = useCallback(() => {
+    return MODAL_Z_INDEX;
+  }, []);
+
   return (
-    <ToolbarZIndexContext.Provider value={{ updateZIndex, getZIndex, resetZIndices }}>
+    <ToolbarZIndexContext.Provider value={{ updateZIndex, getZIndex, getModalZIndex, resetZIndices }}>
       {children}
     </ToolbarZIndexContext.Provider>
   );

@@ -18,10 +18,10 @@ const listStyles = `
 /* Base list styles */
 .craft-text-component ul,
 .craft-text-component ol {
-  list-style-position: inside !important;
-  padding-left: 0 !important;
+  list-style-position: outside !important;
+  padding-left: 24px !important;
   margin: 0 !important;
-  width: 100% !important;
+  width: calc(100% - 24px) !important;
 }
 
 .craft-text-component ul {
@@ -35,6 +35,7 @@ const listStyles = `
 .craft-text-component li {
   display: list-item !important;
   width: 100% !important;
+  padding-left: 4px !important;
 }
 
 /* Text alignment specific styles */
@@ -49,9 +50,19 @@ const listStyles = `
 }
 
 /* Fix for bullet/number position with alignment */
+.craft-text-component[style*="text-align: center"] ul,
+.craft-text-component[style*="text-align: center"] ol,
+.craft-text-component[style*="text-align: right"] ul,
+.craft-text-component[style*="text-align: right"] ol {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 100% !important;
+}
+
 .craft-text-component[style*="text-align: center"] li,
 .craft-text-component[style*="text-align: right"] li {
   list-style-position: inside !important;
+  padding-left: 0 !important;
 }
 `;
 
@@ -88,13 +99,13 @@ const formatTextWithListType = (text, listType) => {
 
   if (listType === 'bullet') {
     // Use style attribute to ensure bullets are visible
-    return '<ul style="list-style-type: disc; list-style-position: inside;">' +
-           lines.map(line => `<li style="display: list-item;">${line}</li>`).join('') +
+    return '<ul style="list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);">' +
+           lines.map(line => `<li style="display: list-item; padding-left: 4px;">${line}</li>`).join('') +
            '</ul>';
   } else if (listType === 'number') {
     // Use style attribute to ensure numbers are visible
-    return '<ol style="list-style-type: decimal; list-style-position: inside;">' +
-           lines.map(line => `<li style="display: list-item;">${line}</li>`).join('') +
+    return '<ol style="list-style-type: decimal; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);">' +
+           lines.map(line => `<li style="display: list-item; padding-left: 4px;">${line}</li>`).join('') +
            '</ol>';
   } else {
     // No list formatting - preserve line breaks
@@ -233,7 +244,7 @@ export const Text = ({
   return (
     <div className="flex items-center" style={{ width: '100%' }}>
       {hasIcon && IconComponent && (
-        <div 
+        <div
           className="flex-shrink-0 flex items-center"
           title={ICON_NAME_MAP[iconName] || "Icon"}
           style={{
