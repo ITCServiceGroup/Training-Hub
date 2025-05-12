@@ -1,5 +1,5 @@
 import { useNode, Element } from '@craftjs/core';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TabsSettings } from './TabsSettings';
 import { Resizer } from '../Resizer';
 
@@ -29,6 +29,7 @@ const defaultProps = {
   tabTitles: ['Tab 1', 'Tab 2', 'Tab 3'],
   tabBackground: { r: 245, g: 247, b: 250, a: 1 },
   activeTabBackground: { r: 255, g: 255, b: 255, a: 1 },
+  tabAlignment: 'left',
 };
 
 export const Tabs = (props) => {
@@ -36,8 +37,6 @@ export const Tabs = (props) => {
     ...defaultProps,
     ...props,
   };
-
-  const [activeTab, setActiveTab] = useState(0);
 
   const {
     connectors: { connect },
@@ -49,6 +48,44 @@ export const Tabs = (props) => {
     hovered: node.events.hovered,
     id: node.id
   }));
+
+  // Create a localStorage key for the active tab
+  const tabStorageKey = `tabs-active-tab-${id}`;
+
+  // Initialize activeTab from localStorage or default to 0
+  const getInitialActiveTab = () => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem(tabStorageKey);
+      if (savedTab !== null) {
+        const tab = parseInt(savedTab, 10);
+        // Ensure the tab is valid (between 0 and numberOfTabs-1)
+        const maxTabs = props.numberOfTabs || defaultProps.numberOfTabs;
+        if (!isNaN(tab) && tab >= 0 && tab < maxTabs) {
+          console.log(`[Tabs ${id}] Initial active tab from localStorage:`, tab);
+          return tab;
+        }
+      }
+    }
+    return 0; // Default to first tab
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialActiveTab);
+
+  // Save activeTab to localStorage whenever it changes
+  useEffect(() => {
+    console.log(`[Tabs ${id}] Active tab changed to:`, activeTab);
+
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(tabStorageKey, String(activeTab));
+      console.log(`[Tabs ${id}] Saved active tab to localStorage:`, activeTab);
+    }
+
+    // Ensure tab is valid when numberOfTabs changes
+    if (activeTab >= props.numberOfTabs) {
+      setActiveTab(0);
+    }
+  }, [activeTab, id, tabStorageKey, props.numberOfTabs]);
 
   const {
     background,
@@ -64,6 +101,7 @@ export const Tabs = (props) => {
     tabTitles,
     tabBackground,
     activeTabBackground,
+    tabAlignment,
   } = props;
 
   // Extract margin values [Top, Right, Bottom, Left]
@@ -81,7 +119,7 @@ export const Tabs = (props) => {
         color: `rgba(${Object.values(color)})`,
         padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
         borderRadius: `${radius}px`,
-        border: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
+        border: 'none', /* Removed outer border */
         width: '100%',
         position: 'relative',
         margin: 0,
@@ -99,17 +137,24 @@ export const Tabs = (props) => {
           gap: '2px',
           marginBottom: '-1px',
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
+          justifyContent: tabAlignment === 'center' ? 'center' :
+                         tabAlignment === 'space-between' ? 'space-between' : 'flex-start',
+          width: '100%'
         }}
       >
         {Array.from({ length: numberOfTabs }, (_, index) => (
           <div
             key={`tab-${index}`}
-            onClick={() => setActiveTab(index)}
+            onClick={() => {
+              setActiveTab(index);
+              console.log(`[Tabs ${id}] Clicked on tab:`, index);
+              // The useEffect will handle saving to localStorage
+            }}
             style={{
               padding: '8px 16px',
               cursor: 'pointer',
-              backgroundColor: activeTab === index 
+              backgroundColor: activeTab === index
                 ? `rgba(${Object.values(activeTabBackground)})`
                 : `rgba(${Object.values(tabBackground)})`,
               border: border.style !== 'none'
@@ -121,6 +166,13 @@ export const Tabs = (props) => {
               marginBottom: activeTab === index ? `-${border.width}px` : 0,
               position: 'relative',
               color: `rgba(${Object.values(color)})`,
+              ...(tabAlignment === 'space-between' && {
+                flex: 1,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center'
+              })
             }}
           >
             {tabTitles[index] || `Tab ${index + 1}`}

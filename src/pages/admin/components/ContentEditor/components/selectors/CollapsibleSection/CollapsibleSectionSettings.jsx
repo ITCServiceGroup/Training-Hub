@@ -27,6 +27,8 @@ export const CollapsibleSectionSettings = () => {
     stepsEnabled,
     numberOfSteps,
     headerBackground,
+    headerTextColor,
+    headerFontSize,
   } = useNode((node) => {
     const props = node.data.props || {};
 
@@ -63,7 +65,9 @@ export const CollapsibleSectionSettings = () => {
       title: props.title || 'Collapsible Section',
       stepsEnabled: props.stepsEnabled || false,
       numberOfSteps: props.numberOfSteps || 1,
-      headerBackground: props.headerBackground || { r: 245, g: 247, b: 250, a: 1 }
+      headerBackground: props.headerBackground || { r: 245, g: 247, b: 250, a: 1 },
+      headerTextColor: props.headerTextColor || { r: 0, g: 0, b: 0, a: 1 },
+      headerFontSize: props.headerFontSize || 16
     };
   });
 
@@ -212,7 +216,43 @@ export const CollapsibleSectionSettings = () => {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Text Color</label>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Header Text Color</label>
+              <div className="flex items-center">
+                <input
+                  type="color"
+                  value={`#${Math.round(headerTextColor.r).toString(16).padStart(2, '0')}${Math.round(headerTextColor.g).toString(16).padStart(2, '0')}${Math.round(headerTextColor.b).toString(16).padStart(2, '0')}`}
+                  onChange={(e) => handleColorChange('headerTextColor', e.target.value)}
+                  className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={headerTextColor.a}
+                  onChange={(e) => handleOpacityChange('headerTextColor', parseFloat(e.target.value))}
+                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Header Font Size</label>
+              <div className="flex items-center">
+                <input
+                  type="range"
+                  min={12}
+                  max={32}
+                  value={headerFontSize}
+                  onChange={(e) => actions.setProp((props) => { props.headerFontSize = parseInt(e.target.value); })}
+                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{headerFontSize}px</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Content Text Color</label>
               <div className="flex items-center">
                 <input
                   type="color"

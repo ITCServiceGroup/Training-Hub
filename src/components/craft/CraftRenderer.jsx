@@ -13,6 +13,7 @@ import { Card } from '../../pages/admin/components/ContentEditor/components/sele
 import { Interactive } from '../../pages/admin/components/ContentEditor/components/selectors/Interactive';
 import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
 import { TableText } from '../../pages/admin/components/ContentEditor/components/selectors/Table/TableText';
+import { Tabs } from '../../pages/admin/components/ContentEditor/components/selectors/Tabs'; // Added Tabs import
 import InteractiveRenderer from '../../pages/admin/components/ContentEditor/components/selectors/Interactive/InteractiveRenderer';
 
 import './CraftRenderer.css';
@@ -299,7 +300,8 @@ const CraftRenderer = ({ jsonContent }) => {
             Interactive,
             Table,
             TableText,
-            CollapsibleSection
+            CollapsibleSection,
+            Tabs // Added Tabs to resolver
           }}
           enabled={false} // Disable editing
           onRender={({ render, node }) => {
@@ -323,13 +325,30 @@ const CraftRenderer = ({ jsonContent }) => {
                 };
               }
 
-              // Handle CollapsibleSection components - ensure they're collapsed by default
+              // Handle CollapsibleSection components
               if (node.data.type.resolvedName === 'CollapsibleSection') {
-                // Modify the props to ensure expanded is false but keep the border
+                // Don't force expanded to false - allow user interaction
                 if (node.data.props) {
-                  node.data.props.expanded = false;
+                  // Only set initial state, don't override user interaction
+                  if (node.data.props.expanded === undefined) {
+                    node.data.props.expanded = false;
+                  }
 
-                  // Keep the border style as is
+                  // Ensure border style is respected
+                  if (node.data.props.border && node.data.props.border.style === 'none') {
+                    // If border style is none, make sure it's properly applied
+                    const originalRender = render;
+                    return (props) => {
+                      const element = originalRender(props);
+                      if (element) {
+                        // Apply a custom class to ensure no border is shown
+                        return React.cloneElement(element, {
+                          className: `${element.props.className || ''} no-border-override`
+                        });
+                      }
+                      return element;
+                    };
+                  }
                 }
               }
             }

@@ -4,6 +4,8 @@ import { useToolbarZIndex } from '../../contexts/ToolbarZIndexContext';
 import { ROOT_NODE } from '@craftjs/utils';
 import ReactDOM from 'react-dom';
 import { FaArrowsAlt, FaTrash, FaArrowUp, FaCopy } from 'react-icons/fa';
+import { duplicateCollapsibleSection } from '../../utils/collapsibleSectionDuplicator';
+import { duplicateTabs } from '../../utils/tabsDuplicator';
 
 
 export const RenderNode = ({ render }) => {
@@ -352,6 +354,37 @@ export const RenderNode = ({ render }) => {
                       const currentParent = node.data.parent;
                       console.log('Current parent:', currentParent);
 
+                      // Special handling for components with linked nodes
+                      if (node.data.displayName === 'Collapsible Section') {
+                        console.log('Duplicating CollapsibleSection component with special handler');
+
+                        try {
+                          // Use specialized duplicator function
+                          const parentNode = query.node(currentParent).get();
+                          const nodeIndex = parentNode.data.nodes.indexOf(id);
+                          duplicateCollapsibleSection(node, query, actions, currentParent, nodeIndex);
+                          console.log('CollapsibleSection and all content duplicated successfully');
+                          return;
+                        } catch (error) {
+                          console.error('Error duplicating CollapsibleSection:', error);
+                          // Continue with normal duplication as fallback
+                        }
+                      } else if (node.data.displayName === 'Tabs') {
+                        console.log('Duplicating Tabs component with special handler');
+
+                        try {
+                          // Use specialized duplicator function
+                          const parentNode = query.node(currentParent).get();
+                          const nodeIndex = parentNode.data.nodes.indexOf(id);
+                          duplicateTabs(node, query, actions, currentParent, nodeIndex);
+                          console.log('Tabs and all content duplicated successfully');
+                          return;
+                        } catch (error) {
+                          console.error('Error duplicating Tabs:', error);
+                          // Continue with normal duplication as fallback
+                        }
+                      }
+
                       // Check if this is a container with children
                       const isContainer = node.data.isCanvas;
                       const hasChildren = node.data.nodes && node.data.nodes.length > 0;
@@ -372,13 +405,18 @@ export const RenderNode = ({ render }) => {
                             console.log(`Duplicating node ${nodeId}:`, nodeToDuplicate);
 
                             // Create a fresh node with the same properties
+                            // Get the actual component type from the resolver
+                            const nodeType = query.getOptions().resolver[nodeToDuplicate.data.displayName];
+
                             const freshNode = {
                               data: {
-                                type: nodeToDuplicate.data.type,
+                                // Use the actual component from the resolver if available, otherwise use the original type
+                                type: nodeType || nodeToDuplicate.data.type,
                                 props: { ...nodeToDuplicate.data.props },
                                 custom: nodeToDuplicate.data.custom ? { ...nodeToDuplicate.data.custom } : undefined,
                                 isCanvas: !!nodeToDuplicate.data.isCanvas,
                                 displayName: nodeToDuplicate.data.displayName,
+                                linkedNodes: {},
                               }
                             };
 
@@ -415,13 +453,18 @@ export const RenderNode = ({ render }) => {
                           const containerProps = { ...node.data.props };
 
                           // Create a fresh container node
+                          // Get the actual component type from the resolver
+                          const containerComponentType = query.getOptions().resolver[node.data.displayName];
+
                           const freshContainerNode = {
                             data: {
-                              type: containerType,
+                              // Use the actual component from the resolver if available, otherwise use the original type
+                              type: containerComponentType || containerType,
                               props: containerProps,
                               custom: node.data.custom ? { ...node.data.custom } : undefined,
                               isCanvas: true, // Ensure it's still a canvas
                               displayName: node.data.displayName,
+                              linkedNodes: {},
                             }
                           };
 
@@ -460,13 +503,18 @@ export const RenderNode = ({ render }) => {
                               const nodeToDuplicate = query.node(nodeId).get();
 
                               // Create a fresh node with the same properties
+                              // Get the actual component type from the resolver
+                              const nodeType = query.getOptions().resolver[nodeToDuplicate.data.displayName];
+
                               const freshNode = {
                                 data: {
-                                  type: nodeToDuplicate.data.type,
+                                  // Use the actual component from the resolver if available, otherwise use the original type
+                                  type: nodeType || nodeToDuplicate.data.type,
                                   props: { ...nodeToDuplicate.data.props },
                                   custom: nodeToDuplicate.data.custom ? { ...nodeToDuplicate.data.custom } : undefined,
                                   isCanvas: !!nodeToDuplicate.data.isCanvas,
                                   displayName: nodeToDuplicate.data.displayName,
+                                  linkedNodes: {},
                                 }
                               };
 
@@ -488,13 +536,18 @@ export const RenderNode = ({ render }) => {
                           const nodeIndex = parentNode.data.nodes.indexOf(id);
 
                           // Create a fresh node with the same properties
+                          // Get the actual component type from the resolver
+                          const nodeType = query.getOptions().resolver[node.data.displayName];
+
                           const freshNode = {
                             data: {
-                              type: node.data.type,
+                              // Use the actual component from the resolver if available, otherwise use the original type
+                              type: nodeType || node.data.type,
                               props: { ...node.data.props },
                               custom: node.data.custom ? { ...node.data.custom } : undefined,
                               isCanvas: true, // Ensure it's still a canvas
                               displayName: node.data.displayName,
+                              linkedNodes: {},
                             }
                           };
 
@@ -528,13 +581,18 @@ export const RenderNode = ({ render }) => {
                           console.log('Original node index in parent:', nodeIndex);
 
                           // Create a fresh node with the same properties
+                          // Get the actual component type from the resolver
+                          const nodeType = query.getOptions().resolver[node.data.displayName];
+
                           const freshNode = {
                             data: {
-                              type: node.data.type,
+                              // Use the actual component from the resolver if available, otherwise use the original type
+                              type: nodeType || node.data.type,
                               props: { ...node.data.props },
                               custom: node.data.custom ? { ...node.data.custom } : undefined,
                               isCanvas: !!node.data.isCanvas,
                               displayName: node.data.displayName,
+                              linkedNodes: {},
                             }
                           };
 
@@ -554,13 +612,18 @@ export const RenderNode = ({ render }) => {
                           // Still use throttled actions for consistent undo behavior
                           const throttledActions = actions.history.throttle(100);
 
+                          // Get the actual component type from the resolver
+                          const nodeType = query.getOptions().resolver[node.data.displayName];
+
                           const freshNode = {
                             data: {
-                              type: node.data.type,
+                              // Use the actual component from the resolver if available, otherwise use the original type
+                              type: nodeType || node.data.type,
                               props: { ...node.data.props },
                               custom: node.data.custom ? { ...node.data.custom } : undefined,
                               isCanvas: !!node.data.isCanvas,
                               displayName: node.data.displayName,
+                              linkedNodes: {},
                             }
                           };
 
@@ -581,9 +644,74 @@ export const RenderNode = ({ render }) => {
               {isDeletable ? (
                 <a
                   className="cursor-pointer"
-                  onMouseDown={(e) => {
+                  onMouseDown={async (e) => {
                     e.stopPropagation();
-                    actions.delete(id);
+                    
+                    // Get the node being deleted
+                    const node = query.node(id).get();
+                    
+                    // Special handling for components with linked nodes
+                    if (node.data.displayName === 'Collapsible Section' || node.data.displayName === 'Tabs') {
+                      try {
+                        // Get the node's parent
+                        const parentId = node.data.parent;
+                        if (!parentId) {
+                          console.error('[RenderNode] Cannot delete: node has no parent');
+                          return;
+                        }
+
+                        // Get all linkedNodes
+                        const linkedNodeIds = Object.values(node.data.linkedNodes || {});
+                        console.log('[RenderNode] Found linked nodes:', linkedNodeIds);
+
+                        // Get parent's current nodes array
+                        const parent = query.node(parentId).get();
+                        const parentNodes = [...(parent.data.nodes || [])];
+                        
+                        // Remove the CollapsibleSection from its parent's nodes array
+                        const nodeIndex = parentNodes.indexOf(id);
+                        if (nodeIndex > -1) {
+                          parentNodes.splice(nodeIndex, 1);
+                        }
+
+                        // Update parent's nodes array without this node
+                        actions.setState(state => {
+                          state.nodes[parentId].data.nodes = parentNodes;
+                        });
+
+                        // Remove the linkedNodes references
+                        actions.setState(state => {
+                          if (state.nodes[id]) {
+                            state.nodes[id].data.linkedNodes = {};
+                          }
+                        });
+
+                        // Delete linked nodes first
+                        linkedNodeIds.forEach(linkedNodeId => {
+                          try {
+                            // Try to get the node - if this succeeds, the node exists
+                            if (linkedNodeId && query.node(linkedNodeId).get()) {
+                              actions.delete(linkedNodeId);
+                            }
+                          } catch (error) {
+                            // Node doesn't exist or is already deleted
+                            console.log(`[RenderNode] Linked node ${linkedNodeId} not found or already deleted`);
+                          }
+                        });
+
+                        // Finally delete the main node after a short delay
+                        // This gives time for the linked node deletions to complete
+                        setTimeout(() => {
+                          actions.delete(id);
+                        }, 0);
+
+                      } catch (error) {
+                        console.error('[RenderNode] Error deleting CollapsibleSection:', error);
+                      }
+                    } else {
+                      // Standard delete for other components
+                      actions.delete(id);
+                    }
                   }}
                   style={btnStyle}
                 >

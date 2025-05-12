@@ -832,6 +832,15 @@
   width: 100%;
 }
 
+/* No border class for CollapsibleSection */
+.craft-collapsible-header.no-border,
+.craft-collapsible-content.no-border {
+  border: none !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+}
+
 /* Style for the steps container */
 .craft-steps-container {
   position: relative;

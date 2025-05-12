@@ -117,14 +117,54 @@
 
 /* Style the header for visual separation */
 .craft-renderer .craft-collapsible-header {
-  /* Keep the borders on the header */
+  /* Apply border style to all sides */
   border-style: solid !important;
 }
 
 /* Style the content area */
 .craft-renderer .craft-collapsible-content {
-  /* Keep the borders on the content */
+  /* Default to solid border style if not specified */
   border-style: solid !important;
+}
+
+/* Override for components with no border */
+.craft-renderer .no-border-override .craft-collapsible-header,
+.craft-renderer .no-border-override .craft-collapsible-content {
+  border: none !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+}
+
+/* Ensure the header is clickable */
+.craft-renderer .craft-collapsible-header {
+  cursor: pointer !important; /* Ensure the cursor indicates it's clickable */
+}
+
+/* Tabs Component Styling */
+.craft-renderer .craft-tabs {
+  border: none !important; /* Remove outer border */
+  margin-bottom: 15px !important;
+}
+
+.craft-renderer .craft-tabs-navigation {
+  display: flex !important;
+  gap: 2px !important;
+  margin-bottom: -1px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.craft-renderer .craft-tabs-content {
+  border-style: solid !important;
+  padding: 16px !important;
+  min-height: 100px !important;
+}
+
+.craft-renderer .craft-tab-content {
+  width: 100% !important;
+  position: relative !important;
+  min-height: 100px !important;
 }
 
 /* Interactive element styling */
