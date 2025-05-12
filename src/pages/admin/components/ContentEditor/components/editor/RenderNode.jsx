@@ -646,10 +646,10 @@ export const RenderNode = ({ render }) => {
                   className="cursor-pointer"
                   onMouseDown={async (e) => {
                     e.stopPropagation();
-                    
+
                     // Get the node being deleted
                     const node = query.node(id).get();
-                    
+
                     // Special handling for components with linked nodes
                     if (node.data.displayName === 'Collapsible Section' || node.data.displayName === 'Tabs') {
                       try {
@@ -667,46 +667,117 @@ export const RenderNode = ({ render }) => {
                         // Get parent's current nodes array
                         const parent = query.node(parentId).get();
                         const parentNodes = [...(parent.data.nodes || [])];
-                        
-                        // Remove the CollapsibleSection from its parent's nodes array
+
+                        // Remove the component from its parent's nodes array
                         const nodeIndex = parentNodes.indexOf(id);
                         if (nodeIndex > -1) {
                           parentNodes.splice(nodeIndex, 1);
                         }
 
+                        // First, clear any localStorage items related to this component
+                        if (node.data.displayName === 'Tabs') {
+                          try {
+                            const tabStorageKey = `tabs-active-tab-${id}`;
+                            localStorage.removeItem(tabStorageKey);
+                            console.log(`[RenderNode] Removed localStorage item: ${tabStorageKey}`);
+                          } catch (e) {
+                            console.log('[RenderNode] Error clearing localStorage:', e);
+                          }
+                        }
+
+                        // Start a batch of actions that will be treated as a single undo step
+                        const throttledActions = actions.history.throttle(100);
+
                         // Update parent's nodes array without this node
-                        actions.setState(state => {
-                          state.nodes[parentId].data.nodes = parentNodes;
+                        throttledActions.setState(state => {
+                          if (state.nodes[parentId]) {
+                            state.nodes[parentId].data.nodes = parentNodes;
+                          }
                         });
 
                         // Remove the linkedNodes references
-                        actions.setState(state => {
+                        throttledActions.setState(state => {
                           if (state.nodes[id]) {
                             state.nodes[id].data.linkedNodes = {};
                           }
                         });
 
-                        // Delete linked nodes first
-                        linkedNodeIds.forEach(linkedNodeId => {
-                          try {
-                            // Try to get the node - if this succeeds, the node exists
-                            if (linkedNodeId && query.node(linkedNodeId).get()) {
-                              actions.delete(linkedNodeId);
-                            }
-                          } catch (error) {
-                            // Node doesn't exist or is already deleted
-                            console.log(`[RenderNode] Linked node ${linkedNodeId} not found or already deleted`);
+                        // First, mark all nodes for deletion in the state
+                        // This will help prevent errors when components try to access their nodes during deletion
+                        throttledActions.setState(state => {
+                          // Mark the main node for deletion
+                          if (state.nodes[id]) {
+                            state.nodes[id].data._pendingDeletion = true;
                           }
+
+                          // Mark all linked nodes for deletion
+                          linkedNodeIds.forEach(linkedNodeId => {
+                            if (state.nodes[linkedNodeId]) {
+                              state.nodes[linkedNodeId].data._pendingDeletion = true;
+                            }
+                          });
                         });
 
-                        // Finally delete the main node after a short delay
-                        // This gives time for the linked node deletions to complete
-                        setTimeout(() => {
-                          actions.delete(id);
-                        }, 0);
+                        // Wait a tick to let React process the state update
+                        await new Promise(resolve => setTimeout(resolve, 0));
+
+                        // Delete linked nodes first
+                        const linkedNodePromises = linkedNodeIds.map(linkedNodeId => {
+                          return new Promise(resolve => {
+                            try {
+                              // Check if the node exists before trying to delete it
+                              let nodeExists = false;
+                              try {
+                                if (linkedNodeId && query.node(linkedNodeId).get()) {
+                                  nodeExists = true;
+                                }
+                              } catch (e) {
+                                nodeExists = false;
+                              }
+
+                              if (nodeExists) {
+                                // First remove any localStorage items for this node
+                                try {
+                                  const tabStorageKey = `tabs-active-tab-${linkedNodeId}`;
+                                  localStorage.removeItem(tabStorageKey);
+                                } catch (e) {
+                                  // Ignore localStorage errors
+                                }
+
+                                // Then delete the node
+                                throttledActions.delete(linkedNodeId);
+                                console.log(`[RenderNode] Deleted linked node: ${linkedNodeId}`);
+                              } else {
+                                console.log(`[RenderNode] Linked node ${linkedNodeId} not found or already deleted`);
+                              }
+                            } catch (error) {
+                              console.log(`[RenderNode] Error deleting linked node ${linkedNodeId}:`, error);
+                            }
+                            resolve();
+                          });
+                        });
+
+                        // Use Promise.all to wait for all linked node deletions to complete
+                        Promise.all(linkedNodePromises)
+                          .then(() => {
+                            console.log('[RenderNode] All linked nodes deleted, now deleting main node');
+                            // Finally delete the main node
+                            throttledActions.delete(id);
+                          })
+                          .catch(error => {
+                            console.error('[RenderNode] Error in linked node deletion promises:', error);
+                            // Still try to delete the main node
+                            throttledActions.delete(id);
+                          });
 
                       } catch (error) {
-                        console.error('[RenderNode] Error deleting CollapsibleSection:', error);
+                        console.error('[RenderNode] Error deleting component:', error);
+                        // Fallback to standard delete
+                        try {
+                          actions.delete(id);
+                        } catch (e) {
+                          console.error('[RenderNode] Fallback delete also failed:', e);
+                        }
                       }
                     } else {
                       // Standard delete for other components

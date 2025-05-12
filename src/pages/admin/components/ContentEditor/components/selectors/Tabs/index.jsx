@@ -38,33 +38,82 @@ export const Tabs = (props) => {
     ...props,
   };
 
+  // Helper function to safely get node data
+  const getSafeNodeData = (node) => {
+    try {
+      // First check if node exists at all
+      if (!node) {
+        return {
+          selected: false,
+          hovered: false,
+          id: undefined,
+          pendingDeletion: false
+        };
+      }
+
+      // Check if the node is marked for deletion
+      if (node.data?._pendingDeletion) {
+        console.log('[Tabs] Node is marked for deletion, returning safe defaults');
+        return {
+          selected: false,
+          hovered: false,
+          id: undefined,
+          pendingDeletion: true
+        };
+      }
+
+      return {
+        selected: node.events?.selected || false,
+        hovered: node.events?.hovered || false,
+        id: node.id,
+        pendingDeletion: false
+      };
+    } catch (error) {
+      console.log('[Tabs] Error in getSafeNodeData:', error);
+      return {
+        selected: false,
+        hovered: false,
+        id: undefined,
+        pendingDeletion: false
+      };
+    }
+  };
+
   const {
     connectors: { connect },
     selected,
     hovered,
-    id
-  } = useNode((node) => ({
-    selected: node.events.selected,
-    hovered: node.events.hovered,
-    id: node.id
-  }));
+    id,
+    pendingDeletion
+  } = useNode(getSafeNodeData);
 
   // Create a localStorage key for the active tab
   const tabStorageKey = `tabs-active-tab-${id}`;
 
   // Initialize activeTab from localStorage or default to 0
   const getInitialActiveTab = () => {
-    if (typeof window !== 'undefined') {
-      const savedTab = localStorage.getItem(tabStorageKey);
-      if (savedTab !== null) {
-        const tab = parseInt(savedTab, 10);
-        // Ensure the tab is valid (between 0 and numberOfTabs-1)
-        const maxTabs = props.numberOfTabs || defaultProps.numberOfTabs;
-        if (!isNaN(tab) && tab >= 0 && tab < maxTabs) {
-          console.log(`[Tabs ${id}] Initial active tab from localStorage:`, tab);
-          return tab;
+    // First check if component is being deleted or id is undefined
+    if (pendingDeletion || !id) {
+      console.log('[Tabs] Component is being deleted or ID is undefined, defaulting to tab 0');
+      return 0;
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        const savedTab = localStorage.getItem(tabStorageKey);
+        if (savedTab !== null) {
+          const tab = parseInt(savedTab, 10);
+          // Ensure the tab is valid (between 0 and numberOfTabs-1)
+          const maxTabs = props.numberOfTabs || defaultProps.numberOfTabs;
+          if (!isNaN(tab) && tab >= 0 && tab < maxTabs) {
+            console.log(`[Tabs ${id}] Initial active tab from localStorage:`, tab);
+            return tab;
+          }
         }
       }
+    } catch (error) {
+      // Ignore localStorage errors during component initialization/cleanup
+      console.log(`[Tabs] Ignoring localStorage access during initialization/cleanup:`, error.message);
     }
     return 0; // Default to first tab
   };
@@ -73,19 +122,31 @@ export const Tabs = (props) => {
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
-    console.log(`[Tabs ${id}] Active tab changed to:`, activeTab);
-
-    // Save to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(tabStorageKey, String(activeTab));
-      console.log(`[Tabs ${id}] Saved active tab to localStorage:`, activeTab);
+    // Skip if component is being deleted or id is undefined
+    if (pendingDeletion || !id) {
+      console.log('[Tabs] Skipping localStorage operations - component is being deleted or initialized');
+      return;
     }
 
-    // Ensure tab is valid when numberOfTabs changes
-    if (activeTab >= props.numberOfTabs) {
-      setActiveTab(0);
+    // Use a try-catch block for the entire effect to handle any errors
+    try {
+      console.log(`[Tabs ${id}] Active tab changed to:`, activeTab);
+
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(tabStorageKey, String(activeTab));
+        console.log(`[Tabs ${id}] Saved active tab to localStorage:`, activeTab);
+      }
+
+      // Ensure tab is valid when numberOfTabs changes
+      if (activeTab >= props.numberOfTabs) {
+        setActiveTab(0);
+      }
+    } catch (error) {
+      // Ignore localStorage errors during component cleanup
+      console.log(`[Tabs] Ignoring localStorage operation during cleanup:`, error.message);
     }
-  }, [activeTab, id, tabStorageKey, props.numberOfTabs]);
+  }, [activeTab, id, tabStorageKey, props.numberOfTabs, pendingDeletion]);
 
   const {
     background,
@@ -112,7 +173,16 @@ export const Tabs = (props) => {
 
   const content = (
     <div
-      ref={connect}
+      ref={(dom) => {
+        try {
+          // Only connect if both dom and connect are available, id exists, and component is not being deleted
+          if (dom && connect && id && !pendingDeletion) {
+            connect(dom);
+          }
+        } catch (error) {
+          console.log('[Tabs] Ignoring connector during cleanup:', error.message);
+        }
+      }}
       className={`craft-tabs main-component ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
       style={{
         backgroundColor: `rgba(${Object.values(background)})`,
@@ -147,9 +217,22 @@ export const Tabs = (props) => {
           <div
             key={`tab-${index}`}
             onClick={() => {
-              setActiveTab(index);
-              console.log(`[Tabs ${id}] Clicked on tab:`, index);
-              // The useEffect will handle saving to localStorage
+              // Skip if component is being deleted
+              if (pendingDeletion) {
+                console.log('[Tabs] Ignoring tab click - component is being deleted');
+                return;
+              }
+
+              try {
+                setActiveTab(index);
+                if (id) {
+                  console.log(`[Tabs ${id}] Clicked on tab:`, index);
+                }
+                // The useEffect will handle saving to localStorage
+              } catch (error) {
+                // Ignore errors during component cleanup
+                console.log('[Tabs] Ignoring tab click during cleanup');
+              }
             }}
             style={{
               padding: '8px 16px',
