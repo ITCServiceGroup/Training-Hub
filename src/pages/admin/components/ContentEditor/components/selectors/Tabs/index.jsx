@@ -297,7 +297,7 @@ export const Tabs = (props) => {
                 minHeight: '100px'
               }}
             >
-              {props[`tab${index}Children`]}
+              {/* Children will be rendered here by Craft.js if their parent is this canvas ID */}
             </Element>
           </div>
         ))}

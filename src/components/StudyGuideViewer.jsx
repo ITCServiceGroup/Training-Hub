@@ -413,17 +413,53 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
             // If it's a string that might be double-stringified JSON, try to parse it once
             if (typeof processedContent === 'string') {
               try {
+                console.log('StudyGuideViewer: Processing content of type string');
+
                 // Check if it's a quoted JSON string
                 if (processedContent.trim().startsWith('"') && processedContent.trim().endsWith('"')) {
+                  console.log('StudyGuideViewer: Content appears to be a quoted string, attempting to unquote');
                   const unquoted = JSON.parse(processedContent);
-                  if (typeof unquoted === 'string' &&
-                      (unquoted.includes('"ROOT"') || unquoted.includes('"root"') ||
-                       unquoted.includes('resolvedName'))) {
+
+                  if (typeof unquoted === 'string') {
+                    console.log('StudyGuideViewer: Unquoted content is still a string');
+
+                    if (unquoted.includes('"ROOT"') || unquoted.includes('"root"') || unquoted.includes('resolvedName')) {
+                      console.log('StudyGuideViewer: Unquoted content appears to be Craft.js JSON');
+                      // processedContent = unquoted; // This was the line before, now we use the parsed object directly if possible
+
+                      // Try to parse it to validate and fix any issues
+                      try {
+                        const parsedJson = JSON.parse(unquoted); // Parse the inner JSON string to an object
+                        console.log('StudyGuideViewer: Successfully parsed unquoted content to object.');
+                        // No specific pre-processing needed here for Tabs or CollapsibleSection
+                        // as the components now handle their children via standard Craft.js canvas rendering.
+                        // The CraftRenderer will receive the parsed JSON and Craft.js will resolve children.
+                        processedContent = parsedJson; // Pass the JS object to CraftRenderer
+                      } catch (parseError) {
+                        console.error('StudyGuideViewer: Error parsing unquoted content. Content was:', unquoted, 'Error:', parseError);
+                        // If parsing the unquoted string fails, pass the unquoted string itself.
+                        // CraftRenderer will attempt to parse it.
+                        processedContent = unquoted;
+                      }
+                    }
+                  } else if (typeof unquoted === 'object' && unquoted !== null) {
+                    // If unquoting directly results in an object (content was single-stringified JSON object)
+                    console.log('StudyGuideViewer: Unquoted content is an object. Using directly.');
                     processedContent = unquoted;
+                  }
+                } else if (processedContent.trim().startsWith('{') && processedContent.trim().endsWith('}')) {
+                  // Content is a single-stringified JSON object
+                  try {
+                    const parsedJson = JSON.parse(processedContent);
+                    console.log('StudyGuideViewer: Successfully parsed single-stringified JSON to object.');
+                    processedContent = parsedJson; // Pass the JS object
+                  } catch (e) {
+                    console.error('StudyGuideViewer: Error parsing single-stringified JSON. Passing as string.', e);
+                    // Let CraftRenderer handle it as a string if direct parse fails
                   }
                 }
               } catch (e) {
-                console.log('Failed to pre-process content:', e.message);
+                console.log('StudyGuideViewer: Failed to pre-process content, passing as is:', e.message);
                 // Continue with original content if pre-processing fails
               }
             }

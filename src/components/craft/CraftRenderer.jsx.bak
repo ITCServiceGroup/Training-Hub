@@ -14,6 +14,7 @@ import { Interactive } from '../../pages/admin/components/ContentEditor/componen
 import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
 import { TableText } from '../../pages/admin/components/ContentEditor/components/selectors/Table/TableText';
 import { Tabs } from '../../pages/admin/components/ContentEditor/components/selectors/Tabs'; // Added Tabs import
+import { SteppedCollapsible } from '../../pages/admin/components/ContentEditor/components/selectors/SteppedCollapsible'; // Added SteppedCollapsible import
 import InteractiveRenderer from '../../pages/admin/components/ContentEditor/components/selectors/Interactive/InteractiveRenderer';
 
 import './CraftRenderer.css';
@@ -285,7 +286,9 @@ const CraftRenderer = ({ jsonContent }) => {
             TableText,
             CollapsibleSection,
             'Collapsible Section': CollapsibleSection,
-            Tabs
+            Tabs,
+            SteppedCollapsible,
+            'Stepped Collapsible': SteppedCollapsible
           }}
           enabled={false}
           onRender={({ render, node }) => {
@@ -355,7 +358,28 @@ const CraftRenderer = ({ jsonContent }) => {
                 }
               }
 
+              if (nodeResolvedName === 'Stepped Collapsible' || nodeResolvedName === 'SteppedCollapsible') {
+                // Attempt to correct isCanvas mismatch for existing data
+                if (node.data.isCanvas === true) {
+                  node.data.isCanvas = false;
+                }
 
+                if (node.data.props) {
+                  // Handle border style
+                  if (node.data.props.border && node.data.props.border.style === 'none') {
+                    const originalRender = render;
+                    return (props) => {
+                      const element = originalRender(props);
+                      if (element) {
+                        return React.cloneElement(element, {
+                          className: `${element.props.className || ''} no-border-override`
+                        });
+                      }
+                      return element;
+                    };
+                  }
+                }
+              }
             }
             return render;
           }}

@@ -30,7 +30,7 @@ function deepParseJsonStrings(value) {
         value = JSON.parse(value); // Parse the string first
       } catch (e) {
         // Not valid JSON, or already parsed by a previous step, return original string
-        return value; 
+        return value;
       }
     } else {
       // Not a JSON-like string, return as is
@@ -97,7 +97,7 @@ const sanitizeEditorJson = (jsonData) => {
         console.warn(`Sanitize: Unknown component displayName '${node.data.displayName}' or type '${node.data.type}' not in componentMap.`);
       }
     }
-    
+
     if (node.data.displayName === 'Collapsible Section') {
       node.data.type = CollapsibleSection;
       if (node.data.props && node.data.props.stepsEnabled) {
@@ -236,7 +236,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     const draft = loadDraft(studyGuideId, isNew); // draft.content might be a string or an already parsed object (if from a previous save of editorJson)
 
     if (draft && draft.content) {
-        if (draft.content !== editorJson) { 
+        if (draft.content !== editorJson) {
             if (draft.title && draft.title.trim() !== '' && (!initialTitle || initialTitle.trim() === '')) {
                 setTitle(draft.title);
             }
@@ -263,7 +263,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
                         return; // Critical error
                     }
                 }
-                
+
                 if (contentToProcess && typeof contentToProcess === 'object') {
                     contentToProcess = deepParseJsonStrings(contentToProcess); // Deep parse for nested stringified JSON
                     const sanitizedContent = sanitizeEditorJson(contentToProcess);
@@ -286,7 +286,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       if (!nodeId) return;
       await retryWithBackoff(() => {
         try {
-          if (query.node(nodeId).exists()) { 
+          if (query.node(nodeId).exists()) {
             actions.selectNode(nodeId);
             return true;
           }
@@ -298,7 +298,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     if (contentLoaded || editorJson) {
       restoreSelection();
     }
-    
+
     const handleVisibilityChange = async () => {
       if (document.hidden) {
         const selectedNodes = query.getState().events.selected;
@@ -368,17 +368,17 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
             return; // Critical error
         }
       }
-      
+
       if (parsedData && typeof parsedData === 'object') {
         parsedData = deepParseJsonStrings(parsedData); // Deep parse for nested stringified JSON
-        
+
         if (parsedData.ROOT) {
             const sanitizedData = sanitizeEditorJson(parsedData);
             console.log("Deserializing editorJson prop.");
             actions.deserialize(sanitizedData);
         } else if (Object.keys(parsedData).length === 0 && (editorJson === '{}' || (typeof editorJson === 'object' && Object.keys(editorJson).length === 0))) {
             console.log("Received empty object for editorJson. Craft.js will load default if this is initial.");
-            actions.deserialize(parsedData); 
+            actions.deserialize(parsedData);
         } else if (!parsedData.ROOT) {
             console.warn("Parsed editorJson does not contain ROOT node after all parsing. Skipping deserialize. Final parsedData:", parsedData);
         }
@@ -518,7 +518,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
                 if (window.jsonChangeTimeout) clearTimeout(window.jsonChangeTimeout);
                 window.jsonChangeTimeout = setTimeout(() => {
                   const latestJson = JSON.stringify(query.serialize());
-                  if (latestJson !== editorJson && !window.isCancelingContentEditor) { 
+                  if (latestJson !== editorJson && !window.isCancelingContentEditor) {
                     saveDraft(studyGuideId, { title: document.getElementById('title')?.value || '', content: latestJson });
                     onJsonChange(latestJson);
                   }

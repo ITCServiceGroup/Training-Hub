@@ -1,5 +1,5 @@
 import { useNode, Element } from '@craftjs/core';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react'; // Removed useState
 import { CollapsibleSectionSettings } from './CollapsibleSectionSettings';
 import { Resizer } from '../Resizer';
 
@@ -31,128 +31,55 @@ const defaultProps = {
   headerBackground: { r: 240, g: 240, b: 240, a: 1 },
   headerTextColor: { r: 0, g: 0, b: 0, a: 1 }, // Header text color
   headerFontSize: 16, // Header font size in pixels
-  expanded: false // Default to collapsed in the viewer
+  expanded: false, // Default to collapsed in the viewer
+  currentStep: 1 // Added currentStep to defaultProps
 };
 
-// Keep track of renders for debugging
-const renderCounts = {};
-
-export const CollapsibleSection = (props) => {
+export const CollapsibleSection = (componentProps) => { // Renamed to avoid conflict
   // Merge default props with provided props
-  props = {
+  let props = { // Use let to allow modification for shadow backward compatibility
     ...defaultProps,
-    ...props,
+    ...componentProps,
   };
-
-  // Debug re-renders
-  const nodeInfo = useNode((node) => ({ nodeId: node.id }));
-  const nodeId = nodeInfo.nodeId;
-  if (!renderCounts[nodeId]) {
-    renderCounts[nodeId] = 0;
-  }
-  renderCounts[nodeId]++;
-  console.log(`[CollapsibleSection ${nodeId}] Render #${renderCounts[nodeId]}, props.expanded:`, props.expanded);
 
   // Handle backward compatibility for shadow property
   if (typeof props.shadow === 'number') {
     const shadowValue = props.shadow;
-    props.shadow = {
-      enabled: shadowValue > 0,
-      x: 0,
-      y: 4,
-      blur: 8,
-      spread: 0,
-      color: { r: 0, g: 0, b: 0, a: 0.15 }
+    // Create a new props object with the updated shadow
+    props = {
+      ...props,
+      shadow: {
+        enabled: shadowValue > 0,
+        x: 0,
+        y: 4,
+        blur: 8,
+        spread: 0,
+        color: { r: 0, g: 0, b: 0, a: 0.15 }
+      }
     };
   }
+  // Now 'props' is the final, correctly structured props object to be used throughout.
 
   // Determine if we're in the editor or viewer
   const isInEditor = typeof document !== 'undefined' &&
                     document.querySelector('.craft-editor') !== null;
   const isInViewer = typeof document !== 'undefined' &&
-                    document.querySelector('.craft-renderer') !== null;
+                    document.querySelector('.craft-renderer') !== null; // Keep for potential viewer-specific logic
 
-  // Get the node ID and other info from useNode hook
   const {
     connectors: { connect },
     selected,
     hovered,
-    id
+    id,
+    actions: { setProp }
   } = useNode((node) => ({
     selected: node.events.selected,
     hovered: node.events.hovered,
     id: node.id
   }));
 
-  // Create a stable localStorage key based on the component ID
-  const localStorageKey = `collapsible-section-expanded-${id}`;
-
-  // Initialize expanded state based on localStorage or context
-  const getInitialExpandedState = () => {
-    // Check localStorage first for both editor and viewer contexts
-    if (typeof window !== 'undefined') {
-      const savedState = localStorage.getItem(localStorageKey);
-      if (savedState !== null) {
-        console.log(`[CollapsibleSection ${id}] Initial state from localStorage:`, savedState === 'true');
-        return savedState === 'true';
-      }
-    }
-
-    // If no localStorage state:
-    // In editor context, default to expanded
-    if (isInEditor) {
-      console.log(`[CollapsibleSection ${id}] No localStorage state, defaulting to true in editor`);
-      return true;
-    }
-
-    // In viewer or other contexts, use props or default to false
-    const initialState = props.expanded !== undefined ? props.expanded : false;
-    console.log(`[CollapsibleSection ${id}] Initial state in viewer:`, initialState);
-    return initialState;
-  };
-
-  // Use the initial state from localStorage or defaults
-  const [expanded, setExpanded] = useState(getInitialExpandedState());
-
-  // Debug when expanded state changes
-  useEffect(() => {
-    console.log(`[CollapsibleSection ${id}] Expanded state changed to:`, expanded);
-
-    // Save to localStorage whenever expanded state changes
-    if (isInEditor && typeof window !== 'undefined') {
-      localStorage.setItem(localStorageKey, String(expanded));
-      console.log(`[CollapsibleSection ${id}] Saved to localStorage from useEffect:`, expanded);
-    }
-  }, [expanded, id, isInEditor, localStorageKey]);
-
-  // Check if props.expanded is changing and overriding our state
-  useEffect(() => {
-    if (props.expanded !== undefined) {
-      console.log(`[CollapsibleSection ${id}] props.expanded changed to:`, props.expanded);
-      console.log(`[CollapsibleSection ${id}] Current state is:`, expanded);
-
-      // If props.expanded is different from our state, it might be overriding it
-      if (props.expanded !== expanded) {
-        console.log(`[CollapsibleSection ${id}] WARNING: props.expanded (${props.expanded}) is different from state (${expanded})`);
-
-        // IMPORTANT: In the editor, we want to prioritize our localStorage state over props
-        if (isInEditor && typeof window !== 'undefined') {
-          const savedState = localStorage.getItem(localStorageKey);
-          if (savedState !== null) {
-            const savedExpanded = savedState === 'true';
-            if (savedExpanded !== props.expanded) {
-              console.log(`[CollapsibleSection ${id}] Overriding props.expanded with localStorage value:`, savedExpanded);
-              // Use a timeout to ensure this happens after any other state updates
-              setTimeout(() => {
-                setExpanded(savedExpanded);
-              }, 0);
-            }
-          }
-        }
-      }
-    }
-  }, [props.expanded, expanded, id, isInEditor, localStorageKey]);
-  // Extract all props first
+  // Extract props, including `expanded` and `currentStep` which are now managed by Craft.js
+  // These are now extracted from the 'props' which is the merged and potentially modified object
   const {
     background,
     color,
@@ -169,149 +96,47 @@ export const CollapsibleSection = (props) => {
     headerBackground,
     headerTextColor,
     headerFontSize,
+    expanded, // Directly from props
+    currentStep // Directly from props
   } = props;
 
-  // Create a localStorage key for the current step
-  const stepStorageKey = `collapsible-section-step-${id}`;
 
-  // Initialize currentStep from localStorage or default to 1
-  const getInitialStep = () => {
-    if (typeof window !== 'undefined') {
-      const savedStep = localStorage.getItem(stepStorageKey);
-      if (savedStep !== null) {
-        const step = parseInt(savedStep, 10);
-        const maxSteps = numberOfSteps || 1; // Ensure we have a valid number
-        // Ensure the step is valid (between 1 and numberOfSteps)
-        if (!isNaN(step) && step >= 1 && step <= maxSteps) {
-          console.log(`[CollapsibleSection ${id}] Initial step from localStorage:`, step);
-          return step;
-        }
-      }
-    }
-    return 1; // Default to first step
-  };
-
-  const [currentStep, setCurrentStep] = useState(getInitialStep);
-
-  // Custom setExpanded function that allows toggling in both editor and viewer
-  const handleSetExpanded = (newExpandedState) => {
-    console.log(`[CollapsibleSection ${id}] Setting expanded state to:`, newExpandedState, 'Triggered by user click');
-
-    // Allow toggling in both editor and viewer
-    setExpanded(newExpandedState);
-
-    // Save the state to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(localStorageKey, String(newExpandedState));
-      console.log(`[CollapsibleSection ${id}] Saved to localStorage from handleSetExpanded:`, newExpandedState);
-    }
-  };
-
-  // Props are already extracted above
-
-  // Track component lifecycle
+  // Ensure currentStep is valid when numberOfSteps changes
   useEffect(() => {
-    console.log(`[CollapsibleSection ${id}] Component mounted`);
-
-    // Check if there are any props that might be causing re-renders
-    console.log(`[CollapsibleSection ${id}] Props:`, {
-      title,
-      width,
-      height,
-      stepsEnabled,
-      numberOfSteps
-    });
-
-    return () => {
-      console.log(`[CollapsibleSection ${id}] Component unmounted`);
-    };
-  }, [id, title, width, height, stepsEnabled, numberOfSteps]);
-
-  // Track props changes
-  useEffect(() => {
-    console.log(`[CollapsibleSection ${id}] Props changed:`, {
-      title,
-      width,
-      height,
-      stepsEnabled,
-      numberOfSteps,
-      'props.expanded': props.expanded
-    });
-  }, [id, title, width, height, stepsEnabled, numberOfSteps, props.expanded]);
-
-  // We no longer force the component to always be expanded in the editor
-  // Instead, we respect the user's preference saved in localStorage
-
-  // Save currentStep to localStorage whenever it changes
-  useEffect(() => {
-    console.log(`[CollapsibleSection ${id}] Current step changed to:`, currentStep);
-
-    // Save to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(stepStorageKey, String(currentStep));
-      console.log(`[CollapsibleSection ${id}] Saved step to localStorage:`, currentStep);
+    if (stepsEnabled && props.currentStep > props.numberOfSteps) { // Use props.currentStep and props.numberOfSteps
+      setProp(propUpdater => propUpdater.currentStep = 1);
     }
-
-    // Ensure step is valid when numberOfSteps changes
-    if (currentStep > numberOfSteps) {
-      setCurrentStep(1);
-    }
-  }, [numberOfSteps, currentStep, id, stepStorageKey]);
+  }, [props.numberOfSteps, props.currentStep, stepsEnabled, setProp]);
 
   const handleNextStep = () => {
-    if (currentStep < numberOfSteps) {
-      const newStep = currentStep + 1;
-      setCurrentStep(newStep);
-
-      // We don't need to explicitly save to localStorage here since the useEffect will handle it
-      console.log(`[CollapsibleSection ${id}] Moving to next step:`, newStep);
+    if (props.currentStep < props.numberOfSteps) { // Use props.currentStep and props.numberOfSteps
+      const newStep = props.currentStep + 1;
+      setProp(propUpdater => propUpdater.currentStep = newStep);
     }
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 1) {
-      const newStep = currentStep - 1;
-      setCurrentStep(newStep);
-
-      // We don't need to explicitly save to localStorage here since the useEffect will handle it
-      console.log(`[CollapsibleSection ${id}] Moving to previous step:`, newStep);
+    if (props.currentStep > 1) { // Use props.currentStep
+      const newStep = props.currentStep - 1;
+      setProp(propUpdater => propUpdater.currentStep = newStep);
     }
   };
 
-  // Initialize step children with props or empty arrays
-  const stepChildren = {};
-  for (let i = 1; i <= numberOfSteps; i++) {
-    const stepPropName = `step${i}Children`;
-    stepChildren[i] = props[stepPropName] || [];
-  }
-
-  // Debug step children
-  useEffect(() => {
-    if (stepsEnabled) {
-      for (let i = 1; i <= numberOfSteps; i++) {
-        const stepPropName = `step${i}Children`;
-        if (props[stepPropName] && props[stepPropName].length > 0) {
-          console.log(`[CollapsibleSection ${id}] Step ${i} has ${props[stepPropName].length} children:`, props[stepPropName]);
-        }
-      }
-    }
-  }, [id, stepsEnabled, numberOfSteps, props]);
-
   // Extract margin values [Top, Right, Bottom, Left]
-  const topMarginValue = parseInt(margin[0]) || 0;
-  const rightMarginValue = parseInt(margin[3]) || 0;
-  const bottomMarginValue = parseInt(margin[2]) || 0;
-  const leftMarginValue = parseInt(margin[1]) || 0;
+  const topMarginValue = parseInt(props.margin[0]) || 0;
+  const rightMarginValue = parseInt(props.margin[1]) || 0; // Corrected index for right margin
+  const bottomMarginValue = parseInt(props.margin[2]) || 0;
+  const leftMarginValue = parseInt(props.margin[3]) || 0; // Corrected index for left margin
 
   const content = (
     <div
       ref={connect}
       className={`craft-collapsible-section main-component ${isInViewer ? 'in-viewer' : ''} ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
       style={{
-        backgroundColor: `rgba(${Object.values(background)})`,
-        color: `rgba(${Object.values(color)})`,
-        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-        borderRadius: `${radius}px`,
+        backgroundColor: `rgba(${Object.values(props.background)})`,
+        color: `rgba(${Object.values(props.color)})`,
+        padding: `${props.padding[0]}px ${props.padding[1]}px ${props.padding[2]}px ${props.padding[3]}px`,
+        borderRadius: `${props.radius}px`,
         border: 'none',
         width: '100%',
         position: 'relative',
@@ -320,51 +145,51 @@ export const CollapsibleSection = (props) => {
       data-id={id}
     >
       <div
-        className={`craft-collapsible-header ${border.style === 'none' ? 'no-border' : ''}`}
+        className={`craft-collapsible-header ${props.border.style === 'none' ? 'no-border' : ''}`}
         style={{
-          backgroundColor: `rgba(${Object.values(headerBackground)})`,
-          borderBottom: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
-          borderTop: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
-          borderLeft: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
-          borderRight: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
+          backgroundColor: `rgba(${Object.values(props.headerBackground)})`,
+          borderBottom: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
+          borderTop: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
+          borderLeft: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
+          borderRight: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
           padding: '10px',
-          borderTopLeftRadius: `${radius}px`,
-          borderTopRightRadius: `${radius}px`,
-          borderBottomLeftRadius: expanded ? '0px' : `${radius}px`,
-          borderBottomRightRadius: expanded ? '0px' : `${radius}px`,
+          borderTopLeftRadius: `${props.radius}px`,
+          borderTopRightRadius: `${props.radius}px`,
+          borderBottomLeftRadius: props.expanded ? '0px' : `${props.radius}px`,
+          borderBottomRightRadius: props.expanded ? '0px' : `${props.radius}px`,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           cursor: 'pointer',
-          boxShadow: !expanded && shadow.enabled
-            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
+          boxShadow: !props.expanded && props.shadow.enabled
+            ? `${props.shadow.x}px ${props.shadow.y}px ${props.shadow.blur}px ${props.shadow.spread}px rgba(${Object.values(props.shadow.color)})`
             : 'none',
         }}
-        onClick={() => handleSetExpanded(!expanded)}
+        onClick={() => setProp(propUpdater => propUpdater.expanded = !props.expanded)}
       >
         <div style={{
           fontWeight: 'bold',
-          fontSize: `${headerFontSize}px`,
-          color: `rgba(${Object.values(headerTextColor)})`
-        }}>{title}</div>
-        <div style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+          fontSize: `${props.headerFontSize}px`,
+          color: `rgba(${Object.values(props.headerTextColor)})`
+        }}>{props.title}</div>
+        <div style={{ transform: props.expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
           ▼
         </div>
       </div>
 
-      {expanded && (
-        <div className={`craft-collapsible-content ${border.style === 'none' ? 'no-border' : ''}`} style={{
+      {props.expanded && (
+        <div className={`craft-collapsible-content ${props.border.style === 'none' ? 'no-border' : ''}`} style={{
           padding: '10px',
-          borderLeft: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
-          borderRight: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
-          borderBottom: border.style !== 'none' ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})` : 'none',
-          borderBottomLeftRadius: `${radius}px`,
-          borderBottomRightRadius: `${radius}px`,
-          boxShadow: expanded && shadow.enabled
-            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
+          borderLeft: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
+          borderRight: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
+          borderBottom: props.border.style !== 'none' ? `${props.border.width}px ${props.border.style} rgba(${Object.values(props.border.color)})` : 'none',
+          borderBottomLeftRadius: `${props.radius}px`,
+          borderBottomRightRadius: `${props.radius}px`,
+          boxShadow: props.expanded && props.shadow.enabled
+            ? `${props.shadow.x}px ${props.shadow.y}px ${props.shadow.blur}px ${props.shadow.spread}px rgba(${Object.values(props.shadow.color)})`
             : 'none',
         }}>
-          {stepsEnabled ? (
+          {props.stepsEnabled ? (
             <>
               <div className="craft-steps-header" style={{ marginBottom: '10px' }}>
                 <div style={{
@@ -373,9 +198,9 @@ export const CollapsibleSection = (props) => {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  {Array.from({ length: numberOfSteps }, (_, i) => {
+                  {Array.from({ length: props.numberOfSteps }, (_, i) => {
                     const stepNumber = i + 1;
-                    const isCurrentStep = stepNumber === currentStep;
+                    const isCurrentStep = stepNumber === props.currentStep;
 
                     return (
                       <div
@@ -397,9 +222,7 @@ export const CollapsibleSection = (props) => {
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setCurrentStep(stepNumber);
-                          console.log(`[CollapsibleSection ${id}] Clicked on step indicator:`, stepNumber);
-                          // The useEffect will handle saving to localStorage
+                          setProp(propUpdater => propUpdater.currentStep = stepNumber);
                         }}
                       >
                         {stepNumber}
@@ -410,14 +233,14 @@ export const CollapsibleSection = (props) => {
               </div>
 
               <div className="craft-steps-container">
-                {Array.from({ length: numberOfSteps }, (_, i) => {
+                {Array.from({ length: props.numberOfSteps }, (_, i) => {
                   const stepNumber = i + 1;
 
                   return (
                     <div
                       key={`step-${stepNumber}-container`}
                       style={{
-                        display: stepNumber === currentStep ? 'block' : 'none',
+                        display: stepNumber === props.currentStep ? 'block' : 'none',
                         width: '100%'
                       }}
                     >
@@ -435,7 +258,7 @@ export const CollapsibleSection = (props) => {
                           padding: '8px'
                         }}
                       >
-                        {props[`step${stepNumber}Children`]}
+                        {/* Children will be rendered here by Craft.js if their parent is this canvas ID */}
                       </Element>
                     </div>
                   );
@@ -452,18 +275,18 @@ export const CollapsibleSection = (props) => {
                   className="craft-step-nav-button"
                   style={{
                     padding: '5px 10px',
-                    backgroundColor: currentStep > 1 ? '#0d9488' : '#e5e7eb',
-                    color: currentStep > 1 ? 'white' : '#9ca3af',
+                    backgroundColor: props.currentStep > 1 ? '#0d9488' : '#e5e7eb',
+                    color: props.currentStep > 1 ? 'white' : '#9ca3af',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: currentStep > 1 ? 'pointer' : 'not-allowed',
-                    opacity: currentStep > 1 ? 1 : 0.7,
+                    cursor: props.currentStep > 1 ? 'pointer' : 'not-allowed',
+                    opacity: props.currentStep > 1 ? 1 : 0.7,
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePrevStep();
                   }}
-                  disabled={currentStep <= 1}
+                  disabled={props.currentStep <= 1}
                 >
                   ← Back
                 </button>
@@ -472,18 +295,18 @@ export const CollapsibleSection = (props) => {
                   className="craft-step-nav-button"
                   style={{
                     padding: '5px 10px',
-                    backgroundColor: currentStep < numberOfSteps ? '#0d9488' : '#e5e7eb',
-                    color: currentStep < numberOfSteps ? 'white' : '#9ca3af',
+                    backgroundColor: props.currentStep < props.numberOfSteps ? '#0d9488' : '#e5e7eb',
+                    color: props.currentStep < props.numberOfSteps ? 'white' : '#9ca3af',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: currentStep < numberOfSteps ? 'pointer' : 'not-allowed',
-                    opacity: currentStep < numberOfSteps ? 1 : 0.7,
+                    cursor: props.currentStep < props.numberOfSteps ? 'pointer' : 'not-allowed',
+                    opacity: props.currentStep < props.numberOfSteps ? 1 : 0.7,
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleNextStep();
                   }}
-                  disabled={currentStep >= numberOfSteps}
+                  disabled={props.currentStep >= props.numberOfSteps}
                 >
                   Next →
                 </button>
@@ -529,8 +352,8 @@ export const CollapsibleSection = (props) => {
           <Resizer
             propKey={{ width: 'width', height: 'height' }}
             style={{
-              width,
-              height,
+              width: props.width, // Ensure Resizer gets width from final props
+              height: props.height, // Ensure Resizer gets height from final props
               margin: 0
             }}
           >
@@ -553,7 +376,7 @@ export const CollapsibleSection = (props) => {
 };
 
 CollapsibleSection.craft = {
-  displayName: 'Collapsible Section',
+  displayName: 'CollapsibleSection',
   props: defaultProps,
   rules: {
     canDrag: () => true,
