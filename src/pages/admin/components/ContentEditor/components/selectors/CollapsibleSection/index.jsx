@@ -25,7 +25,7 @@ const defaultProps = {
   },
   width: 'auto',
   height: 'auto',
-  title: 'Collapsible Section',
+  title: 'CollapsibleSection',
   stepsEnabled: false,
   numberOfSteps: 3,
   headerBackground: { r: 240, g: 240, b: 240, a: 1 },

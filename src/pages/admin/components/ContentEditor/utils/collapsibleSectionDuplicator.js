@@ -14,23 +14,13 @@ import { CollapsibleSection } from '../components/selectors/CollapsibleSection';
  * @returns {Object} The new node
  */
 export const duplicateCollapsibleSection = (node, query, actions, currentParent, nodeIndex) => {
-  console.log('Duplicating CollapsibleSection with special handler');
+  console.log('[CollapsibleSectionDuplicator] Duplicating CollapsibleSection with special handler');
 
   // Start a batch of actions that will be treated as a single undo step
   const throttledActions = actions.history.throttle(100);
 
   // Create a deep copy of the props
   const nodeProps = { ...node.data.props };
-
-  // Prepare step children arrays if steps are enabled
-  if (nodeProps.stepsEnabled) {
-    const numberOfSteps = nodeProps.numberOfSteps || 3;
-    for (let i = 1; i <= numberOfSteps; i++) {
-      const stepPropName = `step${i}Children`;
-      // Initialize as empty array
-      nodeProps[stepPropName] = [];
-    }
-  }
 
   // Create a fresh node with the same properties
   const freshNode = {
@@ -39,76 +29,113 @@ export const duplicateCollapsibleSection = (node, query, actions, currentParent,
       props: nodeProps,
       custom: node.data.custom ? { ...node.data.custom } : undefined,
       isCanvas: !!node.data.isCanvas,
-      displayName: 'Collapsible Section', // Use the exact display name
+      displayName: 'CollapsibleSection', // Use the exact display name
       linkedNodes: {} // Initialize empty linkedNodes object
     }
   };
 
   // Create the new node
   const newNode = query.parseFreshNode(freshNode).toNode();
-  console.log('New CollapsibleSection node created:', newNode);
+  console.log('[CollapsibleSectionDuplicator] New CollapsibleSection node created:', newNode.id);
 
   // Add the new node to the same parent as the original, right after it
-  console.log('Adding new CollapsibleSection to parent:', currentParent, 'at index:', nodeIndex + 1);
+  console.log('[CollapsibleSectionDuplicator] Adding new CollapsibleSection to parent:', currentParent, 'at index:', nodeIndex + 1);
   throttledActions.add(newNode, currentParent, nodeIndex + 1);
 
   /**
    * Helper function to recursively duplicate a node and all its descendants
    * @param {string} originalNodeId - ID of the node to duplicate
    * @param {string} newParentIdForThisNode - ID of where to add the duplicated node
-   * @param {Object} throttledActions - Batched actions object
-   * @param {Object} query - Craft.js query object
    * @returns {Object} The newly created top node of the duplicated subtree
    */
   function duplicateSubTree(originalNodeId, newParentIdForThisNode) {
-    const originalNode = query.node(originalNodeId).get();
-    console.log(`[CollapsibleSectionDuplicator] Duplicating subtree for node ${originalNodeId} (${originalNode.data.displayName})`);
+    try {
+      const originalNode = query.node(originalNodeId).get();
+      console.log(`[CollapsibleSectionDuplicator] Duplicating subtree for node ${originalNodeId} (${originalNode.data.displayName})`);
 
-    // Create a fresh version of this node
-    const freshNodeData = {
-      data: {
-        type: query.getOptions().resolver[originalNode.data.displayName] || originalNode.data.type,
-        props: { ...originalNode.data.props },
-        custom: originalNode.data.custom ? { ...originalNode.data.custom } : undefined,
-        isCanvas: !!originalNode.data.isCanvas,
-        displayName: originalNode.data.displayName,
-        linkedNodes: {} // Assuming simple children for now
+      // Create a fresh version of this node
+      const freshNodeData = {
+        data: {
+          type: query.getOptions().resolver[originalNode.data.displayName] || originalNode.data.type,
+          props: { ...originalNode.data.props },
+          custom: originalNode.data.custom ? { ...originalNode.data.custom } : undefined,
+          isCanvas: !!originalNode.data.isCanvas,
+          displayName: originalNode.data.displayName,
+          linkedNodes: {} // Initialize empty linkedNodes object
+        }
+      };
+
+      // Create the new node instance
+      const newCreatedNode = query.parseFreshNode(freshNodeData).toNode();
+
+      // Add this newly created node to its new parent
+      throttledActions.add(newCreatedNode, newParentIdForThisNode);
+      console.log(`[CollapsibleSectionDuplicator] Added subtree node ${newCreatedNode.id} (${newCreatedNode.data.displayName}) to parent ${newParentIdForThisNode}`);
+
+      // If the original node has linkedNodes, duplicate them too
+      if (originalNode.data.linkedNodes && Object.keys(originalNode.data.linkedNodes).length > 0) {
+        console.log(`[CollapsibleSectionDuplicator] Node ${originalNodeId} has linkedNodes:`, originalNode.data.linkedNodes);
+
+        Object.entries(originalNode.data.linkedNodes).forEach(([linkedNodeKey, linkedNodeId]) => {
+          try {
+            // Verify the linked node exists before duplicating
+            query.node(linkedNodeId).get();
+            const newLinkedNode = duplicateSubTree(linkedNodeId, newCreatedNode.id);
+
+            // Link the new node
+            actions.setState(state => {
+              const targetNode = state.nodes[newCreatedNode.id];
+              if (targetNode && targetNode.data) {
+                if (!targetNode.data.linkedNodes) {
+                  targetNode.data.linkedNodes = {};
+                }
+                targetNode.data.linkedNodes[linkedNodeKey] = newLinkedNode.id;
+              }
+              return state;
+            });
+
+            console.log(`[CollapsibleSectionDuplicator] Linked node ${newLinkedNode.id} to ${newCreatedNode.id} with key ${linkedNodeKey}`);
+          } catch (error) {
+            console.error(`[CollapsibleSectionDuplicator] Error duplicating linkedNode ${linkedNodeKey}:${linkedNodeId}:`, error);
+          }
+        });
       }
-    };
 
-    // Create the new node instance
-    const newCreatedNode = query.parseFreshNode(freshNodeData).toNode();
-    
-    // Add this newly created node to its new parent
-    throttledActions.add(newCreatedNode, newParentIdForThisNode);
-    console.log(`[CollapsibleSectionDuplicator] Added subtree node ${newCreatedNode.id} (${newCreatedNode.data.displayName}) to parent ${newParentIdForThisNode}`);
+      // If the original node had children, recursively duplicate them under the newCreatedNode
+      if (originalNode.data.nodes && originalNode.data.nodes.length > 0) {
+        console.log(`[CollapsibleSectionDuplicator] Node ${originalNodeId} has ${originalNode.data.nodes.length} children to process`);
+        originalNode.data.nodes.forEach(childId => {
+          duplicateSubTree(childId, newCreatedNode.id);
+        });
+      }
 
-    // If the original node had children, recursively duplicate them under the newCreatedNode
-    if (originalNode.data.nodes && originalNode.data.nodes.length > 0) {
-      console.log(`[CollapsibleSectionDuplicator] Node ${originalNodeId} has ${originalNode.data.nodes.length} children to process`);
-      originalNode.data.nodes.forEach(childId => {
-        duplicateSubTree(childId, newCreatedNode.id);
-      });
+      return newCreatedNode;
+    } catch (error) {
+      console.error(`[CollapsibleSectionDuplicator] Error in duplicateSubTree for node ${originalNodeId}:`, error);
+      return null;
     }
-
-    return newCreatedNode;
   }
 
   // Now duplicate the linkedNodes (step canvases or content canvas)
   if (node.data.linkedNodes && Object.keys(node.data.linkedNodes).length > 0) {
-    console.log('CollapsibleSection has linkedNodes:', node.data.linkedNodes);
+    console.log('[CollapsibleSectionDuplicator] CollapsibleSection has linkedNodes:', node.data.linkedNodes);
 
     // Process each linkedNode
     Object.entries(node.data.linkedNodes).forEach(([linkedNodeKey, linkedNodeId]) => {
-      console.log(`Duplicating CollapsibleSection linkedNode ${linkedNodeKey}:${linkedNodeId}`);
+      console.log(`[CollapsibleSectionDuplicator] Duplicating CollapsibleSection linkedNode ${linkedNodeKey}:${linkedNodeId}`);
 
       try {
         // Get the linkedNode to duplicate
         const linkedNodeToDuplicate = query.node(linkedNodeId).get();
 
-        // Check if this is a step canvas or content canvas
-        const isStepCanvas = linkedNodeKey.startsWith('step-') && linkedNodeKey.endsWith('-canvas');
-        const isContentCanvas = linkedNodeKey === 'content-canvas';
+        // Log the type of canvas we're duplicating
+        console.log(`[CollapsibleSectionDuplicator] Duplicating ${
+          linkedNodeKey.startsWith('step-') && linkedNodeKey.endsWith('-canvas')
+            ? 'step canvas'
+            : linkedNodeKey === 'content-canvas'
+              ? 'content canvas'
+              : 'unknown canvas type'
+        }: ${linkedNodeKey}`);
 
         // Create a fresh linkedNode
         const freshLinkedNode = {
@@ -128,19 +155,10 @@ export const duplicateCollapsibleSection = (node, query, actions, currentParent,
         // Add the new linkedNode
         throttledActions.add(newLinkedNode, newNode.id);
 
-        // Link the new node to the parent
-        // console.log('Inspecting actions object before setNodeData:', actions); // Removed for this attempt
-        // actions.setNodeData(newNode.id, (data) => { // OLD, FAILING LINE
-        //   if (!data.linkedNodes) {
-        //     data.linkedNodes = {};
-        //   }
-        //   data.linkedNodes[linkedNodeKey] = newLinkedNode.id;
-        // });
-
-        // NEW ATTEMPT using actions.setState
+        // Link the new node to the parent using setState (similar to Tabs component)
         actions.setState(state => {
           const targetNode = state.nodes[newNode.id];
-          if (targetNode && targetNode.data) { // Ensure targetNode and targetNode.data exist
+          if (targetNode && targetNode.data) {
             if (!targetNode.data.linkedNodes) {
               targetNode.data.linkedNodes = {};
             }
@@ -148,18 +166,14 @@ export const duplicateCollapsibleSection = (node, query, actions, currentParent,
           } else {
             console.error(`[CollapsibleSectionDuplicator] Target node ${newNode.id} or its data not found in state for linking.`);
           }
-          // Craft.js uses Immer for setState, so direct mutation of the draft state is expected.
-          // No explicit return of a new state object is needed if Immer is correctly proxying the state.
-          // However, to be absolutely safe or if Immer's behavior is uncertain here,
-          // one might consider returning a new state, but this is usually not necessary with Craft.js.
-          return state; // Let Immer handle the new state generation from mutations
+          return state;
         });
 
-        console.log(`Linked new node ${newLinkedNode.id} to CollapsibleSection ${newNode.id} with key ${linkedNodeKey} using setState`);
+        console.log(`[CollapsibleSectionDuplicator] Linked new node ${newLinkedNode.id} to CollapsibleSection ${newNode.id} with key ${linkedNodeKey}`);
 
         // If the linkedNode has children, duplicate them too
         if (linkedNodeToDuplicate.data.nodes && linkedNodeToDuplicate.data.nodes.length > 0) {
-          console.log(`LinkedNode ${linkedNodeId} has children:`, linkedNodeToDuplicate.data.nodes);
+          console.log(`[CollapsibleSectionDuplicator] LinkedNode ${linkedNodeId} has ${linkedNodeToDuplicate.data.nodes.length} children to process`);
 
           // Process each child and its descendants recursively
           linkedNodeToDuplicate.data.nodes.forEach(childId => {
@@ -172,11 +186,11 @@ export const duplicateCollapsibleSection = (node, query, actions, currentParent,
           });
         }
       } catch (error) {
-        console.error(`Error duplicating linkedNode ${linkedNodeKey}:${linkedNodeId}:`, error);
+        console.error(`[CollapsibleSectionDuplicator] Error duplicating linkedNode ${linkedNodeKey}:${linkedNodeId}:`, error);
       }
     });
   }
 
-  console.log('CollapsibleSection structure and linked canvases duplicated successfully.');
+  console.log('[CollapsibleSectionDuplicator] CollapsibleSection structure and linked canvases duplicated successfully.');
   return newNode;
 };

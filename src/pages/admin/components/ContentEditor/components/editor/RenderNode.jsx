@@ -66,7 +66,7 @@ export const RenderNode = ({ render }) => {
       try {
         const parentNode = query.node(parent).get();
         const parentName = parentNode.data.displayName || parentNode.data.name;
-        isChildOfCollapsibleSection = parentName === 'Collapsible Section';
+        isChildOfCollapsibleSection = parentName === 'CollapsibleSection';
       } catch (e) {
         // Ignore errors
       }
@@ -355,7 +355,7 @@ export const RenderNode = ({ render }) => {
                       console.log('Current parent:', currentParent);
 
                       // Special handling for components with linked nodes
-                      if (node.data.displayName === 'Collapsible Section') {
+                      if (node.data.displayName === 'CollapsibleSection') {
                         console.log('Duplicating CollapsibleSection component with special handler');
 
                         try {
@@ -651,7 +651,7 @@ export const RenderNode = ({ render }) => {
                     const node = query.node(id).get();
 
                     // Special handling for components with linked nodes
-                    if (node.data.displayName === 'Collapsible Section' || node.data.displayName === 'Tabs') {
+                    if (node.data.displayName === 'CollapsibleSection' || node.data.displayName === 'Tabs') {
                       try {
                         // Get the node's parent
                         const parentId = node.data.parent;
