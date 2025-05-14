@@ -105,7 +105,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
             }}
             onCancel={() => setIsEditing(false)}
             isEditing={true}
-            darkMode={true}
+            darkMode={isDark}
           />
         </div>
       )}

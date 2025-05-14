@@ -79,15 +79,6 @@ const AdminLayout = () => {
 
   // Tailwind classes will be used instead of these style objects
 
-  const getInitials = (email) => {
-    if (!email) return 'A';
-    const parts = email.split('@')[0].split('.');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return email.substring(0, 2).toUpperCase();
-  };
-
   // Get page title based on active tab
   const getPageTitle = () => {
     switch (activeTab) {
@@ -117,7 +108,7 @@ const AdminLayout = () => {
       }}
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0">
-        <div className="w-[250px] bg-slate-800 dark:bg-slate-900 text-white py-8 flex-shrink-0 mt-0">
+        <div className="w-[250px] bg-slate-800 dark:bg-slate-900 text-white py-8 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
           <ul className="list-none p-0 m-0">
             <li
               className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
@@ -199,23 +190,7 @@ const AdminLayout = () => {
           </ul>
         </div>
 
-        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-auto mt-0">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[1.75rem] text-slate-900 dark:text-white m-0">
-              {getPageTitle()}
-            </h2>
-
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-teal-700 dark:bg-teal-600 text-white flex items-center justify-center font-bold">
-                {getInitials(user?.email)}
-              </div>
-              <div>
-                <div className="font-bold dark:text-white">{user?.email || 'Administrator'}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-300">Admin</div>
-              </div>
-            </div>
-          </div>
-
+        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto mt-0 h-[calc(100vh-73px)]">
           {/* Render the child routes */}
           <Outlet />
         </div>

@@ -203,7 +203,6 @@ const Results = () => {
       </div>
 
       <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Results</h2>
 
         {error ? (
           <div className="p-4 text-center text-red-600 dark:text-red-400">

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import MultipleChoiceForm from './question-types/MultipleChoiceForm';
 import CheckAllThatApplyForm from './question-types/CheckAllThatApplyForm';
 import TrueFalseForm from './question-types/TrueFalseForm';
 
 const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [formData, setFormData] = useState({
     question_text: '',
     question_type: 'multiple_choice',
@@ -65,15 +68,19 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>
+        <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg`}>{error}</div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-1`}>
           Question Text
         </label>
         <textarea
-          className="w-full py-2 px-3 border border-slate-300 rounded-md"
+          className={`w-full py-2 px-3 border ${
+            isDark
+              ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
+              : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
+          } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
           value={formData.question_text}
           onChange={(e) => handleChange('question_text', e.target.value)}
           rows={3}
@@ -84,11 +91,15 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-1`}>
           Question Type
         </label>
         <select
-          className="w-full py-2 px-3 border border-slate-300 rounded-md"
+          className={`w-full py-2 px-3 border ${
+            isDark
+              ? 'border-slate-600 bg-slate-700 text-white'
+              : 'border-slate-300 bg-white text-slate-900'
+          } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
           value={formData.question_type}
           onChange={(e) => handleQuestionTypeChange(e.target.value)}
           required
@@ -110,6 +121,7 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
             handleChange('correct_answer', correctAnswer);
           }}
           disabled={isLoading}
+          isDark={isDark}
         />
       )}
 
@@ -122,6 +134,7 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
             handleChange('correct_answer', correctAnswers);
           }}
           disabled={isLoading}
+          isDark={isDark}
         />
       )}
 
@@ -132,15 +145,20 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
             handleChange('correct_answer', correctAnswer);
           }}
           disabled={isLoading}
+          isDark={isDark}
         />
       )}
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-1`}>
           Explanation (shown for incorrect answers in practice mode)
         </label>
         <textarea
-          className="w-full py-2 px-3 border border-slate-300 rounded-md"
+          className={`w-full py-2 px-3 border ${
+            isDark
+              ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
+              : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
+          } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
           value={formData.explanation}
           onChange={(e) => handleChange('explanation', e.target.value)}
           rows={3}
@@ -152,7 +170,11 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
       <div className="flex justify-end space-x-4">
         <button
           type="button"
-          className="py-2 px-4 bg-slate-500 text-white rounded-md hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`py-2 px-4 ${
+            isDark
+              ? 'bg-slate-700 hover:bg-slate-600'
+              : 'bg-slate-500 hover:bg-slate-600'
+          } text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed`}
           onClick={onCancel}
           disabled={isLoading}
         >

@@ -51,7 +51,7 @@ const SettingsPage = () => {
 
   // Quiz settings state
   const [quizSettings, setQuizSettings] = useState({
-    defaultTimer: 60,
+    defaultTimer: 0,
     defaultQuestionRandomization: true,
     defaultAnswerRandomization: true,
   });
@@ -530,7 +530,7 @@ const SettingsPage = () => {
             <h2 className="text-xl font-medium mb-4 dark:text-white">Quiz Creation Defaults</h2>
             <div className="space-y-6">
               {/* Default Quiz Timer with Slider */}
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label htmlFor="defaultTimer" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Default Quiz Timer
                   <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">{quizSettings.defaultTimer} minutes</span>
@@ -541,14 +541,14 @@ const SettingsPage = () => {
                   name="defaultTimer"
                   value={quizSettings.defaultTimer}
                   onChange={handleQuizSettingChange}
-                  min="1"
+                  min="0"
                   max="180"
                   step="5"
                   className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
                 />
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span>1 min</span>
-                  <span>60 min</span>
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-0.5">
+                  <span>0 min</span>
+                  <span className="absolute left-1/2 transform -translate-x-1/2">90 min</span>
                   <span>180 min</span>
                 </div>
               </div>

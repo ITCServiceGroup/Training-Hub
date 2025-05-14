@@ -156,7 +156,7 @@ const SectionAdminGrid = ({
         <SectionForm
           onSubmit={onAdd}
           onCancel={() => setIsCreating(false)}
-          darkMode={true}
+          darkMode={isDark}
         />
       ) : displaySections.length === 0 ? (
         <div className="text-center p-12 text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-lg">

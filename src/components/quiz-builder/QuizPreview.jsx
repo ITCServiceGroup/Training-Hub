@@ -62,9 +62,9 @@ const QuizPreview = ({ quiz }) => {
         return (
           <div className="space-y-3">
             {question.options.map((option, index) => (
-              <div
+              <button
                 key={index}
-                className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                className={`w-full p-3 border rounded-md cursor-pointer transition-colors text-left flex items-center ${
                   selectedAnswers[question.id] === option
                     ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
                     : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
@@ -74,17 +74,17 @@ const QuizPreview = ({ quiz }) => {
                   [question.id]: option
                 })}
               >
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name={`preview-answer-${question.id}`}
-                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}
-                    checked={selectedAnswers[question.id] === option}
-                    onChange={() => {}}
-                  />
-                  <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>{option}</span>
-                </label>
-              </div>
+                <div className="flex items-center">
+                  <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2
+                    ${isDark ? 'border-slate-400' : 'border-slate-300'}
+                    ${selectedAnswers[question.id] === option ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                    {selectedAnswers[question.id] === option && (
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                  <span className={`${isDark ? 'text-gray-300' : 'text-slate-700'}`}>{option}</span>
+                </div>
+              </button>
             ))}
           </div>
         );
@@ -93,9 +93,9 @@ const QuizPreview = ({ quiz }) => {
         return (
           <div className="space-y-3">
             {question.options.map((option, index) => (
-              <div
+              <button
                 key={index}
-                className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                className={`w-full p-3 border rounded-md cursor-pointer transition-colors text-left flex items-center ${
                   selectedAnswers[question.id]?.includes(option)
                     ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
                     : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
@@ -115,17 +115,19 @@ const QuizPreview = ({ quiz }) => {
                 role="checkbox"
                 aria-checked={selectedAnswers[question.id]?.includes(option)}
               >
-                <div className="flex items-center cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'} rounded pointer-events-none`}
-                    checked={selectedAnswers[question.id]?.includes(option)}
-                    onChange={() => {}} // Empty handler to prevent React warning
-                    tabIndex={-1}
-                  />
-                  <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>{option}</span>
+                <div className="flex items-center">
+                  <div className={`w-4 h-4 border flex-shrink-0 flex items-center justify-center mr-2 rounded
+                    ${isDark ? 'border-slate-400' : 'border-slate-300'}
+                    ${selectedAnswers[question.id]?.includes(option) ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                    {selectedAnswers[question.id]?.includes(option) && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`${isDark ? 'text-gray-300' : 'text-slate-700'}`}>{option}</span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         );
@@ -133,8 +135,8 @@ const QuizPreview = ({ quiz }) => {
       case 'true_false':
         return (
           <div className="flex space-x-4">
-            <div
-              className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors ${
+            <button
+              className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors flex items-center justify-center ${
                 selectedAnswers[question.id] === 'true'
                   ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
                   : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
@@ -144,19 +146,19 @@ const QuizPreview = ({ quiz }) => {
                 [question.id]: 'true'
               })}
             >
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name={`preview-answer-${question.id}`}
-                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}
-                  checked={selectedAnswers[question.id] === 'true'}
-                  onChange={() => {}}
-                />
-                <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>True</span>
-              </label>
-            </div>
-            <div
-              className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors ${
+              <div className="flex items-center">
+                <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2
+                  ${isDark ? 'border-slate-400' : 'border-slate-300'}
+                  ${selectedAnswers[question.id] === 'true' ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                  {selectedAnswers[question.id] === 'true' && (
+                    <div className="w-2 h-2 rounded-full bg-white"></div>
+                  )}
+                </div>
+                <span className={`${isDark ? 'text-gray-300' : 'text-slate-700'}`}>True</span>
+              </div>
+            </button>
+            <button
+              className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors flex items-center justify-center ${
                 selectedAnswers[question.id] === 'false'
                   ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
                   : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
@@ -166,17 +168,17 @@ const QuizPreview = ({ quiz }) => {
                 [question.id]: 'false'
               })}
             >
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name={`preview-answer-${question.id}`}
-                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}
-                  checked={selectedAnswers[question.id] === 'false'}
-                  onChange={() => {}}
-                />
-                <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>False</span>
-              </label>
-            </div>
+              <div className="flex items-center">
+                <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2
+                  ${isDark ? 'border-slate-400' : 'border-slate-300'}
+                  ${selectedAnswers[question.id] === 'false' ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                  {selectedAnswers[question.id] === 'false' && (
+                    <div className="w-2 h-2 rounded-full bg-white"></div>
+                  )}
+                </div>
+                <span className={`${isDark ? 'text-gray-300' : 'text-slate-700'}`}>False</span>
+              </div>
+            </button>
           </div>
         );
 

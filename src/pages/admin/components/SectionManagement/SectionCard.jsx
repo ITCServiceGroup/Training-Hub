@@ -100,7 +100,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
             }}
             onCancel={() => setIsEditing(false)}
             isEditing={true}
-            darkMode={true}
+            darkMode={isDark}
           />
         </div>
       )}
