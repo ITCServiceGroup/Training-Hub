@@ -4,6 +4,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../config/supabase';
 import { quizResultsService } from '../../services/api/quizResults';
 import { studyGuidesService } from '../../services/api/studyGuides';
+import { BiBook } from 'react-icons/bi';
+import { MdQuiz } from 'react-icons/md';
+import { BiBarChart } from 'react-icons/bi';
 
 // Debug helper function with localStorage persistence
 const logAdmin = (message, data = null) => {
@@ -219,10 +222,10 @@ const AdminDashboard = () => {
           <h3 className="text-xl font-bold text-slate-900 dark:text-white m-0">Quick Actions</h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-teal-700 dark:bg-teal-600 flex items-center justify-center text-2xl mb-4 shadow-md">
-              <span>📚</span>
+            <div className="w-[50px] h-[50px] rounded-full bg-teal-700 dark:bg-teal-600 flex items-center justify-center mb-4 shadow-md">
+              <BiBook className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Study Guides</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Manage study guide content and categories.</p>
@@ -234,23 +237,11 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-cyan-700 dark:bg-cyan-600 flex items-center justify-center text-2xl mb-4 shadow-md">
-              <span>❓</span>
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Questions</h3>
-            <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Create and edit questions for quizzes.</p>
-            <Link
-              to="/admin/questions"
-              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
-            >
-              Manage Questions
-            </Link>
-          </div>
+
 
           <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-blue-900 dark:bg-blue-800 flex items-center justify-center text-2xl mb-4 shadow-md">
-              <span>📝</span>
+            <div className="w-[50px] h-[50px] rounded-full bg-blue-900 dark:bg-blue-800 flex items-center justify-center mb-4 shadow-md">
+              <MdQuiz className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Quizzes</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Create and manage quizzes and access codes.</p>
@@ -263,8 +254,8 @@ const AdminDashboard = () => {
           </div>
 
           <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-blue-700 dark:bg-blue-600 flex items-center justify-center text-2xl mb-4 shadow-md">
-              <span>📊</span>
+            <div className="w-[50px] h-[50px] rounded-full bg-blue-700 dark:bg-blue-600 flex items-center justify-center mb-4 shadow-md">
+              <BiBarChart className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Results</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">View quiz results and analytics.</p>

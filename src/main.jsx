@@ -6,6 +6,7 @@ import './form-overrides.css'; // Import custom form styles after index.css
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ToastProvider } from './components/common/ToastContainer';
 import './utils/debugHelper';
 
 console.log('Main.jsx is executing...');
@@ -18,7 +19,9 @@ try {
       <HashRouter>
         <AuthProvider>
           <ThemeProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
       </HashRouter>
@@ -33,7 +36,9 @@ try {
     <React.StrictMode>
       <HashRouter>
         <ThemeProvider>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </ThemeProvider>
       </HashRouter>
     </React.StrictMode>

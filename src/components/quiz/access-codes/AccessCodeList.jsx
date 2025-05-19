@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 import { accessCodesService } from '../../../services/api/accessCodes';
 import ConfirmationDialog from '../../common/ConfirmationDialog';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useToast } from '../../common/ToastContainer';
 
 const AccessCodeList = ({ quizId }) => {
   const { isDarkMode } = useTheme();
+  const { showToast } = useToast();
   const [codes, setCodes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,6 +32,8 @@ const AccessCodeList = ({ quizId }) => {
 
   const handleCopyCode = (code) => {
     navigator.clipboard.writeText(code);
+    console.log('Copying code and showing toast:', code);
+    showToast('Access Code copied to clipboard', 'success', 2000);
   };
 
   const openDeleteConfirmation = (codeId) => {

@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { accessCodesService } from '../../../services/api/accessCodes';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useToast } from '../../common/ToastContainer';
 
 const AccessCodeGenerator = ({ quizId, onGenerated }) => {
   const { isDarkMode } = useTheme();
+  const { showToast } = useToast();
   const [testTakerInfo, setTestTakerInfo] = useState({
     ldap: '',
     email: '',
@@ -55,6 +57,8 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(generatedCode.code);
+    console.log('Copying generated code and showing toast:', generatedCode.code);
+    showToast('Access Code copied to clipboard', 'success', 2000);
   };
 
   return (

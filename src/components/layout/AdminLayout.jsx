@@ -84,7 +84,6 @@ const AdminLayout = () => {
       case 'dashboard': return 'Admin Dashboard';
       case 'study-guides': return 'Study Guides Management';
       case 'media': return 'Media Library'; // Added media title
-      case 'questions': return 'Questions Management';
       case 'quizzes': return 'Quizzes Management';
       case 'results': return 'Quiz Results';
       case 'settings': return 'Settings';
@@ -146,16 +145,6 @@ const AdminLayout = () => {
               </Link>
             </li>
             {/* End Media Library Link */}
-            <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'questions' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
-            >
-              <Link
-                to="/admin/questions"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
-              >
-                <BsQuestionCircle className="text-lg" /> Questions
-              </Link>
-            </li>
             <li
               className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
             >
