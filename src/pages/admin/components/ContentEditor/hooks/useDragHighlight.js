@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useEditor } from '@craftjs/core';
 
 /**
@@ -15,10 +15,22 @@ export const useDragHighlight = () => {
     // dragged: state.events.dragged,
   }));
 
+  // Refs for auto-scrolling
+  const scrollAnimationRef = useRef(null);
+  const isDraggingRef = useRef(false);
+
+  // Auto-scroll constants
+  const SCROLL_SPEED = 20; // Base scroll speed in pixels per frame
+  const SCROLL_BOUNDARY = 120; // Distance from edge to trigger scrolling (in pixels)
+  const SCROLL_ACCELERATION = 1.5; // How much to accelerate scrolling as you get closer to the edge
+
   // Handler for drag start
   const handleDragStart = useCallback(() => {
     const renderer = document.querySelector('.craftjs-renderer');
     if (!renderer) return;
+
+    // Set dragging state
+    isDraggingRef.current = true;
 
     // Add global dragging indicator
     renderer.classList.add('dragging-active');
@@ -50,6 +62,59 @@ export const useDragHighlight = () => {
     });
   }, []);
 
+  // Function to handle auto-scrolling
+  const autoScroll = useCallback((clientY) => {
+    // Cancel any existing animation
+    if (scrollAnimationRef.current) {
+      cancelAnimationFrame(scrollAnimationRef.current);
+      scrollAnimationRef.current = null;
+    }
+
+    // If not dragging, don't scroll
+    if (!isDraggingRef.current) return;
+
+    const renderer = document.querySelector('.craftjs-renderer');
+    if (!renderer) return;
+
+    // Get renderer's position relative to the viewport
+    const rect = renderer.getBoundingClientRect();
+    const topBoundary = rect.top + SCROLL_BOUNDARY;
+    const bottomBoundary = rect.bottom - SCROLL_BOUNDARY;
+
+    // Calculate scroll direction and speed
+    let scrollAmount = 0;
+
+    // Remove any existing scroll indicator classes
+    renderer.classList.remove('scroll-near-top', 'scroll-near-bottom');
+
+    if (clientY < topBoundary) {
+      // Scroll up - the closer to the top, the faster
+      const distance = Math.max(1, topBoundary - clientY);
+      const factor = Math.min(distance / SCROLL_BOUNDARY, 1) * SCROLL_ACCELERATION;
+      scrollAmount = -SCROLL_SPEED * factor;
+
+      // Add visual indicator for scrolling up
+      renderer.classList.add('scroll-near-top');
+    } else if (clientY > bottomBoundary) {
+      // Scroll down - the closer to the bottom, the faster
+      const distance = Math.max(1, clientY - bottomBoundary);
+      const factor = Math.min(distance / SCROLL_BOUNDARY, 1) * SCROLL_ACCELERATION;
+      scrollAmount = SCROLL_SPEED * factor;
+
+      // Add visual indicator for scrolling down
+      renderer.classList.add('scroll-near-bottom');
+    }
+
+    // If we need to scroll
+    if (scrollAmount !== 0) {
+      // Perform the scroll
+      renderer.scrollTop += scrollAmount;
+
+      // Continue scrolling on the next frame
+      scrollAnimationRef.current = requestAnimationFrame(() => autoScroll(clientY));
+    }
+  }, []);
+
   // Handler for drag over
   const handleDragOver = useCallback((e) => {
     e.preventDefault(); // Necessary to allow dropping
@@ -64,14 +129,24 @@ export const useDragHighlight = () => {
         container.classList.remove('drag-hover');
       }
     });
-  }, []);
+
+    // Trigger auto-scrolling based on mouse position
+    autoScroll(e.clientY);
+  }, [autoScroll]);
 
   // Handler for drag end (also covers drop)
   const handleDragEnd = useCallback(() => {
+    // Stop auto-scrolling
+    isDraggingRef.current = false;
+    if (scrollAnimationRef.current) {
+      cancelAnimationFrame(scrollAnimationRef.current);
+      scrollAnimationRef.current = null;
+    }
+
     // Clean up all visual indicators
     const renderer = document.querySelector('.craftjs-renderer');
     if (renderer) {
-      renderer.classList.remove('dragging-active');
+      renderer.classList.remove('dragging-active', 'scroll-near-top', 'scroll-near-bottom');
     }
     const containers = document.querySelectorAll('.craft-container.is-canvas');
     containers.forEach((container) => {
@@ -88,15 +163,22 @@ export const useDragHighlight = () => {
     document.addEventListener('dragover', handleDragOver, false);
     // Use capture phase for dragend to ensure cleanup even if drop target prevents bubbling
     document.addEventListener('dragend', handleDragEnd, true);
+    document.addEventListener('drop', handleDragEnd, true); // Also handle drop events
 
     // Clean up listeners on unmount
     return () => {
       document.removeEventListener('dragstart', handleDragStart, true);
       document.removeEventListener('dragover', handleDragOver, false);
       document.removeEventListener('dragend', handleDragEnd, true);
+      document.removeEventListener('drop', handleDragEnd, true);
 
       // Ensure styles are cleaned up on unmount as well
       handleDragEnd(); // Call handler directly to clean styles
+
+      // Cancel any ongoing animation
+      if (scrollAnimationRef.current) {
+        cancelAnimationFrame(scrollAnimationRef.current);
+      }
     };
   }, [handleDragStart, handleDragOver, handleDragEnd]); // Add handlers to dependency array
 

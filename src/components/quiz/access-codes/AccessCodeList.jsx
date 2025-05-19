@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { accessCodesService } from '../../../services/api/accessCodes';
 import ConfirmationDialog from '../../common/ConfirmationDialog';
-import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../common/ToastContainer';
 
 const AccessCodeList = ({ quizId }) => {
-  const { isDarkMode } = useTheme();
   const { showToast } = useToast();
   const [codes, setCodes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,10 +28,18 @@ const AccessCodeList = ({ quizId }) => {
     }
   };
 
-  const handleCopyCode = (code) => {
-    navigator.clipboard.writeText(code);
-    console.log('Copying code and showing toast:', code);
-    showToast('Access Code copied to clipboard', 'success', 2000);
+  const handleCopyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      console.log('Copying code and showing toast:', code);
+      // Add a small delay to ensure the clipboard operation completes
+      setTimeout(() => {
+        showToast('Access Code copied to clipboard', 'success', 3000);
+      }, 100);
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+      showToast('Failed to copy code', 'error', 3000);
+    }
   };
 
   const openDeleteConfirmation = (codeId) => {

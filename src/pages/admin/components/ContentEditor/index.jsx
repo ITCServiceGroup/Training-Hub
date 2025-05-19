@@ -440,7 +440,8 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full" style={{ position: 'relative', paddingBottom: '60px' }}>
+      {/* Title input */}
       <div className="flex w-full h-[38px] justify-between items-center mb-2">
         <div className="w-[70%] h-full">
           <input
@@ -454,7 +455,9 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
           />
         </div>
       </div>
-      <div className="flex flex-grow gap-4 overflow-hidden" style={{ flex: '1 1 auto', height: 'calc(100% - 100px)' }}>
+
+      {/* Editor area - takes all available space */}
+      <div className="flex flex-grow gap-4 overflow-hidden h-full">
         <CraftJsDirectPatch />
         {useCollapsibleSectionPatch()}
         <Viewport>
@@ -473,7 +476,18 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
           </CraftFrame>
         </Viewport>
       </div>
-      <div className="flex justify-end gap-3 mt-4">
+
+      {/* Action buttons - absolutely positioned at bottom */}
+      <div
+        className="flex justify-end gap-3 pt-3 pb-2 border-t border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700"
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10
+        }}
+      >
         {!isNew && (
           <button type="button" onClick={handleDeleteClick} className={`py-2 px-4 ${isDark ? 'bg-slate-800 hover:bg-red-900/30' : 'bg-white hover:bg-red-50'} border border-red-600 text-red-600 rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5`}>Delete</button>
         )}
@@ -482,7 +496,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         <button type="button" onClick={handleSaveAndContinue} disabled={isSaving} className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : 'Save and Continue'}</button>
         <button type="button" onClick={() => handleSave(true)} disabled={isSaving} className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save and Exit')}</button>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -492,7 +506,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
   }, []);
 
   return (
-    <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
+    <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 130px)' }}>
       <ToolbarZIndexProvider>
           <Editor
             resolver={{

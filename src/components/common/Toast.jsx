@@ -7,15 +7,26 @@ const Toast = ({ message, type = 'success', duration = 2000, onClose }) => {
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    console.log('Toast mounted with message:', message);
+
+    // Set a timer to hide the toast after the specified duration
+    const hideTimer = setTimeout(() => {
+      console.log('Toast hiding:', message);
       setIsVisible(false);
-      setTimeout(() => {
-        if (onClose) onClose();
-      }, 300); // Wait for fade out animation to complete
     }, duration);
 
-    return () => clearTimeout(timer);
-  }, [duration, onClose]);
+    // Set a timer to remove the toast from the DOM after it's hidden
+    const closeTimer = setTimeout(() => {
+      console.log('Toast closing:', message);
+      if (onClose) onClose();
+    }, duration + 300); // Wait for fade out animation to complete
+
+    // Clean up timers when component unmounts
+    return () => {
+      clearTimeout(hideTimer);
+      clearTimeout(closeTimer);
+    };
+  }, [message, duration, onClose]);
 
   // Define styles based on type and theme
   const getTypeStyles = () => {
@@ -45,7 +56,7 @@ const Toast = ({ message, type = 'success', duration = 2000, onClose }) => {
 
   return (
     <div
-      className={`px-4 py-3 rounded-lg border shadow-lg flex items-center transition-all duration-300 ${getTypeStyles()} ${
+      className={`px-4 py-3 rounded-lg border shadow-lg flex items-center transition-all duration-300 pointer-events-auto ${getTypeStyles()} ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
       }`}
     >

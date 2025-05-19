@@ -258,6 +258,41 @@
   cursor: grabbing;
 }
 
+/* Auto-scroll indicators - show gradient at top/bottom of editor when near scroll boundaries */
+.craftjs-renderer.dragging-active::before,
+.craftjs-renderer.dragging-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 100px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+/* Top scroll indicator */
+.craftjs-renderer.dragging-active::before {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(13, 148, 136, 0.2), transparent);
+}
+
+/* Bottom scroll indicator */
+.craftjs-renderer.dragging-active::after {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(13, 148, 136, 0.2), transparent);
+}
+
+/* Show indicators when near boundaries */
+.craftjs-renderer.dragging-active.scroll-near-top::before {
+  opacity: 1;
+}
+
+.craftjs-renderer.dragging-active.scroll-near-bottom::after {
+  opacity: 1;
+}
+
 /* Container that can accept drops - base style */
 .craft-container[data-can-drop="true"] {
   background-color: rgba(13, 148, 136, 0.05) !important;
@@ -394,6 +429,11 @@
 .craftjs-renderer {
   background-color: #f9fafb;
   min-height: 500px;
+  overflow-y: auto !important; /* Ensure vertical scrolling is enabled */
+  overflow-x: hidden !important; /* Prevent horizontal scrolling */
+  height: 100% !important; /* Take full height of parent */
+  position: relative !important; /* Required for scroll calculations */
+  scroll-behavior: smooth; /* Enable smooth scrolling */
 }
 
 .dark .craftjs-renderer {

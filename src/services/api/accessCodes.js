@@ -24,13 +24,13 @@ export const accessCodesService = {
           .select('code')
           .eq('code', code)
           .single();
-        
+
         isUnique = !data;
       }
 
-      // Set expiration date to 7 days from now
+      // Set expiration date to 30 minutes from now
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30);
 
       // Create the access code record
       const { data, error } = await supabase
@@ -83,7 +83,7 @@ export const accessCodesService = {
         .single();
 
       if (error) throw error;
-      
+
       if (!data) {
         throw new Error('Invalid access code');
       }

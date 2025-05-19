@@ -55,10 +55,18 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
     }
   };
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(generatedCode.code);
-    console.log('Copying generated code and showing toast:', generatedCode.code);
-    showToast('Access Code copied to clipboard', 'success', 2000);
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedCode.code);
+      console.log('Copying generated code and showing toast:', generatedCode.code);
+      // Add a small delay to ensure the clipboard operation completes
+      setTimeout(() => {
+        showToast('Access Code copied to clipboard', 'success', 3000);
+      }, 100);
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+      showToast('Failed to copy code', 'error', 3000);
+    }
   };
 
   return (
