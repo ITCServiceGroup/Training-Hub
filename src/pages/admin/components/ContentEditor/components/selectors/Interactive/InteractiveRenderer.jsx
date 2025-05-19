@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 
 /**
@@ -8,6 +8,24 @@ const InteractiveRenderer = ({ name }) => {
   const iframeRef = useRef(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const themeRef = useRef(theme);
+
+  // Function to notify iframe about theme changes
+  const notifyThemeChange = useCallback((iframe, newTheme) => {
+    if (!iframe || !iframe.contentWindow) return;
+
+    try {
+      // Send a message to the iframe with the new theme
+      iframe.contentWindow.postMessage({
+        type: 'theme-change',
+        theme: newTheme
+      }, '*');
+
+      console.log(`[InteractiveRenderer] Sent theme-change message: ${newTheme}`);
+    } catch (error) {
+      console.error('[InteractiveRenderer] Error sending theme message:', error);
+    }
+  }, []);
 
   useEffect(() => {
     if (!name || !iframeRef.current) return;
@@ -124,7 +142,7 @@ const InteractiveRenderer = ({ name }) => {
     script.type = 'module';
     iframeDoc.head.appendChild(script);
 
-    // Add a script to override the max-width of the vis-container
+    // Add a script to override the max-width of the vis-container and handle theme changes
     const overrideScript = iframeDoc.createElement('script');
     overrideScript.textContent = `
       // Wait for the custom element to be defined and rendered
@@ -168,6 +186,39 @@ const InteractiveRenderer = ({ name }) => {
           \`;
           customElement.shadowRoot.appendChild(styleElement);
         }
+
+        // Set up message listener for theme changes
+        window.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'theme-change') {
+            console.log('[Interactive iframe] Received theme change:', event.data.theme);
+
+            // Apply theme class to document
+            if (event.data.theme === 'dark') {
+              document.documentElement.classList.add('dark');
+              document.body.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+              document.body.classList.remove('dark');
+            }
+
+            // Directly notify the custom element if it has a method for it
+            const customElement = document.querySelector('${name}-simulator');
+            if (customElement && typeof customElement.updateTheme === 'function') {
+              customElement.updateTheme(event.data.theme === 'dark');
+              console.log('[Interactive iframe] Called updateTheme on custom element');
+            }
+          }
+        });
+
+        // Set initial theme
+        const isDark = ${isDark};
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.body.classList.remove('dark');
+        }
       }, 500);
     `;
     iframeDoc.head.appendChild(overrideScript);
@@ -185,7 +236,16 @@ const InteractiveRenderer = ({ name }) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [name, isDark]);
+  }, [name, isDark, notifyThemeChange]);
+
+  // Effect to detect theme changes and notify the iframe
+  useEffect(() => {
+    // Update the ref
+    if (theme !== themeRef.current && iframeRef.current) {
+      themeRef.current = theme;
+      notifyThemeChange(iframeRef.current, theme);
+    }
+  }, [theme, notifyThemeChange]);
 
   return (
     <iframe

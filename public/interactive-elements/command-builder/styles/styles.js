@@ -1,4 +1,108 @@
 export const styles = `
+    /* CSS Variables for theming */
+    :host {
+        /* Light mode variables */
+        --text-color-light: #495057;
+        --border-color-light: #dee2e6;
+        --bg-color-light: #f8f9fa;
+        --component-bg-light: #ffffff;
+        --component-border-light: #e9ecef;
+        --component-hover-border-light: #007bff;
+        --component-hover-shadow-light: rgba(0,123,255,0.15);
+        --primary-color-light: #007bff;
+        --primary-color-rgb-light: 0,123,255;
+        --primary-hover-light: #0056b3;
+        --secondary-color-light: #6c757d;
+        --secondary-hover-light: #5a6268;
+        --success-color-light: #28a745;
+        --error-color-light: #dc3545;
+        --drop-zone-bg-light: rgba(248,249,250,0.8);
+        --drop-zone-empty-light: #adb5bd;
+        --preview-bg-light: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+        --preview-color-light: #fff;
+        --tutorial-bg-light: #ffffff;
+        --tutorial-border-light: #e9ecef;
+        --tutorial-shadow-light: rgba(0,0,0,0.15);
+        --tutorial-header-bg-light: linear-gradient(to right, #f8f9fa, #ffffff);
+
+        /* Dark mode variables */
+        --text-color-dark: #e2e8f0;
+        --border-color-dark: #4a5568;
+        --bg-color-dark: #2d3748;
+        --component-bg-dark: #1a202c;
+        --component-border-dark: #4a5568;
+        --component-hover-border-dark: #4299e1;
+        --component-hover-shadow-dark: rgba(66, 153, 225, 0.3);
+        --primary-color-dark: #4299e1;
+        --primary-color-rgb-dark: 66,153,225;
+        --primary-hover-dark: #3182ce;
+        --secondary-color-dark: #718096;
+        --secondary-hover-dark: #4a5568;
+        --success-color-dark: #48bb78;
+        --error-color-dark: #fc8181;
+        --drop-zone-bg-dark: rgba(26, 32, 44, 0.8);
+        --drop-zone-empty-dark: #718096;
+        --preview-bg-dark: linear-gradient(to bottom, #1a202c, #171923);
+        --preview-color-dark: #e2e8f0;
+        --tutorial-bg-dark: #2d3748;
+        --tutorial-border-dark: #4a5568;
+        --tutorial-shadow-dark: rgba(0,0,0,0.3);
+        --tutorial-header-bg-dark: linear-gradient(to right, #1a202c, #2d3748);
+
+        /* Default to light mode */
+        --text-color: var(--text-color-light);
+        --border-color: var(--border-color-light);
+        --bg-color: var(--bg-color-light);
+        --component-bg: var(--component-bg-light);
+        --component-border: var(--component-border-light);
+        --component-hover-border: var(--component-hover-border-light);
+        --component-hover-shadow: var(--component-hover-shadow-light);
+        --primary-color: var(--primary-color-light);
+        --primary-color-rgb: var(--primary-color-rgb-light);
+        --primary-hover: var(--primary-hover-light);
+        --secondary-color: var(--secondary-color-light);
+        --secondary-hover: var(--secondary-hover-light);
+        --success-color: var(--success-color-light);
+        --error-color: var(--error-color-light);
+        --drop-zone-bg: var(--drop-zone-bg-light);
+        --drop-zone-empty: var(--drop-zone-empty-light);
+        --preview-bg: var(--preview-bg-light);
+        --preview-color: var(--preview-color-light);
+        --tutorial-bg: var(--tutorial-bg-light);
+        --tutorial-border: var(--tutorial-border-light);
+        --tutorial-shadow: var(--tutorial-shadow-light);
+        --tutorial-header-bg: var(--tutorial-header-bg-light);
+
+        /* Transitions for smooth theme switching */
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Dark mode styles */
+    :host(.dark-mode) {
+        --text-color: var(--text-color-dark);
+        --border-color: var(--border-color-dark);
+        --bg-color: var(--bg-color-dark);
+        --component-bg: var(--component-bg-dark);
+        --component-border: var(--component-border-dark);
+        --component-hover-border: var(--component-hover-border-dark);
+        --component-hover-shadow: var(--component-hover-shadow-dark);
+        --primary-color: var(--primary-color-dark);
+        --primary-color-rgb: var(--primary-color-rgb-dark);
+        --primary-hover: var(--primary-hover-dark);
+        --secondary-color: var(--secondary-color-dark);
+        --secondary-hover: var(--secondary-hover-dark);
+        --success-color: var(--success-color-dark);
+        --error-color: var(--error-color-dark);
+        --drop-zone-bg: var(--drop-zone-bg-dark);
+        --drop-zone-empty: var(--drop-zone-empty-dark);
+        --preview-bg: var(--preview-bg-dark);
+        --preview-color: var(--preview-color-dark);
+        --tutorial-bg: var(--tutorial-bg-dark);
+        --tutorial-border: var(--tutorial-border-dark);
+        --tutorial-shadow: var(--tutorial-shadow-dark);
+        --tutorial-header-bg: var(--tutorial-header-bg-dark);
+    }
+
     /* Add transition classes */
     /* Cleaned up tutorial overlay: only one definition, no blur, no pointer-events, no background */
     .tutorial-overlay {
@@ -29,10 +133,11 @@ export const styles = `
     }
 
     .tutorial-panel {
-        background: white;
+        background: var(--tutorial-bg);
+        color: var(--text-color);
         padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px var(--tutorial-shadow);
         max-width: 400px;
         position: absolute;
         opacity: 0;
@@ -47,7 +152,7 @@ export const styles = `
 
     .tutorial-highlight {
         position: absolute;
-        border: 2px solid #4CAF50;
+        border: 2px solid var(--success-color);
         border-radius: 4px;
         background: rgba(76, 175, 80, 0.1);
         pointer-events: none;
@@ -65,44 +170,46 @@ export const styles = `
         left: -16px;
         top: 50%;
         transform: translateY(-50%);
-        border-right-color: white;
+        border-right-color: var(--tutorial-bg);
     }
 
     .tutorial-arrow.right {
         right: -16px;
         top: 50%;
         transform: translateY(-50%);
-        border-left-color: white;
+        border-left-color: var(--tutorial-bg);
     }
 
     .tutorial-arrow.top {
         top: -16px;
         left: 50%;
         transform: translateX(-50%);
-        border-bottom-color: white;
+        border-bottom-color: var(--tutorial-bg);
     }
 
     .tutorial-arrow.bottom {
         bottom: -16px;
         left: 50%;
         transform: translateX(-50%);
-        border-top-color: white;
+        border-top-color: var(--tutorial-bg);
     }
 
     .completion-message {
         display: none;
         padding: 20px;
-        background: #E8F5E9;
+        background: linear-gradient(45deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
         border-radius: 4px;
         margin-top: 20px;
-        color: #2E7D32;
+        color: var(--success-color);
         text-align: center;
+        border: 1px solid rgba(40, 167, 69, 0.2);
     }
 
     :host {
         display: block;
         font-family: Arial, sans-serif;
-        background: #f8f9fa;
+        background: var(--bg-color);
+        color: var(--text-color);
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -111,6 +218,7 @@ export const styles = `
     .container {
         max-width: 800px;
         margin: 0 auto;
+        color: var(--text-color);
     }
 
     .os-tabs {
@@ -118,10 +226,11 @@ export const styles = `
         justify-content: center; /* Added to center the tabs */
         gap: 12px;
         margin-bottom: 24px;
-        background: #f1f3f5;
+        background: var(--component-bg);
         padding: 6px;
         border-radius: 10px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
     }
 
     .os-tab {
@@ -133,27 +242,27 @@ export const styles = `
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 14px;
         font-weight: 500;
-        color: #495057;
+        color: var(--text-color);
         position: relative;
         overflow: hidden;
     }
 
     .os-tab:hover:not(.active) {
         background: rgba(0,123,255,0.1);
-        color: #007bff;
+        color: var(--primary-color);
     }
 
     .os-tab.active {
-        background: #007bff;
+        background: var(--primary-color);
         color: white;
-        box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+        box-shadow: 0 2px 4px var(--component-hover-shadow);
     }
 
     .command-area {
-        background: #fff;
+        background: var(--component-bg);
         padding: 24px;
         border-radius: 12px;
-        border: 1px solid rgba(222, 226, 230, 0.6);
+        border: 1px solid var(--border-color);
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
@@ -170,16 +279,16 @@ export const styles = `
         gap: 12px;
         margin-bottom: 24px;
         padding: 20px;
-        background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+        background: var(--bg-color);
         border-radius: 12px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border-color);
     }
 
     .command-component {
         padding: 10px 16px;
-        background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-        border: 1px solid #e9ecef;
+        background: var(--component-bg);
+        border: 1px solid var(--component-border);
         border-radius: 8px;
         cursor: move;
         user-select: none;
@@ -187,25 +296,25 @@ export const styles = `
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         font-size: 14px;
-        color: #495057;
+        color: var(--text-color);
         will-change: transform, box-shadow;
     }
 
     .command-component:hover {
-        background: linear-gradient(to bottom, #f8f9fa, #ffffff);
-        border-color: #007bff;
+        background: var(--component-bg);
+        border-color: var(--component-hover-border);
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,123,255,0.15);
+        box-shadow: 0 4px 8px var(--component-hover-shadow);
     }
 
     .command-component:active {
         transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+        box-shadow: 0 2px 4px var(--component-hover-shadow);
     }
 
     .drop-zone {
         min-height: 64px;
-        border: 2px dashed #dee2e6;
+        border: 2px dashed var(--border-color);
         border-radius: 12px;
         padding: 16px;
         margin: 16px 0;
@@ -214,14 +323,14 @@ export const styles = `
         flex-wrap: nowrap;
         gap: 8px;
         align-items: center;
-        background: linear-gradient(to right, rgba(248,249,250,0.8), rgba(255,255,255,0.8));
+        background: var(--drop-zone-bg);
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         overflow-x: auto;
         scroll-behavior: smooth;
         position: relative;
         scrollbar-width: thin;
-        scrollbar-color: rgba(0, 123, 255, 0.5) #f1f1f1;
+        scrollbar-color: var(--primary-color) var(--bg-color);
     }
 
     .drop-zone::before {
@@ -243,7 +352,7 @@ export const styles = `
 
     .drop-zone:empty::after {
         content: 'Drag command components here';
-        color: #adb5bd;
+        color: var(--drop-zone-empty);
         font-size: 14px;
         font-style: italic;
     }
@@ -254,8 +363,8 @@ export const styles = `
     }
 
     .drop-zone.drag-over::before {
-        border-color: #007bff;
-        box-shadow: 0 0 0 4px rgba(0,123,255,0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px var(--component-hover-shadow);
     }
 
     .drop-zone.dragging {
@@ -267,18 +376,20 @@ export const styles = `
     }
 
     .drop-zone::-webkit-scrollbar-track {
-        background: #f8f9fa;
+        background: var(--bg-color);
         border-radius: 3px;
     }
 
     .drop-zone::-webkit-scrollbar-thumb {
-        background: rgba(0, 123, 255, 0.3);
+        background: var(--primary-color);
+        opacity: 0.3;
         border-radius: 3px;
         transition: background-color 0.3s ease;
     }
 
     .drop-zone::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 123, 255, 0.5);
+        background: var(--primary-color);
+        opacity: 0.5;
     }
 
     .preview {
@@ -287,10 +398,10 @@ export const styles = `
         line-height: 1.5;
         padding: 20px;
         margin-top: 24px;
-        color: #fff;
-        background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+        color: var(--preview-color);
+        background: var(--preview-bg);
         border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid var(--border-color);
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         white-space: pre-wrap;
     }
@@ -302,13 +413,13 @@ export const styles = `
         flex-shrink: 0;
         user-select: none;
         -webkit-user-select: none;
-        background: linear-gradient(to right, #f8f9fa, #ffffff);
+        background: var(--component-bg);
         padding: 8px 16px;
         border-radius: 6px;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--component-border);
         margin: 0 4px;
         font-size: 14px;
-        color: #495057;
+        color: var(--text-color);
         cursor: grab;
         width: fit-content;
         min-width: 60px;
@@ -351,12 +462,12 @@ export const styles = `
     .placed-component.preview {
         position: fixed;
         opacity: 1;
-        background: #ffffff;
-        border-color: #007bff;
+        background: var(--component-bg);
+        border-color: var(--primary-color);
         cursor: grabbing;
         z-index: 1000;
         transform: scale(1.05);
-        box-shadow: 0 8px 16px rgba(0,123,255,0.2);
+        box-shadow: 0 8px 16px var(--component-hover-shadow);
         pointer-events: none;
         transition: none;
     }
@@ -370,7 +481,7 @@ export const styles = `
         height: 20px;
         border-radius: 50%;
         background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
+        color: var(--error-color);
         cursor: pointer;
         font-size: 14px;
         line-height: 1;
@@ -384,7 +495,7 @@ export const styles = `
 
     .remove-btn:hover {
         background: rgba(220, 53, 69, 0.2);
-        color: #dc3545;
+        color: var(--error-color);
         transform: scale(1.1);
     }
 
@@ -404,16 +515,16 @@ export const styles = `
     }
 
     .validation-message.error {
-        background: linear-gradient(to right, #f8d7da, #ffe6e6);
+        background: linear-gradient(to right, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
         border: 1px solid rgba(220, 53, 69, 0.2);
-        color: #721c24;
+        color: var(--error-color);
         box-shadow: 0 2px 8px rgba(220, 53, 69, 0.1);
     }
 
     .validation-message.success {
-        background: linear-gradient(to right, #d4edda, #e8f5e9);
+        background: linear-gradient(to right, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
         border: 1px solid rgba(40, 167, 69, 0.2);
-        color: #155724;
+        color: var(--success-color);
         box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
     }
 
@@ -423,10 +534,10 @@ export const styles = `
         line-height: 1.5;
         padding: 20px;
         margin-top: 24px;
-        color: #fff;
-        background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+        color: var(--preview-color);
+        background: var(--preview-bg);
         border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid var(--border-color);
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         white-space: pre-wrap;
     }
@@ -444,13 +555,14 @@ export const styles = `
 
     .tutorial-panel {
         position: fixed;
-        background: white;
+        background: var(--tutorial-bg);
+        color: var(--text-color);
         padding: 24px;
         border-radius: 12px;
         width: 320px;
-        box-shadow: 0 12px 32px rgba(0,0,0,0.25),
+        box-shadow: 0 12px 32px var(--tutorial-shadow),
                   0 4px 12px rgba(0,0,0,0.15),
-                  0 0 0 1px rgba(0,0,0,0.05);
+                  0 0 0 1px var(--border-color);
         pointer-events: auto;
         left: 50%;
         top: 50%;
@@ -467,9 +579,9 @@ export const styles = `
 
     .tutorial-panel[style*="opacity: 1"] {
         transform: translate(-50%, -50%) scale(1);
-        box-shadow: 0 16px 48px rgba(0,0,0,0.25),
+        box-shadow: 0 16px 48px var(--tutorial-shadow),
                   0 8px 24px rgba(0,0,0,0.15),
-                  0 0 0 1px rgba(0,0,0,0.05);
+                  0 0 0 1px var(--border-color);
     }
 
     .tutorial-arrow {
@@ -490,7 +602,7 @@ export const styles = `
 
     .tutorial-arrow.right {
         border-width: 12px 0 12px 12px;
-        border-color: transparent transparent transparent white;
+        border-color: transparent transparent transparent var(--tutorial-bg);
         right: -12px;
         top: 50%;
         transform: translateY(-50%);
@@ -498,7 +610,7 @@ export const styles = `
 
     .tutorial-arrow.left {
         border-width: 12px 12px 12px 0;
-        border-color: transparent white transparent transparent;
+        border-color: transparent var(--tutorial-bg) transparent transparent;
         left: -12px;
         top: 50%;
         transform: translateY(-50%);
@@ -506,7 +618,7 @@ export const styles = `
 
     .tutorial-arrow.top {
         border-width: 0 12px 12px 12px;
-        border-color: transparent transparent white transparent;
+        border-color: transparent transparent var(--tutorial-bg) transparent;
         top: -12px;
         left: 50%;
         transform: translateX(-50%);
@@ -514,7 +626,7 @@ export const styles = `
 
     .tutorial-arrow.bottom {
         border-width: 12px 12px 0 12px;
-        border-color: white transparent transparent transparent;
+        border-color: var(--tutorial-bg) transparent transparent transparent;
         bottom: -12px;
         left: 50%;
         transform: translateX(-50%);
@@ -553,19 +665,15 @@ export const styles = `
         align-items: center;
         margin: -24px -24px 20px -24px;
         padding: 20px 24px;
-        border-bottom: 1px solid #e9ecef;
-        background: linear-gradient(to right, #f8f9fa, #ffffff);
+        border-bottom: 1px solid var(--border-color);
+        background: var(--tutorial-header-bg);
     }
 
     .tutorial-header h3 {
         font-size: 20px;
         font-weight: 600;
-        color: #1a365d;
+        color: var(--text-color);
         margin: 0;
-        background: linear-gradient(45deg, #1a365d, #2c5282);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .tutorial-button#close-tutorial {
@@ -576,7 +684,7 @@ export const styles = `
         font-size: 20px;
         line-height: 1;
         background: transparent;
-        color: #6c757d;
+        color: var(--secondary-color);
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
@@ -585,15 +693,15 @@ export const styles = `
     }
 
     .tutorial-button#close-tutorial:hover {
-        background: #f8f9fa;
-        color: #343a40;
+        background: var(--bg-color);
+        color: var(--text-color);
         transform: rotate(90deg);
     }
 
     .tutorial-header h3 {
         font-size: 18px;
         font-weight: 600;
-        color: #1a365d;
+        color: var(--text-color);
         margin: 0;
     }
 
@@ -611,7 +719,7 @@ export const styles = `
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.8em;
-    color: #666;
+    color: var(--secondary-color);
     white-space: nowrap;
 }
 
@@ -619,7 +727,7 @@ export const styles = `
         padding: 10px 20px;
         border: none;
         border-radius: 6px;
-        background: #007bff;
+        background: var(--primary-color);
         color: white;
         cursor: pointer;
         transition: all 0.2s;
@@ -632,7 +740,7 @@ export const styles = `
 
     .tutorial-button:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 8px var(--component-hover-shadow);
     }
 
     .tutorial-button:active:not(:disabled) {
@@ -641,20 +749,20 @@ export const styles = `
     }
 
     .tutorial-button:disabled {
-        background: #ccc;
+        background: var(--border-color);
         cursor: not-allowed;
     }
 
     .tutorial-button:not(:disabled):hover {
-        background: #0056b3;
+        background: var(--primary-hover);
     }
 
     .tutorial-button.secondary {
-        background: #6c757d;
+        background: var(--secondary-color);
     }
 
     .tutorial-button.secondary:hover {
-        background: #5a6268;
+        background: var(--secondary-hover);
     }
 
     .tutorial-progress {
@@ -669,7 +777,7 @@ export const styles = `
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: #e9ecef;
+        background: var(--border-color);
         border: 2px solid transparent;
         transition: all 0.3s ease;
         position: relative;
@@ -687,15 +795,15 @@ export const styles = `
         left: 50%;
         width: 6px;
         height: 6px;
-        background: #fff;
+        background: var(--component-bg);
         border-radius: 50%;
         transform: translate(-50%, -50%) scale(0);
         transition: transform 0.2s ease;
     }
 
     .step-indicator.active {
-        background: #007bff;
-        border-color: #007bff;
+        background: var(--primary-color);
+        border-color: var(--primary-color);
         transform: scale(1.2);
     }
 
@@ -704,28 +812,28 @@ export const styles = `
     }
 
     .step-indicator.completed {
-        background: #28a745;
-        border-color: #28a745;
+        background: var(--success-color);
+        border-color: var(--success-color);
     }
 
     .tutorial-hint {
         position: relative;
         margin-top: 20px;
         padding: 16px 16px 16px 48px;
-        background: linear-gradient(to right, #f8f9fa, #ffffff);
-        border: 1px solid rgba(0, 123, 255, 0.1);
-        border-left: 4px solid #007bff;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--primary-color);
         border-radius: 8px;
         font-size: 14px;
         line-height: 1.5;
-        color: #495057;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        color: var(--text-color);
+        box-shadow: 0 2px 8px var(--tutorial-shadow);
         transition: all 0.2s ease;
     }
 
     .tutorial-hint:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px var(--tutorial-shadow);
     }
 
     .tutorial-hint::before {
@@ -741,14 +849,14 @@ export const styles = `
     .completion-message {
         display: none;
         padding: 16px;
-        background: linear-gradient(45deg, #d4edda, #e8f5e9);
+        background: linear-gradient(45deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
         border: 1px solid rgba(40, 167, 69, 0.2);
-        color: #155724;
+        color: var(--success-color);
         border-radius: 8px;
         margin-top: 20px;
         font-weight: 500;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px var(--tutorial-shadow);
         animation: message-appear 0.3s ease-out forwards;
     }
 
@@ -769,9 +877,9 @@ export const styles = `
         box-sizing: border-box; /* Ensure padding and border are included in width */
         margin-bottom: 20px;
         padding: 0 24px 24px 24px; /* Removed top padding */
-        background: #f8f9fa;
+        background: var(--bg-color);
         border-radius: 12px; /* Matches command-area */
-        border: 1px solid rgba(222, 226, 230, 0.6); /* Matches command-area */
+        border: 1px solid var(--border-color); /* Matches command-area */
         box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Matches command-area */
     }
 
@@ -786,9 +894,9 @@ export const styles = `
         width: 100%;
         text-align: center;
         padding: 8px 6px;
-        background: #ffffff;
-        color: #495057;
-        border: 1px solid #dee2e6;
+        background: var(--component-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         transition: all 0.2s ease;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -799,25 +907,46 @@ export const styles = `
     }
 
     .tutorial-grid .tutorial-button:hover {
-        background: #f8f9fa;
-        border-color: #007bff;
-        color: #007bff;
+        background: var(--bg-color);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,123,255,0.15);
+        box-shadow: 0 4px 8px var(--component-hover-shadow);
+    }
+
+    .tutorial-entry-wrapper {
+        position: relative;
+    }
+
+    .tutorial-entry-wrapper .tutorial-sub-buttons {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        background: var(--component-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin-top: 4px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-shadow: 0 4px 8px var(--component-hover-shadow);
     }
 
     .instruction-label {
         font-weight: 600; /* Semi-bold */
         margin-bottom: 8px;
-        color: #495057; /* Match tab text color */
+        color: var(--text-color); /* Use theme variable */
         padding-left: 4px; /* Align slightly with tabs/buttons */
         text-align: center; /* Center the text */
     }
 
     .drop-zone-tutorial-target {
         border-style: solid; /* Change from dashed to solid */
-        border-color: #007bff; /* Use highlight color */
-        box-shadow: 0 0 8px rgba(0, 123, 255, 0.3); /* Add a subtle glow */
+        border-color: var(--primary-color); /* Use highlight color */
+        box-shadow: 0 0 8px var(--component-hover-shadow); /* Add a subtle glow */
     }
 
     .placed-component {
@@ -826,13 +955,13 @@ export const styles = `
         flex-shrink: 0;
         display: flex;
         align-items: center;
-        background: linear-gradient(to right, #f8f9fa, #ffffff);
+        background: var(--component-bg);
         padding: 8px 16px;
         border-radius: 6px;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border-color);
         margin: 0 4px;
         font-size: 14px;
-        color: #495057;
+        color: var(--text-color);
         cursor: grab;
         width: fit-content;
         min-width: 60px;
@@ -867,10 +996,10 @@ export const styles = `
     }
 
     .placed-component:hover:not(.dragging) {
-        background: linear-gradient(to right, #ffffff, #f8f9fa);
-        border-color: #007bff;
+        background: var(--bg-color);
+        border-color: var(--primary-color);
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,123,255,0.15);
+        box-shadow: 0 4px 8px var(--component-hover-shadow);
         z-index: 2;
     }
 
@@ -889,19 +1018,19 @@ export const styles = `
     }
 
     .placed-component.snap-target {
-        border-color: #007bff;
-        background: linear-gradient(to right, rgba(0,123,255,0.05), rgba(0,123,255,0.1));
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-color-rgb), 0.1);
         transform: scale(1.05);
-        box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+        box-shadow: 0 0 0 2px var(--component-hover-shadow);
         z-index: 3;
     }
 
     .placed-component.preview {
         position: fixed;
         opacity: 1;
-        background: #ffffff;
-        border: 2px solid #007bff;
-        box-shadow: 0 8px 16px rgba(0,123,255,0.2);
+        background: var(--component-bg);
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 8px 16px var(--component-hover-shadow);
         transform: scale(1.05);
         z-index: 1000;
         pointer-events: none;
@@ -911,12 +1040,12 @@ export const styles = `
     .drag-placeholder {
         width: 3px;
         height: 24px;
-        background: #007bff;
+        background: var(--primary-color);
         border-radius: 2px;
         margin: 0 2px;
         opacity: 0;
         transition: opacity 0.15s ease-out;
-        box-shadow: 0 0 8px rgba(0,123,255,0.4);
+        box-shadow: 0 0 8px var(--component-hover-shadow);
     }
 
     .drag-placeholder.visible {
@@ -934,10 +1063,10 @@ export const styles = `
     }
 
     .placed-component:hover:not(.dragging) {
-        background: linear-gradient(to right, #ffffff, #f8f9fa);
-        border-color: #007bff;
+        background: var(--bg-color);
+        border-color: var(--primary-color);
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,123,255,0.15);
+        box-shadow: 0 4px 8px var(--component-hover-shadow);
         z-index: 2;
     }
 
@@ -946,28 +1075,28 @@ export const styles = `
         pointer-events: none;
         transform: scale(0.95);
         transition: none;
-        border: 1px dashed #007bff;
-        background: rgba(0, 123, 255, 0.05);
+        border: 1px dashed var(--primary-color);
+        background: rgba(var(--primary-color-rgb), 0.05);
     }
 
     .placed-component.preview {
         position: fixed;
         opacity: 1;
-        background: #ffffff;
-        border-color: #007bff;
+        background: var(--component-bg);
+        border-color: var(--primary-color);
         cursor: grabbing;
         z-index: 1000;
         transform: scale(1.05);
-        box-shadow: 0 8px 16px rgba(0,123,255,0.2);
+        box-shadow: 0 8px 16px var(--component-hover-shadow);
         pointer-events: none;
         transition: none;
     }
 
     .placed-component.snap-target {
         transform: scale(1.05);
-        border-color: #007bff;
-        box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-        background: rgba(0, 123, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 8px var(--component-hover-shadow);
+        background: rgba(var(--primary-color-rgb), 0.1);
         z-index: 5;
     }
 
@@ -994,13 +1123,13 @@ export const styles = `
         flex-shrink: 0;
         width: 3px;
         height: 24px;
-        background: #007bff;
+        background: var(--primary-color);
         border-radius: 1.5px;
         pointer-events: none;
         position: relative;
         margin: 0 4px;
         opacity: 0;
-        box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+        box-shadow: 0 0 6px var(--component-hover-shadow);
         transition: opacity 0.15s ease-out;
     }
 
@@ -1026,7 +1155,7 @@ export const styles = `
 
     .grid-slot {
         flex: 1;
-        border-right: 1px dashed rgba(0,123,255,0.2);
+        border-right: 1px dashed rgba(var(--primary-color-rgb), 0.2);
     }
 
     .grid-slot:last-child {

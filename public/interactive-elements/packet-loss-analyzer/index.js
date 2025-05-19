@@ -4,28 +4,78 @@ packetLossTemplate.innerHTML = `
     :host {
       display: block;
       font-family: sans-serif;
-      --primary-color: #2196F3;
-      --primary-dark: #1976D2;
-      --success-color: #4CAF50;
-      --warning-color: #ff9800;
-      --error-color: #f44336;
-      --bg-color: #f8f9fa;
-      --text-color: #2c3e50;
-      --border-color: #e0e0e0;
-      --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+
+      /* Light mode variables */
+      --primary-color-light: #2196F3;
+      --primary-dark-light: #1976D2;
+      --success-color-light: #4CAF50;
+      --warning-color-light: #ff9800;
+      --error-color-light: #f44336;
+      --bg-color-light: #f8f9fa;
+      --text-color-light: #2c3e50;
+      --border-color-light: #e0e0e0;
+      --element-bg-light: #ffffff;
+      --diagnosis-bg-light: #ffffff;
+      --shadow-sm-light: 0 2px 4px rgba(0,0,0,0.05);
+      --shadow-md-light: 0 4px 6px rgba(0,0,0,0.1);
+
+      /* Dark mode variables */
+      --primary-color-dark: #60a5fa;
+      --primary-dark-dark: #3b82f6;
+      --success-color-dark: #22c55e;
+      --warning-color-dark: #f59e0b;
+      --error-color-dark: #ef4444;
+      --bg-color-dark: #1e293b;
+      --text-color-dark: #f1f5f9;
+      --border-color-dark: #334155;
+      --element-bg-dark: #0f172a;
+      --diagnosis-bg-dark: #1e293b;
+      --shadow-sm-dark: 0 2px 4px rgba(0,0,0,0.2);
+      --shadow-md-dark: 0 4px 8px rgba(0,0,0,0.3);
+
+      /* Default to light mode */
+      --primary-color: var(--primary-color-light);
+      --primary-dark: var(--primary-dark-light);
+      --success-color: var(--success-color-light);
+      --warning-color: var(--warning-color-light);
+      --error-color: var(--error-color-light);
+      --bg-color: var(--bg-color-light);
+      --text-color: var(--text-color-light);
+      --border-color: var(--border-color-light);
+      --element-bg: var(--element-bg-light);
+      --diagnosis-bg: var(--diagnosis-bg-light);
+      --shadow-sm: var(--shadow-sm-light);
+      --shadow-md: var(--shadow-md-light);
       --radius-sm: 4px;
       --radius-md: 8px;
+
+      transition: all 0.3s ease;
+    }
+
+    /* Dark mode styles */
+    :host(.dark-mode) {
+      --primary-color: var(--primary-color-dark);
+      --primary-dark: var(--primary-dark-dark);
+      --success-color: var(--success-color-dark);
+      --warning-color: var(--warning-color-dark);
+      --error-color: var(--error-color-dark);
+      --bg-color: var(--bg-color-dark);
+      --text-color: var(--text-color-dark);
+      --border-color: var(--border-color-dark);
+      --element-bg: var(--element-bg-dark);
+      --diagnosis-bg: var(--diagnosis-bg-dark);
+      --shadow-sm: var(--shadow-sm-dark);
+      --shadow-md: var(--shadow-md-dark);
     }
 
     .interactive-element {
-      background-color: white;
+      background-color: var(--element-bg);
       padding: 25px;
       margin: 0;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
-      transition: box-shadow 0.3s ease;
+      transition: all 0.3s ease;
       color: var(--text-color);
     }
 
@@ -76,13 +126,13 @@ packetLossTemplate.innerHTML = `
       padding: 8px 12px; /* Adjusted padding */
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      background-color: white;
+      background-color: var(--element-bg);
       color: var(--text-color);
       font-family: inherit; /* Use host font */
       font-size: 0.9em;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       height: 38px; /* Consistent height */
     }
 
@@ -210,10 +260,11 @@ packetLossTemplate.innerHTML = `
       margin: 8px 0;
       padding: 10px;
       border-radius: var(--radius-sm);
-      background-color: white;
+      background-color: var(--diagnosis-bg);
       font-size: 0.95em;
       line-height: 1.5;
       border-left: 4px solid transparent; /* For status color */
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .diagnosis p.status-ok { border-left-color: var(--success-color); }
@@ -287,12 +338,50 @@ class PacketLossAnalyzerElement extends HTMLElement {
     this.jitterSpan = this.shadowRoot.getElementById('jitter');
     this.packetVisualDiv = this.shadowRoot.getElementById('packetVisual');
     this.diagnosisDiv = this.shadowRoot.getElementById('diagnosis');
+
+    // Bind methods
+    this.applyTheme = this.applyTheme.bind(this);
+    this.updateTheme = this.updateTheme.bind(this);
+    this.isColorDark = this.isColorDark.bind(this);
+
+    // Flag to track if we're in the middle of a theme transition
+    this.isTransitioning = false;
   }
 
   connectedCallback() {
     this.runTestBtn.addEventListener('click', () => this.simulatePacketLoss());
     // Run initial simulation on load
     this.simulatePacketLoss();
+
+    // Check initial theme and apply it
+    this.applyTheme();
+
+    // Set up observer for theme changes
+    this.setupThemeObserver();
+
+    // Set up interval to check theme periodically, but with a shorter interval
+    // This helps catch theme changes that might be missed by the observer
+    this.themeInterval = setInterval(() => {
+      this.applyTheme();
+    }, 300); // 300ms for more responsive updates
+
+    console.log('[PacketLossAnalyzer] Component initialized');
+  }
+
+  disconnectedCallback() {
+    // Clean up observer and interval
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    if (this.themeInterval) {
+      clearInterval(this.themeInterval);
+    }
+
+    // Remove message event listener
+    window.removeEventListener('message', this.messageHandler);
+
+    console.log('[PacketLossAnalyzer] Component disconnected and cleaned up');
   }
 
   simulatePacketLoss() {
@@ -408,6 +497,162 @@ class PacketLossAnalyzerElement extends HTMLElement {
      }
 
     this.diagnosisDiv.innerHTML = diagnosisHTML;
+  }
+
+  // Helper method to determine if a color is dark
+  isColorDark(color) {
+    try {
+      if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return false;
+
+      // Check for specific dark colors
+      if (color.includes('rgb(30, 41, 59)') || // Slate 800
+          color.includes('rgb(15, 23, 42)') || // Slate 900
+          color.includes('rgb(17, 24, 39)') || // Gray 900
+          color.includes('rgb(31, 41, 55)') || // Gray 800
+          color.includes('rgb(3, 7, 18)')) {   // Dark blue/black
+        return true;
+      }
+
+      // Check for specific light colors
+      if (color.includes('rgb(255, 255, 255)') || // White
+          color.includes('rgb(248, 250, 252)') || // Slate 50
+          color.includes('rgb(249, 250, 251)') || // Gray 50
+          color.includes('rgb(243, 244, 246)')) { // Gray 100
+        return false;
+      }
+
+      let r, g, b;
+      if (color.startsWith('rgba')) {
+        const rgba = color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
+        if (rgba) {
+          r = parseInt(rgba[1]);
+          g = parseInt(rgba[2]);
+          b = parseInt(rgba[3]);
+        }
+      } else if (color.startsWith('rgb')) {
+        const rgb = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgb) {
+          r = parseInt(rgb[1]);
+          g = parseInt(rgb[2]);
+          b = parseInt(rgb[3]);
+        }
+      }
+
+      if (r !== undefined && g !== undefined && b !== undefined) {
+        // Calculate relative luminance
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        return luminance < 128; // If luminance is less than 128, consider it dark
+      }
+      return false;
+    } catch (e) {
+      console.error('[PacketLossAnalyzer] Error in isColorDark:', e);
+      return false;
+    }
+  }
+
+  setupThemeObserver() {
+    // Create a MutationObserver to watch for class changes
+    this.observer = new MutationObserver(() => {
+      this.applyTheme();
+    });
+
+    // Observe the document body and html element for class changes
+    this.observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    this.observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    // Listen for direct theme change messages from parent
+    this.messageHandler = (event) => {
+      if (event.data && event.data.type === 'theme-change') {
+        console.log('[PacketLossAnalyzer] Received theme change message:', event.data.theme);
+        this.updateTheme(event.data.theme === 'dark');
+      }
+    };
+    window.addEventListener('message', this.messageHandler);
+  }
+
+  applyTheme() {
+    // Try multiple methods to detect dark mode
+    let isDarkMode = false;
+
+    // Method 1: Check document classes
+    if (document.documentElement.classList.contains('dark') ||
+        document.body.classList.contains('dark')) {
+      isDarkMode = true;
+    }
+
+    // Method 2: Check for dark background color on body or html
+    if (!isDarkMode) {
+      try {
+        const bodyBgColor = getComputedStyle(document.body).backgroundColor;
+        const htmlBgColor = getComputedStyle(document.documentElement).backgroundColor;
+
+        if (this.isColorDark(bodyBgColor) || this.isColorDark(htmlBgColor)) {
+          isDarkMode = true;
+        }
+      } catch (e) {
+        console.error('[PacketLossAnalyzer] Error checking background color:', e);
+      }
+    }
+
+    // Method 3: Check parent document if in iframe
+    if (!isDarkMode && window !== window.parent) {
+      try {
+        // Try to access parent document (may fail due to same-origin policy)
+        if (window.parent.document.documentElement.classList.contains('dark') ||
+            window.parent.document.body.classList.contains('dark')) {
+          isDarkMode = true;
+        } else {
+          // Check parent document background color
+          const parentBodyBgColor = getComputedStyle(window.parent.document.body).backgroundColor;
+          const parentHtmlBgColor = getComputedStyle(window.parent.document.documentElement).backgroundColor;
+
+          if (this.isColorDark(parentBodyBgColor) || this.isColorDark(parentHtmlBgColor)) {
+            isDarkMode = true;
+          }
+        }
+      } catch (e) {
+        console.log('[PacketLossAnalyzer] Could not access parent frame due to same-origin policy');
+      }
+    }
+
+    console.log('[PacketLossAnalyzer] Theme detection result:', isDarkMode ? 'dark' : 'light');
+
+    // Apply the theme
+    this.updateTheme(isDarkMode);
+  }
+
+  // Method to directly update theme without polling
+  updateTheme(isDarkMode) {
+    console.log('[PacketLossAnalyzer] updateTheme called with isDarkMode:', isDarkMode);
+
+    // Prevent multiple rapid transitions
+    if (this.isTransitioning) {
+      console.log('[PacketLossAnalyzer] Theme transition already in progress, skipping');
+      return;
+    }
+
+    this.isTransitioning = true;
+
+    // Apply theme class
+    if (isDarkMode) {
+      this.classList.add('dark-mode');
+      console.log('[PacketLossAnalyzer] Applied dark mode');
+    } else {
+      this.classList.remove('dark-mode');
+      console.log('[PacketLossAnalyzer] Applied light mode');
+    }
+
+    // Reset transition flag after a short delay
+    setTimeout(() => {
+      this.isTransitioning = false;
+    }, 100);
   }
 }
 

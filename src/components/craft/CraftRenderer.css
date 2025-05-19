@@ -73,14 +73,14 @@
   margin-bottom: 15px;
 }
 
-/* CollapsibleSection styling in StudyGuideViewer */
+/* CollapsibleSection styling in StudyGuideViewer - respect component's own margin settings */
 .craft-renderer .craft-collapsible-section {
-  margin-bottom: 15px !important;
+  /* Remove forced margin to respect component's own settings */
 }
 
 /* Specific styling for the in-viewer class */
 .craft-renderer .craft-collapsible-section.in-viewer {
-  margin-bottom: 15px !important;
+  /* Remove forced margin to respect component's own settings */
 }
 
 .craft-renderer .craft-step-content {
@@ -129,7 +129,9 @@
 
 /* Override for components with no border */
 .craft-renderer .no-border-override .craft-collapsible-header,
-.craft-renderer .no-border-override .craft-collapsible-content {
+.craft-renderer .no-border-override .craft-collapsible-content,
+.craft-renderer .no-border-override .craft-tabs-content,
+.craft-renderer .no-border-override .craft-tabs-navigation > div {
   border: none !important;
   border-style: none !important;
   border-width: 0 !important;
@@ -156,9 +158,9 @@
 }
 
 .craft-renderer .craft-tabs-content {
-  border-style: solid !important;
   padding: 16px !important;
   min-height: 100px !important;
+  /* Don't force a border style, let the component settings control it */
 }
 
 .craft-renderer .craft-tab-content {

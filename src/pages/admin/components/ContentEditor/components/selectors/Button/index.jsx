@@ -1,6 +1,8 @@
 import { useNode } from '@craftjs/core';
 import React from 'react';
 import classNames from 'classnames';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor } from '../../../utils/themeColors';
 
 import { ButtonSettings } from './ButtonSettings';
 import { Text } from '../Text';
@@ -8,9 +10,15 @@ import { Text } from '../Text';
 export const Button = ({
   text = 'Button',
   textComponent = {},
-  color = { r: 255, g: 255, b: 255, a: 1 },
+  color = {
+    light: { r: 255, g: 255, b: 255, a: 1 },
+    dark: { r: 255, g: 255, b: 255, a: 1 }
+  },
   buttonStyle = 'filled',
-  background = { r: 13, g: 148, b: 136, a: 1 },
+  background = {
+    light: { r: 13, g: 148, b: 136, a: 1 },
+    dark: { r: 56, g: 189, b: 248, a: 1 }
+  },
   margin = ['5', '0', '5', '0'],
   padding = ['10', '16', '10', '16'],
   radius = 4,
@@ -18,8 +26,14 @@ export const Button = ({
   fontSize = 16,
   fontWeight = '500',
   borderWidth = 2,
-  hoverBackground = { r: 11, g: 133, b: 122, a: 1 },
-  hoverColor = { r: 255, g: 255, b: 255, a: 1 },
+  hoverBackground = {
+    light: { r: 11, g: 133, b: 122, a: 1 },
+    dark: { r: 45, g: 178, b: 237, a: 1 }
+  },
+  hoverColor = {
+    light: { r: 255, g: 255, b: 255, a: 1 },
+    dark: { r: 255, g: 255, b: 255, a: 1 }
+  },
 }) => {
   const {
     connectors: { connect },
@@ -35,19 +49,27 @@ export const Button = ({
   }[size];
 
   // Determine button styles based on buttonStyle prop
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const themeBackground = getThemeColor(background, isDark, 'button');
+  const themeColor = getThemeColor(color, isDark, 'button');
+  const themeHoverBackground = getThemeColor(hoverBackground, isDark, 'button');
+  const themeHoverColor = getThemeColor(hoverColor, isDark, 'button');
+
   const buttonBackground = buttonStyle === 'filled' 
-    ? `rgba(${Object.values(background)})`
+    ? `rgba(${Object.values(themeBackground)})`
     : 'transparent';
 
   const buttonBorder = buttonStyle === 'outline'
-    ? `${borderWidth}px solid rgba(${Object.values(background)})`
+    ? `${borderWidth}px solid rgba(${Object.values(themeBackground)})`
     : 'none';
 
   // Hover styles
   const hoverStyles = {
-    background: `rgba(${Object.values(hoverBackground)})`,
-    color: `rgba(${Object.values(hoverColor)})`,
-    borderColor: buttonStyle === 'outline' ? `rgba(${Object.values(hoverBackground)})` : 'transparent',
+    background: `rgba(${Object.values(themeHoverBackground)})`,
+    color: `rgba(${Object.values(themeHoverColor)})`,
+    borderColor: buttonStyle === 'outline' ? `rgba(${Object.values(themeHoverBackground)})` : 'transparent',
   };
 
   return (
@@ -70,7 +92,7 @@ export const Button = ({
         borderRadius: `${radius}px`,
         fontSize: `${fontSize}px`,
         fontWeight,
-        color: `rgba(${Object.values(color)})`,
+        color: `rgba(${Object.values(themeColor)})`,
         '--hover-bg': hoverStyles.background,
         '--hover-color': hoverStyles.color,
         '--hover-border': hoverStyles.borderColor,
@@ -82,7 +104,7 @@ export const Button = ({
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = buttonBackground;
-        e.currentTarget.style.color = `rgba(${Object.values(color)})`;
+        e.currentTarget.style.color = `rgba(${Object.values(themeColor)})`;
         e.currentTarget.style.borderColor = buttonStyle === 'outline' ? `rgba(${Object.values(background)})` : 'transparent';
       }}
     >
@@ -94,10 +116,22 @@ export const Button = ({
 Button.craft = {
   displayName: 'Button',
   props: {
-    background: { r: 13, g: 148, b: 136, a: 1 },
-    color: { r: 255, g: 255, b: 255, a: 1 },
-    hoverBackground: { r: 11, g: 133, b: 122, a: 1 },
-    hoverColor: { r: 255, g: 255, b: 255, a: 1 },
+    background: {
+      light: { r: 13, g: 148, b: 136, a: 1 },
+      dark: { r: 56, g: 189, b: 248, a: 1 }
+    },
+    color: {
+      light: { r: 255, g: 255, b: 255, a: 1 },
+      dark: { r: 255, g: 255, b: 255, a: 1 }
+    },
+    hoverBackground: {
+      light: { r: 11, g: 133, b: 122, a: 1 },
+      dark: { r: 45, g: 178, b: 237, a: 1 }
+    },
+    hoverColor: {
+      light: { r: 255, g: 255, b: 255, a: 1 },
+      dark: { r: 255, g: 255, b: 255, a: 1 }
+    },
     buttonStyle: 'filled',
     text: 'Button',
     margin: ['5', '0', '5', '0'],

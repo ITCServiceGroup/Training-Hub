@@ -1,10 +1,15 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 export const ButtonSettings = () => {
   const { actions, selected } = useNode((node) => ({
     selected: node.id,
   }));
+
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const {
     text,
@@ -30,29 +35,64 @@ export const ButtonSettings = () => {
       radius: props.radius || 4,
       padding: props.padding || ['10', '16', '10', '16'],
       margin: props.margin || ['0', '0', '0', '0'],
-      background: props.background || { r: 13, g: 148, b: 136, a: 1 },
-      color: props.color || { r: 255, g: 255, b: 255, a: 1 },
+      background: props.background || {
+        light: { r: 13, g: 148, b: 136, a: 1 },
+        dark: { r: 56, g: 189, b: 248, a: 1 }
+      },
+      color: props.color || {
+        light: { r: 255, g: 255, b: 255, a: 1 },
+        dark: { r: 255, g: 255, b: 255, a: 1 }
+      },
       borderWidth: props.borderWidth || 2,
-      hoverBackground: props.hoverBackground || { r: 11, g: 133, b: 122, a: 1 },
-      hoverColor: props.hoverColor || { r: 255, g: 255, b: 255, a: 1 },
+      hoverBackground: props.hoverBackground || {
+        light: { r: 11, g: 133, b: 122, a: 1 },
+        dark: { r: 45, g: 178, b: 237, a: 1 }
+      },
+      hoverColor: props.hoverColor || {
+        light: { r: 255, g: 255, b: 255, a: 1 },
+        dark: { r: 255, g: 255, b: 255, a: 1 }
+      },
       size: props.size || 'medium'
     };
   });
 
   const handleColorChange = (colorKey, newColor) => {
+    const r = parseInt(newColor.substring(1, 3), 16);
+    const g = parseInt(newColor.substring(3, 5), 16);
+    const b = parseInt(newColor.substring(5, 7), 16);
+    
     actions.setProp((props) => {
+      const currentTheme = isDark ? 'dark' : 'light';
+      const oppositeTheme = isDark ? 'light' : 'dark';
+      
+      // Create the new color for the current theme
+      const newThemeColor = { r, g, b, a: props[colorKey][currentTheme].a };
+      // Generate the opposite theme color
+      const oppositeColor = convertToThemeColor(newThemeColor, !isDark);
+      
+      // Update both theme colors
       props[colorKey] = {
-        ...props[colorKey],
-        r: parseInt(newColor.substring(1, 3), 16),
-        g: parseInt(newColor.substring(3, 5), 16),
-        b: parseInt(newColor.substring(5, 7), 16)
+        [currentTheme]: newThemeColor,
+        [oppositeTheme]: oppositeColor
       };
     });
   };
 
   const handleOpacityChange = (colorKey, opacity) => {
     actions.setProp((props) => {
-      props[colorKey] = { ...props[colorKey], a: opacity };
+      const currentTheme = isDark ? 'dark' : 'light';
+      const oppositeTheme = isDark ? 'light' : 'dark';
+      
+      // Create the new color for the current theme
+      const newThemeColor = { ...props[colorKey][currentTheme], a: opacity };
+      // Generate the opposite theme color
+      const oppositeColor = convertToThemeColor(newThemeColor, !isDark);
+      
+      // Update both theme colors
+      props[colorKey] = {
+        [currentTheme]: newThemeColor,
+        [oppositeTheme]: oppositeColor
+      };
     });
   };
 
@@ -255,7 +295,7 @@ export const ButtonSettings = () => {
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(background.r).toString(16).padStart(2, '0')}${Math.round(background.g).toString(16).padStart(2, '0')}${Math.round(background.b).toString(16).padStart(2, '0')}`}
+                  value={`#${Math.round(getThemeColor(background, isDark, 'button').r).toString(16).padStart(2, '0')}${Math.round(getThemeColor(background, isDark, 'button').g).toString(16).padStart(2, '0')}${Math.round(getThemeColor(background, isDark, 'button').b).toString(16).padStart(2, '0')}`}
                   onChange={(e) => handleColorChange('background', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -264,7 +304,7 @@ export const ButtonSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={background.a}
+                  value={getThemeColor(background, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('background', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />
@@ -275,7 +315,7 @@ export const ButtonSettings = () => {
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(color.r).toString(16).padStart(2, '0')}${Math.round(color.g).toString(16).padStart(2, '0')}${Math.round(color.b).toString(16).padStart(2, '0')}`}
+                  value={`#${Math.round(getThemeColor(color, isDark, 'button').r).toString(16).padStart(2, '0')}${Math.round(getThemeColor(color, isDark, 'button').g).toString(16).padStart(2, '0')}${Math.round(getThemeColor(color, isDark, 'button').b).toString(16).padStart(2, '0')}`}
                   onChange={(e) => handleColorChange('color', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -284,7 +324,7 @@ export const ButtonSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={color.a}
+                  value={getThemeColor(color, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('color', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />
@@ -303,7 +343,7 @@ export const ButtonSettings = () => {
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(hoverBackground.r).toString(16).padStart(2, '0')}${Math.round(hoverBackground.g).toString(16).padStart(2, '0')}${Math.round(hoverBackground.b).toString(16).padStart(2, '0')}`}
+                  value={`#${Math.round(getThemeColor(hoverBackground, isDark, 'button').r).toString(16).padStart(2, '0')}${Math.round(getThemeColor(hoverBackground, isDark, 'button').g).toString(16).padStart(2, '0')}${Math.round(getThemeColor(hoverBackground, isDark, 'button').b).toString(16).padStart(2, '0')}`}
                   onChange={(e) => handleColorChange('hoverBackground', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -312,7 +352,7 @@ export const ButtonSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={hoverBackground.a}
+                  value={getThemeColor(hoverBackground, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('hoverBackground', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />
@@ -323,7 +363,7 @@ export const ButtonSettings = () => {
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(hoverColor.r).toString(16).padStart(2, '0')}${Math.round(hoverColor.g).toString(16).padStart(2, '0')}${Math.round(hoverColor.b).toString(16).padStart(2, '0')}`}
+                  value={`#${Math.round(getThemeColor(hoverColor, isDark, 'button').r).toString(16).padStart(2, '0')}${Math.round(getThemeColor(hoverColor, isDark, 'button').g).toString(16).padStart(2, '0')}${Math.round(getThemeColor(hoverColor, isDark, 'button').b).toString(16).padStart(2, '0')}`}
                   onChange={(e) => handleColorChange('hoverColor', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -332,7 +372,7 @@ export const ButtonSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={hoverColor.a}
+                  value={getThemeColor(hoverColor, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('hoverColor', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />

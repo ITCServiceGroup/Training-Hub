@@ -409,8 +409,70 @@ export class CommandBuilderElement extends HTMLElement {
         this.initializeComponents('windows');
         this.updateTutorialGrid();
 
+        // Initialize theme detection
+        this.setupThemeDetection();
+
         console.log('[WebComponent CommandBuilder] Component connected and initialized');
     }
+
+    // Theme detection
+    setupThemeDetection() {
+        // Initial theme check
+        this.checkAndApplyTheme();
+
+        // Set up mutation observer to detect theme changes
+        this.themeObserver = new MutationObserver(() => {
+            this.checkAndApplyTheme();
+        });
+
+        // Observe both document.body and document.documentElement for theme changes
+        this.themeObserver.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme']
+        });
+
+        this.themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme']
+        });
+
+        // Listen for theme change messages
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'theme-change') {
+                this.checkAndApplyTheme();
+            }
+        });
+
+        // Also listen for custom theme change events
+        window.addEventListener('themeChanged', () => {
+            this.checkAndApplyTheme();
+        });
+    }
+
+    checkAndApplyTheme() {
+        const isDarkMode = this.isDarkMode();
+        console.log(`[CommandBuilder] Theme detected: ${isDarkMode ? 'dark' : 'light'}`);
+
+        if (isDarkMode) {
+            this.classList.add('dark-mode');
+        } else {
+            this.classList.remove('dark-mode');
+        }
+    }
+
+    isDarkMode() {
+        // Check various ways the theme might be set
+        const bodyHasDarkClass = document.body.classList.contains('dark-mode') ||
+                                document.body.classList.contains('dark');
+        const htmlHasDarkClass = document.documentElement.classList.contains('dark-mode') ||
+                                document.documentElement.classList.contains('dark');
+        const bodyHasDarkTheme = document.body.getAttribute('data-theme') === 'dark';
+        const htmlHasDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        return bodyHasDarkClass || htmlHasDarkClass || bodyHasDarkTheme || htmlHasDarkTheme;
+    }
+
+
 
     getComponentsForOS(os) {
         const targets = [
@@ -919,6 +981,24 @@ export class CommandBuilderElement extends HTMLElement {
         this.commandPreview.textContent = '';
         this.validationMessage.textContent = '';
         this.outputPreview.textContent = '';
+    }
+
+    disconnectedCallback() {
+        // Clean up event listeners
+        document.removeEventListener('dragend', this.handlePlacedComponentDragEnd);
+
+        // Clean up theme observer
+        if (this.themeObserver) {
+            this.themeObserver.disconnect();
+        }
+
+        // Remove theme change event listener
+        window.removeEventListener('themeChanged', this.checkAndApplyTheme);
+
+        // Remove message event listener
+        window.removeEventListener('message', this.checkAndApplyTheme);
+
+        console.log('[WebComponent CommandBuilder] Component disconnected and cleaned up');
     }
 }
 

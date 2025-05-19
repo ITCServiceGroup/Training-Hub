@@ -1,6 +1,8 @@
 import { useNode, useEditor } from '@craftjs/core';
 import React, { useEffect, useRef, useState } from 'react';
 import ContentEditable from 'react-contenteditable';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 /**
  * TableText component - A simplified version of the Text component specifically for table cells
@@ -10,7 +12,10 @@ export const TableText = ({
   fontSize = '15',
   textAlign = 'left',
   fontWeight = '500',
-  color = { r: 92, g: 90, b: 90, a: 1 },
+  color = {
+    light: { r: 92, g: 90, b: 90, a: 1 },
+    dark: { r: 229, g: 231, b: 235, a: 1 }
+  },
   text = 'Text',
   onChange = null,
 }) => {
@@ -33,6 +38,9 @@ export const TableText = ({
   const { enabled } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
+
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Update the HTML content when text changes from props
   useEffect(() => {
@@ -112,8 +120,8 @@ export const TableText = ({
       style={{
         width: '100%',
         color: isPlaceholder && !isFocused
-          ? `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)` // Lighter color for placeholder
-          : `rgba(${Object.values(color)})`,
+          ? `rgba(${Object.values({ ...getThemeColor(color, isDark, 'table'), a: 0.8 })})` // Lighter color for placeholder
+          : `rgba(${Object.values(getThemeColor(color, isDark, 'table'))})`,
         fontSize: `${fontSize}px`,
         fontWeight,
         textAlign,
@@ -131,7 +139,10 @@ TableText.craft = {
     fontSize: '15',
     textAlign: 'left',
     fontWeight: '500',
-    color: { r: 92, g: 90, b: 90, a: 1 },
+    color: {
+      light: { r: 92, g: 90, b: 90, a: 1 },
+      dark: { r: 229, g: 231, b: 235, a: 1 }
+    },
     text: '', // Default to empty string to trigger placeholder
     _lastUpdate: 0, // Add this to help with re-rendering
   },

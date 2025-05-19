@@ -4,6 +4,7 @@ import { Resizer } from '../Resizer';
 import { TableText } from './TableText';
 import { TableSettings } from './TableSettings';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 // Default props for the Table component
 const defaultProps = {
@@ -21,15 +22,25 @@ const defaultProps = {
   },
   borderStyle: 'solid',
   borderWidth: 1,
-  borderColor: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
-  headerBackgroundColor: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
-  alternateRowColor: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+  borderColor: {
+    light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+    dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+  },
+  headerBackgroundColor: {
+    light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
+    dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
+  },
+  alternateRowColor: {
+    light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+    dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+  },
   cellPadding: 8,
   cellAlignment: 'middle',
   fontSize: 14,
   headerFontSize: 14,
   textAlign: 'left',
-  headerTextAlign: 'left'
+  headerTextAlign: 'left',
+  autoConvertColors: true // Add auto color conversion property
 };
 
 /**
@@ -58,11 +69,13 @@ export const Table = (props) => {
     fontSize,
     headerFontSize,
     textAlign,
-    headerTextAlign
+    headerTextAlign,
+    autoConvertColors
   } = props;
 
   // Get theme (used for styling)
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Reference to the table element
   const tableRef = useRef(null);
@@ -122,12 +135,12 @@ export const Table = (props) => {
               padding: `${cellPadding}px`,
               verticalAlign: cellAlignment,
               border: borderStyle !== 'none' ?
-                `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${borderColor.r}, ${borderColor.g}, ${borderColor.b}, ${borderColor.a})` :
+                `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${Object.values(getThemeColor(borderColor, isDark, 'table', autoConvertColors))})` :
                 'none',
               backgroundColor: isHeader
-                ? `rgba(${headerBackgroundColor.r}, ${headerBackgroundColor.g}, ${headerBackgroundColor.b}, ${headerBackgroundColor.a})`
+                ? `rgba(${Object.values(getThemeColor(headerBackgroundColor, isDark, 'table', autoConvertColors))})`
                 : (!isHeader && ((tableData.hasHeader && i % 2 === 0) || (!tableData.hasHeader && i % 2 === 1)))
-                  ? `rgba(${alternateRowColor.r}, ${alternateRowColor.g}, ${alternateRowColor.b}, ${alternateRowColor.a})`
+                  ? `rgba(${Object.values(getThemeColor(alternateRowColor, isDark, 'table', autoConvertColors))})`
                   : 'transparent',
               // Add a subtle outline when borders are none to help distinguish cells
               outline: borderStyle === 'none' ? (theme === 'dark' ? '1px solid rgba(55, 65, 81, 0.2)' : '1px solid rgba(229, 231, 235, 0.5)') : 'none',
@@ -290,8 +303,8 @@ export const Table = (props) => {
             borderCollapse: 'separate',
             borderSpacing: 0,
             tableLayout: 'fixed',
-            border: borderStyle !== 'none' ?
-              `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${borderColor.r}, ${borderColor.g}, ${borderColor.b}, ${borderColor.a})` :
+              border: borderStyle !== 'none' ?
+              `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${Object.values(getThemeColor(borderColor, isDark, 'table', autoConvertColors))})` :
               'none'
           }}
         >
@@ -308,7 +321,40 @@ export const Table = (props) => {
 // Define craft.js configuration for the component
 Table.craft = {
   displayName: 'Table',
-  props: defaultProps,
+  props: {
+    ...defaultProps,
+    // Handle backward compatibility for colors by converting single color objects to theme-aware format
+    get borderColor() {
+      if (defaultProps.borderColor.light && defaultProps.borderColor.dark) {
+        return defaultProps.borderColor;
+      }
+      const lightColor = defaultProps.borderColor;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true)
+      };
+    },
+    get headerBackgroundColor() {
+      if (defaultProps.headerBackgroundColor.light && defaultProps.headerBackgroundColor.dark) {
+        return defaultProps.headerBackgroundColor;
+      }
+      const lightColor = defaultProps.headerBackgroundColor;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true)
+      };
+    },
+    get alternateRowColor() {
+      if (defaultProps.alternateRowColor.light && defaultProps.alternateRowColor.dark) {
+        return defaultProps.alternateRowColor;
+      }
+      const lightColor = defaultProps.alternateRowColor;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true)
+      };
+    }
+  },
   rules: {
     canDrag: () => true,
     canDrop: (dropTarget) => {

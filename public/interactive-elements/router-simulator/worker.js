@@ -167,36 +167,47 @@ function getMeshBoostFactor(inputSignal) {
 
 function calculateAttenuation(x, y, sourceX, sourceY) {
     // Use worker's state
-    if (!floorplanData || (!floorplanData.rooms && !floorplanData.walls) || !floorplanData.fixedObstacles) {
+    if (!floorplanData || !floorplanData.walls || !floorplanData.fixedObstacles) {
         // console.warn("[Worker] calculateAttenuation: Missing floorplan data.");
         return 0;
     }
     let totalAttenuation = 0;
 
-    // --- Attenuation from External Walls ---
-    if (checkExternalWallsInPath(sourceX, sourceY, x, y, floorplanData)) {
-        totalAttenuation += 0.4;
-    }
+    // --- WALLS ONLY: Attenuation from ALL Walls ---
+    // Process all walls (both external and internal)
+    for (const wall of floorplanData.walls) {
+        // Calculate the exact intersection point with the wall
+        const intersection = getLineIntersection(sourceX, sourceY, x, y, wall.x1, wall.y1, wall.x2, wall.y2);
 
-    // --- Attenuation from Intersecting Rooms (Cumulative) ---
-    let sourceRoom = null;
-    if (floorplanData.rooms) {
-        for (const room of floorplanData.rooms) {
-             if (sourceX >= room.x && sourceX <= room.x + room.width && sourceY >= room.y && sourceY <= room.y + room.height) {
-                 sourceRoom = room;
-                 break;
-             }
-        }
-        for (const room of floorplanData.rooms) {
-            if (sourceRoom && room.name === sourceRoom.name) continue;
-            if (lineIntersectsRect(sourceX, sourceY, x, y, room.x, room.y, room.x + room.width, room.y + room.height)) {
-                if (typeof room.zoneAttenuation === 'number') {
-                    totalAttenuation += room.zoneAttenuation;
-                }
+        if (intersection) {
+            // Apply different attenuation based on wall type
+            if (wall.isExternal === true) {
+                totalAttenuation += 0.4; // Higher attenuation for external walls
+            } else {
+                totalAttenuation += 0.15; // Lower attenuation for internal walls
+            }
+
+            // Calculate the distance from the intersection point to the target point
+            const distFromIntersection = Math.sqrt(
+                Math.pow(intersection.x - x, 2) +
+                Math.pow(intersection.y - y, 2)
+            );
+
+            // Calculate the total distance from source to target
+            const totalDist = Math.sqrt(
+                Math.pow(sourceX - x, 2) +
+                Math.pow(sourceY - y, 2)
+            );
+
+            // Apply a gradual attenuation effect after passing through the wall
+            // This creates a smooth transition rather than a sharp cutoff
+            if (distFromIntersection > 0 && totalDist > 0) {
+                // The attenuation effect gradually decreases as we move away from the wall
+                const attenuationFactor = Math.max(0, 1 - (distFromIntersection / totalDist));
+                totalAttenuation *= attenuationFactor;
             }
         }
     }
-
 
     // --- Attenuation from Fixed Obstacles ---
     for (const obstacle of floorplanData.fixedObstacles) {
@@ -205,6 +216,29 @@ function calculateAttenuation(x, y, sourceX, sourceY) {
         }
     }
     return totalAttenuation;
+}
+
+// Helper function to calculate the exact intersection point between two line segments
+function getLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+    // Calculate the denominator
+    const denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+
+    // If denominator is 0, lines are parallel
+    if (denom === 0) return null;
+
+    // Calculate ua and ub
+    const ua = (((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3))) / denom;
+    const ub = (((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3))) / denom;
+
+    // If ua and ub are between 0-1, segments intersect
+    if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+        // Calculate the intersection point
+        const intersectionX = x1 + ua * (x2 - x1);
+        const intersectionY = y1 + ua * (y2 - y1);
+        return { x: intersectionX, y: intersectionY };
+    }
+
+    return null; // No intersection
 }
 
 function lineIntersectsRect(x1, y1, x2, y2, rx1, ry1, rx2, ry2) {
@@ -222,16 +256,24 @@ function lineIntersectsRect(x1, y1, x2, y2, rx1, ry1, rx2, ry2) {
 }
 
 function doLinesIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-    // ... (geometry logic as before) ...
-    const denom = (x4 - x3) * (y1 - y2) - (x1 - x2) * (y4 - y3);
+    // Calculate the denominator
+    const denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+
+    // If denominator is 0, lines are parallel
     if (denom === 0) return false;
-    const ua = ((x4 - x3) * (y1 - y3) - (x1 - x3) * (y4 - y3)) / denom;
-    const ub = ((x2 - x1) * (y1 - y3) - (x1 - x3) * (y2 - y1)) / denom;
-    return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+
+    // Calculate ua and ub
+    const ua = (((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3))) / denom;
+    const ub = (((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3))) / denom;
+
+    // Return true if segment segments intersect
+    return (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1);
 }
 
+// These functions are no longer used since we're handling all walls directly in calculateAttenuation
+// Keeping them as commented code for reference
+/*
 function checkExternalWallsInPath(x1, y1, x2, y2, floorplanData) {
-    // ... (geometry logic as before) ...
     if (floorplanData.walls) {
         for (const wall of floorplanData.walls) {
             if (wall.isExternal === true) {
@@ -240,10 +282,10 @@ function checkExternalWallsInPath(x1, y1, x2, y2, floorplanData) {
                 }
             }
         }
-         return false;
+        return false;
     }
     else if (floorplanData.rooms) {
-         for (const room of floorplanData.rooms) {
+        for (const room of floorplanData.rooms) {
             if (room.externalWalls && isExternalWallIntersection(x1, y1, x2, y2, room)) {
                 return true;
             }
@@ -253,7 +295,6 @@ function checkExternalWallsInPath(x1, y1, x2, y2, floorplanData) {
 }
 
 function isExternalWallIntersection(x1, y1, x2, y2, room) {
-    // ... (geometry logic as before) ...
     if (!room || !room.externalWalls) return false;
     for (const wallDirection of room.externalWalls) {
         let wallStartX, wallStartY, wallEndX, wallEndY;
@@ -270,6 +311,7 @@ function isExternalWallIntersection(x1, y1, x2, y2, room) {
     }
     return false;
 }
+*/
 
 function lineSegmentIntersectsCircle(x1, y1, x2, y2, cx, cy, r) {
     // ... (geometry logic as before) ...

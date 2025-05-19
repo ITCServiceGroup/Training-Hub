@@ -1,0 +1,384 @@
+// Light mode defaults (using existing values from components)
+export const lightDefaults = {
+  container: { r: 255, g: 255, b: 255, a: 1 },
+  text: { r: 92, g: 90, b: 90, a: 1 },
+  button: { r: 14, g: 165, b: 233, a: 1 }, // sky-500
+  card: { r: 255, g: 255, b: 255, a: 1 },
+  table: { r: 255, g: 255, b: 255, a: 1 },
+  icon: { r: 92, g: 90, b: 90, a: 1 },
+  shadow: { r: 0, g: 0, b: 0, a: 0.15 } // Black with 15% opacity
+};
+
+// Dark mode defaults using Tailwind's dark palette
+export const darkDefaults = {
+  container: { r: 31, g: 41, b: 55, a: 1 }, // slate-800
+  text: { r: 229, g: 231, b: 235, a: 1 }, // gray-200
+  button: { r: 56, g: 189, b: 248, a: 1 }, // sky-400
+  card: { r: 51, g: 65, b: 85, a: 1 }, // slate-700
+  table: { r: 51, g: 65, b: 85, a: 1 }, // slate-700
+  icon: { r: 229, g: 231, b: 235, a: 1 }, // gray-200
+  shadow: { r: 255, g: 255, b: 255, a: 0.15 } // White with 15% opacity
+};
+
+// Helper function to calculate relative luminance
+const getLuminance = (color) => {
+  const rs = color.r / 255;
+  const gs = color.g / 255;
+  const bs = color.b / 255;
+
+  const r = rs <= 0.03928 ? rs / 12.92 : Math.pow((rs + 0.055) / 1.055, 2.4);
+  const g = gs <= 0.03928 ? gs / 12.92 : Math.pow((gs + 0.055) / 1.055, 2.4);
+  const b = bs <= 0.03928 ? bs / 12.92 : Math.pow((bs + 0.055) / 1.055, 2.4);
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+// Convert RGB to HSL
+const rgbToHsl = (color) => {
+  const r = color.r / 255;
+  const g = color.g / 255;
+  const b = color.b / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0; // achromatic
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  return { h, s, l, a: color.a !== undefined ? color.a : 1 };
+};
+
+// Convert HSL to RGB
+const hslToRgb = (color) => {
+  let r, g, b;
+  const h = color.h;
+  const s = color.s;
+  const l = color.l;
+
+  if (s === 0) {
+    r = g = b = l; // achromatic
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+    a: color.a !== undefined ? color.a : 1
+  };
+};
+
+// Convert color between light and dark modes
+export const convertToThemeColor = (color, isDark, componentType = 'container') => {
+  // Keep alpha the same
+  const alpha = color.a !== undefined ? color.a : 1;
+
+  // Special case for shadow colors
+  if (componentType === 'shadow') {
+    // For shadow colors, we want to invert black to white and vice versa
+    // Check if the color is black or near-black
+    const isNearBlack = color.r < 30 && color.g < 30 && color.b < 30;
+    if (isDark && isNearBlack) {
+      // In dark mode, convert black shadows to white shadows
+      return { r: 255, g: 255, b: 255, a: alpha };
+    }
+
+    // Check if the color is white or near-white
+    const isNearWhite = color.r > 240 && color.g > 240 && color.b > 240;
+    if (!isDark && isNearWhite) {
+      // In light mode, convert white shadows to black shadows
+      return { r: 0, g: 0, b: 0, a: alpha };
+    }
+
+    // For other shadow colors, invert the color
+    if (isDark) {
+      return {
+        r: 255 - color.r,
+        g: 255 - color.g,
+        b: 255 - color.b,
+        a: alpha
+      };
+    } else {
+      return {
+        r: 255 - color.r,
+        g: 255 - color.g,
+        b: 255 - color.b,
+        a: alpha
+      };
+    }
+  }
+  // For text and icon colors, use specific conversion logic
+  else if (componentType === 'text' || componentType === 'icon') {
+    // For dark text/icon in light mode, convert to light text/icon in dark mode
+    const isDarkColor = color.r < 100 && color.g < 100 && color.b < 100;
+    if (isDark && isDarkColor) {
+      return { r: 229, g: 231, b: 235, a: alpha }; // Light gray for dark mode
+    }
+
+    // For light text/icon in dark mode, convert to dark text/icon in light mode
+    const isLightColor = color.r > 200 && color.g > 200 && color.b > 200;
+    if (!isDark && isLightColor) {
+      return { r: 92, g: 90, b: 90, a: alpha }; // Dark gray for light mode
+    }
+  } else {
+    // For container and other components
+    // For white or near-white colors in light mode
+    const isNearWhite = color.r > 240 && color.g > 240 && color.b > 240;
+    if (isDark && isNearWhite) {
+      return darkDefaults.container;
+    }
+
+    // For black or near-black colors in dark mode
+    const isNearBlack = color.r < 30 && color.g < 30 && color.b < 30;
+    if (!isDark && isNearBlack) {
+      return lightDefaults.container;
+    }
+  }
+
+  // Convert to HSL to maintain the hue while adjusting lightness
+  const hsl = rgbToHsl(color);
+
+  // Adjust lightness and saturation based on theme mode
+  if (isDark) {
+    // For dark mode:
+    // If it's a light color (high lightness), make it darker while preserving hue
+    if (hsl.l > 0.5) {
+      // Calculate normalized lightness (0 to 1 scale)
+      const normalizedLightness = (hsl.l - 0.5) / 0.5;
+
+      // For white or near-white colors, use a more aggressive darkening
+      if (hsl.l > 0.9 && hsl.s < 0.1) {
+        // Map from very light (0.9-1.0) to dark (0.3-0.2)
+        hsl.l = 0.3 - (normalizedLightness * 0.2);
+      } else {
+        // Map from light (0.5-1.0) to dark (0.5-0.25) with a smooth transition
+        hsl.l = 0.5 - (normalizedLightness * 0.25);
+      }
+
+      // Moderately increase saturation to enhance visibility in dark mode
+      const saturationBoost = 1.2 + normalizedLightness * 0.2;
+      hsl.s = Math.min(0.85, hsl.s * saturationBoost);
+    } else {
+      // For already dark colors, make them lighter for dark mode
+      // Calculate normalized darkness (0 to 1 scale)
+      const normalizedDarkness = (0.5 - hsl.l) / 0.5;
+
+      // Map from dark (0-0.5) to medium (0.5-0.35) with a smooth transition
+      const targetLightness = 0.5 - (0.15 * normalizedDarkness);
+      hsl.l = targetLightness;
+
+      // Slightly adjust saturation
+      const saturationBoost = 1.1;
+      hsl.s = Math.min(0.8, hsl.s * saturationBoost);
+    }
+  } else {
+    // For light mode:
+    // If it's a dark color (low lightness), make it lighter while preserving hue
+    if (hsl.l < 0.5) {
+      // Calculate normalized darkness (0 to 1 scale)
+      const normalizedDarkness = (0.5 - hsl.l) / 0.5;
+
+      // Map from dark (0-0.5) to light (0.5-0.9) with a smooth transition
+      const targetLightness = 0.5 + (normalizedDarkness * 0.4);
+      hsl.l = targetLightness;
+
+      // Moderately adjust saturation
+      const saturationBoost = 1.1 + normalizedDarkness * 0.1;
+      hsl.s = Math.min(0.8, hsl.s * saturationBoost);
+    } else {
+      // For already light colors, make them darker for light mode
+      // Calculate normalized lightness (0 to 1 scale)
+      const normalizedLightness = (hsl.l - 0.5) / 0.5;
+
+      // Map from light (0.5-1.0) to medium-dark (0.5-0.2) with a smooth transition
+      const targetLightness = 0.5 - (normalizedLightness * 0.3);
+      hsl.l = targetLightness;
+
+      // Slightly adjust saturation
+      hsl.s = Math.max(0.2, Math.min(0.7, hsl.s * 0.9));
+    }
+  }
+
+  // Convert back to RGB
+  let converted = hslToRgb(hsl);
+
+  // Ensure alpha is preserved
+  converted.a = alpha;
+
+  // Only apply contrast adjustment in extreme cases to preserve the base color
+  const luminance = getLuminance(converted);
+  if ((isDark && luminance < 0.05) || (!isDark && luminance > 0.95)) {
+    // Convert back to HSL for a more subtle adjustment
+    const adjustedHsl = rgbToHsl(converted);
+
+    // Make minimal adjustments to lightness while preserving hue and relative differences
+    if (isDark) {
+      // For dark mode, ensure minimum visibility while preserving relative differences
+      // Use a subtle adjustment that maintains the relative positioning
+      const currentL = adjustedHsl.l;
+      const minL = 0.12; // Minimum lightness for visibility
+
+      if (currentL < minL) {
+        // Calculate how far below minimum we are (as a percentage of the minimum)
+        const deficit = (minL - currentL) / minL;
+        // Apply a proportional adjustment (smaller for values closer to minimum)
+        adjustedHsl.l = minL + (deficit * 0.05);
+      }
+    } else {
+      // For light mode, ensure maximum visibility while preserving relative differences
+      const currentL = adjustedHsl.l;
+      const maxL = 0.88; // Maximum lightness for visibility
+
+      if (currentL > maxL) {
+        // Calculate how far above maximum we are (as a percentage of remaining space)
+        const excess = (currentL - maxL) / (1 - maxL);
+        // Apply a proportional adjustment (smaller for values closer to maximum)
+        adjustedHsl.l = maxL - (excess * 0.05);
+      }
+    }
+
+    // Convert back to RGB
+    converted = hslToRgb(adjustedHsl);
+    converted.a = alpha;
+  }
+
+  return converted;
+};
+
+// Get the appropriate color for the current theme
+export const getThemeColor = (colors, isDark, componentType, autoConvertColors = true) => {
+  // Special debugging for headerTextColor
+  const isHeaderTextColor = componentType === 'text' &&
+                           colors &&
+                           ((colors.light && colors.light.r === 0 && colors.light.g === 0 && colors.light.b === 0) ||
+                            (colors.dark && colors.dark.r === 229 && colors.dark.g === 231 && colors.dark.b === 235));
+
+  if (isHeaderTextColor) {
+    console.log('getThemeColor - headerTextColor detected:', JSON.stringify(colors));
+    console.log('isDark:', isDark, 'autoConvertColors:', autoConvertColors);
+  }
+
+  // If no colors provided, use defaults
+  if (!colors) {
+    const defaultColor = isDark ? darkDefaults[componentType] : lightDefaults[componentType];
+    if (isHeaderTextColor) {
+      console.log('getThemeColor - using default color:', JSON.stringify(defaultColor));
+    }
+    return defaultColor;
+  }
+
+  try {
+    // If colors is a simple RGBA object, convert it to theme color
+    if ('r' in colors) {
+      const result = isDark && autoConvertColors ? convertToThemeColor(colors, true, componentType) : colors;
+      if (isHeaderTextColor) {
+        console.log('getThemeColor - simple RGBA result:', JSON.stringify(result));
+      }
+      return result;
+    }
+
+    // If we have theme-specific colors, use those
+    if (colors.light && colors.dark) {
+      // When auto-convert is disabled, always use the theme-specific color for the current theme
+      const themeColor = isDark ? colors.dark : colors.light;
+
+      // Ensure the color has all required properties
+      if (typeof themeColor.r === 'undefined') themeColor.r = isDark ? darkDefaults[componentType].r : lightDefaults[componentType].r;
+      if (typeof themeColor.g === 'undefined') themeColor.g = isDark ? darkDefaults[componentType].g : lightDefaults[componentType].g;
+      if (typeof themeColor.b === 'undefined') themeColor.b = isDark ? darkDefaults[componentType].b : lightDefaults[componentType].b;
+      if (typeof themeColor.a === 'undefined') themeColor.a = 1;
+
+      if (isHeaderTextColor) {
+        console.log('getThemeColor - theme-specific result:', JSON.stringify(themeColor));
+      }
+      return themeColor;
+    }
+
+    // Handle case where only one theme color is defined
+    if (colors.light) {
+      if (isDark) {
+        // In dark mode with only light color defined
+        if (autoConvertColors) {
+          const result = convertToThemeColor(colors.light, true, componentType);
+          if (isHeaderTextColor) {
+            console.log('getThemeColor - light->dark conversion result:', JSON.stringify(result));
+          }
+          return result;
+        } else {
+          // If auto-convert is disabled, use default dark color
+          const result = darkDefaults[componentType];
+          if (isHeaderTextColor) {
+            console.log('getThemeColor - using dark default (auto-convert off):', JSON.stringify(result));
+          }
+          return result;
+        }
+      } else {
+        if (isHeaderTextColor) {
+          console.log('getThemeColor - using light color directly:', JSON.stringify(colors.light));
+        }
+        return colors.light;
+      }
+    }
+
+    if (colors.dark) {
+      if (!isDark) {
+        // In light mode with only dark color defined
+        if (autoConvertColors) {
+          const result = convertToThemeColor(colors.dark, false, componentType);
+          if (isHeaderTextColor) {
+            console.log('getThemeColor - dark->light conversion result:', JSON.stringify(result));
+          }
+          return result;
+        } else {
+          // If auto-convert is disabled, use default light color
+          const result = lightDefaults[componentType];
+          if (isHeaderTextColor) {
+            console.log('getThemeColor - using light default (auto-convert off):', JSON.stringify(result));
+          }
+          return result;
+        }
+      } else {
+        if (isHeaderTextColor) {
+          console.log('getThemeColor - using dark color directly:', JSON.stringify(colors.dark));
+        }
+        return colors.dark;
+      }
+    }
+  } catch (error) {
+    console.warn('Error in getThemeColor:', error);
+    if (isHeaderTextColor) {
+      console.error('Error processing headerTextColor:', error);
+    }
+  }
+
+  // Fallback to defaults
+  const defaultColor = isDark ? darkDefaults[componentType] : lightDefaults[componentType];
+  if (isHeaderTextColor) {
+    console.log('getThemeColor - using fallback default:', JSON.stringify(defaultColor));
+  }
+  return defaultColor;
+};

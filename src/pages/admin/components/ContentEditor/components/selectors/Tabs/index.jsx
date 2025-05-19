@@ -2,11 +2,19 @@ import { useNode, Element } from '@craftjs/core';
 import React, { useState, useEffect } from 'react';
 import { TabsSettings } from './TabsSettings';
 import { Resizer } from '../Resizer';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 // Default props for the Tabs component
 const defaultProps = {
-  background: { r: 255, g: 255, b: 255, a: 1 },
-  color: { r: 0, g: 0, b: 0, a: 1 },
+  background: {
+    light: { r: 255, g: 255, b: 255, a: 1 },
+    dark: { r: 31, g: 41, b: 55, a: 1 }
+  },
+  color: {
+    light: { r: 0, g: 0, b: 0, a: 1 },
+    dark: { r: 229, g: 231, b: 235, a: 1 }
+  },
   padding: [10, 10, 10, 10],
   margin: [0, 0, 0, 0],
   shadow: {
@@ -21,15 +29,25 @@ const defaultProps = {
   border: {
     style: 'solid',
     width: 1,
-    color: { r: 204, g: 204, b: 204, a: 1 }
+    color: {
+      light: { r: 204, g: 204, b: 204, a: 1 },
+      dark: { r: 75, g: 85, b: 99, a: 1 }
+    }
   },
   width: 'auto',
   height: 'auto',
   numberOfTabs: 3,
   tabTitles: ['Tab 1', 'Tab 2', 'Tab 3'],
-  tabBackground: { r: 245, g: 247, b: 250, a: 1 },
-  activeTabBackground: { r: 255, g: 255, b: 255, a: 1 },
+  tabBackground: {
+    light: { r: 245, g: 247, b: 250, a: 1 },
+    dark: { r: 51, g: 65, b: 85, a: 1 }
+  },
+  activeTabBackground: {
+    light: { r: 255, g: 255, b: 255, a: 1 },
+    dark: { r: 31, g: 41, b: 55, a: 1 }
+  },
   tabAlignment: 'left',
+  autoConvertColors: true,
 };
 
 export const Tabs = (props) => {
@@ -78,6 +96,10 @@ export const Tabs = (props) => {
       };
     }
   };
+
+  // Get theme context
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const {
     connectors: { connect },
@@ -163,6 +185,7 @@ export const Tabs = (props) => {
     tabBackground,
     activeTabBackground,
     tabAlignment,
+    autoConvertColors,
   } = props;
 
   // Extract margin values [Top, Right, Bottom, Left]
@@ -185,8 +208,8 @@ export const Tabs = (props) => {
       }}
       className={`craft-tabs main-component ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
       style={{
-        backgroundColor: `rgba(${Object.values(background)})`,
-        color: `rgba(${Object.values(color)})`,
+        backgroundColor: `rgba(${Object.values(getThemeColor(background, isDark, 'tabs', autoConvertColors))})`,
+        color: `rgba(${Object.values(getThemeColor(color, isDark, 'text', autoConvertColors))})`,
         padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
         borderRadius: `${radius}px`,
         border: 'none', /* Removed outer border */
@@ -194,7 +217,7 @@ export const Tabs = (props) => {
         position: 'relative',
         margin: 0,
         boxShadow: shadow.enabled
-          ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
+          ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(getThemeColor(shadow.color, isDark, 'shadow', autoConvertColors))})`
           : 'none',
       }}
       data-id={id}
@@ -238,17 +261,17 @@ export const Tabs = (props) => {
               padding: '8px 16px',
               cursor: 'pointer',
               backgroundColor: activeTab === index
-                ? `rgba(${Object.values(activeTabBackground)})`
-                : `rgba(${Object.values(tabBackground)})`,
+                ? `rgba(${Object.values(getThemeColor(activeTabBackground, isDark, 'tabs', autoConvertColors))})`
+                : `rgba(${Object.values(getThemeColor(tabBackground, isDark, 'tabs', autoConvertColors))})`,
               border: border.style !== 'none'
-                ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})`
+                ? `${border.width}px ${border.style} rgba(${Object.values(getThemeColor(border.color, isDark, 'tabs', autoConvertColors))})`
                 : 'none',
-              borderBottom: activeTab === index ? 'none' : undefined,
+              borderBottom: activeTab === index || border.style === 'none' ? 'none' : undefined,
               borderTopLeftRadius: `${radius}px`,
               borderTopRightRadius: `${radius}px`,
-              marginBottom: activeTab === index ? `-${border.width}px` : 0,
+              marginBottom: activeTab === index && border.style !== 'none' ? `-${border.width}px` : 0,
               position: 'relative',
-              color: `rgba(${Object.values(color)})`,
+              color: `rgba(${Object.values(getThemeColor(color, isDark, 'text', autoConvertColors))})`,
               ...(tabAlignment === 'space-between' && {
                 flex: 1,
                 display: 'flex',
@@ -267,9 +290,9 @@ export const Tabs = (props) => {
       <div
         className="craft-tabs-content"
         style={{
-          backgroundColor: `rgba(${Object.values(activeTabBackground)})`,
+          backgroundColor: `rgba(${Object.values(getThemeColor(activeTabBackground, isDark, 'tabs', autoConvertColors))})`,
           border: border.style !== 'none'
-            ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})`
+            ? `${border.width}px ${border.style} rgba(${Object.values(getThemeColor(border.color, isDark, 'tabs', autoConvertColors))})`
             : 'none',
           borderTopRightRadius: `${radius}px`,
           borderBottomLeftRadius: `${radius}px`,
@@ -349,7 +372,60 @@ export const Tabs = (props) => {
 
 Tabs.craft = {
   displayName: 'Tabs',
-  props: defaultProps,
+  props: {
+    ...defaultProps,
+    // Handle backward compatibility for theme colors
+    get background() {
+      if (defaultProps.background.light && defaultProps.background.dark) {
+        return defaultProps.background;
+      }
+      const lightColor = defaultProps.background;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true, 'tabs')
+      };
+    },
+    get color() {
+      if (defaultProps.color.light && defaultProps.color.dark) {
+        return defaultProps.color;
+      }
+      const lightColor = defaultProps.color;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true, 'text')
+      };
+    },
+    get 'border.color'() {
+      if (defaultProps.border.color.light && defaultProps.border.color.dark) {
+        return defaultProps.border.color;
+      }
+      const lightColor = defaultProps.border.color;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true, 'tabs')
+      };
+    },
+    get tabBackground() {
+      if (defaultProps.tabBackground.light && defaultProps.tabBackground.dark) {
+        return defaultProps.tabBackground;
+      }
+      const lightColor = defaultProps.tabBackground;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true, 'tabs')
+      };
+    },
+    get activeTabBackground() {
+      if (defaultProps.activeTabBackground.light && defaultProps.activeTabBackground.dark) {
+        return defaultProps.activeTabBackground;
+      }
+      const lightColor = defaultProps.activeTabBackground;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true, 'tabs')
+      };
+    }
+  },
   rules: {
     canDrag: () => true,
     canDrop: () => true,

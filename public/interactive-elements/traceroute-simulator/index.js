@@ -7,13 +7,13 @@ class TracerouteSimulatorElement extends HTMLElement {
   constructor() {
     super();
     console.log('[TracerouteSimulator] Constructor started');
-    
+
     // Attach Shadow DOM
     this.attachShadow({ mode: 'open' });
-    
+
     // Append the template content
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-    
+
     // Initialize the simulator components
     this.simulation = new Simulation();
     this.visualization = new Visualization(
@@ -22,18 +22,210 @@ class TracerouteSimulatorElement extends HTMLElement {
     );
     this.uiHandlers = new UiHandlers(this.shadowRoot, this.simulation, this.visualization);
 
+    // Bind methods
+    this.applyTheme = this.applyTheme.bind(this);
+    this.updateTheme = this.updateTheme.bind(this);
+    this.isColorDark = this.isColorDark.bind(this);
+
+    // Flag to track if we're in the middle of a theme transition
+    this.isTransitioning = false;
+
     console.log('[TracerouteSimulator] Constructor finished');
   }
 
   connectedCallback() {
     console.log('[TracerouteSimulator] Element connected to DOM');
+
     // Setup event listeners
     this.uiHandlers.setupEventListeners();
+
+    // Check initial theme and apply it
+    this.applyTheme();
+
+    // Set up observer for theme changes
+    this.setupThemeObserver();
+
+    // Set up interval to check theme periodically, but with a shorter interval
+    // This helps catch theme changes that might be missed by the observer
+    this.themeInterval = setInterval(() => {
+      this.applyTheme();
+    }, 300); // 300ms for more responsive updates
+
+    console.log('[TracerouteSimulator] Component initialized');
   }
 
   disconnectedCallback() {
     console.log('[TracerouteSimulator] Element disconnected from DOM');
-    // Any cleanup if needed
+
+    // Clean up observer and interval
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    if (this.themeInterval) {
+      clearInterval(this.themeInterval);
+    }
+
+    // Remove message event listener
+    window.removeEventListener('message', this.messageHandler);
+
+    console.log('[TracerouteSimulator] Component disconnected and cleaned up');
+  }
+
+  // Helper method to determine if a color is dark
+  isColorDark(color) {
+    try {
+      if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return false;
+
+      // Check for specific dark colors
+      if (color.includes('rgb(30, 41, 59)') || // Slate 800
+          color.includes('rgb(15, 23, 42)') || // Slate 900
+          color.includes('rgb(17, 24, 39)') || // Gray 900
+          color.includes('rgb(31, 41, 55)') || // Gray 800
+          color.includes('rgb(3, 7, 18)')) {   // Dark blue/black
+        return true;
+      }
+
+      // Check for specific light colors
+      if (color.includes('rgb(255, 255, 255)') || // White
+          color.includes('rgb(248, 250, 252)') || // Slate 50
+          color.includes('rgb(249, 250, 251)') || // Gray 50
+          color.includes('rgb(243, 244, 246)')) { // Gray 100
+        return false;
+      }
+
+      let r, g, b;
+      if (color.startsWith('rgba')) {
+        const rgba = color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
+        if (rgba) {
+          r = parseInt(rgba[1]);
+          g = parseInt(rgba[2]);
+          b = parseInt(rgba[3]);
+        }
+      } else if (color.startsWith('rgb')) {
+        const rgb = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgb) {
+          r = parseInt(rgb[1]);
+          g = parseInt(rgb[2]);
+          b = parseInt(rgb[3]);
+        }
+      }
+
+      if (r !== undefined && g !== undefined && b !== undefined) {
+        // Calculate relative luminance
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        return luminance < 128; // If luminance is less than 128, consider it dark
+      }
+      return false;
+    } catch (e) {
+      console.error('[TracerouteSimulator] Error in isColorDark:', e);
+      return false;
+    }
+  }
+
+  setupThemeObserver() {
+    // Create a MutationObserver to watch for class changes
+    this.observer = new MutationObserver(() => {
+      this.applyTheme();
+    });
+
+    // Observe the document body and html element for class changes
+    this.observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    this.observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    // Listen for direct theme change messages from parent
+    this.messageHandler = (event) => {
+      if (event.data && event.data.type === 'theme-change') {
+        console.log('[TracerouteSimulator] Received theme change message:', event.data.theme);
+        this.updateTheme(event.data.theme === 'dark');
+      }
+    };
+    window.addEventListener('message', this.messageHandler);
+  }
+
+  applyTheme() {
+    // Try multiple methods to detect dark mode
+    let isDarkMode = false;
+
+    // Method 1: Check document classes
+    if (document.documentElement.classList.contains('dark') ||
+        document.body.classList.contains('dark')) {
+      isDarkMode = true;
+    }
+
+    // Method 2: Check for dark background color on body or html
+    if (!isDarkMode) {
+      try {
+        const bodyBgColor = getComputedStyle(document.body).backgroundColor;
+        const htmlBgColor = getComputedStyle(document.documentElement).backgroundColor;
+
+        if (this.isColorDark(bodyBgColor) || this.isColorDark(htmlBgColor)) {
+          isDarkMode = true;
+        }
+      } catch (e) {
+        console.error('[TracerouteSimulator] Error checking background color:', e);
+      }
+    }
+
+    // Method 3: Check parent document if in iframe
+    if (!isDarkMode && window !== window.parent) {
+      try {
+        // Try to access parent document (may fail due to same-origin policy)
+        if (window.parent.document.documentElement.classList.contains('dark') ||
+            window.parent.document.body.classList.contains('dark')) {
+          isDarkMode = true;
+        } else {
+          // Check parent document background color
+          const parentBodyBgColor = getComputedStyle(window.parent.document.body).backgroundColor;
+          const parentHtmlBgColor = getComputedStyle(window.parent.document.documentElement).backgroundColor;
+
+          if (this.isColorDark(parentBodyBgColor) || this.isColorDark(parentHtmlBgColor)) {
+            isDarkMode = true;
+          }
+        }
+      } catch (e) {
+        console.log('[TracerouteSimulator] Could not access parent frame due to same-origin policy');
+      }
+    }
+
+    console.log('[TracerouteSimulator] Theme detection result:', isDarkMode ? 'dark' : 'light');
+
+    // Apply the theme
+    this.updateTheme(isDarkMode);
+  }
+
+  // Method to directly update theme without polling
+  updateTheme(isDarkMode) {
+    console.log('[TracerouteSimulator] updateTheme called with isDarkMode:', isDarkMode);
+
+    // Prevent multiple rapid transitions
+    if (this.isTransitioning) {
+      console.log('[TracerouteSimulator] Theme transition already in progress, skipping');
+      return;
+    }
+
+    this.isTransitioning = true;
+
+    // Apply theme class
+    if (isDarkMode) {
+      this.classList.add('dark-mode');
+      console.log('[TracerouteSimulator] Applied dark mode');
+    } else {
+      this.classList.remove('dark-mode');
+      console.log('[TracerouteSimulator] Applied light mode');
+    }
+
+    // Reset transition flag after a short delay
+    setTimeout(() => {
+      this.isTransitioning = false;
+    }, 100);
   }
 }
 

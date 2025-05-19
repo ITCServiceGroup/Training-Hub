@@ -1,10 +1,83 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown, FaPlus, FaMinus } from 'react-icons/fa';
 import { captureTableToolbar, restoreTableToolbar, preventCellSelection } from './TableFixHack';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { convertToThemeColor } from '../../../utils/themeColors';
+
+// Helper function to ensure both theme colors exist
+const ensureThemeColors = (props, isDark) => {
+  const currentTheme = isDark ? 'dark' : 'light';
+  const oppositeTheme = isDark ? 'light' : 'dark';
+  const colorKeys = ['borderColor', 'headerBackgroundColor', 'alternateRowColor'];
+
+  colorKeys.forEach(colorKey => {
+    // Ensure the color property has the expected structure
+    if (!props[colorKey]) {
+      // Set default values based on the color key
+      if (colorKey === 'borderColor') {
+        props[colorKey] = {
+          light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+          dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+        };
+      } else if (colorKey === 'headerBackgroundColor') {
+        props[colorKey] = {
+          light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
+          dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
+        };
+      } else if (colorKey === 'alternateRowColor') {
+        props[colorKey] = {
+          light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+          dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+        };
+      }
+    }
+
+    // Handle legacy format (single RGBA object)
+    if ('r' in props[colorKey]) {
+      const oldColor = { ...props[colorKey] };
+      props[colorKey] = {
+        light: oldColor,
+        dark: convertToThemeColor(oldColor, true, 'table')
+      };
+    }
+
+    // Ensure both light and dark properties exist with appropriate defaults
+    if (!props[colorKey].light) {
+      if (colorKey === 'borderColor') {
+        props[colorKey].light = { r: 229, g: 231, b: 235, a: 1 }; // #e5e7eb
+      } else if (colorKey === 'headerBackgroundColor') {
+        props[colorKey].light = { r: 243, g: 244, b: 246, a: 1 }; // #f3f4f6
+      } else if (colorKey === 'alternateRowColor') {
+        props[colorKey].light = { r: 249, g: 250, b: 251, a: 1 }; // #f9fafb
+      }
+    }
+
+    if (!props[colorKey].dark) {
+      if (colorKey === 'borderColor') {
+        props[colorKey].dark = { r: 75, g: 85, b: 99, a: 1 }; // #4b5563
+      } else if (colorKey === 'headerBackgroundColor') {
+        props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 }; // #1f2937
+      } else if (colorKey === 'alternateRowColor') {
+        props[colorKey].dark = { r: 17, g: 24, b: 39, a: 0.5 }; // #111827
+      }
+    }
+
+    // If one theme is missing, generate it from the other
+    if (props[colorKey][currentTheme] && !props[colorKey][oppositeTheme]) {
+      props[colorKey][oppositeTheme] = convertToThemeColor(props[colorKey][currentTheme], !isDark, 'table');
+    } else if (props[colorKey][oppositeTheme] && !props[colorKey][currentTheme]) {
+      props[colorKey][currentTheme] = convertToThemeColor(props[colorKey][oppositeTheme], isDark, 'table');
+    }
+  });
+
+  return props;
+};
 
 export const TableSettings = () => {
-  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign } = useNode((node) => ({
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, autoConvertColors } = useNode((node) => ({
     id: node.id,
     borderStyle: node.data.props.borderStyle,
     borderWidth: node.data.props.borderWidth,
@@ -21,11 +94,19 @@ export const TableSettings = () => {
     fontSize: node.data.props.fontSize,
     headerFontSize: node.data.props.headerFontSize,
     textAlign: node.data.props.textAlign,
-    headerTextAlign: node.data.props.headerTextAlign
+    headerTextAlign: node.data.props.headerTextAlign,
+    autoConvertColors: node.data.props.autoConvertColors
   }));
 
   // Get editor actions for selecting nodes
   const { actions } = useEditor();
+
+  // Initialize theme colors for existing components when first loaded
+  useEffect(() => {
+    setProp((props) => {
+      return ensureThemeColors(props, isDark);
+    });
+  }, [setProp, isDark]);
 
   const handleColorChange = (colorKey, newColor) => {
     const hex = newColor.substring(1);
@@ -34,13 +115,312 @@ export const TableSettings = () => {
     const b = parseInt(hex.substring(4, 6), 16);
 
     setProp((props) => {
-      props[colorKey] = { ...props[colorKey], r, g, b };
+      try {
+        // Ensure the color property has the expected structure
+        if (!props[colorKey]) {
+          // Set default values based on the color key
+          if (colorKey === 'borderColor') {
+            props[colorKey] = {
+              light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+              dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+            };
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey] = {
+              light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
+              dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
+            };
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey] = {
+              light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+              dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+            };
+          } else {
+            // Generic fallback
+            props[colorKey] = {
+              light: { r: 255, g: 255, b: 255, a: 1 },
+              dark: { r: 51, g: 65, b: 85, a: 1 }
+            };
+          }
+        }
+
+        // Handle legacy format (single RGBA object)
+        if ('r' in props[colorKey]) {
+          const oldColor = { ...props[colorKey] };
+          props[colorKey] = {
+            light: oldColor,
+            dark: convertToThemeColor(oldColor, true, 'table')
+          };
+        }
+
+        // Ensure both light and dark properties exist with appropriate defaults
+        if (!props[colorKey].light) {
+          if (colorKey === 'borderColor') {
+            props[colorKey].light = { r: 229, g: 231, b: 235, a: 1 }; // #e5e7eb
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey].light = { r: 243, g: 244, b: 246, a: 1 }; // #f3f4f6
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey].light = { r: 249, g: 250, b: 251, a: 1 }; // #f9fafb
+          } else {
+            props[colorKey].light = { r: 255, g: 255, b: 255, a: 1 };
+          }
+        }
+
+        if (!props[colorKey].dark) {
+          if (colorKey === 'borderColor') {
+            props[colorKey].dark = { r: 75, g: 85, b: 99, a: 1 }; // #4b5563
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 }; // #1f2937
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey].dark = { r: 17, g: 24, b: 39, a: 0.5 }; // #111827
+          } else {
+            props[colorKey].dark = { r: 51, g: 65, b: 85, a: 1 };
+          }
+        }
+
+        const currentTheme = isDark ? 'dark' : 'light';
+        const oppositeTheme = isDark ? 'light' : 'dark';
+
+        // Get current alpha or default to 1
+        const currentAlpha = props[colorKey][currentTheme] &&
+                            typeof props[colorKey][currentTheme].a !== 'undefined' ?
+                            props[colorKey][currentTheme].a : 1;
+
+        const newThemeColor = { r, g, b, a: currentAlpha };
+
+        // Ensure autoConvertColors property exists
+        if (typeof props.autoConvertColors === 'undefined') {
+          props.autoConvertColors = true;
+        }
+
+        if (props.autoConvertColors) {
+          // Auto-convert the color for the opposite theme
+          const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'table');
+
+          props[colorKey] = {
+            ...props[colorKey],
+            [currentTheme]: newThemeColor,
+            [oppositeTheme]: oppositeColor
+          };
+        } else {
+          // Only update the current theme's color
+          props[colorKey] = {
+            ...props[colorKey],
+            [currentTheme]: newThemeColor
+          };
+        }
+      } catch (error) {
+        console.warn('Error in handleColorChange:', error);
+        // Provide a safe fallback
+        props[colorKey] = {
+          light: { r: 255, g: 255, b: 255, a: 1 },
+          dark: { r: 51, g: 65, b: 85, a: 1 }
+        };
+      }
     });
   };
 
   const handleOpacityChange = (colorKey, opacity) => {
     setProp((props) => {
-      props[colorKey] = { ...props[colorKey], a: opacity };
+      try {
+        // Ensure the color property has the expected structure
+        if (!props[colorKey]) {
+          // Set default values based on the color key
+          if (colorKey === 'borderColor') {
+            props[colorKey] = {
+              light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+              dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+            };
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey] = {
+              light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
+              dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
+            };
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey] = {
+              light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+              dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+            };
+          } else {
+            // Generic fallback
+            props[colorKey] = {
+              light: { r: 255, g: 255, b: 255, a: 1 },
+              dark: { r: 51, g: 65, b: 85, a: 1 }
+            };
+          }
+        }
+
+        // Handle legacy format (single RGBA object)
+        if ('r' in props[colorKey]) {
+          const oldColor = { ...props[colorKey] };
+          props[colorKey] = {
+            light: oldColor,
+            dark: convertToThemeColor(oldColor, true, 'table')
+          };
+        }
+
+        // Ensure both light and dark properties exist with appropriate defaults
+        if (!props[colorKey].light) {
+          if (colorKey === 'borderColor') {
+            props[colorKey].light = { r: 229, g: 231, b: 235, a: 1 }; // #e5e7eb
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey].light = { r: 243, g: 244, b: 246, a: 1 }; // #f3f4f6
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey].light = { r: 249, g: 250, b: 251, a: 1 }; // #f9fafb
+          } else {
+            props[colorKey].light = { r: 255, g: 255, b: 255, a: 1 };
+          }
+        }
+
+        if (!props[colorKey].dark) {
+          if (colorKey === 'borderColor') {
+            props[colorKey].dark = { r: 75, g: 85, b: 99, a: 1 }; // #4b5563
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 }; // #1f2937
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey].dark = { r: 17, g: 24, b: 39, a: 0.5 }; // #111827
+          } else {
+            props[colorKey].dark = { r: 51, g: 65, b: 85, a: 1 };
+          }
+        }
+
+        const currentTheme = isDark ? 'dark' : 'light';
+        const oppositeTheme = isDark ? 'light' : 'dark';
+
+        // Ensure the current theme color object has all required properties
+        if (!props[colorKey][currentTheme]) {
+          props[colorKey][currentTheme] = isDark
+            ? { r: 51, g: 65, b: 85, a: 1 }
+            : { r: 255, g: 255, b: 255, a: 1 };
+        }
+
+        // Create a new color object with the updated opacity
+        const newThemeColor = {
+          ...props[colorKey][currentTheme],
+          a: opacity
+        };
+
+        // Ensure autoConvertColors property exists
+        if (typeof props.autoConvertColors === 'undefined') {
+          props.autoConvertColors = true;
+        }
+
+        if (props.autoConvertColors) {
+          // Auto-convert the color for the opposite theme
+          const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'table');
+
+          props[colorKey] = {
+            ...props[colorKey],
+            [currentTheme]: newThemeColor,
+            [oppositeTheme]: oppositeColor
+          };
+        } else {
+          // Only update the current theme's color
+          props[colorKey] = {
+            ...props[colorKey],
+            [currentTheme]: newThemeColor
+          };
+        }
+      } catch (error) {
+        console.warn('Error in handleOpacityChange:', error);
+        // Provide a safe fallback
+        props[colorKey] = {
+          light: { r: 255, g: 255, b: 255, a: 1 },
+          dark: { r: 51, g: 65, b: 85, a: 1 }
+        };
+      }
+    });
+  };
+
+  // Handler for opposite theme opacity change
+  const handleOppositeThemeOpacityChange = (colorKey, opacity) => {
+    setProp((props) => {
+      try {
+        // Ensure the color property has the expected structure
+        if (!props[colorKey]) {
+          // Set default values based on the color key
+          if (colorKey === 'borderColor') {
+            props[colorKey] = {
+              light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+              dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+            };
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey] = {
+              light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
+              dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
+            };
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey] = {
+              light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+              dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+            };
+          } else {
+            // Generic fallback
+            props[colorKey] = {
+              light: { r: 255, g: 255, b: 255, a: 1 },
+              dark: { r: 51, g: 65, b: 85, a: 1 }
+            };
+          }
+        }
+
+        // Handle legacy format (single RGBA object)
+        if ('r' in props[colorKey]) {
+          const oldColor = { ...props[colorKey] };
+          props[colorKey] = {
+            light: oldColor,
+            dark: convertToThemeColor(oldColor, true, 'table')
+          };
+        }
+
+        // Ensure both light and dark properties exist with appropriate defaults
+        if (!props[colorKey].light) {
+          if (colorKey === 'borderColor') {
+            props[colorKey].light = { r: 229, g: 231, b: 235, a: 1 }; // #e5e7eb
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey].light = { r: 243, g: 244, b: 246, a: 1 }; // #f3f4f6
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey].light = { r: 249, g: 250, b: 251, a: 1 }; // #f9fafb
+          } else {
+            props[colorKey].light = { r: 255, g: 255, b: 255, a: 1 };
+          }
+        }
+
+        if (!props[colorKey].dark) {
+          if (colorKey === 'borderColor') {
+            props[colorKey].dark = { r: 75, g: 85, b: 99, a: 1 }; // #4b5563
+          } else if (colorKey === 'headerBackgroundColor') {
+            props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 }; // #1f2937
+          } else if (colorKey === 'alternateRowColor') {
+            props[colorKey].dark = { r: 17, g: 24, b: 39, a: 0.5 }; // #111827
+          } else {
+            props[colorKey].dark = { r: 51, g: 65, b: 85, a: 1 };
+          }
+        }
+
+        const oppositeTheme = isDark ? 'light' : 'dark';
+
+        // Ensure the opposite theme color object has all required properties
+        if (!props[colorKey][oppositeTheme]) {
+          props[colorKey][oppositeTheme] = isDark
+            ? { r: 255, g: 255, b: 255, a: 1 }
+            : { r: 51, g: 65, b: 85, a: 1 };
+        }
+
+        // Only update the opposite theme's opacity
+        props[colorKey] = {
+          ...props[colorKey],
+          [oppositeTheme]: {
+            ...props[colorKey][oppositeTheme],
+            a: opacity
+          }
+        };
+      } catch (error) {
+        console.warn('Error in handleOppositeThemeOpacityChange:', error);
+        // Provide a safe fallback
+        props[colorKey] = {
+          light: { r: 255, g: 255, b: 255, a: 1 },
+          dark: { r: 51, g: 65, b: 85, a: 1 }
+        };
+      }
     });
   };
 
@@ -48,6 +428,7 @@ export const TableSettings = () => {
   const [showTableStructure, setShowTableStructure] = React.useState(true);
   const [showTableStyle, setShowTableStyle] = React.useState(true);
   const [showTableSpacing, setShowTableSpacing] = React.useState(true);
+  const [showTooltip, setShowTooltip] = React.useState(false);
 
   return (
     <div className="text-settings">
@@ -241,7 +622,7 @@ export const TableSettings = () => {
         )}
       </div>
 
-      {/* Table Style Section */}
+      {/* Color Settings Section */}
       <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">
         <div
           className={`flex justify-between items-center cursor-pointer px-2 py-3 ${showTableStyle ? 'bg-gray-50 dark:bg-slate-800' : 'bg-white dark:bg-slate-700'}`}
@@ -258,6 +639,9 @@ export const TableSettings = () => {
 
         {showTableStyle && (
           <div className="space-y-3 px-1 py-3 bg-white dark:bg-slate-700 border-t border-gray-200 dark:border-slate-600">
+
+
+
             {/* Font Size Settings */}
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -454,14 +838,91 @@ export const TableSettings = () => {
               </div>
             </div>
 
+            {/* Auto-convert colors between themes */}
+            <div className="mb-3 relative">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="autoConvertColors"
+                  checked={autoConvertColors}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    setProp((props) => {
+                      // Update the autoConvertColors flag
+                      props.autoConvertColors = isChecked;
+
+                      // When disabling auto-convert, make sure both light and dark theme colors are properly set
+                      if (!isChecked) {
+                        // Use the ensureThemeColors helper to ensure both light and dark colors are set
+                        return ensureThemeColors(props, isDark);
+                      }
+
+                      // If turning auto-convert on, update all colors
+                      if (isChecked) {
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+                        const colorKeys = ['borderColor', 'headerBackgroundColor', 'alternateRowColor'];
+
+                        colorKeys.forEach(colorKey => {
+                          // If the current theme color exists, update the opposite theme color
+                          if (props[colorKey] && props[colorKey][currentTheme]) {
+                            const currentColor = props[colorKey][currentTheme];
+                            props[colorKey][oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'table');
+                          }
+                        });
+                      }
+
+                      return props;
+                    });
+                  }}
+                  className="mr-2 h-4 w-4 text-teal-600 border-gray-300 rounded"
+                />
+                <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">
+                  Auto convert colors between light and dark mode
+                </label>
+                <button
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 flex-shrink-0"
+                  onClick={() => setShowTooltip(!showTooltip)}
+                  aria-label="Show explanation"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                {showTooltip && (
+                  <div className="absolute z-10 right-0 mt-1 p-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded shadow-lg text-xs text-gray-500 dark:text-gray-400 max-w-xs">
+                    When enabled, colors will automatically be converted between light and dark mode.
+                    When disabled, you can set different colors for each mode.
+                    <div className="absolute inset-0 bg-transparent" onClick={() => setShowTooltip(false)}></div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Border Color
+                Border Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
               </label>
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(borderColor.r).toString(16).padStart(2, '0')}${Math.round(borderColor.g).toString(16).padStart(2, '0')}${Math.round(borderColor.b).toString(16).padStart(2, '0')}`}
+                  value={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (borderColor && borderColor[currentTheme] &&
+                          typeof borderColor[currentTheme].r !== 'undefined' &&
+                          typeof borderColor[currentTheme].g !== 'undefined' &&
+                          typeof borderColor[currentTheme].b !== 'undefined') {
+                        return `#${Math.round(borderColor[currentTheme].r).toString(16).padStart(2, '0')}${Math.round(borderColor[currentTheme].g).toString(16).padStart(2, '0')}${Math.round(borderColor[currentTheme].b).toString(16).padStart(2, '0')}`;
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ? '#4b5563' : '#e5e7eb';
+                    } catch (error) {
+                      console.warn('Error generating current theme color value:', error);
+                      return isDark ? '#4b5563' : '#e5e7eb';
+                    }
+                  })()}
                   onChange={(e) => handleColorChange('borderColor', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -470,21 +931,130 @@ export const TableSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={borderColor.a}
+                  value={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      return borderColor && borderColor[currentTheme] && typeof borderColor[currentTheme].a !== 'undefined'
+                        ? borderColor[currentTheme].a
+                        : 1;
+                    } catch (error) {
+                      console.warn('Error getting current theme opacity value:', error);
+                      return 1;
+                    }
+                  })()}
                   onChange={(e) => handleOpacityChange('borderColor', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Border Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="color"
+                      value={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (borderColor && borderColor[oppositeTheme] &&
+                              typeof borderColor[oppositeTheme].r !== 'undefined' &&
+                              typeof borderColor[oppositeTheme].g !== 'undefined' &&
+                              typeof borderColor[oppositeTheme].b !== 'undefined') {
+                            return `#${Math.round(borderColor[oppositeTheme].r).toString(16).padStart(2, '0')}${Math.round(borderColor[oppositeTheme].g).toString(16).padStart(2, '0')}${Math.round(borderColor[oppositeTheme].b).toString(16).padStart(2, '0')}`;
+                          } else if (borderColor && borderColor[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            const convertedColor = convertToThemeColor(borderColor[currentTheme], !isDark, 'table');
+                            return `#${Math.round(convertedColor.r).toString(16).padStart(2, '0')}${Math.round(convertedColor.g).toString(16).padStart(2, '0')}${Math.round(convertedColor.b).toString(16).padStart(2, '0')}`;
+                          }
+                          // Fallback to default color for opposite theme
+                          return isDark ? '#e5e7eb' : '#4b5563';
+                        } catch (error) {
+                          console.warn('Error generating opposite theme color value:', error);
+                          return isDark ? '#e5e7eb' : '#4b5563';
+                        }
+                      })()}
+                      onChange={(e) => {
+                        const hex = e.target.value.substring(1);
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+
+                        setProp((props) => {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentOpacity = props.borderColor[oppositeTheme].a || 1;
+
+                          props.borderColor = {
+                            ...props.borderColor,
+                            [oppositeTheme]: { r, g, b, a: currentOpacity }
+                          };
+                        });
+                      }}
+                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Check if we have a valid opacity value for the opposite theme
+                          if (borderColor && borderColor[oppositeTheme] && typeof borderColor[oppositeTheme].a !== 'undefined') {
+                            return borderColor[oppositeTheme].a;
+                          } else if (borderColor && borderColor[currentTheme] && typeof borderColor[currentTheme].a !== 'undefined') {
+                            // If opposite theme opacity is missing but current theme exists, use the same opacity
+                            return borderColor[currentTheme].a;
+                          }
+                          return 1;
+                        } catch (error) {
+                          console.warn('Error getting opposite theme opacity value:', error);
+                          return 1;
+                        }
+                      })()}
+                      onChange={(e) => handleOppositeThemeOpacityChange('borderColor', parseFloat(e.target.value))}
+                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Header Background
+                Header Background {isDark ? '(Dark Mode)' : '(Light Mode)'}
               </label>
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(headerBackgroundColor.r).toString(16).padStart(2, '0')}${Math.round(headerBackgroundColor.g).toString(16).padStart(2, '0')}${Math.round(headerBackgroundColor.b).toString(16).padStart(2, '0')}`}
+                  value={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (headerBackgroundColor && headerBackgroundColor[currentTheme] &&
+                          typeof headerBackgroundColor[currentTheme].r !== 'undefined' &&
+                          typeof headerBackgroundColor[currentTheme].g !== 'undefined' &&
+                          typeof headerBackgroundColor[currentTheme].b !== 'undefined') {
+                        return `#${Math.round(headerBackgroundColor[currentTheme].r).toString(16).padStart(2, '0')}${Math.round(headerBackgroundColor[currentTheme].g).toString(16).padStart(2, '0')}${Math.round(headerBackgroundColor[currentTheme].b).toString(16).padStart(2, '0')}`;
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ? '#1f2937' : '#f3f4f6';
+                    } catch (error) {
+                      console.warn('Error generating current theme color value:', error);
+                      return isDark ? '#1f2937' : '#f3f4f6';
+                    }
+                  })()}
                   onChange={(e) => handleColorChange('headerBackgroundColor', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -493,21 +1063,127 @@ export const TableSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={headerBackgroundColor.a}
+                  value={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      return headerBackgroundColor && headerBackgroundColor[currentTheme] && typeof headerBackgroundColor[currentTheme].a !== 'undefined'
+                        ? headerBackgroundColor[currentTheme].a
+                        : 1;
+                    } catch (error) {
+                      console.warn('Error getting current theme opacity value:', error);
+                      return 1;
+                    }
+                  })()}
                   onChange={(e) => handleOpacityChange('headerBackgroundColor', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Header Background {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="color"
+                      value={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (headerBackgroundColor && headerBackgroundColor[oppositeTheme] &&
+                              typeof headerBackgroundColor[oppositeTheme].r !== 'undefined' &&
+                              typeof headerBackgroundColor[oppositeTheme].g !== 'undefined' &&
+                              typeof headerBackgroundColor[oppositeTheme].b !== 'undefined') {
+                            return `#${Math.round(headerBackgroundColor[oppositeTheme].r).toString(16).padStart(2, '0')}${Math.round(headerBackgroundColor[oppositeTheme].g).toString(16).padStart(2, '0')}${Math.round(headerBackgroundColor[oppositeTheme].b).toString(16).padStart(2, '0')}`;
+                          } else if (headerBackgroundColor && headerBackgroundColor[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            const convertedColor = convertToThemeColor(headerBackgroundColor[currentTheme], !isDark, 'table');
+                            return `#${Math.round(convertedColor.r).toString(16).padStart(2, '0')}${Math.round(convertedColor.g).toString(16).padStart(2, '0')}${Math.round(convertedColor.b).toString(16).padStart(2, '0')}`;
+                          }
+                          // Fallback to default color for opposite theme
+                          return isDark ? '#f3f4f6' : '#1f2937';
+                        } catch (error) {
+                          console.warn('Error generating opposite theme color value:', error);
+                          return isDark ? '#f3f4f6' : '#1f2937';
+                        }
+                      })()}
+                      onChange={(e) => {
+                        const hex = e.target.value.substring(1);
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+
+                        setProp((props) => {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentOpacity = props.headerBackgroundColor[oppositeTheme].a || 1;
+
+                          props.headerBackgroundColor = {
+                            ...props.headerBackgroundColor,
+                            [oppositeTheme]: { r, g, b, a: currentOpacity }
+                          };
+                        });
+                      }}
+                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Check if we have a valid opacity value for the opposite theme
+                          if (headerBackgroundColor && headerBackgroundColor[oppositeTheme] && typeof headerBackgroundColor[oppositeTheme].a !== 'undefined') {
+                            return headerBackgroundColor[oppositeTheme].a;
+                          } else if (headerBackgroundColor && headerBackgroundColor[currentTheme] && typeof headerBackgroundColor[currentTheme].a !== 'undefined') {
+                            // If opposite theme opacity is missing but current theme exists, use the same opacity
+                            return headerBackgroundColor[currentTheme].a;
+                          }
+                          return 1;
+                        } catch (error) {
+                          console.warn('Error getting opposite theme opacity value:', error);
+                          return 1;
+                        }
+                      })()}
+                      onChange={(e) => handleOppositeThemeOpacityChange('headerBackgroundColor', parseFloat(e.target.value))}
+                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Alternate Row Color
+                Alternate Row Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
               </label>
               <div className="flex items-center">
                 <input
                   type="color"
-                  value={`#${Math.round(alternateRowColor.r).toString(16).padStart(2, '0')}${Math.round(alternateRowColor.g).toString(16).padStart(2, '0')}${Math.round(alternateRowColor.b).toString(16).padStart(2, '0')}`}
+                  value={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (alternateRowColor && alternateRowColor[currentTheme] &&
+                          typeof alternateRowColor[currentTheme].r !== 'undefined' &&
+                          typeof alternateRowColor[currentTheme].g !== 'undefined' &&
+                          typeof alternateRowColor[currentTheme].b !== 'undefined') {
+                        return `#${Math.round(alternateRowColor[currentTheme].r).toString(16).padStart(2, '0')}${Math.round(alternateRowColor[currentTheme].g).toString(16).padStart(2, '0')}${Math.round(alternateRowColor[currentTheme].b).toString(16).padStart(2, '0')}`;
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ? '#111827' : '#f9fafb';
+                    } catch (error) {
+                      console.warn('Error generating current theme color value:', error);
+                      return isDark ? '#111827' : '#f9fafb';
+                    }
+                  })()}
                   onChange={(e) => handleColorChange('alternateRowColor', e.target.value)}
                   className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
                 />
@@ -516,15 +1192,108 @@ export const TableSettings = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  value={alternateRowColor.a}
+                  value={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      return alternateRowColor && alternateRowColor[currentTheme] && typeof alternateRowColor[currentTheme].a !== 'undefined'
+                        ? alternateRowColor[currentTheme].a
+                        : isDark ? 0.5 : 1; // Default values from defaultProps
+                    } catch (error) {
+                      console.warn('Error getting current theme opacity value:', error);
+                      return isDark ? 0.5 : 1;
+                    }
+                  })()}
                   onChange={(e) => handleOpacityChange('alternateRowColor', parseFloat(e.target.value))}
                   className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Alternate Row Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="color"
+                      value={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (alternateRowColor && alternateRowColor[oppositeTheme] &&
+                              typeof alternateRowColor[oppositeTheme].r !== 'undefined' &&
+                              typeof alternateRowColor[oppositeTheme].g !== 'undefined' &&
+                              typeof alternateRowColor[oppositeTheme].b !== 'undefined') {
+                            return `#${Math.round(alternateRowColor[oppositeTheme].r).toString(16).padStart(2, '0')}${Math.round(alternateRowColor[oppositeTheme].g).toString(16).padStart(2, '0')}${Math.round(alternateRowColor[oppositeTheme].b).toString(16).padStart(2, '0')}`;
+                          } else if (alternateRowColor && alternateRowColor[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            const convertedColor = convertToThemeColor(alternateRowColor[currentTheme], !isDark, 'table');
+                            return `#${Math.round(convertedColor.r).toString(16).padStart(2, '0')}${Math.round(convertedColor.g).toString(16).padStart(2, '0')}${Math.round(convertedColor.b).toString(16).padStart(2, '0')}`;
+                          }
+                          // Fallback to default color for opposite theme
+                          return isDark ? '#f9fafb' : '#111827';
+                        } catch (error) {
+                          console.warn('Error generating opposite theme color value:', error);
+                          return isDark ? '#f9fafb' : '#111827';
+                        }
+                      })()}
+                      onChange={(e) => {
+                        const hex = e.target.value.substring(1);
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+
+                        setProp((props) => {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentOpacity = props.alternateRowColor[oppositeTheme].a || 1;
+
+                          props.alternateRowColor = {
+                            ...props.alternateRowColor,
+                            [oppositeTheme]: { r, g, b, a: currentOpacity }
+                          };
+                        });
+                      }}
+                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Check if we have a valid opacity value for the opposite theme
+                          if (alternateRowColor && alternateRowColor[oppositeTheme] && typeof alternateRowColor[oppositeTheme].a !== 'undefined') {
+                            return alternateRowColor[oppositeTheme].a;
+                          } else if (alternateRowColor && alternateRowColor[currentTheme] && typeof alternateRowColor[currentTheme].a !== 'undefined') {
+                            // If opposite theme opacity is missing but current theme exists, use the same opacity
+                            return alternateRowColor[currentTheme].a;
+                          }
+                          // Default values from defaultProps
+                          return isDark ? 1 : 0.5;
+                        } catch (error) {
+                          console.warn('Error getting opposite theme opacity value:', error);
+                          return isDark ? 1 : 0.5;
+                        }
+                      })()}
+                      onChange={(e) => handleOppositeThemeOpacityChange('alternateRowColor', parseFloat(e.target.value))}
+                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
+
+
 
       {/* Table Spacing Section */}
       <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">

@@ -68,7 +68,6 @@ const AdminLayout = () => {
     if (path === '/admin') return 'dashboard';
     if (path.includes('/admin/study-guides')) return 'study-guides';
     if (path.includes('/admin/media')) return 'media'; // Added media check
-    if (path.includes('/admin/questions')) return 'questions';
     if (path.includes('/admin/quizzes')) return 'quizzes';
     if (path.includes('/admin/results')) return 'results';
     if (path.includes('/admin/settings')) return 'settings';

@@ -5,14 +5,105 @@ routerSimulatorTemplate.innerHTML = `
   <style>
     /* Base styles with stronger isolation */
     :host {
+        /* Light mode variables */
+        --text-color-light: #333;
+        --border-color-light: #ddd;
+        --bg-color-light: #fff;
+        --heading-color-light: #1976D2;
+        --router-placement-bg-light: #f5f5f5;
+        --router-placement-border-light: #ccc;
+        --tooltip-bg-light: #E3F2FD;
+        --tooltip-border-light: #BBDEFB;
+        --tooltip-color-light: #1976D2;
+        --tab-active-bg-light: #fff;
+        --tab-active-color-light: #1976D2;
+        --tab-inactive-bg-light: #f0f0f0;
+        --tab-inactive-color-light: #333;
+        --tab-border-light: #ccc;
+        --room-bg-light: rgba(200, 200, 200, 0.1);
+        --room-label-bg-light: rgba(255, 255, 255, 0.7);
+        --room-label-color-light: #333;
+        --obstacle-color-light: rgba(0, 0, 0, 0.6);
+        --button-primary-bg-light: #2196F3;
+        --button-primary-color-light: white;
+        --button-hover-bg-light: #1976D2;
+        --interference-button-bg-light: #E0E0E0;
+        --interference-button-color-light: #424242;
+        --interference-button-border-light: #BDBDBD;
+        --interference-button-indicator-light: #9E9E9E;
+        --interference-button-hover-bg-light: #EEEEEE;
+        --interference-button-hover-border-light: #9E9E9E;
+        --placement-advice-color-light: #555;
+
+        /* Dark mode variables */
+        --text-color-dark: #f1f5f9;
+        --border-color-dark: #334155;
+        --bg-color-dark: #0f172a;
+        --heading-color-dark: #60a5fa;
+        --router-placement-bg-dark: #1e293b;
+        --router-placement-border-dark: #475569;
+        --tooltip-bg-dark: #1e3a8a;
+        --tooltip-border-dark: #3b82f6;
+        --tooltip-color-dark: #e0f2fe;
+        --tab-active-bg-dark: #1e293b;
+        --tab-active-color-dark: #60a5fa;
+        --tab-inactive-bg-dark: #0f172a;
+        --tab-inactive-color-dark: #cbd5e1;
+        --tab-border-dark: #475569;
+        --room-bg-dark: rgba(30, 41, 59, 0.3);
+        --room-label-bg-dark: rgba(15, 23, 42, 0.7);
+        --room-label-color-dark: #cbd5e1;
+        --obstacle-color-dark: rgba(241, 245, 249, 0.6);
+        --button-primary-bg-dark: #3b82f6;
+        --button-primary-color-dark: white;
+        --button-hover-bg-dark: #2563eb;
+        --interference-button-bg-dark: #1e293b;
+        --interference-button-color-dark: #cbd5e1;
+        --interference-button-border-dark: #475569;
+        --interference-button-indicator-dark: #64748b;
+        --interference-button-hover-bg-dark: #334155;
+        --interference-button-hover-border-dark: #64748b;
+        --placement-advice-color-dark: #cbd5e1;
+
+        /* Default to light mode */
+        --text-color: var(--text-color-light);
+        --border-color: var(--border-color-light);
+        --bg-color: var(--bg-color-light);
+        --heading-color: var(--heading-color-light);
+        --router-placement-bg: var(--router-placement-bg-light);
+        --router-placement-border: var(--router-placement-border-light);
+        --tooltip-bg: var(--tooltip-bg-light);
+        --tooltip-border: var(--tooltip-border-light);
+        --tooltip-color: var(--tooltip-color-light);
+        --tab-active-bg: var(--tab-active-bg-light);
+        --tab-active-color: var(--tab-active-color-light);
+        --tab-inactive-bg: var(--tab-inactive-bg-light);
+        --tab-inactive-color: var(--tab-inactive-color-light);
+        --tab-border: var(--tab-border-light);
+        --room-bg: var(--room-bg-light);
+        --room-label-bg: var(--room-label-bg-light);
+        --room-label-color: var(--room-label-color-light);
+        --obstacle-color: var(--obstacle-color-light);
+        --button-primary-bg: var(--button-primary-bg-light);
+        --button-primary-color: var(--button-primary-color-light);
+        --button-hover-bg: var(--button-hover-bg-light);
+        --interference-button-bg: var(--interference-button-bg-light);
+        --interference-button-color: var(--interference-button-color-light);
+        --interference-button-border: var(--interference-button-border-light);
+        --interference-button-indicator: var(--interference-button-indicator-light);
+        --interference-button-hover-bg: var(--interference-button-hover-bg-light);
+        --interference-button-hover-border: var(--interference-button-hover-border-light);
+        --placement-advice-color: var(--placement-advice-color-light);
+
+        /* Base styles */
         display: block !important;
         font-family: Arial, sans-serif !important;
         line-height: 1.6 !important;
-        color: #333 !important;
-        border: 1px solid #ddd !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
         border-radius: 5px !important;
         padding: 20px !important;
-        background-color: #fff !important;
+        background-color: var(--bg-color) !important;
         /* Force center alignment and fixed size */
         margin: 15px auto !important;
         width: 880px !important; /* 840px + 40px padding */
@@ -23,12 +114,47 @@ routerSimulatorTemplate.innerHTML = `
         /* Additional isolation */
         text-align: left !important;
         clear: both !important;
+        /* Transition for theme changes */
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+    }
+
+    /* Dark mode styles */
+    :host(.dark-mode) {
+        --text-color: var(--text-color-dark);
+        --border-color: var(--border-color-dark);
+        --bg-color: var(--bg-color-dark);
+        --heading-color: var(--heading-color-dark);
+        --router-placement-bg: var(--router-placement-bg-dark);
+        --router-placement-border: var(--router-placement-border-dark);
+        --tooltip-bg: var(--tooltip-bg-dark);
+        --tooltip-border: var(--tooltip-border-dark);
+        --tooltip-color: var(--tooltip-color-dark);
+        --tab-active-bg: var(--tab-active-bg-dark);
+        --tab-active-color: var(--tab-active-color-dark);
+        --tab-inactive-bg: var(--tab-inactive-bg-dark);
+        --tab-inactive-color: var(--tab-inactive-color-dark);
+        --tab-border: var(--tab-border-dark);
+        --room-bg: var(--room-bg-dark);
+        --room-label-bg: var(--room-label-bg-dark);
+        --room-label-color: var(--room-label-color-dark);
+        --obstacle-color: var(--obstacle-color-dark);
+        --button-primary-bg: var(--button-primary-bg-dark);
+        --button-primary-color: var(--button-primary-color-dark);
+        --button-hover-bg: var(--button-hover-bg-dark);
+        --interference-button-bg: var(--interference-button-bg-dark);
+        --interference-button-color: var(--interference-button-color-dark);
+        --interference-button-border: var(--interference-button-border-dark);
+        --interference-button-indicator: var(--interference-button-indicator-dark);
+        --interference-button-hover-bg: var(--interference-button-hover-bg-dark);
+        --interference-button-hover-border: var(--interference-button-hover-border-dark);
+        --placement-advice-color: var(--placement-advice-color-dark);
     }
 
     h3 {
-        color: #1976D2;
+        color: var(--heading-color);
         margin-top: 0;
         margin-bottom: 15px;
+        transition: color 0.3s ease;
     }
 
     /* Simulator specific styles from original file */
@@ -40,9 +166,9 @@ routerSimulatorTemplate.innerHTML = `
         width: 840px !important; /* Force width */
         height: 740px !important; /* Force height */
         position: relative !important;
-        border: 1px solid #ccc !important;
+        border: 1px solid var(--router-placement-border) !important;
         margin: 20px auto !important; /* Centered horizontally */
-        background-color: #f5f5f5 !important;
+        background-color: var(--router-placement-bg) !important;
         /* Ensure proper positioning context */
         transform: translateZ(0) !important;
         /* Prevent overflow issues */
@@ -56,6 +182,8 @@ routerSimulatorTemplate.innerHTML = `
         min-height: 740px !important;
         max-width: 840px !important;
         max-height: 740px !important;
+        /* Transition for theme changes */
+        transition: background-color 0.3s ease, border-color 0.3s ease !important;
     }
 
     .router {
@@ -126,8 +254,8 @@ routerSimulatorTemplate.innerHTML = `
         all: initial !important; /* Reset all properties */
         font-family: Arial, sans-serif !important;
         padding: 8px 16px !important;
-        background-color: #2196F3 !important;
-        color: white !important;
+        background-color: var(--button-primary-bg) !important;
+        color: var(--button-primary-color) !important;
         border: none !important;
         border-radius: 4px !important;
         cursor: pointer !important;
@@ -140,51 +268,55 @@ routerSimulatorTemplate.innerHTML = `
         box-sizing: border-box !important;
         -webkit-appearance: none !important;
         appearance: none !important;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
     }
 
     button:hover {
-        background-color: #1976D2;
+        background-color: var(--button-hover-bg);
     }
 
     /* .controls removed */
 
     #signalInfo {
-        background-color: #e3f2fd;
+        background-color: var(--tooltip-bg);
         padding: 10px;
         margin: 10px 0;
         border-radius: 4px;
         font-size: 0.9em;
+        color: var(--tooltip-color);
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* Floorplan Tabs */
     .floorplan-tabs {
         margin-bottom: 15px;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--tab-border);
         padding-bottom: 10px;
+        transition: border-color 0.3s ease;
     }
 
     .tab-button {
         padding: 8px 16px;
-        background-color: #f0f0f0;
-        color: #333;
-        border: 1px solid #ccc;
+        background-color: var(--tab-inactive-bg);
+        color: var(--tab-inactive-color);
+        border: 1px solid var(--tab-border);
         border-bottom: none;
         border-radius: 4px 4px 0 0;
         cursor: pointer;
         margin-right: 5px;
         font-size: 0.95em;
-        transition: background-color 0.2s ease, color 0.2s ease;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     .tab-button:hover {
-        background-color: #e0e0e0;
+        background-color: var(--interference-button-hover-bg);
     }
 
     .tab-button.active {
-        background-color: #fff;
-        color: #1976D2;
-        border-color: #ccc;
-        border-bottom: 1px solid #fff; /* Cover the container border */
+        background-color: var(--tab-active-bg);
+        color: var(--tab-active-color);
+        border-color: var(--tab-border);
+        border-bottom: 1px solid var(--tab-active-bg); /* Cover the container border */
         position: relative;
         top: 1px; /* Align with container border */
     }
@@ -193,21 +325,23 @@ routerSimulatorTemplate.innerHTML = `
         position: absolute;
         /* border: 2px solid #666; */ /* Border removed, will be drawn separately */
         border: none; /* Explicitly remove border */
-        background-color: rgba(200, 200, 200, 0.1);
+        background-color: var(--room-bg);
         pointer-events: none;
         z-index: 1; /* Lower z-index so walls draw on top */
+        transition: background-color 0.3s ease;
     }
 
     .room-label {
         position: absolute;
         font-size: 12px;
-        color: #333;
+        color: var(--room-label-color);
         pointer-events: none;
         user-select: none;
-        background-color: rgba(255, 255, 255, 0.7);
+        background-color: var(--room-label-bg);
         padding: 1px 3px;
         border-radius: 2px;
         z-index: 5; /* Increased z-index to be above obstacles */
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .fixed-obstacle {
@@ -220,8 +354,9 @@ routerSimulatorTemplate.innerHTML = `
         justify-content: center;
         font-size: 14px;
         font-weight: bold;
-        color: rgba(0, 0, 0, 0.6);
+        color: var(--obstacle-color);
         text-align: center;
+        transition: color 0.3s ease;
     }
 
     .interference-source {
@@ -230,16 +365,17 @@ routerSimulatorTemplate.innerHTML = `
         cursor: grab;
         z-index: 3; /* Above rooms, below obstacles */
         opacity: 0; /* Hidden by default */
-        transition: opacity 0.3s ease-in-out;
-        border: 2px dashed rgba(244, 67, 54, 0);
+        transition: opacity 0.3s ease-in-out, border-color 0.3s ease-in-out, border-width 0.3s ease-in-out;
+        border: 3px dashed rgba(244, 67, 54, 0);
         border-radius: 50%; /* Ensure it's circular */
         transform: translate(0, 0); /* Initial transform state */
         will-change: transform;
     }
 
     .interference-source.active {
-        opacity: 0.3;
-        border-color: rgba(244, 67, 54, 0.8);
+        opacity: 0.5; /* Increased from 0.3 to 0.5 */
+        border-color: rgba(255, 87, 34, 1); /* Brighter orange-red */
+        border-width: 3px; /* Thicker border */
     }
 
     .interference-source:active {
@@ -247,14 +383,14 @@ routerSimulatorTemplate.innerHTML = `
     }
 
     .interference-source.interference-bluetooth.active { /* Match class name */
-        /* Changed from blue to purple */
-        /* Removed background fill */
-        border-color: rgba(156, 39, 176, 0.8); /* Purple */
+        /* Changed to a brighter purple */
+        border-color: rgba(186, 104, 200, 1); /* Brighter purple */
+        box-shadow: 0 0 10px rgba(186, 104, 200, 0.6); /* Add glow effect */
     }
 
     .interference-source.interference-babyMonitor.active { /* Match class name */
-         /* Removed background fill */
-         border-color: rgba(244, 67, 54, 0.8); /* Keep border color from .interference-source.active */
+        border-color: rgba(255, 87, 34, 1); /* Brighter orange-red */
+        box-shadow: 0 0 10px rgba(255, 87, 34, 0.6); /* Add glow effect */
     }
 
     .interference-buttons {
@@ -273,9 +409,9 @@ routerSimulatorTemplate.innerHTML = `
 
     .interference-button {
         padding: 10px 20px;
-        background-color: #E0E0E0;
-        color: #424242;
-        border: 2px solid #BDBDBD;
+        background-color: var(--interference-button-bg);
+        color: var(--interference-button-color);
+        border: 2px solid var(--interference-button-border);
         border-radius: 4px;
         cursor: pointer;
         font-weight: 500;
@@ -292,51 +428,52 @@ routerSimulatorTemplate.innerHTML = `
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background-color: #9E9E9E;
+        background-color: var(--interference-button-indicator);
         transition: all 0.3s ease;
         flex-shrink: 0; /* Prevent shrinking */
         margin-right: 5px; /* Add explicit space */
     }
 
     .interference-button:hover {
-        background-color: #EEEEEE;
-        border-color: #9E9E9E;
+        background-color: var(--interference-button-hover-bg);
+        border-color: var(--interference-button-hover-border);
     }
 
     .interference-button.active {
-        background-color: #FBE9E7;
-        border-color: #F44336;
-        color: #D32F2F;
+        background-color: #FFF3E0; /* Lighter orange background */
+        border-color: #FF5722; /* Brighter orange-red */
+        color: #E64A19; /* Darker orange-red for text */
     }
 
     .interference-button.active::before {
-        background-color: #F44336;
-        box-shadow: 0 0 8px rgba(244, 67, 54, 0.5);
+        background-color: #FF5722; /* Brighter orange-red */
+        box-shadow: 0 0 8px rgba(255, 87, 34, 0.7); /* Stronger glow */
     }
 
     .interference-button.bluetooth.active {
         background-color: #F3E5F5; /* Light Purple */
-        border-color: #9C27B0; /* Purple */
-        color: #7B1FA2; /* Dark Purple */
+        border-color: #BA68C8; /* Brighter purple */
+        color: #8E24AA; /* Darker purple for text */
     }
 
     .interference-button.bluetooth.active::before {
-        background-color: #9C27B0; /* Purple */
-        box-shadow: 0 0 8px rgba(156, 39, 176, 0.5); /* Purple */
+        background-color: #BA68C8; /* Brighter purple */
+        box-shadow: 0 0 8px rgba(186, 104, 200, 0.7); /* Stronger purple glow */
     }
 
     .tooltip {
         margin-top: 10px;
         padding: 8px 12px;
-        background-color: #E3F2FD;
-        border: 1px solid #BBDEFB;
+        background-color: var(--tooltip-bg);
+        border: 1px solid var(--tooltip-border);
         border-radius: 4px;
-        color: #1976D2;
+        color: var(--tooltip-color);
         font-size: 0.9em;
         line-height: 1.4;
         width: 100%;
         text-align: center;
         box-sizing: border-box; /* Include padding in width */
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     .tooltip::before {
@@ -357,7 +494,8 @@ routerSimulatorTemplate.innerHTML = `
     #placementAdvice {
         margin-top: 15px;
         font-size: 0.9em;
-        color: #555;
+        color: var(--placement-advice-color);
+        transition: color 0.3s ease;
     }
 
     /* Ensure SVG icons scale correctly */

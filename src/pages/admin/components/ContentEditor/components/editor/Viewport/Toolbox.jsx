@@ -1,5 +1,5 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { FaFont, FaSquare, FaImage, FaRegCreditCard, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns } from 'react-icons/fa';
 
 import { Container } from '../../selectors/Container';
@@ -19,22 +19,6 @@ export const Toolbox = () => {
   } = useEditor((state) => ({
     enabled: state.options.enabled
   }));
-
-  // State to store interactive elements
-  const [interactiveElements, setInteractiveElements] = useState([]);
-  const [showInteractiveMenu, setShowInteractiveMenu] = useState(false);
-
-  // Fetch interactive elements when component mounts
-  useEffect(() => {
-    fetch('/interactive-elements/elements.json')
-      .then(response => response.json())
-      .then(elements => {
-        setInteractiveElements(elements);
-      })
-      .catch(error => {
-        console.error('Error fetching interactive elements:', error);
-      });
-  }, []);
 
   return (
     <div className={classNames([
@@ -178,48 +162,21 @@ export const Toolbox = () => {
 
         {/* Interactive Elements Button */}
         <div
-          className="relative"
-          onClick={() => setShowInteractiveMenu(!showInteractiveMenu)}
+          ref={(ref) => {
+            create(
+              ref,
+              <CraftElement
+                is={Interactive}
+                name=""
+                title="Interactive Element"
+                description="Select an interactive element from the settings panel"
+              />
+            );
+          }}
         >
-          <div className="toolbox-item" title="Interactive Elements">
+          <div className="toolbox-item" title="Interactive Element">
             <FaPuzzlePiece size={24} />
           </div>
-
-          {/* Interactive Elements Dropdown Menu */}
-          {showInteractiveMenu && interactiveElements.length > 0 && (
-            <div className="absolute left-16 top-0 z-50 bg-white dark:bg-slate-700 shadow-lg rounded-md border border-gray-200 dark:border-slate-600 p-2 w-64">
-              <div className="text-sm font-medium text-gray-700 dark:text-white mb-2 px-2">Interactive Elements</div>
-              <div className="max-h-80 overflow-y-auto">
-                {interactiveElements.map((element) => (
-                  <div
-                    key={element.name}
-                    className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-slate-600 rounded cursor-pointer"
-                    ref={(ref) => {
-                      create(
-                        ref,
-                        <CraftElement
-                          is={Interactive}
-                          name={element.name}
-                          title={element.title}
-                          description={element.description}
-                        />
-                      );
-                    }}
-                  >
-                    <img
-                      src={element.iconUrl}
-                      alt={element.title}
-                      className="w-10 h-10 mr-2 object-contain"
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-gray-800 dark:text-white">{element.title}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{element.description}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

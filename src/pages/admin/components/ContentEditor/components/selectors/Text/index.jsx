@@ -1,6 +1,8 @@
 import { useNode, useEditor } from '@craftjs/core';
 import React, { useEffect, useRef } from 'react';
 import ContentEditable from 'react-contenteditable';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 import { TextSettings } from './TextSettings';
 import { ICONS, ICON_NAME_MAP } from '@/components/icons';
@@ -118,14 +120,20 @@ export const Text = ({
   lineHeight = 1.5,
   textAlign = 'left',
   fontWeight = '500',
-  color = { r: 92, g: 90, b: 90, a: 1 },
+  color = {
+    light: { r: 92, g: 90, b: 90, a: 1 },
+    dark: { r: 229, g: 231, b: 235, a: 1 }
+  },
   shadow = {
     enabled: false,
     x: 0,
     y: 2,
     blur: 4,
     spread: 0,
-    color: { r: 0, g: 0, b: 0, a: 0.15 }
+    color: {
+      light: { r: 0, g: 0, b: 0, a: 0.15 },
+      dark: { r: 0, g: 0, b: 0, a: 0.25 }
+    }
   },
   text = 'Text',
   margin = ['0', '0', '0', '0'],
@@ -135,7 +143,11 @@ export const Text = ({
   onChange = null,
   hasIcon = false,
   iconName = 'edit', // Default icon from new icon set
-  iconColor = { r: 92, g: 90, b: 90, a: 1 },
+  iconColor = {
+    light: { r: 92, g: 90, b: 90, a: 1 },
+    dark: { r: 229, g: 231, b: 235, a: 1 }
+  },
+  autoConvertColors = true,
 }) => {
   // Store the current text value in a ref to avoid re-renders
   const textValue = useRef(text || 'Click to edit');
@@ -156,6 +168,9 @@ export const Text = ({
   const { enabled } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
+
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Check if this Text component is inside a table cell
   const isInTableCell = React.useMemo(() => {
@@ -256,7 +271,17 @@ export const Text = ({
             style={{
               width: `${Math.max(12, fontSize * 0.8)}px`,
               height: `${Math.max(12, fontSize * 0.8)}px`,
-              fill: `rgba(${Object.values(iconColor)})`
+              fill: (() => {
+                try {
+                  console.log('Icon color before conversion:', { iconColor, isDark, autoConvertColors });
+                  const color = getThemeColor(iconColor, isDark, 'icon', autoConvertColors);
+                  console.log('Icon color after conversion:', color);
+                  return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+                } catch (error) {
+                  console.warn('Error generating icon color:', error);
+                  return isDark ? 'rgba(229, 231, 235, 1)' : 'rgba(92, 90, 90, 1)';
+                }
+              })()
             }}
           />
         </div>
@@ -275,9 +300,42 @@ export const Text = ({
           padding: padding.every(p => p === '0' || p === 0)
             ? '4px 0' // Default padding if none is set
             : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-          color: `rgba(${Object.values(color)})`,
+          color: (() => {
+            try {
+              const textColor = getThemeColor(color, isDark, 'text');
+              return `rgba(${textColor.r}, ${textColor.g}, ${textColor.b}, ${textColor.a})`;
+            } catch (error) {
+              console.warn('Error generating text color:', error);
+              return isDark ? 'rgba(229, 231, 235, 1)' : 'rgba(92, 90, 90, 1)';
+            }
+          })(),
           textShadow: shadow.enabled
-            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${Object.values(shadow.color)})`
+            ? (() => {
+                try {
+                  // Get the appropriate shadow color for the current theme
+                  let shadowColor;
+                  if (shadow.color && shadow.color.light && shadow.color.dark) {
+                    // Theme-aware color
+                    shadowColor = isDark ? shadow.color.dark : shadow.color.light;
+                  } else if (shadow.color && 'r' in shadow.color) {
+                    // Legacy format (single RGBA object)
+                    if (isDark && autoConvertColors) {
+                      // Auto-convert to dark mode
+                      shadowColor = convertToThemeColor(shadow.color, true, 'shadow');
+                    } else {
+                      shadowColor = shadow.color;
+                    }
+                  } else {
+                    // Fallback
+                    shadowColor = { r: 0, g: 0, b: 0, a: isDark ? 0.25 : 0.15 };
+                  }
+
+                  return `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${shadowColor.r || 0}, ${shadowColor.g || 0}, ${shadowColor.b || 0}, ${shadowColor.a || 0.15})`;
+                } catch (error) {
+                  console.warn('Error generating text shadow:', error);
+                  return 'none';
+                }
+              })()
             : 'none',
           fontSize: `${fontSize}px`,
           fontWeight,
@@ -303,7 +361,10 @@ Text.craft = {
     lineHeight: 1.5,
     textAlign: 'left',
     fontWeight: '500',
-    color: { r: 92, g: 90, b: 90, a: 1 },
+    color: {
+      light: { r: 92, g: 90, b: 90, a: 1 },
+      dark: { r: 229, g: 231, b: 235, a: 1 }
+    },
     margin: ['0', '0', '0', '0'],
     padding: ['0', '0', '0', '0'],
     shadow: {
@@ -312,15 +373,22 @@ Text.craft = {
       y: 2,
       blur: 4,
       spread: 0,
-      color: { r: 0, g: 0, b: 0, a: 0.15 }
+      color: {
+        light: { r: 0, g: 0, b: 0, a: 0.15 },
+        dark: { r: 0, g: 0, b: 0, a: 0.25 }
+      }
     },
     text: 'Text',
     listType: 'none',
     inTable: false,
     hasIcon: false,
     iconName: 'edit',
-    iconColor: { r: 92, g: 90, b: 90, a: 1 },
+    iconColor: {
+      light: { r: 92, g: 90, b: 90, a: 1 },
+      dark: { r: 229, g: 231, b: 235, a: 1 }
+    },
     _lastUpdate: 0,
+    autoConvertColors: true,
   },
   related: {
     toolbar: TextSettings,

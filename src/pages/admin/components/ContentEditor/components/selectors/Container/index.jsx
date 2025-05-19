@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useEditor, useNode } from '@craftjs/core';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 import { ContainerSettings } from './ContainerSettings';
 import { Resizer } from '../Resizer';
 
@@ -10,18 +12,25 @@ const defaultProps = {
   justifyContent: 'flex-start',
   padding: ['0', '0', '0', '0'],
   margin: ['0', '0', '0', '0'],
-  background: { r: 255, g: 255, b: 255, a: 1 },
+  background: {
+    light: { r: 255, g: 255, b: 255, a: 1 },
+    dark: { r: 31, g: 41, b: 55, a: 1 }
+  },
   shadow: {
     enabled: false,
     x: 0,
     y: 4,
     blur: 8,
     spread: 0,
-    color: { r: 0, g: 0, b: 0, a: 0.15 }
+    color: {
+      light: { r: 0, g: 0, b: 0, a: 0.15 },
+      dark: { r: 0, g: 0, b: 0, a: 0.25 }
+    }
   },
   radius: 0,
   width: '100%', // Percentage-based width
-  height: 'auto' // Pixel-based height or 'auto'
+  height: 'auto', // Pixel-based height or 'auto'
+  autoConvertColors: true // Whether to automatically convert colors between themes
 };
 
 // Container component directly using Resizer
@@ -35,13 +44,36 @@ export const Container = (props) => {
   // Handle backward compatibility for shadow property
   if (typeof props.shadow === 'number') {
     const shadowValue = props.shadow;
-    props.shadow = {
-      enabled: shadowValue > 0,
-      x: 0,
-      y: 4,
-      blur: 8,
-      spread: 0,
-      color: { r: 0, g: 0, b: 0, a: 0.15 }
+    // Create a new props object instead of modifying props directly
+    props = {
+      ...props,
+      shadow: {
+        enabled: shadowValue > 0,
+        x: 0,
+        y: 4,
+        blur: 8,
+        spread: 0,
+        color: {
+          light: { r: 0, g: 0, b: 0, a: 0.15 },
+          dark: { r: 0, g: 0, b: 0, a: 0.25 }
+        }
+      }
+    };
+  }
+
+  // Handle backward compatibility for shadow color
+  if (props.shadow && props.shadow.color && 'r' in props.shadow.color) {
+    const oldColor = { ...props.shadow.color };
+    // Create a new shadow object instead of modifying props directly
+    props = {
+      ...props,
+      shadow: {
+        ...props.shadow,
+        color: {
+          light: oldColor,
+          dark: convertToThemeColor(oldColor, true)
+        }
+      }
     };
   }
 
@@ -50,7 +82,7 @@ export const Container = (props) => {
     flexDirection,
     alignItems,
     justifyContent,
-    background,
+    background: backgroundProp,
     padding,
     margin,
     shadow,
@@ -63,6 +95,10 @@ export const Container = (props) => {
 
   // Reference to the container's DOM element
   const containerRef = useRef(null);
+
+  // Get theme context
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Get node actions
   const { actions } = useNode();
@@ -236,11 +272,43 @@ export const Container = (props) => {
             alignItems,
             width: '100%',
             height: height || 'auto',
-            background: `rgba(${Object.values(background)})`,
+            background: (() => {
+              try {
+                const color = getThemeColor(backgroundProp, isDark, 'container');
+                return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+              } catch (error) {
+                console.warn('Error generating background color:', error);
+                return isDark ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)';
+              }
+            })(),
             padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-            boxShadow: shadow.enabled
-              ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(shadow.color)})`
-              : 'none',
+            boxShadow: (() => {
+              if (!shadow || !shadow.enabled) return 'none';
+              try {
+                const { x, y, blur, spread, color } = shadow;
+                if (!color) return 'none';
+
+                // Get the appropriate shadow color for the current theme
+                let shadowColor;
+                if (color.light && color.dark) {
+                  // Theme-aware color
+                  shadowColor = isDark ? color.dark : color.light;
+                } else if ('r' in color) {
+                  // Legacy format (single RGBA object)
+                  shadowColor = getThemeColor(color, isDark, 'shadow', autoConvertColors);
+                } else {
+                  // Fallback
+                  shadowColor = isDark ?
+                    { r: 255, g: 255, b: 255, a: 0.15 } :
+                    { r: 0, g: 0, b: 0, a: 0.15 };
+                }
+
+                return `${x || 0}px ${y || 0}px ${blur || 0}px ${spread || 0}px rgba(${shadowColor.r || 0}, ${shadowColor.g || 0}, ${shadowColor.b || 0}, ${shadowColor.a || 0.15})`;
+              } catch (error) {
+                console.warn('Error generating shadow:', error);
+                return 'none';
+              }
+            })(),
             borderRadius: `${radius}px`,
             position: 'relative',
             overflow: 'visible'
@@ -298,7 +366,32 @@ export const Container = (props) => {
 
 Container.craft = {
   displayName: 'Container',
-  props: defaultProps,
+  props: {
+    ...defaultProps,
+    // Handle backward compatibility by converting single color to theme-aware format
+    get background() {
+      const lightColor = defaultProps.background.light;
+      return {
+        light: lightColor,
+        dark: convertToThemeColor(lightColor, true, 'container'),
+      };
+    },
+    get shadow() {
+      const defaultShadow = defaultProps.shadow;
+      if (defaultShadow && defaultShadow.color && 'r' in defaultShadow.color) {
+        const lightColor = defaultShadow.color;
+        return {
+          ...defaultShadow,
+          color: {
+            light: lightColor,
+            dark: convertToThemeColor(lightColor, true, 'shadow'),
+          }
+        };
+      }
+      return defaultShadow;
+    },
+    autoConvertColors: true
+  },
   rules: {
     canDrag: () => true,
     canDrop: () => true,
