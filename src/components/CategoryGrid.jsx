@@ -1,6 +1,8 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { FaBook } from 'react-icons/fa';
+import { getIconByName } from '../utils/iconMappings';
 
 /**
  * Component for displaying a grid of categories
@@ -14,20 +16,34 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
     navigate(`/study/${sectionId}/${categoryId}`);
   };
 
-  // Get default icon and color based on category name
+  // Get icon and color based on category data or fallback to name-based detection
   const getCategoryIcon = (category) => {
+    // If the category has a custom icon set, use it
+    if (category.icon) {
+      const { component: IconComponent, color } = getIconByName(category.icon);
+      return {
+        icon: <IconComponent size={24} color="white" />,
+        color: color
+      };
+    }
+
+    // Fallback to name-based detection for backward compatibility
     const name = category.name.toLowerCase();
+    let iconName = 'Book';
 
-    if (name.includes('network')) return { icon: '🌐', color: '#0369a1' };
-    if (name.includes('install')) return { icon: '📥', color: '#0891b2' };
-    if (name.includes('service')) return { icon: '🔧', color: '#0e7490' };
-    if (name.includes('troubleshoot')) return { icon: '🔍', color: '#0c4a6e' };
-    if (name.includes('security')) return { icon: '🔒', color: '#7e22ce' };
-    if (name.includes('hardware')) return { icon: '💻', color: '#15803d' };
-    if (name.includes('software')) return { icon: '📊', color: '#b45309' };
+    if (name.includes('network')) iconName = 'Network';
+    else if (name.includes('install')) iconName = 'Download';
+    else if (name.includes('service')) iconName = 'Wrench';
+    else if (name.includes('troubleshoot')) iconName = 'Search';
+    else if (name.includes('security')) iconName = 'Lock';
+    else if (name.includes('hardware')) iconName = 'Laptop';
+    else if (name.includes('software')) iconName = 'Chart';
 
-    // Default
-    return { icon: '📚', color: '#0f766e' };
+    const { component: IconComponent, color } = getIconByName(iconName);
+    return {
+      icon: <IconComponent size={24} color="white" />,
+      color: color
+    };
   };
 
   if (isLoading) {
@@ -72,10 +88,10 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
             onClick={() => handleCategoryClick(category.id, sectionId)}
           >
             <div
-              className="w-[50px] h-[50px] rounded-full flex items-center justify-center text-2xl mb-4"
+              className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: color || '#0f766e' }}
             >
-              <span>{icon}</span>
+              {icon}
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{category.description || 'No description available'}</p>

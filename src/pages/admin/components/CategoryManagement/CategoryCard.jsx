@@ -8,7 +8,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
-  // isHovered state is now controlled by parent via prop
+  // isHovered state is now controlled by parent via prop, but edit form visibility is controlled locally
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -31,7 +31,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
   // console.log removed
 
   return (
-    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer">
+    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer" data-category-id={category.id}>
       {!isEditing ? (
         <>
           {/* Card Header */}
@@ -50,8 +50,8 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
                 {/* Title */}
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={category.name}>{category.name}</h3>
              </div>
-            {/* Action Buttons */}
-            <div className={`${isHovered ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
+            {/* Action Buttons - Always visible when editing */}
+            <div className={`${isHovered || isEditing ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
               <button
                 onClick={(e) => { stopPropagation(e); setIsEditing(true); }}
                 className="p-2 border-none rounded-md cursor-pointer transition-colors text-white flex items-center justify-center w-8 h-8 bg-amber-600 hover:bg-amber-700"
@@ -95,7 +95,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
         </>
       ) : (
         // Keep Edit Form padding consistent
-        <div className="p-6">
+        <div className="p-6 category-edit-form">
           <CategoryForm
             initialData={category}
             section={section}

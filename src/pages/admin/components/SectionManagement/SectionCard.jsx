@@ -8,7 +8,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
-  // isHovered state is now controlled by parent via prop
+  // isHovered state is now controlled by parent via prop, but edit form visibility is controlled locally
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -26,7 +26,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
   // Using Tailwind classes instead of inline styles
 
   return (
-    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer">
+    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer" data-section-id={section.id}>
       {!isEditing ? (
         <>
           {/* Card Header */}
@@ -45,8 +45,8 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
                 {/* Title */}
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={section.name}>{section.name}</h3>
              </div>
-            {/* Action Buttons */}
-            <div className={`${isHovered ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
+            {/* Action Buttons - Always visible when editing */}
+            <div className={`${isHovered || isEditing ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
               <button
                 onClick={(e) => { stopPropagation(e); setIsEditing(true); }}
                 className="p-2 border-none rounded-md cursor-pointer transition-colors text-white flex items-center justify-center w-8 h-8 bg-amber-600 hover:bg-amber-700"
@@ -91,7 +91,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
         </>
       ) : (
         // Keep Edit Form padding consistent
-        <div className="p-6">
+        <div className="p-6 section-edit-form">
           <SectionForm
             initialData={section}
             onSubmit={async (formData) => {

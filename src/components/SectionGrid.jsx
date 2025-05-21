@@ -1,6 +1,8 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { FaBook } from 'react-icons/fa';
+import { getIconByName } from '../utils/iconMappings';
 
 /**
  * Component for displaying a grid of sections
@@ -14,21 +16,35 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
     navigate(`/study/${sectionId}`);
   };
 
-  // Get default icon and color based on section name
+  // Get icon and color based on section data or fallback to name-based detection
   const getSectionIcon = (section) => {
+    // If the section has a custom icon set, use it
+    if (section.icon) {
+      const { component: IconComponent, color } = getIconByName(section.icon);
+      return {
+        icon: <IconComponent size={24} color="white" />,
+        color: color
+      };
+    }
+
+    // Fallback to name-based detection for backward compatibility
     const name = section.name.toLowerCase();
+    let iconName = 'Book';
 
-    if (name.includes('network')) return { icon: '🌐', color: '#0369a1' };
-    if (name.includes('install')) return { icon: '📥', color: '#0891b2' };
-    if (name.includes('service')) return { icon: '🔧', color: '#0e7490' };
-    if (name.includes('troubleshoot')) return { icon: '🔍', color: '#0c4a6e' };
-    if (name.includes('security')) return { icon: '🔒', color: '#7e22ce' };
-    if (name.includes('hardware')) return { icon: '💻', color: '#15803d' };
-    if (name.includes('software')) return { icon: '📊', color: '#b45309' };
-    if (name.includes('advanced')) return { icon: '🚀', color: '#0e7490' };
+    if (name.includes('network')) iconName = 'Network';
+    else if (name.includes('install')) iconName = 'Download';
+    else if (name.includes('service')) iconName = 'Wrench';
+    else if (name.includes('troubleshoot')) iconName = 'Search';
+    else if (name.includes('security')) iconName = 'Lock';
+    else if (name.includes('hardware')) iconName = 'Laptop';
+    else if (name.includes('software')) iconName = 'Chart';
+    else if (name.includes('advanced')) iconName = 'Rocket';
 
-    // Default
-    return { icon: '📚', color: '#0f766e' };
+    const { component: IconComponent, color } = getIconByName(iconName);
+    return {
+      icon: <IconComponent size={24} color="white" />,
+      color: color
+    };
   };
 
   if (isLoading) {
@@ -72,10 +88,10 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
             onClick={() => handleSectionClick(section.id)}
           >
             <div
-              className="w-[50px] h-[50px] rounded-full flex items-center justify-center text-2xl mb-4"
+              className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: color || '#0f766e' }}
             >
-              <span>{icon}</span>
+              {icon}
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{section.description || 'No description available'}</p>

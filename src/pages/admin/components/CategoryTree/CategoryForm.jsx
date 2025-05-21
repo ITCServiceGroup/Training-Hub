@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { sectionsService } from '../../../../services/api/sections';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import IconSelector from '../../../../components/common/IconSelector';
 
 const CategoryForm = ({
   onSubmit,
@@ -8,7 +9,8 @@ const CategoryForm = ({
   initialData = {
     name: '',
     description: '',
-    section_id: ''
+    section_id: '',
+    icon: 'Book'
   },
   section = null,
   isEditing = false,
@@ -82,6 +84,14 @@ const CategoryForm = ({
           rows={3}
           className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-h-[80px] resize-y`}
           placeholder="Enter category description"
+        />
+      </div>
+
+      <div className="mb-4">
+        <IconSelector
+          selectedIcon={formData.icon}
+          onSelectIcon={(iconName) => setFormData(prev => ({ ...prev, icon: iconName }))}
+          isDark={isDark}
         />
       </div>
 

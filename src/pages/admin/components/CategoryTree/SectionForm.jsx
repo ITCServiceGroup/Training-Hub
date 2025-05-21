@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import IconSelector from '../../../../components/common/IconSelector';
 
 const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkMode = false }) => {
   const { theme } = useTheme();
   const isDark = darkMode || theme === 'dark';
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
-    description: initialData?.description || ''
+    description: initialData?.description || '',
+    icon: initialData?.icon || 'Book'
   });
 
   const [errors, setErrors] = useState({});
@@ -75,6 +77,14 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
             rows="3"
             className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-h-[80px] resize-y`}
             placeholder="Enter section description"
+          />
+        </div>
+
+        <div className="mb-4">
+          <IconSelector
+            selectedIcon={formData.icon}
+            onSelectIcon={(iconName) => setFormData(prev => ({ ...prev, icon: iconName }))}
+            isDark={isDark}
           />
         </div>
 

@@ -104,7 +104,13 @@ const SectionAdminGrid = ({
         style={style}
         className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
         onMouseEnter={() => !isDragging && setHoveredId(section.id)}
-        onMouseLeave={() => setHoveredId(null)}
+        onMouseLeave={() => {
+          // Don't clear hover state if the section is being edited
+          const sectionCard = document.querySelector(`[data-section-id="${section.id}"] .section-edit-form`);
+          if (!sectionCard) {
+            setHoveredId(null);
+          }
+        }}
       >
         {/* Outer drag handle div removed */}
         <SectionCard
