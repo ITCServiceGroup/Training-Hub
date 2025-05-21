@@ -1,21 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 import { studyGuidesService } from '../services/api/studyGuides';
 import { sectionsService } from '../services/api/sections';
+import { searchService } from '../services/api/search';
 import SectionGrid from '../components/SectionGrid';
 import CategoryGrid from '../components/CategoryGrid';
 import StudyGuideList from '../components/StudyGuideList'; // Sidebar list
 import PublicStudyGuideList from '../components/PublicStudyGuideList'; // Main content list
 import StudyGuideViewer from '../components/StudyGuideViewer';
+import SearchResults from '../components/SearchResults';
 
 const StudyGuidePage = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { sectionId, categoryId, studyGuideId } = useParams();
   const navigate = useNavigate();
+  const searchInputRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isHeaderScrolledAway, setIsHeaderScrolledAway] = useState(false); // State for header scroll
 
@@ -254,6 +259,48 @@ const StudyGuidePage = () => {
     }
   };
 
+  // Handler for search
+  const handleSearch = useCallback(async (query) => {
+    if (!query || query.trim() === '') {
+      setSearchResults(null);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await searchService.searchAll(query);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching content:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Debounce search to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
+
+  // Clear search results when navigating
+  useEffect(() => {
+    setSearchResults(null);
+    setSearchQuery('');
+  }, [sectionId, categoryId, studyGuideId]);
+
+  // Handle clearing search
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults(null);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
   // Using Tailwind classes instead of inline styles
 
   // Render breadcrumb navigation (using derived state)
@@ -308,14 +355,29 @@ const StudyGuidePage = () => {
               </div>
             )}
           </div>
-          <div className="flex items-center max-w-md w-full">
+          <div className="flex items-center max-w-md w-full relative">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search study guides..."
+              placeholder="Search sections, categories, guides, and content..."
               className={`py-2 px-3 border rounded text-sm w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {searchQuery && (
+              <button
+                className={`absolute right-3 ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={handleClearSearch}
+                aria-label="Clear search"
+              >
+                <FaTimes size={14} />
+              </button>
+            )}
+            {isSearching && (
+              <div className={`absolute right-3 ${searchQuery ? 'right-8' : 'right-3'}`}>
+                <div className={`w-4 h-4 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin`}></div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -325,29 +387,51 @@ const StudyGuidePage = () => {
       {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuidesError}</div>}
       {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuideError}</div>}
 
-      {/* Main content area with conditional rendering based on navigation state */}
-      {!sectionId ? (
-        /* Section view (no section selected) */
-        <>
-          <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
-          <SectionGrid
-            sections={sectionsData} // Use context data
-            isLoading={isLoadingSections} // Use context loading state
+      {/* Search Results */}
+      {searchResults && searchQuery ? (
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Search Results for "{searchQuery}"
+            </h2>
+            <button
+              onClick={handleClearSearch}
+              className={`px-3 py-1 text-sm rounded ${isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              Clear Search
+            </button>
+          </div>
+          <SearchResults
+            results={searchResults}
+            isLoading={isSearching}
             searchQuery={searchQuery}
+            onResultClick={handleClearSearch}
           />
-        </>
-      ) : !categoryId ? (
-        /* Category view (section selected, no category selected) */
-        <>
-          <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
-          <CategoryGrid
-            categories={categories} // Use derived categories state
-            sectionId={sectionId}
-            isLoading={isLoadingSections} // Still depends on sections loading
-            searchQuery={searchQuery}
-          />
-        </>
+        </div>
       ) : (
+        /* Main content area with conditional rendering based on navigation state */
+        !sectionId ? (
+          /* Section view (no section selected) */
+          <>
+            <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
+            <SectionGrid
+              sections={sectionsData} // Use context data
+              isLoading={isLoadingSections} // Use context loading state
+              searchQuery={searchQuery}
+            />
+          </>
+        ) : !categoryId ? (
+          /* Category view (section selected, no category selected) */
+          <>
+            <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
+            <CategoryGrid
+              categories={categories} // Use derived categories state
+              sectionId={sectionId}
+              isLoading={isLoadingSections} // Still depends on sections loading
+              searchQuery={searchQuery}
+            />
+          </>
+        ) : (
           /* Study guide view (section and category selected) */
           <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full overflow-hidden">
             {/* Mobile menu button - Adjusted top based on scroll */}
@@ -405,7 +489,7 @@ const StudyGuidePage = () => {
             )}
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };

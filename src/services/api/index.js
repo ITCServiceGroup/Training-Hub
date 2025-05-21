@@ -7,3 +7,4 @@ export { studyGuidesService } from './studyGuides';
 export { questionsService } from './questions';
 export { quizzesService } from './quizzes';
 export { quizResultsService } from './quizResults';
+export { searchService } from './search';

@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocation } from 'react-router-dom';
+import { FaSearch } from 'react-icons/fa';
 import CraftRenderer from './craft/CraftRenderer';
+import { searchService } from '../services/api/search';
+import { countSearchTermOccurrences, extractTextFromContent } from '../utils/contentTextExtractor';
 
 /**
  * Component for displaying study guide content with interactive element support (Web Component Method)
@@ -9,15 +13,79 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const iframeRef = useRef(null); // Ref for the main content iframe
+  const location = useLocation();
+  const craftRendererRef = useRef(null); // Ref for the CraftRenderer component
 
   // State to track if debug mode is enabled
   const [showDebug, setShowDebug] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchHighlighted, setSearchHighlighted] = useState(false);
+  const [searchMatchCount, setSearchMatchCount] = useState(0);
 
-  // Check for debug mode on mount
+  // Check for debug mode and search parameters on mount
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     setShowDebug(urlParams.get('debug') === 'true');
-  }, []);
+
+    // Check for search parameter
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    } else {
+      setSearchTerm('');
+      setSearchHighlighted(false);
+      setSearchMatchCount(0);
+    }
+  }, [location.search]);
+
+  // Effect to handle search highlighting
+  // Function to get the search count directly from the content
+  const getSearchMatchCount = (content, term) => {
+    if (!content || !term) return 0;
+
+    try {
+      // Extract text from content
+      const extractedText = extractTextFromContent(content);
+      if (!extractedText) return 0;
+
+      // Count occurrences using our consistent counting method
+      const count = countSearchTermOccurrences(extractedText, term);
+      console.log(`StudyGuideViewer: Direct count found ${count} matches for "${term}"`);
+      return count;
+    } catch (e) {
+      console.error('Error counting search term occurrences:', e);
+      return 0;
+    }
+  };
+
+  useEffect(() => {
+    if (searchTerm && studyGuide?.content) {
+      // First, get the direct count from the content
+      const directCount = getSearchMatchCount(studyGuide.content, searchTerm);
+
+      // Set the count from our direct calculation
+      setSearchMatchCount(directCount);
+      setSearchHighlighted(directCount > 0);
+
+      // Wait for content to be fully rendered, then highlight (but don't use its count)
+      const timer = setTimeout(() => {
+        try {
+          if (craftRendererRef.current) {
+            // Call the highlight method on the CraftRenderer but ignore its count
+            craftRendererRef.current.highlightSearchTerm(searchTerm);
+            console.log(`StudyGuideViewer: Highlighted search term "${searchTerm}" (using pre-calculated count of ${directCount})`);
+          }
+        } catch (e) {
+          console.error('Error highlighting search term:', e);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setSearchHighlighted(false);
+      setSearchMatchCount(0);
+    }
+  }, [searchTerm, studyGuide, isLoading]);
 
   // Effect to inject component definition scripts after the main iframe loads
   useEffect(() => {
@@ -388,6 +456,91 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         <div className={`flex justify-between items-center mb-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} pb-3`}>
           <div className="flex items-center gap-2">
             <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
+            {searchTerm && (
+              <div className={`ml-2 px-3 py-1 text-xs rounded-full ${
+                searchHighlighted
+                  ? (isDark ? 'bg-teal-900 text-teal-300 border border-teal-700' : 'bg-teal-100 text-teal-800 border border-teal-300')
+                  : (isDark ? 'bg-amber-900 text-amber-300' : 'bg-amber-100 text-amber-800')
+              } flex items-center shadow-sm`}>
+                <FaSearch size={10} className="mr-1" />
+                <span>
+                  {searchHighlighted
+                    ? `Found ${searchMatchCount} ${searchMatchCount === 1 ? 'match' : 'matches'} for "${searchTerm}"`
+                    : `Searching for: ${searchTerm}`}
+                </span>
+                <button
+                  onClick={() => {
+                    // Clear the search term
+                    setSearchTerm('');
+                    setSearchHighlighted(false);
+                    setSearchMatchCount(0);
+
+                    // Remove the search parameter from the URL
+                    const urlParams = new URLSearchParams(location.search);
+                    urlParams.delete('search');
+
+                    // Update the URL without reloading the page
+                    const newUrl = `${location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+                    window.history.pushState({}, '', newUrl);
+
+                    // Clear highlights in the renderer
+                    if (craftRendererRef.current) {
+                      // Call highlightSearchTerm with empty string to clear highlights
+                      craftRendererRef.current.highlightSearchTerm('');
+
+                      // Additional cleanup for any remaining highlights
+                      setTimeout(() => {
+                        try {
+                          // Find the renderer element
+                          const rendererElement = document.querySelector('.craft-renderer');
+                          if (rendererElement) {
+                            // Remove any remaining highlights
+                            const existingHighlights = rendererElement.querySelectorAll('.search-highlight, .search-highlight-iframe, .iframe-search-marker, .interactive-highlight-label');
+                            existingHighlights.forEach(el => {
+                              if (el.parentNode) {
+                                if (el.classList.contains('interactive-highlight-label')) {
+                                  // Just remove label elements
+                                  el.parentNode.removeChild(el);
+                                } else if (el.classList.contains('iframe-search-marker')) {
+                                  // Just remove marker elements
+                                  el.parentNode.removeChild(el);
+                                } else {
+                                  // For text highlights, replace with the original text
+                                  const parent = el.parentNode;
+                                  parent.replaceChild(document.createTextNode(el.textContent), el);
+                                  // Normalize the parent to merge adjacent text nodes
+                                  parent.normalize();
+                                }
+                              }
+                            });
+
+                            // Remove highlight borders from interactive elements
+                            const interactiveElements = rendererElement.querySelectorAll('.interactive-element-wrapper');
+                            interactiveElements.forEach(el => {
+                              el.style.border = '';
+                              el.style.boxShadow = '';
+                            });
+
+                            console.log('Manually cleared all remaining highlights');
+                          }
+                        } catch (e) {
+                          console.error('Error manually clearing highlights:', e);
+                        }
+                      }, 100);
+                    }
+                  }}
+                  className={`ml-2 flex items-center justify-center w-4 h-4 rounded-full ${
+                    isDark
+                      ? 'bg-teal-700 text-teal-200 hover:bg-teal-600'
+                      : 'bg-teal-200 text-teal-800 hover:bg-teal-300'
+                  } transition-colors`}
+                  aria-label="Clear search"
+                  title="Clear search"
+                >
+                  <span className="text-xs font-bold">×</span>
+                </button>
+              </div>
+            )}
             <button
               onClick={() => setShowDebug(!showDebug)}
               className={`ml-2 px-2 py-1 text-xs rounded ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
@@ -464,7 +617,11 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
               }
             }
 
-            return <CraftRenderer jsonContent={processedContent} />;
+            return <CraftRenderer
+              ref={craftRendererRef}
+              jsonContent={processedContent}
+              searchTerm={searchTerm}
+            />;
           })()}
 
           {/* Show debug info if debug mode is enabled */}
@@ -788,7 +945,88 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   return (
     <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full`}> {/* Changed p-8 to p-2 sm:p-8 */}
       <div className={`flex justify-between items-center mb-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} pb-3`}>
-        <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
+          {searchTerm && (
+            <div className={`ml-2 px-3 py-1 text-xs rounded-full ${
+              searchHighlighted
+                ? (isDark ? 'bg-teal-900 text-teal-300 border border-teal-700' : 'bg-teal-100 text-teal-800 border border-teal-300')
+                : (isDark ? 'bg-amber-900 text-amber-300' : 'bg-amber-100 text-amber-800')
+            } flex items-center shadow-sm`}>
+              <FaSearch size={10} className="mr-1" />
+              <span>
+                {searchHighlighted
+                  ? `Found ${searchMatchCount} ${searchMatchCount === 1 ? 'match' : 'matches'} for "${searchTerm}"`
+                  : `Searching for: ${searchTerm}`}
+              </span>
+              <button
+                onClick={() => {
+                  // Clear the search term
+                  setSearchTerm('');
+                  setSearchHighlighted(false);
+                  setSearchMatchCount(0);
+
+                  // Remove the search parameter from the URL
+                  const urlParams = new URLSearchParams(location.search);
+                  urlParams.delete('search');
+
+                  // Update the URL without reloading the page
+                  const newUrl = `${location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+                  window.history.pushState({}, '', newUrl);
+
+                  // For HTML iframe version, we need to clear highlights in the iframe
+                  if (iframeRef.current) {
+                    try {
+                      // Try to access the iframe content
+                      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+
+                      if (iframeDoc) {
+                        // Remove any search highlight elements
+                        const highlights = iframeDoc.querySelectorAll('.search-highlight, .search-highlight-iframe');
+                        highlights.forEach(el => {
+                          if (el.parentNode) {
+                            // Replace with the original text
+                            const parent = el.parentNode;
+                            parent.replaceChild(iframeDoc.createTextNode(el.textContent), el);
+                            // Normalize the parent to merge adjacent text nodes
+                            parent.normalize();
+                          }
+                        });
+
+                        console.log('Cleared highlights in iframe');
+                      } else {
+                        // If we can't access the document directly, reload the iframe
+                        console.log('Could not access iframe document, reloading iframe');
+                        const currentSrcDoc = iframeRef.current.srcDoc;
+                        iframeRef.current.srcDoc = '';
+                        setTimeout(() => {
+                          iframeRef.current.srcDoc = currentSrcDoc;
+                        }, 10);
+                      }
+                    } catch (e) {
+                      console.error('Error clearing iframe highlights:', e);
+                      // Fallback to reloading the iframe
+                      const currentSrcDoc = iframeRef.current.srcDoc;
+                      iframeRef.current.srcDoc = '';
+                      setTimeout(() => {
+                        iframeRef.current.srcDoc = currentSrcDoc;
+                      }, 10);
+                    }
+                  }
+                }}
+                className={`ml-2 flex items-center justify-center w-4 h-4 rounded-full ${
+                  isDark
+                    ? 'bg-teal-700 text-teal-200 hover:bg-teal-600'
+                    : 'bg-teal-200 text-teal-800 hover:bg-teal-300'
+                } transition-colors`}
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                <span className="text-xs font-bold">×</span>
+              </button>
+            </div>
+          )}
+        </div>
         {studyGuide && studyGuide.category_id && (
           <button
             onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}

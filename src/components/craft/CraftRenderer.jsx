@@ -1,6 +1,7 @@
 import React from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import { useTheme } from '../../contexts/ThemeContext';
+import { countSearchTermOccurrences } from '../../utils/contentTextExtractor';
 
 // Import the components used in the ContentEditor
 // These need to match exactly what's used in the ContentEditor
@@ -22,12 +23,13 @@ import './CraftRenderer.css';
  * Component for rendering Craft.js JSON content without editing capabilities
  * This follows the official Craft.js documentation for rendering JSON content
  */
-const CraftRenderer = ({ jsonContent }) => {
+const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [parsedContent, setParsedContent] = React.useState(null);
   const [error, setError] = React.useState(null);
   const [interactiveElements, setInteractiveElements] = React.useState([]);
+  const rendererRef = React.useRef(null);
 
   // Add custom styles for the renderer
   const rendererStyles = {
@@ -272,7 +274,11 @@ const CraftRenderer = ({ jsonContent }) => {
     }
 
     return (
-      <div className={`craft-renderer w-full h-full ${isDark ? 'dark-mode' : 'light-mode'}`} style={rendererStyles}>
+      <div
+        ref={rendererRef}
+        className={`craft-renderer w-full h-full ${isDark ? 'dark-mode' : 'light-mode'}`}
+        style={rendererStyles}
+      >
         <Editor
           resolver={{
             Container,
@@ -372,7 +378,177 @@ const CraftRenderer = ({ jsonContent }) => {
     }
   }, [interactiveElements, parsedContent]);
 
+  // Expose methods via ref
+  React.useImperativeHandle(ref, () => ({
+    highlightSearchTerm: (term) => {
+      if (!term || !rendererRef.current) return 0;
+
+      try {
+        // Get the renderer DOM element
+        const rendererElement = rendererRef.current;
+
+        // Get all text content from the renderer for consistent counting
+        const allText = rendererElement.textContent || '';
+        // Use our consistent counting method to get the expected number of matches
+        const expectedMatches = countSearchTermOccurrences(allText, term);
+        console.log(`CraftRenderer: Expected to find ${expectedMatches} matches for "${term}" based on consistent counting method`);
+
+        // First, remove any existing highlights
+        const existingHighlights = rendererElement.querySelectorAll('.search-highlight');
+        existingHighlights.forEach(el => {
+          const parent = el.parentNode;
+          parent.replaceChild(document.createTextNode(el.textContent), el);
+          // Normalize the parent to merge adjacent text nodes
+          parent.normalize();
+        });
+
+        // Note: We're now just highlighting without relying on our own count
+        // The StudyGuideViewer component will use its own consistent count
+
+        // Function to highlight text in a node
+        const highlightTextInNode = (node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            const lowerText = text.toLowerCase();
+            const lowerTerm = term.toLowerCase();
+
+            if (lowerText.includes(lowerTerm)) {
+              const parts = [];
+              let lastIndex = 0;
+              let index = lowerText.indexOf(lowerTerm);
+              let matchesInNode = 0;
+
+              while (index !== -1) {
+                // Add text before the match
+                if (index > lastIndex) {
+                  parts.push(document.createTextNode(text.substring(lastIndex, index)));
+                }
+
+                // Create highlight element for the match
+                const highlight = document.createElement('span');
+                highlight.className = 'search-highlight';
+                highlight.style.backgroundColor = '#ffeb3b';
+                highlight.style.color = '#000';
+                highlight.style.padding = '0 2px';
+                highlight.style.borderRadius = '2px';
+                highlight.style.border = '1px solid #f59e0b';
+                highlight.style.boxShadow = '0 0 2px rgba(0,0,0,0.2)';
+                // Use the actual case from the original text
+                highlight.textContent = text.substring(index, index + lowerTerm.length);
+                parts.push(highlight);
+
+                // Count this match
+                matchesInNode++;
+
+                // Update lastIndex
+                lastIndex = index + lowerTerm.length;
+
+                // Find next occurrence
+                index = lowerText.indexOf(lowerTerm, lastIndex);
+              }
+
+              // Add remaining text
+              if (lastIndex < text.length) {
+                parts.push(document.createTextNode(text.substring(lastIndex)));
+              }
+
+              // Replace the original text node with the highlighted parts
+              if (parts.length > 0) {
+                const fragment = document.createDocumentFragment();
+                parts.forEach(part => fragment.appendChild(part));
+                node.parentNode.replaceChild(fragment, node);
+                return matchesInNode; // Return the number of matches in this node
+              }
+            }
+          }
+          return 0; // No matches in this node
+        };
+
+        // Create a snapshot of the DOM before we start modifying it
+        // This is important because TreeWalker can get confused when we modify the DOM
+        const allTextNodes = [];
+        const collectTextNodes = (root) => {
+          const walker = document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT,
+            {
+              acceptNode: (node) => {
+                // Skip empty text nodes and nodes in script/style elements
+                if (node.textContent.trim() === '') return NodeFilter.FILTER_REJECT;
+                const parent = node.parentNode;
+                if (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+              }
+            },
+            false
+          );
+
+          let node;
+          while ((node = walker.nextNode())) {
+            allTextNodes.push(node);
+          }
+        };
+
+        // Collect all text nodes first
+        collectTextNodes(rendererElement);
+
+        // Now process each text node
+        let totalMatches = 0;
+        const highlightedNodes = [];
+
+        allTextNodes.forEach(node => {
+          const matchesInNode = highlightTextInNode(node);
+          if (matchesInNode > 0) {
+            totalMatches += matchesInNode;
+            highlightedNodes.push(node);
+          }
+        });
+
+        // Log the actual count for debugging
+        console.log(`Found ${totalMatches} actual matches for "${term}" using DOM traversal`);
+
+        // No longer auto-scrolling to the first highlight
+        // Just log the number of matches found
+        if (totalMatches > 0) {
+          console.log(`Found ${totalMatches} matches for "${term}" - auto-scrolling disabled`);
+        }
+
+        // Always return the expected count from our consistent counting method
+        // This ensures the count shown in the study guide matches the count in search results
+        if (totalMatches !== expectedMatches) {
+          console.log(`WARNING: DOM traversal found ${totalMatches} matches but consistent counting method found ${expectedMatches} matches. Using consistent count.`);
+        }
+
+        // Always return the expected count to ensure consistency
+        return expectedMatches;
+      } catch (e) {
+        console.error('Error highlighting search term:', e);
+        return 0;
+      }
+    }
+  }));
+
+  // Apply search highlighting when searchTerm changes or content is loaded
+  React.useEffect(() => {
+    if (searchTerm && rendererRef.current && parsedContent) {
+      // Wait a bit for the content to fully render
+      const timer = setTimeout(() => {
+        try {
+          const api = ref.current;
+          if (api && api.highlightSearchTerm) {
+            const count = api.highlightSearchTerm(searchTerm);
+            console.log(`CraftRenderer useEffect: Applied highlighting for "${searchTerm}", found ${count} matches`);
+          }
+        } catch (e) {
+          console.error('Error highlighting search term:', e);
+        }
+      }, 1500); // Increased timeout to ensure content is fully rendered
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchTerm, parsedContent, ref, isDark]);
+
   return renderContent();
-};
+});
 
 export default CraftRenderer;

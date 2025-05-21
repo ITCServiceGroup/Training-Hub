@@ -193,6 +193,25 @@
   flex-direction: row;
 }
 
+/* Search highlighting styles */
+@keyframes highlight-pulse {
+  0% { background-color: #ffeb3b; }
+  50% { background-color: #fcd34d; }
+  100% { background-color: #ffeb3b; }
+}
+
+.search-highlight {
+  background-color: #ffeb3b !important;
+  color: #000 !important;
+  padding: 0 2px !important;
+  border-radius: 2px !important;
+  border: 1px solid #f59e0b !important;
+  box-shadow: 0 0 2px rgba(0,0,0,0.2) !important;
+  display: inline !important;
+  font-weight: bold !important;
+  animation: highlight-pulse 2s infinite !important;
+}
+
 /* Media query for small screens - stack horizontal containers vertically */
 @media (max-width: 768px) {
   /* Force horizontal containers to stack vertically */
