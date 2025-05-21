@@ -6,7 +6,7 @@ import { FaTimes } from 'react-icons/fa';
 /**
  * Component for displaying a list of study guides within a category
  */
-const StudyGuideList = ({ studyGuides, sectionId, categoryId, selectedGuideId, isLoading, onClose }) => {
+const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, selectedGuideId, isLoading, onClose }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const handleLinkClick = () => {
@@ -17,9 +17,9 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, selectedGuideId, i
 
   if (isLoading) {
     return (
-      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-6 shadow h-full flex flex-col`}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Study Guides</h3>
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-6 shadow h-full flex flex-col max-h-[calc(100vh-100px)] overflow-y-auto`}>
+        <div className="flex items-center justify-between mb-4 sticky top-0 z-10 pb-2 pt-0 bg-inherit">
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{categoryName || 'Study Guides'}</h3>
           {onClose && (
             <button
               onClick={onClose}
@@ -39,9 +39,9 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, selectedGuideId, i
   }
 
   return (
-    <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-6 shadow h-full flex flex-col`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Study Guides</h3>
+    <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-6 shadow h-full flex flex-col max-h-[calc(100vh-100px)] overflow-y-auto`}>
+      <div className="flex items-center justify-between mb-4 sticky top-0 z-10 pb-2 pt-0 bg-inherit">
+        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{categoryName || 'Study Guides'}</h3>
         {onClose && (
           <button
             onClick={onClose}
@@ -54,7 +54,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, selectedGuideId, i
       </div>
 
       {studyGuides && studyGuides.length > 0 ? (
-        <ul className="list-none p-0 m-0">
+        <ul className="list-none p-0 m-0 overflow-y-auto">
           {studyGuides.map(guide => (
             <li
               key={guide.id}

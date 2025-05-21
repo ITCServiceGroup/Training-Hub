@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState, useCallback, forwardRef } from 'rea
 import { Resizable } from 're-resizable';
 import { debounce } from 'debounce';
 import classNames from 'classnames';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
 
 import {
   isPercentage,
@@ -97,15 +98,22 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
     };
   }, [updateInternalDimensionsWithOriginal]);
 
+  // Get theme context
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Theme-aware handle styles
   const handleStyles = {
     position: 'absolute',
     width: '10px',
     height: '10px',
-    backgroundColor: '#0d9488',
+    backgroundColor: '#0d9488', // teal-600 color
     borderRadius: '50%',
     display: 'block',
-    border: '2px solid #fff',
-    boxShadow: '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
+    border: isDark ? '2px solid #1f2937' : '2px solid #fff', // dark: gray-800, light: white
+    boxShadow: isDark
+      ? '0px 0px 12px -1px rgba(255, 255, 255, 0.25)'
+      : '0px 0px 12px -1px rgba(0, 0, 0, 0.25)',
     zIndex: 2,
     pointerEvents: 'auto'
   };

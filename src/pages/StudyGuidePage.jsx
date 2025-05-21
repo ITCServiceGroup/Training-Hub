@@ -31,7 +31,8 @@ const StudyGuidePage = () => {
       setIsLoadingSections(true);
       setSectionsError(null);
       try {
-        const data = await sectionsService.getSectionsWithCategories();
+        // For public pages, only show published study guides
+        const data = await sectionsService.getSectionsWithCategories(true);
         console.log('[StudyGuidePage] Sections data received:', data?.length || 0, 'sections');
         setSectionsData(data || []);
       } catch (error) {
@@ -127,7 +128,8 @@ const StudyGuidePage = () => {
       try {
         // Fetch guides only if categoryId is valid and derived category exists or sections are still loading
         if (categoryId && (categoryExists || isLoadingSections)) {
-            const guides = await studyGuidesService.getByCategoryId(categoryId);
+            // For public pages, only show published study guides
+            const guides = await studyGuidesService.getByCategoryId(categoryId, true);
             setStudyGuides(guides);
         } else if (!isLoadingSections) {
              // If sections finished loading but category doesn't exist, clear guides
@@ -170,6 +172,16 @@ const StudyGuidePage = () => {
         console.log(`[StudyGuidePage] Awaiting studyGuidesService.getWithCategory(${studyGuideId})`);
         const guide = await studyGuidesService.getWithCategory(studyGuideId);
         console.log('[StudyGuidePage] API call successful, received guide:', guide);
+
+        // Check if the guide is published - only show published guides to public users
+        if (!guide.is_published) {
+          console.log('[StudyGuidePage] Guide is not published, redirecting to category page');
+          setStudyGuideError('This study guide is not available.');
+          // Redirect to the category page
+          navigate(`/study/${sectionId}/${categoryId}`);
+          return;
+        }
+
         setCurrentStudyGuide(guide);
         // Optionally update currentCategory/Section if needed based on guide details, though derivation effects should handle it
         if (guide && guide.v2_categories && !currentCategory) {
@@ -195,7 +207,7 @@ const StudyGuidePage = () => {
 
   // Effect to handle scroll position for sticky mobile menu/sidebar
   useEffect(() => {
-    const HEADER_HEIGHT_THRESHOLD = 72; // Approx height of the header in pixels
+    const HEADER_HEIGHT_THRESHOLD = 60; // Reduced height of the header in pixels
 
     // Simple throttle function
     const throttle = (func, limit) => {
@@ -247,27 +259,22 @@ const StudyGuidePage = () => {
   // Render breadcrumb navigation (using derived state)
   const renderBreadcrumbs = () => {
     return (
-      <div className={`flex items-center mb-6 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-        <Link to="/study" className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-2`}>Study Guides</Link>
-
+      <div className={`flex items-center text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
         {sectionId && (
-          <>
-            <span className="mx-2">›</span>
-            <Link
-              to={`/study/${sectionId}`}
-              className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-2 ${!categoryId ? 'font-bold' : 'font-normal'}`}
-            >
-              {currentSection?.name || 'Section'}
-            </Link>
-          </>
+          <Link
+            to={`/study/${sectionId}`}
+            className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-1 ${!categoryId ? 'font-bold' : 'font-normal'}`}
+          >
+            {currentSection?.name || 'Section'}
+          </Link>
         )}
 
         {categoryId && (
           <>
-            <span className="mx-2">›</span>
+            <span className="mx-1">›</span>
             <Link
               to={`/study/${sectionId}/${categoryId}`}
-              className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-2 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
+              className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-1 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
             >
               {currentCategory?.name || 'Category'}
             </Link>
@@ -276,7 +283,7 @@ const StudyGuidePage = () => {
 
         {studyGuideId && currentStudyGuide && (
           <>
-            <span className="mx-2">›</span>
+            <span className="mx-1">›</span>
             <span className={`font-bold ${isDark ? 'text-white' : ''}`}>{currentStudyGuide.title}</span>
           </>
         )}
@@ -288,34 +295,41 @@ const StudyGuidePage = () => {
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
   return (
-    <div className="py-4 w-full">
-      <div className="mb-2 flex justify-between items-center flex-wrap gap-4">
-        <h2 className={`text-4xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0`}>Study Guides</h2>
-        <div className="flex items-center max-w-md w-full">
-          <input
-            type="text"
-            placeholder="Search study guides..."
-            className={`py-3 px-3 border rounded text-base w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+    <div className="py-2 w-full">
+      <div className="mb-1 flex flex-col gap-1">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Link to="/study" className="no-underline">
+              <h2 className={`text-3xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0 hover:opacity-90 transition-opacity`}>Study Guides</h2>
+            </Link>
+            {(sectionId || categoryId || studyGuideId) && (
+              <div className="ml-2 pt-1">
+                {renderBreadcrumbs()}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center max-w-md w-full">
+            <input
+              type="text"
+              placeholder="Search study guides..."
+              className={`py-2 px-3 border rounded text-sm w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
       {/* Error messages */}
-      {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{sectionsError}</div>}
-      {/* Removed categoriesError as it's covered by sectionsError */}
-      {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{studyGuidesError}</div>}
-      {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{studyGuideError}</div>}
-
-      {/* Breadcrumb navigation */}
-      {(sectionId || categoryId || studyGuideId) && renderBreadcrumbs()}
+      {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{sectionsError}</div>}
+      {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuidesError}</div>}
+      {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuideError}</div>}
 
       {/* Main content area with conditional rendering based on navigation state */}
       {!sectionId ? (
         /* Section view (no section selected) */
         <>
-          <p className={isDark ? 'text-gray-300' : ''}>Select a section below to start learning.</p>
+          <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
           <SectionGrid
             sections={sectionsData} // Use context data
             isLoading={isLoadingSections} // Use context loading state
@@ -325,7 +339,7 @@ const StudyGuidePage = () => {
       ) : !categoryId ? (
         /* Category view (section selected, no category selected) */
         <>
-          <p className={isDark ? 'text-gray-300' : ''}>Select a category below to view study guides.</p>
+          <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
           <CategoryGrid
             categories={categories} // Use derived categories state
             sectionId={sectionId}
@@ -335,14 +349,14 @@ const StudyGuidePage = () => {
         </>
       ) : (
           /* Study guide view (section and category selected) */
-          <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full">
+          <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full overflow-hidden">
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
-              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-20'} right-4 z-[60] p-3 ${isDark ? 'bg-slate-800 text-teal-400 hover:text-teal-300' : 'bg-white text-teal-700 hover:text-teal-800'} rounded-lg shadow-lg transition-colors`}
+              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-teal-400 hover:text-teal-300' : 'bg-white text-teal-700 hover:text-teal-800'} rounded-lg shadow-lg transition-colors`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle menu"
             >
-              {isSidebarOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+              {isSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
             </button>
 
             {/* Backdrop for mobile */}
@@ -353,18 +367,20 @@ const StudyGuidePage = () => {
               />
             )}
 
-            {/* Sidebar with study guide list - responsive visibility and adjusted top/height */}
+            {/* Sidebar with study guide list - sticky on desktop, fixed on mobile */}
             <div className={`
-              fixed md:static left-0 z-[55] md:z-auto
+              fixed md:sticky left-0 z-[55] md:z-auto
               w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out overflow-y-auto
-              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[72px] h-[calc(100vh-72px)]'}
+              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-60px)]'}
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
               ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
+              md:top-2 md:self-start
             `}>
             <StudyGuideList
               studyGuides={studyGuides}
               sectionId={sectionId}
               categoryId={categoryId}
+              categoryName={currentCategory?.name}
               selectedGuideId={studyGuideId}
               isLoading={isLoadingStudyGuides}
               onClose={() => setIsSidebarOpen(false)}
@@ -372,7 +388,7 @@ const StudyGuidePage = () => {
           </div>
 
           {/* Main content area: Show list or viewer */}
-          <div className="flex-1 w-full md:ml-8">
+          <div className="flex-1 w-full md:ml-8 md:min-h-[calc(100vh-250px)]">
             {studyGuideId ? (
               <StudyGuideViewer
                 studyGuide={currentStudyGuide}

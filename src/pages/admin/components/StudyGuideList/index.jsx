@@ -310,12 +310,16 @@ const SortableStudyGuideItem = ({
   hoveredId,
   setHoveredId,
   onCopy,
-  onMove
+  onMove,
+  onUpdateDescription
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [showActions, setShowActions] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState(guide.description || '');
   const actionsRef = useRef(null);
+  const descriptionRef = useRef(null);
   const {
     attributes,
     listeners,
@@ -331,11 +335,23 @@ const SortableStudyGuideItem = ({
     zIndex: isDragging ? 1 : 0,
   };
 
-  // Close actions menu when clicking outside
+  // Update description when guide changes
+  useEffect(() => {
+    setDescription(guide.description || '');
+  }, [guide]);
+
+  // Close actions menu and description editor when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (actionsRef.current && !actionsRef.current.contains(event.target)) {
         setShowActions(false);
+      }
+
+      if (isEditingDescription && descriptionRef.current && !descriptionRef.current.contains(event.target)) {
+        setIsEditingDescription(false);
+        if (description !== guide.description) {
+          onUpdateDescription(guide.id, description);
+        }
       }
     };
 
@@ -343,7 +359,7 @@ const SortableStudyGuideItem = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isEditingDescription, description, guide, onUpdateDescription]);
 
   const handleCopy = (e) => {
     e.stopPropagation();
@@ -360,6 +376,23 @@ const SortableStudyGuideItem = ({
   const toggleActions = (e) => {
     e.stopPropagation();
     setShowActions(!showActions);
+  };
+
+  const handleDescriptionClick = (e) => {
+    e.stopPropagation();
+    setIsEditingDescription(true);
+  };
+
+  const handleDescriptionChange = (e) => {
+    setDescription(e.target.value);
+  };
+
+  const handleDescriptionSave = (e) => {
+    e.stopPropagation();
+    setIsEditingDescription(false);
+    if (description !== guide.description) {
+      onUpdateDescription(guide.id, description);
+    }
   };
 
   return (
@@ -422,17 +455,82 @@ const SortableStudyGuideItem = ({
               </div>
             </div>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+          {/* Description field - editable */}
+          <div
+            className="mb-2 relative"
+            ref={descriptionRef}
+            onClick={guide.description ? handleDescriptionClick : undefined}
+          >
+            <div className="flex items-center mb-1">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Custom Description
+              </span>
+              {!isEditingDescription && (
+                <button
+                  className="ml-2 text-xs text-teal-600 dark:text-teal-400 hover:underline"
+                  onClick={handleDescriptionClick}
+                >
+                  {guide.description ? 'Edit' : 'Add'}
+                </button>
+              )}
+            </div>
+
+            {isEditingDescription ? (
+              <div className="flex flex-col">
+                <textarea
+                  value={description}
+                  onChange={handleDescriptionChange}
+                  className={`w-full px-3 py-2 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+                  placeholder="Enter a custom description (will override auto-generated description)"
+                  rows={2}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="flex justify-end mt-1">
+                  <button
+                    className="px-2 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700"
+                    onClick={handleDescriptionSave}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : guide.description ? (
+              <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 min-h-[3em] border border-transparent px-3 py-2 rounded-md hover:border-gray-200 dark:hover:border-slate-600 cursor-text">
+                {guide.description}
+              </div>
+            ) : null}
+          </div>
+
+          {/* Content preview */}
+          <div className={`text-sm text-gray-600 dark:text-gray-300 line-clamp-2 ${!guide.description && !isEditingDescription ? 'mt-0' : 'mt-2'}`}>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+              Content Preview:
+            </span>
             {extractPreview(guide.content)}
           </div>
         </div>
         <div className="bg-gray-50 dark:bg-slate-800 px-4 py-2 border-t border-gray-100 dark:border-slate-600 flex justify-between items-center">
-          <div className="text-xs text-gray-500 dark:text-gray-300 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Updated {formatDate(guide.updated_at)}
+          <div className="flex items-center gap-2">
+            <div className="text-xs text-gray-500 dark:text-gray-300 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Updated {formatDate(guide.updated_at)}
+            </div>
+
+            {/* Publish status indicator */}
+            <div className={`text-xs font-medium flex items-center ${guide.is_published
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-gray-500 dark:text-gray-400'}`}
+            >
+              <span className={`inline-block w-2 h-2 rounded-full mr-1 ${guide.is_published
+                ? 'bg-green-500 dark:bg-green-400'
+                : 'bg-gray-400 dark:bg-gray-500'}`}
+              ></span>
+              {guide.is_published ? 'Published' : 'Draft'}
+            </div>
           </div>
+
           <div className={`text-xs font-medium text-teal-600 dark:text-teal-400 transition-opacity duration-200 ${hoveredId === guide.id || selectedId === guide.id ? 'opacity-100' : 'opacity-0'}`}>
             Click to edit
           </div>
@@ -448,7 +546,8 @@ const StudyGuideList = ({
   selectedId,
   onReorder,
   onCopy,
-  onMove
+  onMove,
+  onUpdateDescription
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
   const { theme } = useTheme();
@@ -536,6 +635,7 @@ const StudyGuideList = ({
               setHoveredId={setHoveredId}
               onCopy={onCopy}
               onMove={onMove}
+              onUpdateDescription={onUpdateDescription}
             />
           ))}
         </div>

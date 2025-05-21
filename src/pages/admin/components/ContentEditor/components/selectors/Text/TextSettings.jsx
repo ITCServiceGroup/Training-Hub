@@ -4,6 +4,7 @@ import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 import { FaChevronDown, FaListUl, FaListOl, FaTimes } from 'react-icons/fa';
 import { ICONS, ICON_CATEGORIES } from '@/components/icons';
+import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
 // Helper function to ensure both theme colors exist
 const ensureThemeColors = (props, isDark) => {
@@ -334,15 +335,32 @@ export const TextSettings = () => {
                 Font Size
               </label>
               <div className="flex items-center">
-                <input
-                  type="range"
-                  value={fontSize}
-                  min={10}
-                  max={80}
-                  onChange={(e) => actions.setProp((props) => { props.fontSize = parseInt(e.target.value); })}
-                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{fontSize}px</span>
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    value={fontSize}
+                    min={10}
+                    max={80}
+                    onChange={(e) => actions.setProp((props) => { props.fontSize = parseInt(e.target.value); })}
+                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={10}
+                    max={80}
+                    value={fontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 10 && value <= 80) {
+                        actions.setProp((props) => { props.fontSize = value; });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Font size in pixels"
+                  />
+                </div>
               </div>
             </div>
 
@@ -351,16 +369,34 @@ export const TextSettings = () => {
                 Line Height
               </label>
               <div className="flex items-center">
-                <input
-                  type="range"
-                  value={lineHeight}
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  onChange={(e) => actions.setProp((props) => { props.lineHeight = parseFloat(e.target.value); })}
-                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 w-12">{lineHeight.toFixed(1)}</span>
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    value={lineHeight}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    onChange={(e) => actions.setProp((props) => { props.lineHeight = parseFloat(e.target.value); })}
+                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    value={lineHeight}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      if (!isNaN(value) && value >= 1 && value <= 3) {
+                        actions.setProp((props) => { props.lineHeight = value; });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Line height value"
+                  />
+                </div>
               </div>
             </div>
 
@@ -435,23 +471,9 @@ export const TextSettings = () => {
                 Text Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
               </label>
               <div className="flex items-center">
-                <input
-                  type="color"
-                  value={(() => {
-                    try {
-                      const color = getThemeColor(colorProp, isDark, 'text');
-                      return `#${Math.round(color.r).toString(16).padStart(2, '0')}${Math.round(color.g).toString(16).padStart(2, '0')}${Math.round(color.b).toString(16).padStart(2, '0')}`;
-                    } catch (error) {
-                      console.warn('Error generating color value:', error);
-                      return isDark ? '#e5e7eb' : '#5c5a5a';
-                    }
-                  })()}
-                  onChange={(e) => {
-                    const hex = e.target.value.substring(1);
-                    const r = parseInt(hex.substring(0, 2), 16);
-                    const g = parseInt(hex.substring(2, 4), 16);
-                    const b = parseInt(hex.substring(4, 6), 16);
-
+                <ColorPicker
+                  color={getThemeColor(colorProp, isDark, 'text')}
+                  onChange={(newColor) => {
                     actions.setProp((props) => {
                       // Ensure color has the expected structure
                       if (!props.color) {
@@ -481,102 +503,25 @@ export const TextSettings = () => {
                       const currentTheme = isDark ? 'dark' : 'light';
                       const oppositeTheme = isDark ? 'light' : 'dark';
 
-                      // Get current alpha or default to 1
-                      const currentAlpha = props.color[currentTheme] &&
-                                          typeof props.color[currentTheme].a !== 'undefined' ?
-                                          props.color[currentTheme].a : 1;
-
-                      const newThemeColor = { r, g, b, a: currentAlpha };
-
                       if (props.autoConvertColors) {
                         // Auto-convert the color for the opposite theme
-                        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'text');
+                        const oppositeColor = convertToThemeColor(newColor, !isDark, 'text');
 
                         props.color = {
                           ...props.color,
-                          [currentTheme]: newThemeColor,
+                          [currentTheme]: newColor,
                           [oppositeTheme]: oppositeColor
                         };
                       } else {
                         // Only update the current theme's color
                         props.color = {
                           ...props.color,
-                          [currentTheme]: newThemeColor
+                          [currentTheme]: newColor
                         };
                       }
                     });
                   }}
-                  className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={(() => {
-                    try {
-                      return getThemeColor(colorProp, isDark, 'text').a || 1;
-                    } catch (error) {
-                      console.warn('Error getting opacity value:', error);
-                      return 1;
-                    }
-                  })()}
-                  onChange={(e) => {
-                    const opacity = parseFloat(e.target.value);
-                    actions.setProp((props) => {
-                      // Ensure color has the expected structure
-                      if (!props.color) {
-                        props.color = {
-                          light: { r: 92, g: 90, b: 90, a: 1 },
-                          dark: { r: 229, g: 231, b: 235, a: 1 }
-                        };
-                      }
-
-                      // Handle legacy format (single RGBA object)
-                      if ('r' in props.color) {
-                        const oldColor = { ...props.color };
-                        props.color = {
-                          light: oldColor,
-                          dark: convertToThemeColor(oldColor, true, 'text')
-                        };
-                      }
-
-                      // Ensure both light and dark properties exist
-                      if (!props.color.light) {
-                        props.color.light = { r: 92, g: 90, b: 90, a: 1 };
-                      }
-                      if (!props.color.dark) {
-                        props.color.dark = { r: 229, g: 231, b: 235, a: 1 };
-                      }
-
-                      const currentTheme = isDark ? 'dark' : 'light';
-                      const oppositeTheme = isDark ? 'light' : 'dark';
-
-                      // Create a new color object with the updated opacity
-                      const newThemeColor = {
-                        ...props.color[currentTheme],
-                        a: opacity
-                      };
-
-                      if (props.autoConvertColors) {
-                        // Auto-convert the color for the opposite theme
-                        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'text');
-
-                        props.color = {
-                          ...props.color,
-                          [currentTheme]: newThemeColor,
-                          [oppositeTheme]: oppositeColor
-                        };
-                      } else {
-                        // Only update the current theme's color
-                        props.color = {
-                          ...props.color,
-                          [currentTheme]: newThemeColor
-                        };
-                      }
-                    });
-                  }}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                  componentType="text"
                 />
               </div>
 
@@ -586,36 +531,34 @@ export const TextSettings = () => {
                     Text Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
                   </label>
                   <div className="flex items-center">
-                    <input
-                      type="color"
-                      value={(() => {
+                    <ColorPicker
+                      color={(() => {
                         try {
                           const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
                           // Ensure we have a valid color for the opposite theme
                           if (colorProp && colorProp[oppositeTheme] &&
                               typeof colorProp[oppositeTheme].r !== 'undefined' &&
                               typeof colorProp[oppositeTheme].g !== 'undefined' &&
                               typeof colorProp[oppositeTheme].b !== 'undefined') {
-                            const color = colorProp[oppositeTheme];
-                            return `#${Math.round(color.r).toString(16).padStart(2, '0')}${Math.round(color.g).toString(16).padStart(2, '0')}${Math.round(color.b).toString(16).padStart(2, '0')}`;
+                            return colorProp[oppositeTheme];
                           } else if (colorProp && colorProp[currentTheme]) {
                             // If opposite theme color is missing but current theme exists, convert it
-                            const convertedColor = convertToThemeColor(colorProp[currentTheme], !isDark, 'text');
-                            return `#${Math.round(convertedColor.r).toString(16).padStart(2, '0')}${Math.round(convertedColor.g).toString(16).padStart(2, '0')}${Math.round(convertedColor.b).toString(16).padStart(2, '0')}`;
+                            return convertToThemeColor(colorProp[currentTheme], !isDark, 'text');
                           }
                           // Default fallback colors
-                          return !isDark ? '#e5e7eb' : '#5c5a5a';
+                          return !isDark ?
+                            { r: 229, g: 231, b: 235, a: 1 } :
+                            { r: 92, g: 90, b: 90, a: 1 };
                         } catch (error) {
-                          console.warn('Error generating opposite theme color value:', error);
-                          return !isDark ? '#e5e7eb' : '#5c5a5a';
+                          console.warn('Error getting opposite theme color:', error);
+                          return !isDark ?
+                            { r: 229, g: 231, b: 235, a: 1 } :
+                            { r: 92, g: 90, b: 90, a: 1 };
                         }
                       })()}
-                      onChange={(e) => {
-                        const hex = e.target.value.substring(1);
-                        const r = parseInt(hex.substring(0, 2), 16);
-                        const g = parseInt(hex.substring(2, 4), 16);
-                        const b = parseInt(hex.substring(4, 6), 16);
-
+                      onChange={(newColor) => {
                         actions.setProp((props) => {
                           // Ensure color has the expected structure
                           if (!props.color) {
@@ -630,7 +573,7 @@ export const TextSettings = () => {
                             const oldColor = { ...props.color };
                             props.color = {
                               light: oldColor,
-                              dark: convertToThemeColor(oldColor, true)
+                              dark: convertToThemeColor(oldColor, true, 'text')
                             };
                           }
 
@@ -647,80 +590,11 @@ export const TextSettings = () => {
                           // Only update the opposite theme's color
                           props.color = {
                             ...props.color,
-                            [oppositeTheme]: {
-                              ...props.color[oppositeTheme],
-                              r, g, b
-                            }
+                            [oppositeTheme]: newColor
                           };
                         });
                       }}
-                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={(() => {
-                        try {
-                          const oppositeTheme = isDark ? 'light' : 'dark';
-                          const currentTheme = isDark ? 'dark' : 'light';
-
-                          // Check if we have a valid opacity value for the opposite theme
-                          if (colorProp && colorProp[oppositeTheme] && typeof colorProp[oppositeTheme].a !== 'undefined') {
-                            return colorProp[oppositeTheme].a;
-                          } else if (colorProp && colorProp[currentTheme] && typeof colorProp[currentTheme].a !== 'undefined') {
-                            // If opposite theme opacity is missing but current theme exists, use the same opacity
-                            return colorProp[currentTheme].a;
-                          }
-                          return 1;
-                        } catch (error) {
-                          console.warn('Error getting opposite theme opacity value:', error);
-                          return 1;
-                        }
-                      })()}
-                      onChange={(e) => {
-                        const opacity = parseFloat(e.target.value);
-
-                        actions.setProp((props) => {
-                          // Ensure color has the expected structure
-                          if (!props.color) {
-                            props.color = {
-                              light: { r: 92, g: 90, b: 90, a: 1 },
-                              dark: { r: 229, g: 231, b: 235, a: 1 }
-                            };
-                          }
-
-                          // Handle legacy format (single RGBA object)
-                          if ('r' in props.color) {
-                            const oldColor = { ...props.color };
-                            props.color = {
-                              light: oldColor,
-                              dark: convertToThemeColor(oldColor, true)
-                            };
-                          }
-
-                          // Ensure both light and dark properties exist
-                          if (!props.color.light) {
-                            props.color.light = { r: 92, g: 90, b: 90, a: 1 };
-                          }
-                          if (!props.color.dark) {
-                            props.color.dark = { r: 229, g: 231, b: 235, a: 1 };
-                          }
-
-                          const oppositeTheme = isDark ? 'light' : 'dark';
-
-                          // Only update the opposite theme's opacity
-                          props.color = {
-                            ...props.color,
-                            [oppositeTheme]: {
-                              ...props.color[oppositeTheme],
-                              a: opacity
-                            }
-                          };
-                        });
-                      }}
-                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                      componentType="text"
                     />
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -784,23 +658,9 @@ export const TextSettings = () => {
                       Icon Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
                     </label>
                     <div className="flex items-center">
-                      <input
-                        type="color"
-                        value={(() => {
-                          try {
-                            const color = getThemeColor(iconColorProp, isDark, 'icon', autoConvertColors);
-                            return `#${Math.round(color.r).toString(16).padStart(2, '0')}${Math.round(color.g).toString(16).padStart(2, '0')}${Math.round(color.b).toString(16).padStart(2, '0')}`;
-                          } catch (error) {
-                            console.warn('Error generating color value:', error);
-                            return isDark ? '#e5e7eb' : '#5c5a5a';
-                          }
-                        })()}
-                        onChange={(e) => {
-                          const hex = e.target.value.substring(1);
-                          const r = parseInt(hex.substring(0, 2), 16);
-                          const g = parseInt(hex.substring(2, 4), 16);
-                          const b = parseInt(hex.substring(4, 6), 16);
-
+                      <ColorPicker
+                        color={getThemeColor(iconColorProp, isDark, 'icon', autoConvertColors)}
+                        onChange={(newColor) => {
                           actions.setProp((props) => {
                             // Ensure iconColor has the expected structure
                             if (!props.iconColor) {
@@ -830,114 +690,25 @@ export const TextSettings = () => {
                             const currentTheme = isDark ? 'dark' : 'light';
                             const oppositeTheme = isDark ? 'light' : 'dark';
 
-                            // Get current alpha or default to 1
-                            const currentAlpha = props.iconColor[currentTheme] &&
-                                                typeof props.iconColor[currentTheme].a !== 'undefined' ?
-                                                props.iconColor[currentTheme].a : 1;
-
-                            const newThemeColor = { r, g, b, a: currentAlpha };
-
-                            console.log('Icon color change:', {
-                              currentTheme,
-                              oppositeTheme,
-                              newThemeColor,
-                              autoConvertColors: props.autoConvertColors
-                            });
-
                             if (props.autoConvertColors) {
                               // Auto-convert the color for the opposite theme
-                              const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'icon');
-
-                              console.log('Auto-converting icon color:', {
-                                newThemeColor,
-                                oppositeColor
-                              });
+                              const oppositeColor = convertToThemeColor(newColor, !isDark, 'icon');
 
                               props.iconColor = {
                                 ...props.iconColor,
-                                [currentTheme]: newThemeColor,
+                                [currentTheme]: newColor,
                                 [oppositeTheme]: oppositeColor
                               };
                             } else {
                               // Only update the current theme's color
                               props.iconColor = {
                                 ...props.iconColor,
-                                [currentTheme]: newThemeColor
+                                [currentTheme]: newColor
                               };
                             }
                           });
                         }}
-                        className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={(() => {
-                          try {
-                            return getThemeColor(iconColorProp, isDark, 'icon', autoConvertColors).a || 1;
-                          } catch (error) {
-                            console.warn('Error getting opacity value:', error);
-                            return 1;
-                          }
-                        })()}
-                        onChange={(e) => {
-                          const opacity = parseFloat(e.target.value);
-                          actions.setProp((props) => {
-                            // Ensure iconColor has the expected structure
-                            if (!props.iconColor) {
-                              props.iconColor = {
-                                light: { r: 92, g: 90, b: 90, a: 1 },
-                                dark: { r: 229, g: 231, b: 235, a: 1 }
-                              };
-                            }
-
-                            // Handle legacy format (single RGBA object)
-                            if ('r' in props.iconColor) {
-                              const oldColor = { ...props.iconColor };
-                              props.iconColor = {
-                                light: oldColor,
-                                dark: convertToThemeColor(oldColor, true, 'icon')
-                              };
-                            }
-
-                            // Ensure both light and dark properties exist
-                            if (!props.iconColor.light) {
-                              props.iconColor.light = { r: 92, g: 90, b: 90, a: 1 };
-                            }
-                            if (!props.iconColor.dark) {
-                              props.iconColor.dark = { r: 229, g: 231, b: 235, a: 1 };
-                            }
-
-                            const currentTheme = isDark ? 'dark' : 'light';
-                            const oppositeTheme = isDark ? 'light' : 'dark';
-
-                            // Create a new color object with the updated opacity
-                            const newThemeColor = {
-                              ...props.iconColor[currentTheme],
-                              a: opacity
-                            };
-
-                            if (props.autoConvertColors) {
-                              // Auto-convert the color for the opposite theme
-                              const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'icon');
-
-                              props.iconColor = {
-                                ...props.iconColor,
-                                [currentTheme]: newThemeColor,
-                                [oppositeTheme]: oppositeColor
-                              };
-                            } else {
-                              // Only update the current theme's color
-                              props.iconColor = {
-                                ...props.iconColor,
-                                [currentTheme]: newThemeColor
-                              };
-                            }
-                          });
-                        }}
-                        className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                        componentType="icon"
                       />
                     </div>
 
@@ -947,9 +718,8 @@ export const TextSettings = () => {
                           Icon Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
                         </label>
                         <div className="flex items-center">
-                          <input
-                            type="color"
-                            value={(() => {
+                          <ColorPicker
+                            color={(() => {
                               try {
                                 const oppositeTheme = isDark ? 'light' : 'dark';
                                 const currentTheme = isDark ? 'dark' : 'light';
@@ -959,26 +729,23 @@ export const TextSettings = () => {
                                     typeof iconColorProp[oppositeTheme].r !== 'undefined' &&
                                     typeof iconColorProp[oppositeTheme].g !== 'undefined' &&
                                     typeof iconColorProp[oppositeTheme].b !== 'undefined') {
-                                  const color = iconColorProp[oppositeTheme];
-                                  return `#${Math.round(color.r).toString(16).padStart(2, '0')}${Math.round(color.g).toString(16).padStart(2, '0')}${Math.round(color.b).toString(16).padStart(2, '0')}`;
+                                  return iconColorProp[oppositeTheme];
                                 } else if (iconColorProp && iconColorProp[currentTheme]) {
                                   // If opposite theme color is missing but current theme exists, convert it
-                                  const convertedColor = convertToThemeColor(iconColorProp[currentTheme], !isDark, 'icon');
-                                  return `#${Math.round(convertedColor.r).toString(16).padStart(2, '0')}${Math.round(convertedColor.g).toString(16).padStart(2, '0')}${Math.round(convertedColor.b).toString(16).padStart(2, '0')}`;
+                                  return convertToThemeColor(iconColorProp[currentTheme], !isDark, 'icon');
                                 }
                                 // Default fallback colors
-                                return !isDark ? '#e5e7eb' : '#5c5a5a';
+                                return !isDark ?
+                                  { r: 229, g: 231, b: 235, a: 1 } :
+                                  { r: 92, g: 90, b: 90, a: 1 };
                               } catch (error) {
-                                console.warn('Error generating opposite theme color value:', error);
-                                return !isDark ? '#e5e7eb' : '#5c5a5a';
+                                console.warn('Error getting opposite theme color:', error);
+                                return !isDark ?
+                                  { r: 229, g: 231, b: 235, a: 1 } :
+                                  { r: 92, g: 90, b: 90, a: 1 };
                               }
                             })()}
-                            onChange={(e) => {
-                              const hex = e.target.value.substring(1);
-                              const r = parseInt(hex.substring(0, 2), 16);
-                              const g = parseInt(hex.substring(2, 4), 16);
-                              const b = parseInt(hex.substring(4, 6), 16);
-
+                            onChange={(newColor) => {
                               actions.setProp((props) => {
                                 // Ensure iconColor has the expected structure
                                 if (!props.iconColor) {
@@ -1010,80 +777,11 @@ export const TextSettings = () => {
                                 // Only update the opposite theme's color
                                 props.iconColor = {
                                   ...props.iconColor,
-                                  [oppositeTheme]: {
-                                    ...props.iconColor[oppositeTheme],
-                                    r, g, b
-                                  }
+                                  [oppositeTheme]: newColor
                                 };
                               });
                             }}
-                            className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                          />
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={(() => {
-                              try {
-                                const oppositeTheme = isDark ? 'light' : 'dark';
-                                const currentTheme = isDark ? 'dark' : 'light';
-
-                                // Check if we have a valid opacity value for the opposite theme
-                                if (iconColorProp && iconColorProp[oppositeTheme] && typeof iconColorProp[oppositeTheme].a !== 'undefined') {
-                                  return iconColorProp[oppositeTheme].a;
-                                } else if (iconColorProp && iconColorProp[currentTheme] && typeof iconColorProp[currentTheme].a !== 'undefined') {
-                                  // If opposite theme opacity is missing but current theme exists, use the same opacity
-                                  return iconColorProp[currentTheme].a;
-                                }
-                                return 1;
-                              } catch (error) {
-                                console.warn('Error getting opposite theme opacity value:', error);
-                                return 1;
-                              }
-                            })()}
-                            onChange={(e) => {
-                              const opacity = parseFloat(e.target.value);
-
-                              actions.setProp((props) => {
-                                // Ensure iconColor has the expected structure
-                                if (!props.iconColor) {
-                                  props.iconColor = {
-                                    light: { r: 92, g: 90, b: 90, a: 1 },
-                                    dark: { r: 229, g: 231, b: 235, a: 1 }
-                                  };
-                                }
-
-                                // Handle legacy format (single RGBA object)
-                                if ('r' in props.iconColor) {
-                                  const oldColor = { ...props.iconColor };
-                                  props.iconColor = {
-                                    light: oldColor,
-                                    dark: convertToThemeColor(oldColor, true, 'icon')
-                                  };
-                                }
-
-                                // Ensure both light and dark properties exist
-                                if (!props.iconColor.light) {
-                                  props.iconColor.light = { r: 92, g: 90, b: 90, a: 1 };
-                                }
-                                if (!props.iconColor.dark) {
-                                  props.iconColor.dark = { r: 229, g: 231, b: 235, a: 1 };
-                                }
-
-                                const oppositeTheme = isDark ? 'light' : 'dark';
-
-                                // Only update the opposite theme's opacity
-                                props.iconColor = {
-                                  ...props.iconColor,
-                                  [oppositeTheme]: {
-                                    ...props.iconColor[oppositeTheme],
-                                    a: opacity
-                                  }
-                                };
-                              });
-                            }}
-                            className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                            componentType="icon"
                           />
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -1252,9 +950,8 @@ export const TextSettings = () => {
                       Shadow Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
                     </label>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={(() => {
+                      <ColorPicker
+                        color={(() => {
                           try {
                             // Get the appropriate shadow color for the current theme
                             let shadowColor;
@@ -1268,19 +965,13 @@ export const TextSettings = () => {
                               // Fallback
                               shadowColor = { r: 0, g: 0, b: 0, a: isDark ? 0.25 : 0.15 };
                             }
-
-                            return `#${Math.round(shadowColor.r || 0).toString(16).padStart(2, '0')}${Math.round(shadowColor.g || 0).toString(16).padStart(2, '0')}${Math.round(shadowColor.b || 0).toString(16).padStart(2, '0')}`;
+                            return shadowColor;
                           } catch (error) {
-                            console.warn('Error generating shadow color value:', error);
-                            return '#000000';
+                            console.warn('Error getting shadow color:', error);
+                            return { r: 0, g: 0, b: 0, a: isDark ? 0.25 : 0.15 };
                           }
                         })()}
-                        onChange={(e) => {
-                          const hex = e.target.value.substring(1);
-                          const r = parseInt(hex.substring(0, 2), 16);
-                          const g = parseInt(hex.substring(2, 4), 16);
-                          const b = parseInt(hex.substring(4, 6), 16);
-
+                        onChange={(newColor) => {
                           actions.setProp((props) => {
                             // Ensure shadow is properly initialized
                             if (typeof props.shadow === 'number') {
@@ -1325,132 +1016,50 @@ export const TextSettings = () => {
                             const currentTheme = isDark ? 'dark' : 'light';
                             const oppositeTheme = isDark ? 'light' : 'dark';
 
-                            // Get current alpha or default to appropriate value
-                            const currentAlpha = props.shadow.color[currentTheme] &&
-                                                typeof props.shadow.color[currentTheme].a !== 'undefined' ?
-                                                props.shadow.color[currentTheme].a :
-                                                (isDark ? 0.25 : 0.15);
-
-                            const newThemeColor = { r, g, b, a: currentAlpha };
-
                             if (props.autoConvertColors) {
                               // Auto-convert the color for the opposite theme
-                              const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'shadow');
+                              const oppositeColor = convertToThemeColor(newColor, !isDark, 'shadow');
 
                               props.shadow.color = {
                                 ...props.shadow.color,
-                                [currentTheme]: newThemeColor,
+                                [currentTheme]: newColor,
                                 [oppositeTheme]: oppositeColor
                               };
                             } else {
                               // Only update the current theme's color
                               props.shadow.color = {
                                 ...props.shadow.color,
-                                [currentTheme]: newThemeColor
+                                [currentTheme]: newColor
                               };
                             }
                           });
                         }}
-                        className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded"
+                        componentType="shadow"
                       />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={(() => {
-                          try {
-                            // Get the appropriate shadow color for the current theme
-                            let shadowColor;
-                            if (shadow.color && shadow.color.light && shadow.color.dark) {
-                              // Theme-aware color
-                              shadowColor = isDark ? shadow.color.dark : shadow.color.light;
-                              return shadowColor.a || (isDark ? 0.25 : 0.15);
-                            } else if (shadow.color && 'r' in shadow.color) {
-                              // Legacy format (single RGBA object)
-                              return shadow.color.a || 0.15;
-                            } else {
-                              // Fallback
-                              return isDark ? 0.25 : 0.15;
+                      <div
+                        className="ml-3 flex-1 h-8 rounded"
+                        style={{
+                          backgroundColor: (() => {
+                            try {
+                              // Get the appropriate shadow color for the current theme
+                              let shadowColor;
+                              if (shadow.color && shadow.color.light && shadow.color.dark) {
+                                // Theme-aware color
+                                shadowColor = isDark ? shadow.color.dark : shadow.color.light;
+                              } else if (shadow.color && 'r' in shadow.color) {
+                                // Legacy format (single RGBA object)
+                                shadowColor = shadow.color;
+                              } else {
+                                // Fallback
+                                shadowColor = { r: 0, g: 0, b: 0, a: isDark ? 0.25 : 0.15 };
+                              }
+                              return `rgba(${shadowColor.r || 0}, ${shadowColor.g || 0}, ${shadowColor.b || 0}, ${shadowColor.a || (isDark ? 0.25 : 0.15)})`;
+                            } catch (error) {
+                              return `rgba(0, 0, 0, ${isDark ? 0.25 : 0.15})`;
                             }
-                          } catch (error) {
-                            console.warn('Error getting shadow opacity value:', error);
-                            return isDark ? 0.25 : 0.15;
-                          }
-                        })()}
-                        onChange={(e) => {
-                          const opacity = parseFloat(e.target.value);
-
-                          actions.setProp((props) => {
-                            // Ensure shadow is properly initialized
-                            if (typeof props.shadow === 'number') {
-                              props.shadow = {
-                                enabled: true,
-                                x: 0,
-                                y: 2,
-                                blur: 4,
-                                spread: 0,
-                                color: {
-                                  light: { r: 0, g: 0, b: 0, a: 0.15 },
-                                  dark: { r: 0, g: 0, b: 0, a: 0.25 }
-                                }
-                              };
-                            }
-
-                            // Ensure shadow.color exists
-                            if (!props.shadow.color) {
-                              props.shadow.color = {
-                                light: { r: 0, g: 0, b: 0, a: 0.15 },
-                                dark: { r: 0, g: 0, b: 0, a: 0.25 }
-                              };
-                            }
-
-                            // Handle legacy format (single RGBA object)
-                            if ('r' in props.shadow.color) {
-                              const oldColor = { ...props.shadow.color };
-                              props.shadow.color = {
-                                light: oldColor,
-                                dark: convertToThemeColor(oldColor, true, 'shadow')
-                              };
-                            }
-
-                            // Ensure both light and dark properties exist
-                            if (!props.shadow.color.light) {
-                              props.shadow.color.light = { r: 0, g: 0, b: 0, a: 0.15 };
-                            }
-                            if (!props.shadow.color.dark) {
-                              props.shadow.color.dark = { r: 0, g: 0, b: 0, a: 0.25 };
-                            }
-
-                            const currentTheme = isDark ? 'dark' : 'light';
-                            const oppositeTheme = isDark ? 'light' : 'dark';
-
-                            // Create a new color object with the updated opacity
-                            const newThemeColor = {
-                              ...props.shadow.color[currentTheme],
-                              a: opacity
-                            };
-
-                            if (props.autoConvertColors) {
-                              // Auto-convert the color for the opposite theme
-                              const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'shadow');
-
-                              props.shadow.color = {
-                                ...props.shadow.color,
-                                [currentTheme]: newThemeColor,
-                                [oppositeTheme]: oppositeColor
-                              };
-                            } else {
-                              // Only update the current theme's color
-                              props.shadow.color = {
-                                ...props.shadow.color,
-                                [currentTheme]: newThemeColor
-                              };
-                            }
-                          });
+                          })()
                         }}
-                        className="flex-1 accent-teal-600"
-                      />
+                      ></div>
                     </div>
 
                     {!autoConvertColors && (
@@ -1459,9 +1068,8 @@ export const TextSettings = () => {
                           Shadow Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
                         </label>
                         <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={(() => {
+                          <ColorPicker
+                            color={(() => {
                               try {
                                 const oppositeTheme = isDark ? 'light' : 'dark';
                                 const currentTheme = isDark ? 'dark' : 'light';
@@ -1471,26 +1079,19 @@ export const TextSettings = () => {
                                     typeof shadow.color[oppositeTheme].r !== 'undefined' &&
                                     typeof shadow.color[oppositeTheme].g !== 'undefined' &&
                                     typeof shadow.color[oppositeTheme].b !== 'undefined') {
-                                  const color = shadow.color[oppositeTheme];
-                                  return `#${Math.round(color.r || 0).toString(16).padStart(2, '0')}${Math.round(color.g || 0).toString(16).padStart(2, '0')}${Math.round(color.b || 0).toString(16).padStart(2, '0')}`;
+                                  return shadow.color[oppositeTheme];
                                 } else if (shadow.color && shadow.color[currentTheme]) {
                                   // If opposite theme color is missing but current theme exists, convert it
-                                  const convertedColor = convertToThemeColor(shadow.color[currentTheme], !isDark, 'shadow');
-                                  return `#${Math.round(convertedColor.r || 0).toString(16).padStart(2, '0')}${Math.round(convertedColor.g || 0).toString(16).padStart(2, '0')}${Math.round(convertedColor.b || 0).toString(16).padStart(2, '0')}`;
+                                  return convertToThemeColor(shadow.color[currentTheme], !isDark, 'shadow');
                                 }
                                 // Default fallback colors
-                                return '#000000';
+                                return { r: 0, g: 0, b: 0, a: !isDark ? 0.15 : 0.25 };
                               } catch (error) {
-                                console.warn('Error generating opposite theme shadow color value:', error);
-                                return '#000000';
+                                console.warn('Error getting opposite theme shadow color:', error);
+                                return { r: 0, g: 0, b: 0, a: !isDark ? 0.15 : 0.25 };
                               }
                             })()}
-                            onChange={(e) => {
-                              const hex = e.target.value.substring(1);
-                              const r = parseInt(hex.substring(0, 2), 16);
-                              const g = parseInt(hex.substring(2, 4), 16);
-                              const b = parseInt(hex.substring(4, 6), 16);
-
+                            onChange={(newColor) => {
                               actions.setProp((props) => {
                                 // Ensure shadow is properly initialized
                                 if (typeof props.shadow === 'number') {
@@ -1537,97 +1138,29 @@ export const TextSettings = () => {
                                 // Only update the opposite theme's color
                                 props.shadow.color = {
                                   ...props.shadow.color,
-                                  [oppositeTheme]: {
-                                    ...props.shadow.color[oppositeTheme],
-                                    r, g, b
-                                  }
+                                  [oppositeTheme]: newColor
                                 };
                               });
                             }}
-                            className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded"
+                            componentType="shadow"
                           />
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={(() => {
-                              try {
-                                const oppositeTheme = isDark ? 'light' : 'dark';
-                                const currentTheme = isDark ? 'dark' : 'light';
-
-                                // Check if we have a valid opacity value for the opposite theme
-                                if (shadow.color && shadow.color[oppositeTheme] && typeof shadow.color[oppositeTheme].a !== 'undefined') {
-                                  return shadow.color[oppositeTheme].a;
-                                } else if (shadow.color && shadow.color[currentTheme] && typeof shadow.color[currentTheme].a !== 'undefined') {
-                                  // If opposite theme opacity is missing but current theme exists, use the same opacity
-                                  return shadow.color[currentTheme].a;
-                                }
-                                // Default fallback values
-                                return !isDark ? 0.15 : 0.25;
-                              } catch (error) {
-                                console.warn('Error getting opposite theme shadow opacity value:', error);
-                                return !isDark ? 0.15 : 0.25;
-                              }
-                            })()}
-                            onChange={(e) => {
-                              const opacity = parseFloat(e.target.value);
-
-                              actions.setProp((props) => {
-                                // Ensure shadow is properly initialized
-                                if (typeof props.shadow === 'number') {
-                                  props.shadow = {
-                                    enabled: true,
-                                    x: 0,
-                                    y: 2,
-                                    blur: 4,
-                                    spread: 0,
-                                    color: {
-                                      light: { r: 0, g: 0, b: 0, a: 0.15 },
-                                      dark: { r: 0, g: 0, b: 0, a: 0.25 }
-                                    }
-                                  };
-                                }
-
-                                // Ensure shadow.color exists
-                                if (!props.shadow.color) {
-                                  props.shadow.color = {
-                                    light: { r: 0, g: 0, b: 0, a: 0.15 },
-                                    dark: { r: 0, g: 0, b: 0, a: 0.25 }
-                                  };
-                                }
-
-                                // Handle legacy format (single RGBA object)
-                                if ('r' in props.shadow.color) {
-                                  const oldColor = { ...props.shadow.color };
-                                  props.shadow.color = {
-                                    light: oldColor,
-                                    dark: convertToThemeColor(oldColor, true, 'shadow')
-                                  };
-                                }
-
-                                // Ensure both light and dark properties exist
-                                if (!props.shadow.color.light) {
-                                  props.shadow.color.light = { r: 0, g: 0, b: 0, a: 0.15 };
-                                }
-                                if (!props.shadow.color.dark) {
-                                  props.shadow.color.dark = { r: 0, g: 0, b: 0, a: 0.25 };
-                                }
-
-                                const oppositeTheme = isDark ? 'light' : 'dark';
-
-                                // Only update the opposite theme's opacity
-                                props.shadow.color = {
-                                  ...props.shadow.color,
-                                  [oppositeTheme]: {
-                                    ...props.shadow.color[oppositeTheme],
-                                    a: opacity
+                          <div
+                            className="ml-3 flex-1 h-8 rounded"
+                            style={{
+                              backgroundColor: (() => {
+                                try {
+                                  const oppositeTheme = isDark ? 'light' : 'dark';
+                                  if (shadow.color && shadow.color[oppositeTheme]) {
+                                    const color = shadow.color[oppositeTheme];
+                                    return `rgba(${color.r || 0}, ${color.g || 0}, ${color.b || 0}, ${color.a || (!isDark ? 0.15 : 0.25)})`;
                                   }
-                                };
-                              });
+                                  return `rgba(0, 0, 0, ${!isDark ? 0.15 : 0.25})`;
+                                } catch (error) {
+                                  return `rgba(0, 0, 0, ${!isDark ? 0.15 : 0.25})`;
+                                }
+                              })()
                             }}
-                            className="flex-1 accent-teal-600"
-                          />
+                          ></div>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           Directly edit the {!isDark ? 'dark' : 'light'} mode shadow color without switching themes.

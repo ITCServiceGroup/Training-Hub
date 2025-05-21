@@ -395,8 +395,8 @@ const StudyGuides = () => {
   }, []); // No dependencies needed since we use functional updates
 
   const handleSave = async (studyGuideData) => {
-    // studyGuideData contains { title, content, shouldExit }
-    const { title, content, shouldExit = true } = studyGuideData;
+    // studyGuideData contains { title, content, description, shouldExit, is_published }
+    const { title, content, description, shouldExit = true, is_published } = studyGuideData;
 
     // Use content from studyGuideData if available, otherwise fall back to currentEditorJson
     const contentToSave = content || currentEditorJson;
@@ -404,6 +404,7 @@ const StudyGuides = () => {
     console.log('StudyGuides handleSave - Content from studyGuideData:', content ? 'present' : 'missing');
     console.log('StudyGuides handleSave - Content from currentEditorJson:', currentEditorJson ? 'present' : 'missing');
     console.log('StudyGuides handleSave - Final contentToSave:', contentToSave ? 'present' : 'missing');
+    console.log('StudyGuides handleSave - Published status:', is_published);
 
     if (!contentToSave) {
         console.error("Attempted to save null/empty content.");
@@ -416,7 +417,13 @@ const StudyGuides = () => {
       const display_order = Math.max(...studyGuides.map(g => g.display_order), -1) + 1;
 
       // Construct data payload for API
-      const dataToSaveApi = { title, content: contentToSave };
+      // Use the is_published value and description from ContentEditor if available
+      const dataToSaveApi = {
+        title,
+        content: contentToSave,
+        description, // Include the description field
+        is_published: typeof is_published !== 'undefined' ? is_published : (selectedStudyGuide?.is_published || false)
+      };
 
       if (isCreating) {
         // Optimistically update the UI before API call
@@ -588,6 +595,54 @@ const StudyGuides = () => {
   const handleMoveInitiate = (guide) => {
     setGuideToAction(guide);
     setIsMoveModalOpen(true);
+  };
+
+  // Handler for updating study guide description
+  const handleUpdateDescription = async (guideId, description) => {
+    try {
+      const guideToUpdate = studyGuides.find(g => g.id === guideId);
+      if (!guideToUpdate) return;
+
+      // Optimistically update UI
+      const updatedGuide = {
+        ...guideToUpdate,
+        description,
+        updated_at: new Date().toISOString()
+      };
+
+      // Update local state
+      setStudyGuides(prev => prev.map(guide =>
+        guide.id === guideId ? updatedGuide : guide
+      ));
+
+      // Update context
+      const newSectionsData = sectionsData.map(section => {
+        if (section.v2_categories) {
+          return {
+            ...section,
+            v2_categories: section.v2_categories.map(category => {
+              if (category.id === selectedCategory.id) {
+                return {
+                  ...category,
+                  study_guides: (category.study_guides || []).map(guide =>
+                    guide.id === guideId ? updatedGuide : guide
+                  )
+                };
+              }
+              return category;
+            })
+          };
+        }
+        return section;
+      });
+      optimisticallyUpdateSectionsOrder(newSectionsData);
+
+      // Make API call
+      await studyGuidesService.update(guideId, { description });
+    } catch (error) {
+      console.error('Error updating study guide description:', error);
+      await loadStudyGuides(); // Revert on error
+    }
   };
 
   // Handle selecting a category for copy
@@ -812,6 +867,7 @@ const StudyGuides = () => {
             onBackToCategories={handleBackToCategories}
             onCopy={handleCopyInitiate}
             onMove={handleMoveInitiate}
+            onUpdateDescription={handleUpdateDescription}
             onReorder={async (updates) => {
               try {
                 if (!selectedCategory) return;

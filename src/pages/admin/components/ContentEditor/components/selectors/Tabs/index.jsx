@@ -232,7 +232,8 @@ export const Tabs = (props) => {
           position: 'relative',
           zIndex: 1,
           justifyContent: tabAlignment === 'center' ? 'center' :
-                         tabAlignment === 'space-between' ? 'space-between' : 'flex-start',
+                         tabAlignment === 'space-between' ? 'space-between' :
+                         tabAlignment === 'right' ? 'flex-end' : 'flex-start',
           width: '100%'
         }}
       >

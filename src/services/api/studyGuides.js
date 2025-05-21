@@ -12,15 +12,22 @@ class StudyGuidesService extends BaseService {
   /**
    * Get study guides by category
    * @param {string} categoryId - Category ID
+   * @param {boolean} publishedOnly - Whether to return only published study guides
    * @returns {Promise<Array>} - Study guides in the specified category
    */
-  async getByCategoryId(categoryId) {
+  async getByCategoryId(categoryId, publishedOnly = false) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from(this.tableName)
         .select('*')
-        .eq('category_id', categoryId)
-        .order('display_order');
+        .eq('category_id', categoryId);
+
+      // If publishedOnly is true, only return published study guides
+      if (publishedOnly) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query.order('display_order');
 
       if (error) {
         throw error;
@@ -280,6 +287,32 @@ class StudyGuidesService extends BaseService {
       return data;
     } catch (error) {
       console.error('Error moving study guide:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle the publish status of a study guide
+   * @param {string} id - Study guide ID
+   * @param {boolean} isPublished - New publish status
+   * @returns {Promise<Object>} - Updated study guide
+   */
+  async togglePublishStatus(id, isPublished) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update({ is_published: isPublished })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error toggling study guide publish status:', error.message);
       throw error;
     }
   }

@@ -112,6 +112,66 @@
   outline: none !important;
   background-color: transparent;
   transition: background-color 0.2s ease, outline 0.2s ease;
+  position: relative;
+}
+
+/* Container resize handles - similar to table handles */
+.craft-container .container-handle-tl,
+.craft-container .container-handle-tr,
+.craft-container .container-handle-bl,
+.craft-container .container-handle-br {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #0d9488;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.25);
+  display: none;
+  z-index: 999;
+  pointer-events: auto;
+}
+
+/* Show handles only when container is selected */
+.craft-container.component-selected .container-handle-tl,
+.craft-container.component-selected .container-handle-tr,
+.craft-container.component-selected .container-handle-bl,
+.craft-container.component-selected .container-handle-br {
+  display: block;
+}
+
+/* Dark mode styling for container handles */
+.dark .craft-container .container-handle-tl,
+.dark .craft-container .container-handle-tr,
+.dark .craft-container .container-handle-bl,
+.dark .craft-container .container-handle-br {
+  border: 2px solid #1f2937;
+  box-shadow: 0px 0px 12px -1px rgba(255, 255, 255, 0.25);
+}
+
+/* Position the handles */
+.craft-container .container-handle-tl {
+  top: -7px;
+  left: -7px;
+  cursor: nw-resize;
+}
+
+.craft-container .container-handle-tr {
+  top: -7px;
+  right: -7px;
+  cursor: ne-resize;
+}
+
+.craft-container .container-handle-bl {
+  bottom: -7px;
+  left: -7px;
+  cursor: sw-resize;
+}
+
+.craft-container .container-handle-br {
+  bottom: -7px;
+  right: -7px;
+  cursor: se-resize;
 }
 
 .craft-container.is-canvas.is-dragging {
@@ -776,9 +836,19 @@
   z-index: 999;
 }
 
-/* Dark mode styling */
+/* Dark mode styling for table */
 .dark .craft-table.component-selected {
   box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.5);
+}
+
+/* Dark mode styling for container */
+.dark .craft-container.component-selected::after {
+  border: 2px dashed #0d9488 !important;
+  box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.5);
+}
+
+.dark .craft-container.component-hovered::after {
+  border: 2px dashed #0d9488 !important;
 }
 
 .dark .craft-table .table-handle-tl,

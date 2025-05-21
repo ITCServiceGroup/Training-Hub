@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { accessCodesService } from '../../../services/api/accessCodes';
+import { organizationService } from '../../../services/api/organization';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../common/ToastContainer';
 
@@ -14,9 +15,33 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
     supervisor: '',
     market: ''
   });
+  const [supervisors, setSupervisors] = useState([]);
+  const [markets, setMarkets] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [generatedCode, setGeneratedCode] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setIsLoading(true);
+      try {
+        const [supervisorsData, marketsData] = await Promise.all([
+          organizationService.getSupervisors(),
+          organizationService.getMarkets()
+        ]);
+        setSupervisors(supervisorsData);
+        setMarkets(marketsData);
+      } catch (error) {
+        console.error('Failed to fetch organization data:', error);
+        setError('Failed to load supervisor and market options');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const resetForm = () => {
     setTestTakerInfo({
@@ -164,9 +189,8 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="supervisor">
               Supervisor
             </label>
-            <input
+            <select
               id="supervisor"
-              type="text"
               className={classNames(
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
                 error
@@ -176,16 +200,23 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
               value={testTakerInfo.supervisor}
               onChange={(e) => handleChange('supervisor', e.target.value)}
               required
-            />
+              disabled={isLoading}
+            >
+              <option value="">Select Supervisor</option>
+              {supervisors.map((supervisor) => (
+                <option key={supervisor.id} value={supervisor.name}>
+                  {supervisor.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="market">
               Market
             </label>
-            <input
+            <select
               id="market"
-              type="text"
               className={classNames(
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
                 error
@@ -195,7 +226,15 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
               value={testTakerInfo.market}
               onChange={(e) => handleChange('market', e.target.value)}
               required
-            />
+              disabled={isLoading}
+            >
+              <option value="">Select Market</option>
+              {markets.map((market) => (
+                <option key={market.id} value={market.name}>
+                  {market.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button

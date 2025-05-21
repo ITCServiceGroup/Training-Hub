@@ -116,7 +116,13 @@ const AdminQuizzes = () => {
   // Show quiz list by default
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-end mb-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Quizzes</h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+            Manage quizzes and access codes
+          </p>
+        </div>
         <button
           type="button"
           className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
@@ -189,35 +195,37 @@ const AdminQuizzes = () => {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-4 text-right space-x-4"> {/* Reverted spacing */}
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
-                    onClick={() => handleEditQuiz(quiz)}
-                  >
-                    Edit
-                  </button>
-                  {!quiz.is_practice && (
+                <td className="px-4 py-4 text-right">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <button
                       type="button"
                       className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
-                      onClick={() => handleManageCodes(quiz)}
+                      onClick={() => handleEditQuiz(quiz)}
                     >
-                      Access Codes
+                      Edit
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className={`px-4 py-2 ${
-                      isDark
-                        ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
-                        : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
-                    } border font-medium rounded-lg transition-colors`}
-                    onClick={() => openArchiveConfirmation(quiz.id)}
-                    title="Archive quiz"
-                  >
-                    Archive
-                  </button>
+                    {!quiz.is_practice && (
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                        onClick={() => handleManageCodes(quiz)}
+                      >
+                        Access Codes
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`px-4 py-2 ${
+                        isDark
+                          ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
+                          : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
+                      } border font-medium rounded-lg transition-colors`}
+                      onClick={() => openArchiveConfirmation(quiz.id)}
+                      title="Archive quiz"
+                    >
+                      Archive
+                    </button>
+                  </div>
                 </td>
               </tr>
               ))}

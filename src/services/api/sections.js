@@ -57,12 +57,13 @@ class SectionsService extends BaseService {
 
   /**
    * Get sections with their categories
+   * @param {boolean} publishedOnly - Whether to return only published study guides
    * @returns {Promise<Array>} - Sections with categories
    */
-  async getSectionsWithCategories() {
+  async getSectionsWithCategories(publishedOnly = false) {
     console.log('[Sections Service] Fetching sections with categories...');
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from(this.tableName)
         .select(`
           *,
@@ -72,17 +73,34 @@ class SectionsService extends BaseService {
           )
         `)
         // Order sections first, then categories within sections, then study guides within categories
-        .order('display_order', { nullsLast: true }) 
+        .order('display_order', { nullsLast: true })
         .order('display_order', { foreignTable: 'v2_categories', nullsLast: true })
         .order('display_order', { foreignTable: 'v2_categories.v2_study_guides', nullsLast: true });
+
+      // Execute the query
+      const { data: fetchedData, error } = await query;
 
       if (error) {
         console.error('[Sections Service] Error fetching sections:', error);
         throw error;
       }
 
-      console.log('[Sections Service] Successfully fetched sections:', data?.length || 0, 'sections');
-      return data;
+      // Create a new variable for the filtered data
+      let processedData = fetchedData;
+
+      if (publishedOnly && processedData) {
+        // Filter to only include published study guides
+        processedData = processedData.map(section => ({
+          ...section,
+          v2_categories: section.v2_categories.map(category => ({
+            ...category,
+            v2_study_guides: category.v2_study_guides.filter(guide => guide.is_published)
+          }))
+        }));
+      }
+
+      console.log('[Sections Service] Successfully fetched sections:', processedData?.length || 0, 'sections');
+      return processedData;
     } catch (error) {
       console.error('[Sections Service] Error in getSectionsWithCategories:', error.message);
       throw error;

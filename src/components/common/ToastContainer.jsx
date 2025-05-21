@@ -66,7 +66,7 @@ const ToastContainer = ({ toasts, removeToast }) => {
   console.log('Rendering ToastContainer with toasts:', toasts);
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 min-w-[300px] pointer-events-none">
+    <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-2 min-w-[300px] pointer-events-none">
       {toasts.length > 0 ? (
         toasts.map(toast => (
           <Toast

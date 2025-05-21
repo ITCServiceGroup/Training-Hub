@@ -804,7 +804,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         // Set srcDoc to the manually constructed HTML with injected styles
         srcDoc={iframeHtml}
         className="w-full border-none bg-white overflow-auto"
-        style={{ height: 'calc(100% - 60px)' }} // Adjusted to fill container minus the title height
+        style={{ height: 'calc(100vh - 250px)' }} // Adjusted to have a fixed height that works with sticky sidebar
         // Sandbox is still good practice for the main content iframe
         sandbox="allow-scripts allow-same-origin"
       />

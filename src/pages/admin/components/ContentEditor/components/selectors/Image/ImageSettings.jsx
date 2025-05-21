@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { FaImage, FaChevronDown } from 'react-icons/fa';
 import { MediaLibrarySelector } from './MediaLibrarySelector';
+import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
 export const ImageSettings = () => {
   const { actions } = useNode((node) => ({
@@ -517,17 +518,36 @@ export const ImageSettings = () => {
                     Border Width
                   </label>
                   <div className="flex items-center">
-                    <input
-                      type="range"
-                      value={border.width}
-                      min={0}
-                      max={10}
-                      onChange={(e) => actions.setProp((props) => {
-                        props.border.width = parseInt(e.target.value);
-                      })}
-                      className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                    />
-                    <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{border.width}px</span>
+                    <div className="w-3/4 flex items-center">
+                      <input
+                        type="range"
+                        value={border.width}
+                        min={0}
+                        max={10}
+                        onChange={(e) => actions.setProp((props) => {
+                          props.border.width = parseInt(e.target.value);
+                        })}
+                        className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                      />
+                    </div>
+                    <div className="w-1/4 flex items-center">
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={border.width}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10);
+                          if (!isNaN(value) && value >= 0 && value <= 10) {
+                            actions.setProp((props) => {
+                              props.border.width = value;
+                            });
+                          }
+                        }}
+                        className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                        aria-label="Border width in pixels"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -535,33 +555,12 @@ export const ImageSettings = () => {
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Border Color
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={`#${Math.round(border.color.r).toString(16).padStart(2, '0')}${Math.round(border.color.g).toString(16).padStart(2, '0')}${Math.round(border.color.b).toString(16).padStart(2, '0')}`}
-                      onChange={(e) => {
-                        const hex = e.target.value.substring(1);
-                        actions.setProp((props) => {
-                          props.border.color = {
-                            ...props.border.color,
-                            r: parseInt(hex.substring(0, 2), 16),
-                            g: parseInt(hex.substring(2, 4), 16),
-                            b: parseInt(hex.substring(4, 6), 16),
-                          };
-                        });
-                      }}
-                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={border.color.a}
-                      onChange={(e) => actions.setProp((props) => {
-                        props.border.color.a = parseFloat(e.target.value);
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={border.color}
+                      onChange={(newColor) => actions.setProp((props) => {
+                        props.border.color = newColor;
                       })}
-                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                     />
                   </div>
                 </div>
@@ -573,15 +572,32 @@ export const ImageSettings = () => {
                 Border Radius
               </label>
               <div className="flex items-center">
-                <input
-                  type="range"
-                  value={radius}
-                  min={0}
-                  max={50}
-                  onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{radius}px</span>
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    value={radius}
+                    min={0}
+                    max={50}
+                    onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
+                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={radius}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 0 && value <= 50) {
+                        actions.setProp((props) => { props.radius = value; });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Border radius in pixels"
+                  />
+                </div>
               </div>
             </div>
 
@@ -655,33 +671,12 @@ export const ImageSettings = () => {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Shadow Color</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={`#${Math.round(shadow.color.r).toString(16).padStart(2, '0')}${Math.round(shadow.color.g).toString(16).padStart(2, '0')}${Math.round(shadow.color.b).toString(16).padStart(2, '0')}`}
-                        onChange={(e) => {
-                          const hex = e.target.value.substring(1);
-                          actions.setProp((props) => {
-                            props.shadow.color = {
-                              ...props.shadow.color,
-                              r: parseInt(hex.substring(0, 2), 16),
-                              g: parseInt(hex.substring(2, 4), 16),
-                              b: parseInt(hex.substring(4, 6), 16),
-                            };
-                          });
-                        }}
-                        className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded"
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={shadow.color.a}
-                        onChange={(e) => actions.setProp((props) => {
-                          props.shadow.color.a = parseFloat(e.target.value);
+                    <div className="flex items-center">
+                      <ColorPicker
+                        color={shadow.color}
+                        onChange={(newColor) => actions.setProp((props) => {
+                          props.shadow.color = newColor;
                         })}
-                        className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
                       />
                     </div>
                   </div>

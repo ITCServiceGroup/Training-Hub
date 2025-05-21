@@ -6,8 +6,13 @@ import { supabase } from '../../config/supabase';
 import { quizzesService } from '../../services/api/quizzes';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import { Dialog } from '@headlessui/react';
+import { organizationService } from '../../services/api/organization';
 
 const SettingsPage = () => {
+  const [supervisors, setSupervisors] = useState([]);
+  const [markets, setMarkets] = useState([]);
+  const [isLoadingOrganization, setIsLoadingOrganization] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const { user } = useAuth();
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -72,6 +77,21 @@ const SettingsPage = () => {
 
   const [isLoadingArchived, setIsLoadingArchived] = useState(false);
 
+  const fetchArchivedQuizzes = useCallback(async () => {
+    setIsLoadingArchived(true);
+    try {
+      const data = await quizzesService.getArchivedQuizzes();
+      setArchivedQuizzes(data);
+    } catch (error) {
+      console.error("Failed to fetch archived quizzes", error);
+      setDialogTitle('Error');
+      setDialogMessage('Failed to load archived quizzes.');
+      setDialogOpen(true);
+    } finally {
+      setIsLoadingArchived(false);
+    }
+  }, []);
+
   // Function to handle smooth scrolling
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -88,6 +108,102 @@ const SettingsPage = () => {
     }));
   };
 
+  const fetchOrganizationData = useCallback(async () => {
+    setIsLoadingOrganization(true);
+    try {
+      const [supervisorsData, marketsData] = await Promise.all([
+        organizationService.getSupervisors(),
+        organizationService.getMarkets()
+      ]);
+      setSupervisors(supervisorsData);
+      setMarkets(marketsData);
+    } catch (error) {
+      console.error('Error fetching organization data:', error);
+      setDialogTitle('Error');
+      setDialogMessage('Failed to load organization data');
+      setDialogOpen(true);
+    } finally {
+      setIsLoadingOrganization(false);
+    }
+  }, []);
+
+  const handleEditItem = (item, type) => {
+    setEditingItem({ ...item, type });
+    setDialogTitle(`Edit ${type}`);
+    setDialogMessage(`Update ${type.toLowerCase()} name:`);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteItem = async (id, type) => {
+    try {
+      if (type === 'Supervisor') {
+        await organizationService.deleteSupervisor(id);
+      } else {
+        await organizationService.deleteMarket(id);
+      }
+      fetchOrganizationData();
+    } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
+      setDialogTitle('Error');
+      setDialogMessage(`Failed to delete ${type.toLowerCase()}`);
+      setDialogOpen(true);
+    }
+  };
+
+  const handleEditSupervisor = (supervisor) => {
+    handleEditItem(supervisor, 'Supervisor');
+  };
+
+  const handleDeleteSupervisor = (id) => {
+    handleDeleteItem(id, 'Supervisor');
+  };
+
+  const handleEditMarket = (market) => {
+    handleEditItem(market, 'Market');
+  };
+
+  const handleDeleteMarket = (id) => {
+    handleDeleteItem(id, 'Market');
+  };
+
+  const handleSaveItem = async () => {
+    const inputValue = document.querySelector('.dialog-input')?.value;
+    if (!inputValue?.trim()) {
+      setDialogTitle('Error');
+      setDialogMessage('Name cannot be empty');
+      return;
+    }
+
+    try {
+      if (editingItem) {
+        // Update existing item
+        if (editingItem.type === 'Supervisor') {
+          await organizationService.updateSupervisor(editingItem.id, inputValue);
+        } else {
+          await organizationService.updateMarket(editingItem.id, inputValue);
+        }
+      } else {
+        // Add new item
+        const type = dialogTitle.includes('Supervisor') ? 'Supervisor' : 'Market';
+        if (type === 'Supervisor') {
+          await organizationService.addSupervisor(inputValue);
+        } else {
+          await organizationService.addMarket(inputValue);
+        }
+      }
+
+      setEditingItem(null);
+      setDialogOpen(false);
+      fetchOrganizationData();
+    } catch (error) {
+      console.error('Error saving item:', error);
+      setDialogTitle('Error');
+      setDialogMessage(error.message);
+      setDialogOpen(true);
+    }
+  };
+
+
   useEffect(() => {
     const savedTimer = localStorage.getItem('quizDefaultTimer');
     const savedQRand = localStorage.getItem('quizDefaultQuestionRandomization');
@@ -101,7 +217,8 @@ const SettingsPage = () => {
     }));
 
     fetchArchivedQuizzes();
-  }, []);
+    fetchOrganizationData();
+  }, [fetchArchivedQuizzes, fetchOrganizationData]);
 
   useEffect(() => {
     if (user) {
@@ -145,20 +262,6 @@ const SettingsPage = () => {
     });
   };
 
-  const fetchArchivedQuizzes = useCallback(async () => {
-    setIsLoadingArchived(true);
-    try {
-      const data = await quizzesService.getArchivedQuizzes();
-      setArchivedQuizzes(data);
-    } catch (error) {
-      console.error("Failed to fetch archived quizzes", error);
-      setDialogTitle('Error');
-      setDialogMessage('Failed to load archived quizzes.');
-      setDialogOpen(true);
-    } finally {
-      setIsLoadingArchived(false);
-    }
-  }, []);
 
   const handleRestoreQuiz = async (quizId) => {
     try {
@@ -292,8 +395,7 @@ const SettingsPage = () => {
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-800">
       {/* Navigation Sidebar */}
       <nav className="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-700 sticky top-0 h-screen">
-        {/* Removed redundant title */}
-        <ul className="space-y-2 mt-8"> {/* Added margin-top for spacing */}
+        <ul className="space-y-2 mt-8">
           <li>
             <a
               href="#account"
@@ -314,8 +416,17 @@ const SettingsPage = () => {
           </li>
           <li>
             <a
+              href="#organization"
+              onClick={(e) => { e.preventDefault(); scrollToSection('organization'); }}
+              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            >
+              Organization Management
+            </a>
+          </li>
+          <li>
+            <a
               href="#archived"
-              onClick={(e) => { e.preventDefault(); scrollToSection('archived-section'); }} // Updated ID to avoid conflict with modal
+              onClick={(e) => { e.preventDefault(); scrollToSection('archived-section'); }}
               className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
             >
               Archived Quizzes
@@ -635,6 +746,111 @@ const SettingsPage = () => {
             </div>
           </section>
 
+          {/* Organization Management */}
+          <section id="organization" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-medium mb-6 dark:text-white">Organization Management</h2>
+
+            {/* Supervisors */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium dark:text-white">Supervisors</h3>
+                <button
+                  onClick={() => {
+                    setDialogTitle('Add New Supervisor');
+                    setDialogMessage('Enter supervisor name:');
+                    setDialogOpen(true);
+                  }}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Add Supervisor
+                </button>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                  <thead className="bg-slate-100 dark:bg-slate-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                    {supervisors.map((supervisor) => (
+                      <tr key={supervisor.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{supervisor.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              onClick={() => handleEditSupervisor(supervisor)}
+                              className="text-teal-600 hover:text-teal-900 dark:hover:text-teal-400"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSupervisor(supervisor.id)}
+                              className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Markets */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium dark:text-white">Markets</h3>
+                <button
+                  onClick={() => {
+                    setDialogTitle('Add New Market');
+                    setDialogMessage('Enter market name:');
+                    setDialogOpen(true);
+                  }}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Add Market
+                </button>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                  <thead className="bg-slate-100 dark:bg-slate-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                    {markets.map((market) => (
+                      <tr key={market.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{market.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => handleEditMarket(market)}
+                            className="text-teal-600 hover:text-teal-900 dark:hover:text-teal-400 mr-4"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMarket(market.id)}
+                            className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
           {/* System Settings */}
           <section id="system" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
             <h2 className="text-xl font-medium mb-4 dark:text-white">System Settings</h2>
@@ -674,14 +890,40 @@ const SettingsPage = () => {
       </div>
 
       {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onConfirm={() => setDialogOpen(false)}
-        title={dialogTitle}
-        description={dialogMessage}
-        confirmButtonText="OK"
-      />
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-lg bg-white dark:bg-slate-800 p-6 text-left align-middle shadow-xl transition-all">
+            <Dialog.Title className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">
+              {dialogTitle}
+            </Dialog.Title>
+            <div className="mt-2">
+              <input
+                type="text"
+                className="dialog-input w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+                defaultValue={editingItem?.name || ''}
+                placeholder={dialogMessage}
+              />
+            </div>
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-transparent bg-slate-100 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none"
+                onClick={() => setDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none"
+                onClick={handleSaveItem}
+              >
+                Save
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
 
       {/* Archived Quizzes Modal */}
       <Dialog open={isArchiveModalOpen} onClose={() => setIsArchiveModalOpen(false)} className="relative z-50">

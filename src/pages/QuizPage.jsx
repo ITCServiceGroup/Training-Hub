@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { quizzesService } from '../services/api/quizzes';
 import QuizTaker from '../components/quiz/QuizTaker';
 import { groupBy } from 'lodash'; // Assuming lodash is available, or implement a simple groupBy
@@ -107,7 +107,14 @@ const QuizPage = () => {
   // If we have a quiz ID or access code, show the QuizTaker
   if (quizId || accessCode) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="py-2 w-full">
+        <div className="mb-1 flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Link to="/quiz" className="no-underline">
+              <h2 className={`text-3xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
+            </Link>
+          </div>
+        </div>
         <QuizTaker
           quizId={quizId}
           accessCode={accessCode}
@@ -118,41 +125,47 @@ const QuizPage = () => {
 
   // Otherwise show the quiz list and access code entry
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
-        <h1 className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Quizzes</h1>
-        <div className="flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder="Search quizzes..."
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+    <div className="py-2 w-full">
+      <div className="mb-1 flex flex-col gap-1">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Link to="/quiz" className="no-underline">
+              <h2 className={`text-3xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
+            </Link>
+          </div>
+          <div className="flex items-center max-w-md w-full">
+            <input
+              type="text"
+              placeholder="Search quizzes..."
+              className={`py-2 px-3 border rounded text-sm w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Access Code Entry - Moved to top */}
-      <div className="max-w-2xl mx-auto mb-12">
-        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'} rounded-lg p-8 border`}>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>
+      {/* Access Code Entry - More compact */}
+      <div className="max-w-2xl mx-auto mb-6 mt-4">
+        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'} rounded-lg p-5 border`}>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
             Have an Access Code?
           </h2>
-          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-6`}>
+          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-4 text-sm`}>
             If you have an access code for a specific quiz, enter it below to begin.
           </p>
-          <form onSubmit={handleAccessCodeSubmit} className="flex flex-col sm:flex-row gap-4">
+          <form onSubmit={handleAccessCodeSubmit} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               placeholder="Enter access code"
-              className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
+              className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
               value={localAccessCode}
               onChange={(e) => setLocalAccessCode(e.target.value.toUpperCase())}
               maxLength={8}
             />
             <button
               type="submit"
-              className={`px-6 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`px-5 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
               disabled={!localAccessCode}
             >
               Submit
@@ -161,34 +174,35 @@ const QuizPage = () => {
         </div>
       </div>
 
-      {error ? (
-        <div className={`p-4 ${isDark ? 'bg-red-900/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700'} border rounded-lg mb-8`}>
-          <p>{error}</p>
+      {error && (
+        <div className={`p-3 ${isDark ? 'bg-red-900/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700'} border rounded-lg mb-2 text-sm`}>
+          {error}
         </div>
-      ) : null}
+      )}
 
       {/* Practice Quizzes Section - Grouped */}
-      <div className="mb-8">
-        <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'} mb-6`}>Practice Quizzes</h2>
+      <div className="mb-6">
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-teal-400' : 'text-teal-700'} mb-3`}>Practice Quizzes</h2>
+        <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a quiz below to start practicing.</p>
         {isLoading ? (
-          <div className="text-center py-12">
-            <p className={isDark ? 'text-gray-400' : 'text-slate-600'}>Loading quizzes...</p>
+          <div className="text-center py-6">
+            <p className={`${isDark ? 'text-gray-400' : 'text-slate-600'} text-sm`}>Loading quizzes...</p>
           </div>
         ) : Object.keys(groupedQuizzes).length === 0 ? (
-          <div className="text-center py-12">
-            <p className={isDark ? 'text-gray-400' : 'text-slate-600'}>No practice quizzes found{searchQuery ? ' matching your search' : ''}.</p>
+          <div className="text-center py-6">
+            <p className={`${isDark ? 'text-gray-400' : 'text-slate-600'} text-sm`}>No practice quizzes found{searchQuery ? ' matching your search' : ''}.</p>
           </div>
         ) : (
-          <div className="space-y-10">
+          <div className="space-y-8">
             {Object.entries(groupedQuizzes).map(([sectionId, sectionData]) => (
               <div key={sectionId}>
-                <h3 className={`text-2xl font-semibold ${isDark ? 'text-white border-slate-700' : 'text-slate-700 border-slate-300'} mb-4 border-b pb-2`}>
+                <h3 className={`text-xl font-semibold ${isDark ? 'text-teal-300 border-slate-700' : 'text-teal-600 border-slate-300'} mb-3 border-b pb-2`}>
                   {sectionData.sectionName}
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {Object.entries(sectionData.categories).map(([categoryId, categoryData]) => (
                     <div key={categoryId}>
-                      <h4 className={`text-xl font-medium ${isDark ? 'text-gray-300' : 'text-slate-600'} mb-4`}>
+                      <h4 className={`text-lg font-medium ${isDark ? 'text-gray-300' : 'text-slate-600'} mb-3`}>
                         {categoryData.categoryName}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

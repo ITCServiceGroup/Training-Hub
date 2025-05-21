@@ -3,7 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
 // Helper function to extract a preview from HTML or JSON content
-const extractPreview = (content, maxLength = 150) => {
+const extractPreview = (content, maxLength = 300) => {
   if (!content) return '';
 
   // Check if content is JSON (Craft.js format)
@@ -322,14 +322,14 @@ const PublicStudyGuideItem = ({ guide, onSelect }) => {
       onClick={() => onSelect(guide)} // Use the passed onSelect handler
     >
       <div className={isDark ? 'bg-slate-800' : 'bg-white'}>
-        <div className="p-4">
+        <div className="p-5">
           <div className="flex items-center justify-between mb-2">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'} overflow-hidden text-ellipsis whitespace-nowrap`}>
               {guide.title || 'Untitled Guide'}
             </h3>
           </div>
-          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-2 h-12 overflow-hidden`}>
-            {extractPreview(guide.content)}
+          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-4 h-12 overflow-hidden`}>
+            {guide.description || extractPreview(guide.content)}
           </div>
         </div>
         <div className={`${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-100'} p-2 px-4 border-t flex justify-between items-center`}>
@@ -371,7 +371,7 @@ const PublicStudyGuideList = ({ studyGuides = [], onSelect, isLoading, error }) 
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-8">
       {studyGuides.map((guide) => (
         <PublicStudyGuideItem
           key={guide.id}

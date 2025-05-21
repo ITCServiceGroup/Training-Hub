@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Editor, Frame as CraftFrame, Element as CraftElement, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { useToast } from '../../../../components/common/ToastContainer';
+import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
+import { Viewport } from './components/editor/Viewport';
+import { RenderNode } from './components/editor/RenderNode';
 import { ToolbarZIndexProvider } from './contexts/ToolbarZIndexContext';
 import { useDragHighlight } from './hooks/useDragHighlight';
 import { applyDirectCraftJsFix } from './patches/directCraftJsFix';
 import { CraftJsDirectPatch } from './patches/craftJsDirectPatch';
 import { applyCraftJsDragDropOverride } from './patches/craftJsDragDropOverride';
 import { useCollapsibleSectionPatch } from './patches/collapsibleSectionPatch';
+
+// Styles
+import './styles.css';
+import './styles/dragFeedback.css';
 
 // Import all component types that might be used in the editor
 import { Container } from './components/selectors/Container';
@@ -204,18 +212,22 @@ const clearDraft = (studyGuideId) => {
   localStorage.removeItem(getStorageKey(studyGuideId));
 };
 
-import { Viewport } from './components/editor/Viewport';
-import { RenderNode } from './components/editor/RenderNode';
-import './styles.css';
-import './styles/dragFeedback.css';
-
 const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide }) => {
   const { actions, query } = useEditor();
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const isDark = theme === 'dark';
   const [title, setTitle] = useState(initialTitle);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isPublished, setIsPublished] = useState(selectedStudyGuide?.is_published || false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [publishSuccessDialog, setPublishSuccessDialog] = useState({
+    isOpen: false,
+    message: '',
+    title: ''
+  });
 
   useDragHighlight();
 
@@ -227,8 +239,6 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       if (cleanup2) cleanup2();
     };
   }, [actions]);
-
-  console.log('EditorInner initialized with initialTitle:', initialTitle, 'for study guide:', selectedStudyGuide?.id || 'new');
 
   useEffect(() => {
     const studyGuideId = selectedStudyGuide?.id || 'new';
@@ -394,21 +404,35 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     if (initialTitle && initialTitle.trim() !== '') setTitle(initialTitle);
   }, [initialTitle]);
 
+  // Update state when selectedStudyGuide changes
+  useEffect(() => {
+    if (selectedStudyGuide) {
+      setIsPublished(selectedStudyGuide.is_published || false);
+    }
+  }, [selectedStudyGuide]);
+
   const handleSave = async (shouldExit = true) => {
     if (!title.trim()) {
-      alert('Please enter a title');
+      showToast('Please enter a title', 'warning');
       return;
     }
     setIsSaving(true);
     try {
       const currentJsonToSave = JSON.stringify(query.serialize());
-      await onSave({ title, content: currentJsonToSave, shouldExit });
+      // Include the current publish status in the save data
+      await onSave({
+        title,
+        content: currentJsonToSave,
+        shouldExit,
+        is_published: isPublished // Pass the current publish status
+      });
       const studyGuideId = selectedStudyGuide?.id || 'new';
       clearDraft(studyGuideId);
       setHasUnsavedChanges(false);
+      showToast('Study guide saved successfully', 'success');
     } catch (error) {
       console.error('Error saving content:', error);
-      alert('Failed to save content');
+      showToast('Failed to save content', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -417,19 +441,21 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const handleSaveAndContinue = () => handleSave(false);
 
   const handleCancelClick = () => {
-    const studyGuideId = selectedStudyGuide?.id || 'new';
-    window.isCancelingContentEditor = true;
     if (hasUnsavedChanges) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to cancel?')) {
-        clearDraft(studyGuideId);
-        onCancel();
-      } else {
-        window.isCancelingContentEditor = false;
-      }
+      setIsConfirmModalOpen(true);
     } else {
+      const studyGuideId = selectedStudyGuide?.id || 'new';
       clearDraft(studyGuideId);
       onCancel();
     }
+  };
+
+  const confirmCancel = () => {
+    const studyGuideId = selectedStudyGuide?.id || 'new';
+    window.isCancelingContentEditor = true;
+    clearDraft(studyGuideId);
+    setIsConfirmModalOpen(false);
+    onCancel();
   };
 
   const handleDeleteClick = () => {
@@ -439,21 +465,122 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     onDelete();
   };
 
+  // Handle publish/unpublish
+  const handleTogglePublish = async () => {
+    if (isNew) {
+      showToast('Please save the study guide before publishing.', 'warning');
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      // Import the service here to avoid circular dependencies
+      const { studyGuidesService } = await import('../../../../services/api/studyGuides');
+
+      // Toggle the publish status
+      const updatedGuide = await studyGuidesService.togglePublishStatus(
+        selectedStudyGuide.id,
+        !isPublished
+      );
+
+      // Update the local state
+      setIsPublished(updatedGuide.is_published);
+
+      // Show a success message using ConfirmationDialog
+      if (updatedGuide.is_published) {
+        setPublishSuccessDialog({
+          isOpen: true,
+          title: 'Study Guide Published',
+          message: 'Your study guide has been published successfully and is now available to all users in the public study guides section.'
+        });
+      } else {
+        setPublishSuccessDialog({
+          isOpen: true,
+          title: 'Study Guide Unpublished',
+          message: 'Your study guide has been unpublished and is no longer visible to users in the public study guides section.'
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling publish status:', error);
+      showToast('Failed to update publish status.', 'error');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full" style={{ position: 'relative', paddingBottom: '60px' }}>
-      {/* Title input */}
-      <div className="flex w-full h-[38px] justify-between items-center mb-2">
-        <div className="w-[70%] h-full">
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => { setTitle(e.target.value); setHasUnsavedChanges(true); }}
-            className={`w-full h-full px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
-            placeholder="Enter content title"
-            required
-          />
+      {/* Header section with title, description and publish controls */}
+      <div className="flex flex-col w-full gap-2 mb-4">
+        {/* Title and publish controls */}
+        <div className="flex w-full h-[38px] justify-between items-center">
+          <div className="w-[70%] h-full">
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => { setTitle(e.target.value); setHasUnsavedChanges(true); }}
+              className={`w-full h-full px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+              placeholder="Enter content title"
+              required
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Status indicator */}
+            {!isNew && (
+              <div className={`flex items-center text-xs font-medium ${
+                isPublished
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}>
+                <span className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                  isPublished
+                    ? 'bg-green-500 dark:bg-green-400'
+                    : 'bg-gray-400 dark:bg-gray-500'
+                }`}></span>
+                {isPublished ? 'Published' : 'Draft'}
+              </div>
+            )}
+
+            {/* Publish/Unpublish button */}
+            {isPublished ? (
+              <button
+                type="button"
+                onClick={handleTogglePublish}
+                disabled={isNew || isPublishing}
+                className={`
+                  py-2 px-4 rounded-md text-sm cursor-pointer transition-colors flex items-center gap-2
+                  ${isPublishing ? 'opacity-50 cursor-not-allowed' : ''}
+                  ${isDark
+                    ? 'bg-slate-700 hover:bg-slate-600 border border-red-500 text-red-400 hover:text-red-300'
+                    : 'bg-white hover:bg-gray-100 border border-red-500 text-red-600 hover:text-red-700'
+                  }
+                `}
+              >
+                {isPublishing ? 'Updating...' : 'Unpublish'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleTogglePublish}
+                disabled={isNew || isPublishing}
+                className={`
+                  py-2 px-4 rounded-md text-sm cursor-pointer transition-colors flex items-center gap-2
+                  ${isPublishing ? 'opacity-50 cursor-not-allowed' : ''}
+                  ${isDark
+                    ? 'bg-slate-700 hover:bg-slate-600 border border-teal-500 text-teal-400'
+                    : 'bg-white hover:bg-gray-100 border border-teal-500 text-teal-600'
+                  }
+                `}
+              >
+                {isPublishing ? 'Updating...' : 'Publish'}
+              </button>
+            )}
+          </div>
         </div>
+
+
       </div>
 
       {/* Editor area - takes all available space */}
@@ -496,6 +623,30 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         <button type="button" onClick={handleSaveAndContinue} disabled={isSaving} className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : 'Save and Continue'}</button>
         <button type="button" onClick={() => handleSave(true)} disabled={isSaving} className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save and Exit')}</button>
       </div>
+
+      {/* Confirmation Dialog for unsaved changes */}
+      <ConfirmationDialog
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={confirmCancel}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to cancel?"
+        confirmButtonText="Yes, Cancel"
+        cancelButtonText="No, Continue Editing"
+        confirmButtonVariant="danger"
+      />
+
+      {/* Publish Success Dialog */}
+      <ConfirmationDialog
+        isOpen={publishSuccessDialog.isOpen}
+        onClose={() => setPublishSuccessDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={() => setPublishSuccessDialog(prev => ({ ...prev, isOpen: false }))}
+        title={publishSuccessDialog.title}
+        description={publishSuccessDialog.message}
+        confirmButtonText="OK"
+        cancelButtonText=""
+        confirmButtonVariant="primary"
+      />
     </div>
   );
 };
@@ -508,40 +659,42 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
   return (
     <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 130px)' }}>
       <ToolbarZIndexProvider>
-          <Editor
-            resolver={{
-              Container, Text, Button, Image, Card, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs
-            }}
-            enabled={true}
-            onRender={RenderNode}
-            options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
-            indicator={{ success: '#006aff', error: '#ef4444' }}
-            onNodesChange={(query) => {
-              const studyGuideId = selectedStudyGuide?.id || 'new';
-              const selectedNodes = query.getState().events.selected;
-              if (selectedNodes.size > 0) {
-                saveSelectedNode(studyGuideId, Array.from(selectedNodes)[0]);
-              } else {
-                clearSelectedNode(studyGuideId);
-              }
+        <Editor
+          resolver={{
+            Container, Text, Button, Image, Card, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs
+          }}
+          enabled={true}
+          onRender={RenderNode}
+          options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
+          indicator={{ success: '#006aff', error: '#ef4444' }}
+          onNodesChange={(query) => {
+            const studyGuideId = selectedStudyGuide?.id || 'new';
+            const selectedNodes = query.getState().events.selected;
+            if (selectedNodes.size > 0) {
+              saveSelectedNode(studyGuideId, Array.from(selectedNodes)[0]);
+            } else {
+              clearSelectedNode(studyGuideId);
+            }
 
-              if (!onJsonChange || !query) return;
+            if (!onJsonChange || !query) return;
 
-              try {
-                const currentJson = JSON.stringify(query.serialize());
-                if (window.jsonChangeTimeout) clearTimeout(window.jsonChangeTimeout);
-                window.jsonChangeTimeout = setTimeout(() => {
-                  const latestJson = JSON.stringify(query.serialize());
-                  if (latestJson !== editorJson && !window.isCancelingContentEditor) {
-                    saveDraft(studyGuideId, { title: document.getElementById('title')?.value || '', content: latestJson });
-                    onJsonChange(latestJson);
-                  }
-                }, 1000);
-              } catch (error) {
-                console.error("Error serializing editor state in onNodesChange:", error);
-              }
-            }}
-          >
+            try {
+              // Clear any existing timeout
+              if (window.jsonChangeTimeout) clearTimeout(window.jsonChangeTimeout);
+
+              // Set a new timeout to debounce changes
+              window.jsonChangeTimeout = setTimeout(() => {
+                const latestJson = JSON.stringify(query.serialize());
+                if (latestJson !== editorJson && !window.isCancelingContentEditor) {
+                  saveDraft(studyGuideId, { title: document.getElementById('title')?.value || '', content: latestJson });
+                  onJsonChange(latestJson);
+                }
+              }, 1000);
+            } catch (error) {
+              console.error("Error serializing editor state in onNodesChange:", error);
+            }
+          }}
+        >
           <EditorInner
             editorJson={editorJson}
             initialTitle={initialTitle}

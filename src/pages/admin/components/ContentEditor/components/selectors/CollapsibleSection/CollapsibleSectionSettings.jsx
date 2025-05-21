@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNode } from '@craftjs/core';
 import { FaChevronDown, FaInfoCircle } from 'react-icons/fa';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { convertToThemeColor } from '../../../utils/themeColors';
+import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
+import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
 // Helper function to ensure theme colors are properly initialized
 const ensureThemeColors = (props, isDark) => {
@@ -261,26 +262,14 @@ export const CollapsibleSectionSettings = () => {
   }, [setProp, isDark]);
 
   const handleColorChange = (colorKey, newColor) => {
-    const r = parseInt(newColor.substring(1, 3), 16);
-    const g = parseInt(newColor.substring(3, 5), 16);
-    const b = parseInt(newColor.substring(5, 7), 16);
-
     // Add debug logging for header text color changes
     if (colorKey === 'headerTextColor') {
-      console.log(`Changing headerTextColor to: rgb(${r}, ${g}, ${b})`);
+      console.log(`Changing headerTextColor to:`, newColor);
     }
 
     actions.setProp((props) => {
       const currentTheme = isDark ? 'dark' : 'light';
       const oppositeTheme = isDark ? 'light' : 'dark';
-
-      // Get current alpha or default to 1
-      const currentAlpha = props[colorKey] &&
-                          props[colorKey][currentTheme] &&
-                          typeof props[colorKey][currentTheme].a !== 'undefined' ?
-                          props[colorKey][currentTheme].a : 1;
-
-      const newThemeColor = { r, g, b, a: currentAlpha };
 
       // Log before update if it's headerTextColor
       if (colorKey === 'headerTextColor') {
@@ -293,18 +282,18 @@ export const CollapsibleSectionSettings = () => {
 
       if (props.autoConvertColors) {
         // Auto-convert the color for the opposite theme
-        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, componentType);
+        const oppositeColor = convertToThemeColor(newColor, !isDark, componentType);
 
         props[colorKey] = {
           ...props[colorKey],
-          [currentTheme]: newThemeColor,
+          [currentTheme]: newColor,
           [oppositeTheme]: oppositeColor
         };
       } else {
         // Only update the current theme's color
         props[colorKey] = {
           ...props[colorKey],
-          [currentTheme]: newThemeColor
+          [currentTheme]: newColor
         };
       }
 
@@ -325,6 +314,33 @@ export const CollapsibleSectionSettings = () => {
 
           console.log('After deep clone - headerTextColor:', JSON.stringify(props.headerTextColor));
         }
+      }
+    });
+  };
+
+  // Handler for opposite theme color change
+  const handleOppositeThemeColorChange = (colorKey, newColor) => {
+    actions.setProp((props) => {
+      const oppositeTheme = isDark ? 'light' : 'dark';
+
+      // Only update the opposite theme's color
+      props[colorKey] = {
+        ...props[colorKey],
+        [oppositeTheme]: newColor
+      };
+
+      // Special handling for headerTextColor to ensure it's properly saved
+      if (colorKey === 'headerTextColor') {
+        // Force a deep clone of the headerTextColor
+        const currentTheme = isDark ? 'dark' : 'light';
+        const currentThemeColor = props.headerTextColor[currentTheme];
+        const oppositeThemeColor = props.headerTextColor[oppositeTheme];
+
+        // Create a new object to ensure the reference changes
+        props.headerTextColor = {
+          [currentTheme]: { ...currentThemeColor },
+          [oppositeTheme]: { ...oppositeThemeColor }
+        };
       }
     });
   };
@@ -393,180 +409,8 @@ export const CollapsibleSectionSettings = () => {
   };
 
   // Helper function to get the current theme color value for display
-  const getCurrentThemeColorValue = (colorObj) => {
-    if (!colorObj) return '#000000';
-
-    const currentTheme = isDark ? 'dark' : 'light';
-
-    // Handle theme-aware color objects
-    if (colorObj[currentTheme]) {
-      const themeColor = colorObj[currentTheme];
-      return `#${Math.round(themeColor.r).toString(16).padStart(2, '0')}${Math.round(themeColor.g).toString(16).padStart(2, '0')}${Math.round(themeColor.b).toString(16).padStart(2, '0')}`;
-    }
-
-    // Handle legacy format (single RGBA object)
-    if ('r' in colorObj) {
-      return `#${Math.round(colorObj.r).toString(16).padStart(2, '0')}${Math.round(colorObj.g).toString(16).padStart(2, '0')}${Math.round(colorObj.b).toString(16).padStart(2, '0')}`;
-    }
-
-    return '#000000';
-  };
-
-  // Helper function to get the current theme opacity value
-  const getCurrentThemeOpacity = (colorObj) => {
-    if (!colorObj) return 1;
-
-    const currentTheme = isDark ? 'dark' : 'light';
-
-    // Handle theme-aware color objects
-    if (colorObj[currentTheme]) {
-      return colorObj[currentTheme].a !== undefined ? colorObj[currentTheme].a : 1;
-    }
-
-    // Handle legacy format (single RGBA object)
-    if ('a' in colorObj) {
-      return colorObj.a;
-    }
-
-    return 1;
-  };
-
-  // Helper function to handle border color change
-  const handleBorderColorChange = (newColor) => {
-    const r = parseInt(newColor.substring(1, 3), 16);
-    const g = parseInt(newColor.substring(3, 5), 16);
-    const b = parseInt(newColor.substring(5, 7), 16);
-
-    actions.setProp((props) => {
-      const currentTheme = isDark ? 'dark' : 'light';
-      const oppositeTheme = isDark ? 'light' : 'dark';
-
-      // Get current alpha or default to 1
-      const currentAlpha = props.border.color &&
-                          props.border.color[currentTheme] &&
-                          typeof props.border.color[currentTheme].a !== 'undefined' ?
-                          props.border.color[currentTheme].a : 1;
-
-      const newThemeColor = { r, g, b, a: currentAlpha };
-
-      if (props.autoConvertColors) {
-        // Auto-convert the color for the opposite theme
-        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'container');
-
-        props.border.color = {
-          ...props.border.color,
-          [currentTheme]: newThemeColor,
-          [oppositeTheme]: oppositeColor
-        };
-      } else {
-        // Only update the current theme's color
-        props.border.color = {
-          ...props.border.color,
-          [currentTheme]: newThemeColor
-        };
-      }
-    });
-  };
-
-  // Helper function to handle border opacity change
-  const handleBorderOpacityChange = (opacity) => {
-    actions.setProp((props) => {
-      const currentTheme = isDark ? 'dark' : 'light';
-      const oppositeTheme = isDark ? 'light' : 'dark';
-
-      // Create a new color object with the updated opacity
-      const newThemeColor = {
-        ...props.border.color[currentTheme],
-        a: opacity
-      };
-
-      if (props.autoConvertColors) {
-        // Auto-convert the color for the opposite theme
-        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'container');
-
-        props.border.color = {
-          ...props.border.color,
-          [currentTheme]: newThemeColor,
-          [oppositeTheme]: oppositeColor
-        };
-      } else {
-        // Only update the current theme's color
-        props.border.color = {
-          ...props.border.color,
-          [currentTheme]: newThemeColor
-        };
-      }
-    });
-  };
-
-  // Helper function to handle shadow color change
-  const handleShadowColorChange = (newColor) => {
-    const hex = newColor.substring(1);
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-
-    actions.setProp((props) => {
-      const currentTheme = isDark ? 'dark' : 'light';
-      const oppositeTheme = isDark ? 'light' : 'dark';
-
-      // Get current alpha or default to 0.15
-      const currentAlpha = props.shadow.color &&
-                          props.shadow.color[currentTheme] &&
-                          typeof props.shadow.color[currentTheme].a !== 'undefined' ?
-                          props.shadow.color[currentTheme].a : 0.15;
-
-      const newThemeColor = { r, g, b, a: currentAlpha };
-
-      if (props.autoConvertColors) {
-        // Auto-convert the color for the opposite theme
-        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'shadow');
-
-        props.shadow.color = {
-          ...props.shadow.color,
-          [currentTheme]: newThemeColor,
-          [oppositeTheme]: oppositeColor
-        };
-      } else {
-        // Only update the current theme's color
-        props.shadow.color = {
-          ...props.shadow.color,
-          [currentTheme]: newThemeColor
-        };
-      }
-    });
-  };
-
-  // Helper function to handle shadow opacity change
-  const handleShadowOpacityChange = (opacity) => {
-    actions.setProp((props) => {
-      const currentTheme = isDark ? 'dark' : 'light';
-      const oppositeTheme = isDark ? 'light' : 'dark';
-
-      // Create a new color object with the updated opacity
-      const newThemeColor = {
-        ...props.shadow.color[currentTheme],
-        a: opacity
-      };
-
-      if (props.autoConvertColors) {
-        // Auto-convert the color for the opposite theme
-        const oppositeColor = convertToThemeColor(newThemeColor, !isDark, 'shadow');
-
-        props.shadow.color = {
-          ...props.shadow.color,
-          [currentTheme]: newThemeColor,
-          [oppositeTheme]: oppositeColor
-        };
-      } else {
-        // Only update the current theme's color
-        props.shadow.color = {
-          ...props.shadow.color,
-          [currentTheme]: newThemeColor
-        };
-      }
-    });
-  };
+  // These helper functions are no longer needed as they've been replaced by the ColorPicker component
+  // which handles color conversion and theme-aware color management internally
 
   return (
     <div className="settings-container">
@@ -722,100 +566,333 @@ export const CollapsibleSectionSettings = () => {
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Content Background</label>
               <div className="flex items-center">
-                <input
-                  type="color"
-                  value={getCurrentThemeColorValue(background)}
-                  onChange={(e) => handleColorChange('background', e.target.value)}
-                  className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={getCurrentThemeOpacity(background)}
-                  onChange={(e) => handleOpacityChange('background', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                <ColorPicker
+                  color={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (background && background[currentTheme] &&
+                          typeof background[currentTheme].r !== 'undefined' &&
+                          typeof background[currentTheme].g !== 'undefined' &&
+                          typeof background[currentTheme].b !== 'undefined') {
+                        return background[currentTheme];
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ?
+                        { r: 31, g: 41, b: 55, a: 1 } :
+                        { r: 255, g: 255, b: 255, a: 1 };
+                    } catch (error) {
+                      console.warn('Error getting current theme color:', error);
+                      return isDark ?
+                        { r: 31, g: 41, b: 55, a: 1 } :
+                        { r: 255, g: 255, b: 255, a: 1 };
+                    }
+                  })()}
+                  onChange={(newColor) => handleColorChange('background', newColor)}
+                  componentType="container"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Content Background {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (background && background[oppositeTheme] &&
+                              typeof background[oppositeTheme].r !== 'undefined' &&
+                              typeof background[oppositeTheme].g !== 'undefined' &&
+                              typeof background[oppositeTheme].b !== 'undefined') {
+                            return background[oppositeTheme];
+                          } else if (background && background[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            return convertToThemeColor(background[currentTheme], !isDark, 'container');
+                          }
+                          // Fallback to default color for opposite theme
+                          return !isDark ?
+                            { r: 31, g: 41, b: 55, a: 1 } :
+                            { r: 255, g: 255, b: 255, a: 1 };
+                        } catch (error) {
+                          console.warn('Error getting opposite theme color:', error);
+                          return !isDark ?
+                            { r: 31, g: 41, b: 55, a: 1 } :
+                            { r: 255, g: 255, b: 255, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => handleOppositeThemeColorChange('background', newColor)}
+                      componentType="container"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Header Background</label>
               <div className="flex items-center">
-                <input
-                  type="color"
-                  value={getCurrentThemeColorValue(headerBackground)}
-                  onChange={(e) => handleColorChange('headerBackground', e.target.value)}
-                  className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={getCurrentThemeOpacity(headerBackground)}
-                  onChange={(e) => handleOpacityChange('headerBackground', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                <ColorPicker
+                  color={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (headerBackground && headerBackground[currentTheme] &&
+                          typeof headerBackground[currentTheme].r !== 'undefined' &&
+                          typeof headerBackground[currentTheme].g !== 'undefined' &&
+                          typeof headerBackground[currentTheme].b !== 'undefined') {
+                        return headerBackground[currentTheme];
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ?
+                        { r: 51, g: 65, b: 85, a: 1 } :
+                        { r: 245, g: 247, b: 250, a: 1 };
+                    } catch (error) {
+                      console.warn('Error getting current theme color:', error);
+                      return isDark ?
+                        { r: 51, g: 65, b: 85, a: 1 } :
+                        { r: 245, g: 247, b: 250, a: 1 };
+                    }
+                  })()}
+                  onChange={(newColor) => handleColorChange('headerBackground', newColor)}
+                  componentType="container"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Header Background {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (headerBackground && headerBackground[oppositeTheme] &&
+                              typeof headerBackground[oppositeTheme].r !== 'undefined' &&
+                              typeof headerBackground[oppositeTheme].g !== 'undefined' &&
+                              typeof headerBackground[oppositeTheme].b !== 'undefined') {
+                            return headerBackground[oppositeTheme];
+                          } else if (headerBackground && headerBackground[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            return convertToThemeColor(headerBackground[currentTheme], !isDark, 'container');
+                          }
+                          // Fallback to default color for opposite theme
+                          return !isDark ?
+                            { r: 51, g: 65, b: 85, a: 1 } :
+                            { r: 245, g: 247, b: 250, a: 1 };
+                        } catch (error) {
+                          console.warn('Error getting opposite theme color:', error);
+                          return !isDark ?
+                            { r: 51, g: 65, b: 85, a: 1 } :
+                            { r: 245, g: 247, b: 250, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => handleOppositeThemeColorChange('headerBackground', newColor)}
+                      componentType="container"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Header Text Color</label>
               <div className="flex items-center">
-                <input
-                  type="color"
-                  value={getCurrentThemeColorValue(headerTextColor)}
-                  onChange={(e) => handleColorChange('headerTextColor', e.target.value)}
-                  className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={getCurrentThemeOpacity(headerTextColor)}
-                  onChange={(e) => handleOpacityChange('headerTextColor', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                <ColorPicker
+                  color={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (headerTextColor && headerTextColor[currentTheme] &&
+                          typeof headerTextColor[currentTheme].r !== 'undefined' &&
+                          typeof headerTextColor[currentTheme].g !== 'undefined' &&
+                          typeof headerTextColor[currentTheme].b !== 'undefined') {
+                        return headerTextColor[currentTheme];
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ?
+                        { r: 229, g: 231, b: 235, a: 1 } :
+                        { r: 0, g: 0, b: 0, a: 1 };
+                    } catch (error) {
+                      console.warn('Error getting current theme color:', error);
+                      return isDark ?
+                        { r: 229, g: 231, b: 235, a: 1 } :
+                        { r: 0, g: 0, b: 0, a: 1 };
+                    }
+                  })()}
+                  onChange={(newColor) => handleColorChange('headerTextColor', newColor)}
+                  componentType="text"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Header Text Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (headerTextColor && headerTextColor[oppositeTheme] &&
+                              typeof headerTextColor[oppositeTheme].r !== 'undefined' &&
+                              typeof headerTextColor[oppositeTheme].g !== 'undefined' &&
+                              typeof headerTextColor[oppositeTheme].b !== 'undefined') {
+                            return headerTextColor[oppositeTheme];
+                          } else if (headerTextColor && headerTextColor[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            return convertToThemeColor(headerTextColor[currentTheme], !isDark, 'text');
+                          }
+                          // Fallback to default color for opposite theme
+                          return !isDark ?
+                            { r: 229, g: 231, b: 235, a: 1 } :
+                            { r: 0, g: 0, b: 0, a: 1 };
+                        } catch (error) {
+                          console.warn('Error getting opposite theme color:', error);
+                          return !isDark ?
+                            { r: 229, g: 231, b: 235, a: 1 } :
+                            { r: 0, g: 0, b: 0, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => handleOppositeThemeColorChange('headerTextColor', newColor)}
+                      componentType="text"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Header Font Size</label>
               <div className="flex items-center">
-                <input
-                  type="range"
-                  min={12}
-                  max={32}
-                  value={headerFontSize}
-                  onChange={(e) => actions.setProp((props) => { props.headerFontSize = parseInt(e.target.value); })}
-                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{headerFontSize}px</span>
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    min={12}
+                    max={32}
+                    value={headerFontSize}
+                    onChange={(e) => actions.setProp((props) => { props.headerFontSize = parseInt(e.target.value); })}
+                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={12}
+                    max={32}
+                    value={headerFontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 12 && value <= 32) {
+                        actions.setProp((props) => { props.headerFontSize = value; });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Header font size in pixels"
+                  />
+                </div>
               </div>
             </div>
 
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Arrow Color</label>
               <div className="flex items-center">
-                <input
-                  type="color"
-                  value={getCurrentThemeColorValue(color)}
-                  onChange={(e) => handleColorChange('color', e.target.value)}
-                  className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={getCurrentThemeOpacity(color)}
-                  onChange={(e) => handleOpacityChange('color', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                <ColorPicker
+                  color={(() => {
+                    try {
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      // Always use the current theme's color directly, not the converted color
+                      if (color && color[currentTheme] &&
+                          typeof color[currentTheme].r !== 'undefined' &&
+                          typeof color[currentTheme].g !== 'undefined' &&
+                          typeof color[currentTheme].b !== 'undefined') {
+                        return color[currentTheme];
+                      }
+                      // Fallback to default color for current theme
+                      return isDark ?
+                        { r: 229, g: 231, b: 235, a: 1 } :
+                        { r: 51, g: 51, b: 51, a: 1 };
+                    } catch (error) {
+                      console.warn('Error getting current theme color:', error);
+                      return isDark ?
+                        { r: 229, g: 231, b: 235, a: 1 } :
+                        { r: 51, g: 51, b: 51, a: 1 };
+                    }
+                  })()}
+                  onChange={(newColor) => handleColorChange('color', newColor)}
+                  componentType="text"
                 />
               </div>
+
+              {/* Show opposite theme color control when auto-convert is disabled */}
+              {!autoConvertColors && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Arrow Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (color && color[oppositeTheme] &&
+                              typeof color[oppositeTheme].r !== 'undefined' &&
+                              typeof color[oppositeTheme].g !== 'undefined' &&
+                              typeof color[oppositeTheme].b !== 'undefined') {
+                            return color[oppositeTheme];
+                          } else if (color && color[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            return convertToThemeColor(color[currentTheme], !isDark, 'text');
+                          }
+                          // Fallback to default color for opposite theme
+                          return !isDark ?
+                            { r: 229, g: 231, b: 235, a: 1 } :
+                            { r: 51, g: 51, b: 51, a: 1 };
+                        } catch (error) {
+                          console.warn('Error getting opposite theme color:', error);
+                          return !isDark ?
+                            { r: 229, g: 231, b: 235, a: 1 } :
+                            { r: 51, g: 51, b: 51, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => handleOppositeThemeColorChange('color', newColor)}
+                      componentType="text"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -842,38 +919,151 @@ export const CollapsibleSectionSettings = () => {
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Border Width</label>
                   <div className="flex items-center">
-                    <input
-                      type="range"
-                      min={1}
-                      max={10}
-                      value={border.width}
-                      onChange={(e) => actions.setProp((props) => {
-                        props.border = { ...props.border, width: parseInt(e.target.value) };
-                      })}
-                      className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                    />
-                    <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{border.width}px</span>
+                    <div className="w-3/4 flex items-center">
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={border.width}
+                        onChange={(e) => actions.setProp((props) => {
+                          props.border = { ...props.border, width: parseInt(e.target.value) };
+                        })}
+                        className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                      />
+                    </div>
+                    <div className="w-1/4 flex items-center">
+                      <input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={border.width}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10);
+                          if (!isNaN(value) && value >= 1 && value <= 10) {
+                            actions.setProp((props) => {
+                              props.border = { ...props.border, width: value };
+                            });
+                          }
+                        }}
+                        className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                        aria-label="Border width in pixels"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Border Color</label>
                   <div className="flex items-center">
-                    <input
-                      type="color"
-                      value={getCurrentThemeColorValue(border.color)}
-                      onChange={(e) => handleBorderColorChange(e.target.value)}
-                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={getCurrentThemeOpacity(border.color)}
-                      onChange={(e) => handleBorderOpacityChange(parseFloat(e.target.value))}
-                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const currentTheme = isDark ? 'dark' : 'light';
+                          // Always use the current theme's color directly, not the converted color
+                          if (border.color && border.color[currentTheme] &&
+                              typeof border.color[currentTheme].r !== 'undefined' &&
+                              typeof border.color[currentTheme].g !== 'undefined' &&
+                              typeof border.color[currentTheme].b !== 'undefined') {
+                            return border.color[currentTheme];
+                          }
+                          // Fallback to default color for current theme
+                          return isDark ?
+                            { r: 75, g: 85, b: 99, a: 1 } :
+                            { r: 204, g: 204, b: 204, a: 1 };
+                        } catch (error) {
+                          console.warn('Error getting current theme color:', error);
+                          return isDark ?
+                            { r: 75, g: 85, b: 99, a: 1 } :
+                            { r: 204, g: 204, b: 204, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => {
+                        actions.setProp((props) => {
+                          const currentTheme = isDark ? 'dark' : 'light';
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+
+                          if (props.autoConvertColors) {
+                            // Auto-convert the color for the opposite theme
+                            const oppositeColor = convertToThemeColor(newColor, !isDark, 'container');
+
+                            props.border = {
+                              ...props.border,
+                              color: {
+                                ...props.border.color,
+                                [currentTheme]: newColor,
+                                [oppositeTheme]: oppositeColor
+                              }
+                            };
+                          } else {
+                            // Only update the current theme's color
+                            props.border = {
+                              ...props.border,
+                              color: {
+                                ...props.border.color,
+                                [currentTheme]: newColor
+                              }
+                            };
+                          }
+                        });
+                      }}
+                      componentType="container"
                     />
                   </div>
+
+                  {/* Show opposite theme color control when auto-convert is disabled */}
+                  {!autoConvertColors && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Border Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                      </label>
+                      <div className="flex items-center">
+                        <ColorPicker
+                          color={(() => {
+                            try {
+                              const oppositeTheme = isDark ? 'light' : 'dark';
+                              const currentTheme = isDark ? 'dark' : 'light';
+
+                              // Ensure we have a valid color for the opposite theme
+                              if (border.color && border.color[oppositeTheme] &&
+                                  typeof border.color[oppositeTheme].r !== 'undefined' &&
+                                  typeof border.color[oppositeTheme].g !== 'undefined' &&
+                                  typeof border.color[oppositeTheme].b !== 'undefined') {
+                                return border.color[oppositeTheme];
+                              } else if (border.color && border.color[currentTheme]) {
+                                // If opposite theme color is missing but current theme exists, convert it
+                                return convertToThemeColor(border.color[currentTheme], !isDark, 'container');
+                              }
+                              // Fallback to default color for opposite theme
+                              return !isDark ?
+                                { r: 75, g: 85, b: 99, a: 1 } :
+                                { r: 204, g: 204, b: 204, a: 1 };
+                            } catch (error) {
+                              console.warn('Error getting opposite theme color:', error);
+                              return !isDark ?
+                                { r: 75, g: 85, b: 99, a: 1 } :
+                                { r: 204, g: 204, b: 204, a: 1 };
+                            }
+                          })()}
+                          onChange={(newColor) => {
+                            actions.setProp((props) => {
+                              const oppositeTheme = isDark ? 'light' : 'dark';
+
+                              props.border = {
+                                ...props.border,
+                                color: {
+                                  ...props.border.color,
+                                  [oppositeTheme]: newColor
+                                }
+                              };
+                            });
+                          }}
+                          componentType="container"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -881,15 +1071,32 @@ export const CollapsibleSectionSettings = () => {
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Border Radius</label>
               <div className="flex items-center">
-                <input
-                  type="range"
-                  value={radius}
-                  min={0}
-                  max={50}
-                  onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-                  className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{radius}px</span>
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    value={radius}
+                    min={0}
+                    max={50}
+                    onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
+                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={radius}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 0 && value <= 50) {
+                        actions.setProp((props) => { props.radius = value; });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Border radius in pixels"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1023,22 +1230,116 @@ export const CollapsibleSectionSettings = () => {
                   <div>
                     <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Shadow Color</label>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={getCurrentThemeColorValue(shadow.color)}
-                        onChange={(e) => handleShadowColorChange(e.target.value)}
-                        className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded"
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={getCurrentThemeOpacity(shadow.color)}
-                        onChange={(e) => handleShadowOpacityChange(parseFloat(e.target.value))}
-                        className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                      <ColorPicker
+                        color={(() => {
+                          try {
+                            const currentTheme = isDark ? 'dark' : 'light';
+                            // Always use the current theme's color directly, not the converted color
+                            if (shadow.color && shadow.color[currentTheme] &&
+                                typeof shadow.color[currentTheme].r !== 'undefined' &&
+                                typeof shadow.color[currentTheme].g !== 'undefined' &&
+                                typeof shadow.color[currentTheme].b !== 'undefined') {
+                              return shadow.color[currentTheme];
+                            }
+                            // Fallback to default color for current theme
+                            return isDark ?
+                              { r: 0, g: 0, b: 0, a: 0.25 } :
+                              { r: 0, g: 0, b: 0, a: 0.15 };
+                          } catch (error) {
+                            console.warn('Error getting current theme color:', error);
+                            return isDark ?
+                              { r: 0, g: 0, b: 0, a: 0.25 } :
+                              { r: 0, g: 0, b: 0, a: 0.15 };
+                          }
+                        })()}
+                        onChange={(newColor) => {
+                          actions.setProp((props) => {
+                            const currentTheme = isDark ? 'dark' : 'light';
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+
+                            if (props.autoConvertColors) {
+                              // Auto-convert the color for the opposite theme
+                              const oppositeColor = convertToThemeColor(newColor, !isDark, 'shadow');
+
+                              props.shadow = {
+                                ...props.shadow,
+                                color: {
+                                  ...props.shadow.color,
+                                  [currentTheme]: newColor,
+                                  [oppositeTheme]: oppositeColor
+                                }
+                              };
+                            } else {
+                              // Only update the current theme's color
+                              props.shadow = {
+                                ...props.shadow,
+                                color: {
+                                  ...props.shadow.color,
+                                  [currentTheme]: newColor
+                                }
+                              };
+                            }
+                          });
+                        }}
+                        componentType="shadow"
                       />
                     </div>
+
+                    {/* Show opposite theme color control when auto-convert is disabled */}
+                    {!autoConvertColors && (
+                      <div className="mt-2">
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          Shadow Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <ColorPicker
+                            color={(() => {
+                              try {
+                                const oppositeTheme = isDark ? 'light' : 'dark';
+                                const currentTheme = isDark ? 'dark' : 'light';
+
+                                // Ensure we have a valid color for the opposite theme
+                                if (shadow.color && shadow.color[oppositeTheme] &&
+                                    typeof shadow.color[oppositeTheme].r !== 'undefined' &&
+                                    typeof shadow.color[oppositeTheme].g !== 'undefined' &&
+                                    typeof shadow.color[oppositeTheme].b !== 'undefined') {
+                                  return shadow.color[oppositeTheme];
+                                } else if (shadow.color && shadow.color[currentTheme]) {
+                                  // If opposite theme color is missing but current theme exists, convert it
+                                  return convertToThemeColor(shadow.color[currentTheme], !isDark, 'shadow');
+                                }
+                                // Fallback to default color for opposite theme
+                                return !isDark ?
+                                  { r: 0, g: 0, b: 0, a: 0.25 } :
+                                  { r: 0, g: 0, b: 0, a: 0.15 };
+                              } catch (error) {
+                                console.warn('Error getting opposite theme color:', error);
+                                return !isDark ?
+                                  { r: 0, g: 0, b: 0, a: 0.25 } :
+                                  { r: 0, g: 0, b: 0, a: 0.15 };
+                              }
+                            })()}
+                            onChange={(newColor) => {
+                              actions.setProp((props) => {
+                                const oppositeTheme = isDark ? 'light' : 'dark';
+
+                                props.shadow = {
+                                  ...props.shadow,
+                                  color: {
+                                    ...props.shadow.color,
+                                    [oppositeTheme]: newColor
+                                  }
+                                };
+                              });
+                            }}
+                            componentType="shadow"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1105,43 +1406,135 @@ export const CollapsibleSectionSettings = () => {
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Step Button Color</label>
                   <div className="flex items-center">
-                    <input
-                      type="color"
-                      value={getCurrentThemeColorValue(stepButtonColor)}
-                      onChange={(e) => handleColorChange('stepButtonColor', e.target.value)}
-                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={getCurrentThemeOpacity(stepButtonColor)}
-                      onChange={(e) => handleOpacityChange('stepButtonColor', parseFloat(e.target.value))}
-                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const currentTheme = isDark ? 'dark' : 'light';
+                          // Always use the current theme's color directly, not the converted color
+                          if (stepButtonColor && stepButtonColor[currentTheme] &&
+                              typeof stepButtonColor[currentTheme].r !== 'undefined' &&
+                              typeof stepButtonColor[currentTheme].g !== 'undefined' &&
+                              typeof stepButtonColor[currentTheme].b !== 'undefined') {
+                            return stepButtonColor[currentTheme];
+                          }
+                          // Fallback to default color for current theme
+                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                        } catch (error) {
+                          console.warn('Error getting current theme color:', error);
+                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                        }
+                      })()}
+                      onChange={(newColor) => handleColorChange('stepButtonColor', newColor)}
+                      componentType="button"
                     />
                   </div>
+
+                  {/* Show opposite theme color control when auto-convert is disabled */}
+                  {!autoConvertColors && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Step Button Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                      </label>
+                      <div className="flex items-center">
+                        <ColorPicker
+                          color={(() => {
+                            try {
+                              const oppositeTheme = isDark ? 'light' : 'dark';
+                              const currentTheme = isDark ? 'dark' : 'light';
+
+                              // Ensure we have a valid color for the opposite theme
+                              if (stepButtonColor && stepButtonColor[oppositeTheme] &&
+                                  typeof stepButtonColor[oppositeTheme].r !== 'undefined' &&
+                                  typeof stepButtonColor[oppositeTheme].g !== 'undefined' &&
+                                  typeof stepButtonColor[oppositeTheme].b !== 'undefined') {
+                                return stepButtonColor[oppositeTheme];
+                              } else if (stepButtonColor && stepButtonColor[currentTheme]) {
+                                // If opposite theme color is missing but current theme exists, convert it
+                                return convertToThemeColor(stepButtonColor[currentTheme], !isDark, 'button');
+                              }
+                              // Fallback to default color for opposite theme
+                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                            } catch (error) {
+                              console.warn('Error getting opposite theme color:', error);
+                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                            }
+                          })()}
+                          onChange={(newColor) => handleOppositeThemeColorChange('stepButtonColor', newColor)}
+                          componentType="button"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Step Indicator Color</label>
                   <div className="flex items-center">
-                    <input
-                      type="color"
-                      value={getCurrentThemeColorValue(stepIndicatorColor)}
-                      onChange={(e) => handleColorChange('stepIndicatorColor', e.target.value)}
-                      className="w-8 h-8 p-0 border border-gray-300 dark:border-slate-600 rounded mr-2"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={getCurrentThemeOpacity(stepIndicatorColor)}
-                      onChange={(e) => handleOpacityChange('stepIndicatorColor', parseFloat(e.target.value))}
-                      className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const currentTheme = isDark ? 'dark' : 'light';
+                          // Always use the current theme's color directly, not the converted color
+                          if (stepIndicatorColor && stepIndicatorColor[currentTheme] &&
+                              typeof stepIndicatorColor[currentTheme].r !== 'undefined' &&
+                              typeof stepIndicatorColor[currentTheme].g !== 'undefined' &&
+                              typeof stepIndicatorColor[currentTheme].b !== 'undefined') {
+                            return stepIndicatorColor[currentTheme];
+                          }
+                          // Fallback to default color for current theme
+                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                        } catch (error) {
+                          console.warn('Error getting current theme color:', error);
+                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                        }
+                      })()}
+                      onChange={(newColor) => handleColorChange('stepIndicatorColor', newColor)}
+                      componentType="button"
                     />
                   </div>
+
+                  {/* Show opposite theme color control when auto-convert is disabled */}
+                  {!autoConvertColors && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Step Indicator Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                      </label>
+                      <div className="flex items-center">
+                        <ColorPicker
+                          color={(() => {
+                            try {
+                              const oppositeTheme = isDark ? 'light' : 'dark';
+                              const currentTheme = isDark ? 'dark' : 'light';
+
+                              // Ensure we have a valid color for the opposite theme
+                              if (stepIndicatorColor && stepIndicatorColor[oppositeTheme] &&
+                                  typeof stepIndicatorColor[oppositeTheme].r !== 'undefined' &&
+                                  typeof stepIndicatorColor[oppositeTheme].g !== 'undefined' &&
+                                  typeof stepIndicatorColor[oppositeTheme].b !== 'undefined') {
+                                return stepIndicatorColor[oppositeTheme];
+                              } else if (stepIndicatorColor && stepIndicatorColor[currentTheme]) {
+                                // If opposite theme color is missing but current theme exists, convert it
+                                return convertToThemeColor(stepIndicatorColor[currentTheme], !isDark, 'button');
+                              }
+                              // Fallback to default color for opposite theme
+                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                            } catch (error) {
+                              console.warn('Error getting opposite theme color:', error);
+                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                            }
+                          })()}
+                          onChange={(newColor) => handleOppositeThemeColorChange('stepIndicatorColor', newColor)}
+                          componentType="button"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-start mb-2">

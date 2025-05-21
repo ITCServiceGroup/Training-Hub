@@ -107,11 +107,13 @@ export const Container = (props) => {
   const { query } = useEditor();
 
   // Get the node ID and drag state
-  const { id, isActive, data, isDragged } = useNode(node => ({
+  const { id, isActive, data, isDragged, selected, hovered } = useNode(node => ({
     id: node.id,
     isActive: node.events.selected,
     data: node.data,
-    isDragged: node.events.dragged
+    isDragged: node.events.dragged,
+    selected: node.events.selected,
+    hovered: node.events.hovered
   }));
 
   const isContainer = data.custom?.isCanvas;
@@ -264,7 +266,7 @@ export const Container = (props) => {
       >
         <div
           data-can-drop={isContainer && isDragged ? 'true' : undefined}
-          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''} ${flexDirection === 'row' ? 'craft-container-horizontal' : ''}`}
+          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''} ${flexDirection === 'row' ? 'craft-container-horizontal' : ''} ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
           style={{
             display: 'flex',
             justifyContent,
@@ -314,6 +316,82 @@ export const Container = (props) => {
             overflow: 'visible'
           }}
         >
+          {/* Custom resize handles for the container */}
+          {selected && (
+            <>
+              <div
+                className="container-handle-tl"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  // Create a new mouse event with the view property
+                  const event = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    view: window
+                  });
+                  // Find the resize handle within this specific container
+                  const resizeHandle = e.currentTarget.closest('.craft-container').querySelector('.react-resizable-handle-nw');
+                  if (resizeHandle) {
+                    resizeHandle.dispatchEvent(event);
+                  }
+                }}
+              ></div>
+              <div
+                className="container-handle-tr"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  const event = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    view: window
+                  });
+                  const resizeHandle = e.currentTarget.closest('.craft-container').querySelector('.react-resizable-handle-ne');
+                  if (resizeHandle) {
+                    resizeHandle.dispatchEvent(event);
+                  }
+                }}
+              ></div>
+              <div
+                className="container-handle-bl"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  const event = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    view: window
+                  });
+                  const resizeHandle = e.currentTarget.closest('.craft-container').querySelector('.react-resizable-handle-sw');
+                  if (resizeHandle) {
+                    resizeHandle.dispatchEvent(event);
+                  }
+                }}
+              ></div>
+              <div
+                className="container-handle-br"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  const event = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    view: window
+                  });
+                  const resizeHandle = e.currentTarget.closest('.craft-container').querySelector('.react-resizable-handle-se');
+                  if (resizeHandle) {
+                    resizeHandle.dispatchEvent(event);
+                  }
+                }}
+              ></div>
+            </>
+          )}
+
           {/* --- NEW Child Handling Logic --- */}
           {React.Children.map(children, child => {
             if (!React.isValidElement(child)) {

@@ -16,7 +16,8 @@ const StudyGuideManagement = ({
   onReorder,
   onBackToCategories,
   onCopy,
-  onMove
+  onMove,
+  onUpdateDescription
 }) => {
   // Using Tailwind classes instead of inline styles
   const { theme } = useTheme();
@@ -68,6 +69,7 @@ const StudyGuideManagement = ({
         onReorder={onReorder}
         onCopy={onCopy}
         onMove={onMove}
+        onUpdateDescription={onUpdateDescription}
         isLoading={isLoading}
         error={error}
       />
