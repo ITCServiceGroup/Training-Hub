@@ -9,9 +9,9 @@ const Footer = () => {
         <div className="flex justify-between items-center flex-wrap">
           <p className="m-0 text-slate-500 dark:text-slate-400">&copy; {currentYear} Training Hub. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-teal-700 dark:text-teal-500 no-underline hover:text-teal-800 dark:hover:text-teal-400">Privacy Policy</a>
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-teal-700 dark:text-teal-500 no-underline hover:text-teal-800 dark:hover:text-teal-400">Terms of Service</a>
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-teal-700 dark:text-teal-500 no-underline hover:text-teal-800 dark:hover:text-teal-400">Contact Us</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="text-primary no-underline hover:text-primary-dark">Privacy Policy</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="text-primary no-underline hover:text-primary-dark">Terms of Service</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="text-primary no-underline hover:text-primary-dark">Contact Us</a>
           </div>
         </div>
       </div>

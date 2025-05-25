@@ -17,7 +17,7 @@ const ConfirmationDialog = ({
     "py-2 px-4 border border-transparent rounded-md text-sm text-white cursor-pointer hover:-translate-y-0.5 transition-all",
     {
       'bg-red-600 hover:bg-red-700': confirmButtonVariant === 'danger',
-      'bg-teal-600 hover:bg-teal-700': confirmButtonVariant === 'primary'
+      'bg-primary hover:bg-primary-dark': confirmButtonVariant === 'primary'
     }
   );
 

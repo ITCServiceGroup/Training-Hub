@@ -85,7 +85,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
           {/* Footer Button Area */}
            <div className="px-6 pb-6 mt-auto flex-shrink-0">
              <button
-               className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
+               className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
                onClick={(e) => { stopPropagation(e); onViewStudyGuides(category); }}
              >
                <span>View Study Guides</span>

@@ -49,7 +49,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   if (isLoading) {
     return (
       <div className={`flex justify-center items-center p-12 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-4`}></div>
+        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-primary-light' : 'border-gray-200 border-t-primary-dark'} animate-spin mr-4`}></div>
         <span>Loading categories...</span>
       </div>
     );
@@ -89,7 +89,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
           >
             <div
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: color || '#0f766e' }}
+              style={{ backgroundColor: color || 'var(--color-primary)' }}
             >
               {icon}
             </div>
@@ -99,7 +99,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
               <span>{studyGuideCount} {studyGuideCount === 1 ? 'Study Guide' : 'Study Guides'}</span>
             </div>
             <button
-              className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full`}
+              className={`${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary-dark hover:bg-primary'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full`}
             >
               View Guides
             </button>

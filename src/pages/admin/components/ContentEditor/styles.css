@@ -96,7 +96,7 @@
 }
 
 .dark .craft-node-indicator {
-  outline-color: #0d9488 !important; /* teal-600 in dark mode */
+  outline-color: var(--color-primary) !important; /* Use dynamic primary color */
 }
 
 .dark .react-resizable {
@@ -123,7 +123,7 @@
   position: absolute;
   width: 10px;
   height: 10px;
-  background-color: #0d9488;
+  background-color: var(--color-primary);
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.25);
@@ -180,37 +180,37 @@
 }
 
 .craft-container.is-canvas[data-can-drop="true"] {
-  outline: 2px dashed #0d9488 !important;
+  outline: 2px dashed var(--color-primary) !important;
   outline-offset: -2px;
-  background-color: rgba(13, 148, 136, 0.03) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 3%, transparent) !important;
 }
 
 .craft-container.is-canvas.is-dragging[data-can-drop="true"] {
-  outline: 2px dashed #0d9488 !important;
+  outline: 2px dashed var(--color-primary) !important;
   outline-offset: -2px;
-  background-color: rgba(13, 148, 136, 0.05) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
 }
 
 /* Add nested container styles */
 .craft-container .craft-container.is-canvas[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.08) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent) !important;
 }
 
 .craft-container .craft-container .craft-container.is-canvas[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.12) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
 }
 
 /* Drag depth styles */
 .craft-container.is-canvas.depth-1[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.05) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
 }
 
 .craft-container.is-canvas.depth-2[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.08) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent) !important;
 }
 
 .craft-container.is-canvas.depth-3[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.12) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
 }
 
 /* Text styles */
@@ -261,11 +261,11 @@
 
 /* Image components should have dashed border when selected, and dashed when hovered */
 .craft-image-container.component-selected::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 .craft-image-container.component-hovered::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 /* Card styles */
@@ -276,11 +276,11 @@
 
 /* Card components should have dashed border when selected or hovered */
 .craft-card.component-selected::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 .craft-card.component-hovered::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 /* Ensure proper z-index for card components */
@@ -310,7 +310,7 @@
 
 /* When dragging is active, change the background color of the entire editor */
 .craftjs-renderer.dragging-active {
-  background-color: rgba(13, 148, 136, 0.03) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 3%, transparent) !important;
 }
 
 /* Element being dragged */
@@ -355,23 +355,23 @@
 
 /* Container that can accept drops - base style */
 .craft-container[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.05) !important;
-  outline: 2px dashed rgba(13, 148, 136, 0.5) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
+  outline: 2px dashed color-mix(in srgb, var(--color-primary) 50%, transparent) !important;
   outline-offset: -2px;
   transition: all 0.2s ease !important;
 }
 
 /* Depth-based styling for containers */
 .craft-container.depth-1[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.05) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
 }
 
 .craft-container.depth-2[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.08) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent) !important;
 }
 
 .craft-container.depth-3[data-can-drop="true"] {
-  background-color: rgba(13, 148, 136, 0.12) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
 }
 
 /* Add a subtle pulse animation for containers during drag */
@@ -393,12 +393,12 @@
 
 /* Element being hovered over during drag */
 .craft-container.drag-hover {
-  background-color: rgba(13, 148, 136, 0.15) !important;
-  outline: 3px dashed #0d9488 !important;
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+  outline: 3px dashed var(--color-primary) !important;
   outline-offset: -3px;
   z-index: 10 !important;
   position: relative;
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
   animation: none !important;
   transition: all 0.1s ease-in-out !important;
 }
@@ -510,7 +510,7 @@
 /* Border style for all selected components using ::after pseudo-element */
 .component-selected::after {
   content: ' ';
-  border: 2px dashed #0d9488; /* teal-600 color */
+  border: 2px dashed var(--color-primary); /* Use dynamic primary color */
   width: 100%;
   height: 100%;
   position: absolute;
@@ -525,7 +525,7 @@
 /* Border style for all hovered components using ::after pseudo-element */
 .component-hovered::after {
   content: ' ';
-  border: 2px dashed #0d9488; /* teal-600 color */
+  border: 2px dashed var(--color-primary); /* Use dynamic primary color */
   width: 100%;
   height: 100%;
   position: absolute;
@@ -732,7 +732,7 @@
 }
 
 .column-resize-handle:hover {
-  background-color: rgba(13, 148, 136, 0.5);
+  background-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
 }
 
 /* Row resize handle */
@@ -742,7 +742,7 @@
 }
 
 .row-resize-handle:hover {
-  background-color: rgba(13, 148, 136, 0.5);
+  background-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
 }
 
 /* Table components should have dashed border when selected or hovered */
@@ -752,13 +752,13 @@
 }
 
 .craft-table.component-selected {
-  outline: 2px dashed #0d9488 !important;
+  outline: 2px dashed var(--color-primary) !important;
   outline-offset: 0px !important;
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5);
 }
 
 .craft-table.component-hovered {
-  outline: 2px dashed #0d9488 !important;
+  outline: 2px dashed var(--color-primary) !important;
   outline-offset: 0px !important;
 }
 
@@ -786,7 +786,7 @@
   position: absolute;
   width: 10px;
   height: 10px;
-  background-color: #0d9488;
+  background-color: var(--color-primary);
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.25);
@@ -843,12 +843,12 @@
 
 /* Dark mode styling for container */
 .dark .craft-container.component-selected::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
   box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.5);
 }
 
 .dark .craft-container.component-hovered::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 .dark .craft-table .table-handle-tl,
@@ -856,7 +856,7 @@
 .dark .craft-table .table-handle-bl,
 .dark .craft-table .table-handle-br {
   border-color: #1f2937;
-  background-color: #0d9488;
+  background-color: var(--color-primary);
   box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.4);
 }
 
@@ -971,20 +971,20 @@
 
 /* Style for the step content when it's the target of a drag operation */
 .craft-step-content.drag-hover {
-  background-color: rgba(13, 148, 136, 0.15) !important;
-  outline: 3px dashed #0d9488 !important;
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+  outline: 3px dashed var(--color-primary) !important;
   outline-offset: -3px;
-  box-shadow: 0 0 10px rgba(13, 148, 136, 0.3) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
   transition: all 0.2s ease-in-out;
 }
 
 /* CollapsibleSection components should have dashed border when selected or hovered */
 .craft-collapsible-section.component-selected::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 .craft-collapsible-section.component-hovered::after {
-  border: 2px dashed #0d9488 !important;
+  border: 2px dashed var(--color-primary) !important;
 }
 
 /* Responsive Container Styles */

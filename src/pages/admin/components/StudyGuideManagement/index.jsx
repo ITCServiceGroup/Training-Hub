@@ -52,7 +52,7 @@ const StudyGuideManagement = ({
           )}
         </div>
         <button
-          className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
+          className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
           onClick={onCreateNew}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">

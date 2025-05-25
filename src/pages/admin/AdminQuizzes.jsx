@@ -125,7 +125,7 @@ const AdminQuizzes = () => {
         </div>
         <button
           type="button"
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+          className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
           onClick={handleCreateQuiz}
         >
           Create New Quiz
@@ -195,37 +195,35 @@ const AdminQuizzes = () => {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-4 text-right">
-                  <div className="flex flex-wrap justify-end gap-2">
+                <td className="px-4 py-4 text-right space-x-4"> {/* Reverted spacing */}
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+                    onClick={() => handleEditQuiz(quiz)}
+                  >
+                    Edit
+                  </button>
+                  {!quiz.is_practice && (
                     <button
                       type="button"
-                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
-                      onClick={() => handleEditQuiz(quiz)}
+                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+                      onClick={() => handleManageCodes(quiz)}
                     >
-                      Edit
+                      Access Codes
                     </button>
-                    {!quiz.is_practice && (
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
-                        onClick={() => handleManageCodes(quiz)}
-                      >
-                        Access Codes
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className={`px-4 py-2 ${
-                        isDark
-                          ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
-                          : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
-                      } border font-medium rounded-lg transition-colors`}
-                      onClick={() => openArchiveConfirmation(quiz.id)}
-                      title="Archive quiz"
-                    >
-                      Archive
-                    </button>
-                  </div>
+                  )}
+                  <button
+                    type="button"
+                    className={`px-4 py-2 ${
+                      isDark
+                        ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
+                        : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
+                    } border font-medium rounded-lg transition-colors`}
+                    onClick={() => openArchiveConfirmation(quiz.id)}
+                    title="Archive quiz"
+                  >
+                    Archive
+                  </button>
                 </td>
               </tr>
               ))}

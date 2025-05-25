@@ -127,7 +127,7 @@ export const TableText = ({
         textAlign,
         minHeight: '24px',
         cursor: 'text',
-        outline: selected ? '1px solid rgba(13, 148, 136, 0.7)' : 'none'
+        outline: selected ? '1px solid var(--color-primary)' : 'none'
       }}
     />
   );

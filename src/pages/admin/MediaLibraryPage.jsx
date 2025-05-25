@@ -8,6 +8,18 @@ import { MdOutlineAudioFile, MdOutlineInsertDriveFile, MdEdit, MdDelete } from '
 import { FaTimes } from 'react-icons/fa'; // Import FaTimes for close icon
 import { useDropzone } from 'react-dropzone'; // Import useDropzone
 
+// Helper function to convert hex to rgba
+const hexToRgba = (hex, alpha) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
+
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 // Helper to format bytes
 const formatBytes = (bytes, decimals = 2) => {
   if (!bytes || bytes === 0) return '0 Bytes'; // Added check for null/undefined/zero bytes
@@ -23,8 +35,11 @@ const formatBytes = (bytes, decimals = 2) => {
 // --- Media Grid Component ---
 // Added onPreviewClick prop
 const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFromTinyMCE }) => {
-  const { theme } = useTheme(); // Get current theme
+  const { theme, themeColors } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
 
   return (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
@@ -103,7 +118,17 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
           <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
              <button
                onClick={() => onEditMetadata(item)}
-               className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+               className="text-white p-1.5 rounded shadow focus:outline-none focus:ring-2 focus:ring-opacity-75"
+               style={{
+                 backgroundColor: currentPrimaryColor,
+                 '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.4)
+               }}
+               onMouseEnter={(e) => {
+                 e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+               }}
+               onMouseLeave={(e) => {
+                 e.target.style.backgroundColor = currentPrimaryColor;
+               }}
                title="Edit Metadata"
              >
                <MdEdit size={14} />
@@ -125,6 +150,12 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
 
 // --- Upload Component ---
 const UploadComponent = ({ onUpload }) => {
+  const { theme, themeColors } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({}); // Track progress per file { [fileId]: { name, progress, error } }
 
@@ -197,12 +228,16 @@ const UploadComponent = ({ onUpload }) => {
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors ${
-          isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 bg-white dark:bg-slate-700'
+          isDragActive ? 'border-primary bg-white dark:bg-slate-700' : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 bg-white dark:bg-slate-700'
         } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        style={isDragActive ? {
+          borderColor: currentPrimaryColor,
+          backgroundColor: hexToRgba(currentPrimaryColor, isDark ? 0.1 : 0.05)
+        } : {}}
       >
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p className="text-blue-600 dark:text-blue-400">Drop the files here ...</p>
+          <p className="text-primary" style={{ color: currentPrimaryColor }}>Drop the files here ...</p>
         ) : (
           <p className="text-gray-500 dark:text-gray-300">Drag 'n' drop files here, or click to select files</p>
         )}
@@ -223,8 +258,11 @@ const UploadComponent = ({ onUpload }) => {
               ) : (
                 <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-1.5 mt-1 overflow-hidden">
                   <div
-                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${status.progress || 0}%` }} // Default to 0 if progress is undefined
+                    className="h-1.5 rounded-full transition-all duration-300 ease-out"
+                    style={{
+                      width: `${status.progress || 0}%`,
+                      backgroundColor: currentPrimaryColor
+                    }}
                   ></div>
                 </div>
               )}
@@ -239,6 +277,12 @@ const UploadComponent = ({ onUpload }) => {
 
 // --- Edit Metadata Modal ---
 const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
+  const { theme, themeColors } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   const [fileName, setFileName] = useState('');
   const [altText, setAltText] = useState('');
   const [caption, setCaption] = useState('');
@@ -290,7 +334,17 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
            <button
              onClick={onClose}
              disabled={isSaving}
-             className="bg-teal-600 hover:bg-teal-700 text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 disabled:opacity-50"
+             className="text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50"
+             style={{
+               backgroundColor: currentPrimaryColor,
+               '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.4)
+             }}
+             onMouseEnter={(e) => {
+               if (!isSaving) e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+             }}
+             onMouseLeave={(e) => {
+               if (!isSaving) e.target.style.backgroundColor = currentPrimaryColor;
+             }}
              aria-label="Close edit metadata"
            >
              <FaTimes size={16} /> {/* Use FaTimes icon */}
@@ -399,7 +453,17 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: currentPrimaryColor,
+              '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.4)
+            }}
+            onMouseEnter={(e) => {
+              if (!isSaving) e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+            }}
+            onMouseLeave={(e) => {
+              if (!isSaving) e.target.style.backgroundColor = currentPrimaryColor;
+            }}
           >
             {isSaving ? (
                 <div className="flex items-center">
@@ -420,6 +484,12 @@ const EditMetadataModal = ({ item, isOpen, onClose, onSave }) => {
 
 // --- Main Page Component ---
 function MediaLibraryPage() {
+  const { theme, themeColors } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   const [mediaItems, setMediaItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -479,7 +549,6 @@ function MediaLibraryPage() {
 
   // Check if we're being opened from TinyMCE
   const [isFromTinyMCE, setIsFromTinyMCE] = useState(false);
-  const { theme } = useTheme(); // Get current theme
 
   useEffect(() => {
     setIsLoading(true); // Set loading true when component mounts
@@ -565,7 +634,11 @@ function MediaLibraryPage() {
       {isLoading && (
           <div className="text-center py-10">
               {/* Simple Spinner */}
-              <div className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-blue-500 dark:border-blue-400 border-t-transparent" role="status">
+              <div
+                className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-t-transparent"
+                role="status"
+                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), borderTopColor: 'transparent' }}
+              >
                   <span className="sr-only">Loading...</span>
               </div>
               <p className="mt-3 text-gray-500 dark:text-gray-300">Loading media...</p>
@@ -607,6 +680,12 @@ function MediaLibraryPage() {
 
 // --- Simple Media Preview Modal Component ---
 const MediaPreviewModal = ({ item, isOpen, onClose }) => {
+  const { theme, themeColors } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   if (!isOpen || !item) return null;
 
   const isImage = item.mime_type?.startsWith('image/');
@@ -631,7 +710,17 @@ const MediaPreviewModal = ({ item, isOpen, onClose }) => {
            {/* Updated Close Button */}
            <button
              onClick={onClose}
-             className="bg-teal-600 hover:bg-teal-700 text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+             className="text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-1"
+             style={{
+               backgroundColor: currentPrimaryColor,
+               '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.4)
+             }}
+             onMouseEnter={(e) => {
+               e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+             }}
+             onMouseLeave={(e) => {
+               e.target.style.backgroundColor = currentPrimaryColor;
+             }}
              aria-label="Close preview"
            >
              <FaTimes size={16} /> {/* Use FaTimes icon */}

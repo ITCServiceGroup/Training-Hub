@@ -131,7 +131,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
           <div className="flex gap-4">
             <button
               type="button"
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors"
               onClick={() => resetForm()}
             >
               Generate Another
@@ -158,7 +158,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
                 error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-slate-300 dark:border-slate-600 focus:ring-teal-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
               value={testTakerInfo.ldap}
               onChange={(e) => handleChange('ldap', e.target.value)}
@@ -177,7 +177,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
                 error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-slate-300 dark:border-slate-600 focus:ring-teal-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
               value={testTakerInfo.email}
               onChange={(e) => handleChange('email', e.target.value)}
@@ -195,7 +195,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
                 error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-slate-300 dark:border-slate-600 focus:ring-teal-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
               value={testTakerInfo.supervisor}
               onChange={(e) => handleChange('supervisor', e.target.value)}
@@ -221,7 +221,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
                 error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-slate-300 dark:border-slate-600 focus:ring-teal-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
               value={testTakerInfo.market}
               onChange={(e) => handleChange('market', e.target.value)}
@@ -239,7 +239,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
 
           <button
             type="submit"
-            className="w-full py-2 bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:dark:opacity-50"
+            className="w-full py-2 bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:dark:opacity-50"
             disabled={isGenerating}
           >
             {isGenerating ? 'Generating...' : 'Generate Access Code'}

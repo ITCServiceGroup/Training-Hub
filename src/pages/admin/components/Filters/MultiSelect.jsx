@@ -56,12 +56,12 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
-      borderColor: state.isFocused ? '#14b8a6' : isDark ? '#475569' : '#d1d5db',
-      boxShadow: state.isFocused ? '0 0 0 1px #14b8a6' : provided.boxShadow,
+      borderColor: state.isFocused ? 'var(--color-primary)' : isDark ? '#475569' : '#d1d5db',
+      boxShadow: state.isFocused ? '0 0 0 1px var(--color-primary)' : provided.boxShadow,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
       color: isDark ? '#f8fafc' : provided.color,
       '&:hover': {
-        borderColor: '#14b8a6'
+        borderColor: 'var(--color-primary)'
       }
     }),
     menu: (provided) => ({

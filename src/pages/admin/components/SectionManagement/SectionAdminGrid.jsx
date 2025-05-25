@@ -138,7 +138,7 @@ const SectionAdminGrid = ({
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Manage Sections</h2>
         {!isCreating && (
           <button
-            className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
+            className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
             onClick={() => setIsCreating(true)}
           >
             <FaPlus />
@@ -155,7 +155,7 @@ const SectionAdminGrid = ({
 
       {isLoading ? (
         <div className="flex justify-center items-center p-12 text-gray-500 dark:text-gray-300">
-          <div className="w-8 h-8 rounded-full border-3 border-gray-200 dark:border-gray-600 border-t-teal-600 animate-spin mr-3"></div>
+          <div className="w-8 h-8 rounded-full border-3 border-gray-200 dark:border-gray-600 border-t-primary animate-spin mr-3"></div>
           <span>Loading sections...</span>
         </div>
       ) : isCreating ? (

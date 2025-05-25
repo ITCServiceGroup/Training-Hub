@@ -31,7 +31,7 @@ const MultipleChoiceForm = ({ options, correctAnswer, onChange, disabled, isDark
         <h3 className={`text-lg font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Answer Options</h3>
         <button
           type="button"
-          className="bg-teal-700 text-white px-3 py-1 rounded text-sm hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-primary-dark text-white px-3 py-1 rounded text-sm hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddOption}
           disabled={disabled || options.length >= 6}
         >
@@ -46,7 +46,7 @@ const MultipleChoiceForm = ({ options, correctAnswer, onChange, disabled, isDark
               <input
                 type="radio"
                 name="correct-answer"
-                className={`text-teal-600 ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
+                className={`text-primary ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
                 checked={correctAnswer === index}
                 onChange={() => handleCorrectAnswerChange(index)}
                 disabled={disabled}

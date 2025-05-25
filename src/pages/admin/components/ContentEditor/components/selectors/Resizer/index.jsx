@@ -107,7 +107,7 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
     position: 'absolute',
     width: '10px',
     height: '10px',
-    backgroundColor: '#0d9488', // teal-600 color
+    backgroundColor: 'var(--color-primary)', // Use primary color
     borderRadius: '50%',
     display: 'block',
     border: isDark ? '2px solid #1f2937' : '2px solid #fff', // dark: gray-800, light: white

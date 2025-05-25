@@ -4,6 +4,19 @@ import { FaTimes, FaUpload } from 'react-icons/fa';
 import { MdOutlineAudioFile, MdOutlineInsertDriveFile } from 'react-icons/md';
 import { format } from 'date-fns';
 import { useAuth } from '../../../../../../../contexts/AuthContext';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+
+// Helper function to convert hex to rgba
+const hexToRgba = (hex, alpha) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
+
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 // Helper to format bytes
 const formatBytes = (bytes, decimals = 2) => {
@@ -92,6 +105,12 @@ const SimpleMediaGrid = ({ mediaItems, onSelect }) => {
 };
 
 export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
+  const { theme, themeColors } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   const [mediaItems, setMediaItems] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -204,7 +223,17 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
           </h2>
           <button
             onClick={onClose}
-            className="bg-teal-600 hover:bg-teal-700 text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+            className="text-white rounded-md p-1 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-1"
+            style={{
+              backgroundColor: currentPrimaryColor,
+              '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.4)
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = currentPrimaryColor;
+            }}
           >
             <FaTimes size={16} />
           </button>
@@ -225,8 +254,17 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
             className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors flex items-center justify-center gap-2 ${
               isUploading
                 ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                : 'bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-800'
+                : ''
             }`}
+            style={!isUploading ? {
+              backgroundColor: currentPrimaryColor
+            } : {}}
+            onMouseEnter={(e) => {
+              if (!isUploading) e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+            }}
+            onMouseLeave={(e) => {
+              if (!isUploading) e.target.style.backgroundColor = currentPrimaryColor;
+            }}
           >
             <FaUpload size={14} />
             {isUploading ? 'Uploading...' : 'Upload New Media'}
@@ -238,7 +276,10 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
         <div className="flex-1 overflow-auto p-4">
           {isLoading && (
             <div className="text-center py-10">
-              <div className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-blue-500 dark:border-blue-400 border-t-transparent" />
+              <div
+                className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-t-transparent"
+                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), borderTopColor: 'transparent' }}
+              />
               <p className="mt-3 text-gray-500 dark:text-gray-300">Loading media...</p>
             </div>
           )}

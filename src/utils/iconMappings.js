@@ -1,12 +1,12 @@
-import { 
-  FaNetworkWired, 
-  FaDownload, 
-  FaWrench, 
-  FaSearch, 
-  FaLock, 
-  FaLaptop, 
-  FaChartBar, 
-  FaRocket, 
+import {
+  FaNetworkWired,
+  FaDownload,
+  FaWrench,
+  FaSearch,
+  FaLock,
+  FaLaptop,
+  FaChartBar,
+  FaRocket,
   FaBook,
   FaServer,
   FaDatabase,
@@ -34,7 +34,10 @@ import {
   FaQuestionCircle,
   FaInfoCircle,
   FaExclamationTriangle,
-  FaExclamationCircle
+  FaExclamationCircle,
+  FaPhone,
+  FaMobileAlt,
+  FaPhoneAlt
 } from 'react-icons/fa';
 
 // Map icon names to components
@@ -74,7 +77,10 @@ export const iconComponentMap = {
   'Question Circle': FaQuestionCircle,
   'Info': FaInfoCircle,
   'Warning Triangle': FaExclamationTriangle,
-  'Warning Circle': FaExclamationCircle
+  'Warning Circle': FaExclamationCircle,
+  'Phone': FaPhone,
+  'Mobile': FaMobileAlt,
+  'Phone Alt': FaPhoneAlt
 };
 
 // Map icon names to colors
@@ -114,7 +120,10 @@ export const iconColorMap = {
   'Question Circle': '#10b981',
   'Info': '#f59e0b',
   'Warning Triangle': '#ef4444',
-  'Warning Circle': '#6366f1'
+  'Warning Circle': '#6366f1',
+  'Phone': '#1c447f',
+  'Mobile': '#0ea5e9',
+  'Phone Alt': '#0d9488'
 };
 
 // List of all available icons for the selector
@@ -128,9 +137,9 @@ export const availableIcons = Object.keys(iconComponentMap).map(name => ({
 export const getIconByName = (iconName) => {
   const IconComponent = iconComponentMap[iconName] || FaBook;
   const iconColor = iconColorMap[iconName] || '#0f766e';
-  
-  return { 
+
+  return {
     component: IconComponent,
-    color: iconColor 
+    color: iconColor
   };
 };

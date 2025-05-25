@@ -5,15 +5,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Define custom colors for light/dark mode
+        // Dynamic theme colors using CSS variables
         primary: {
-          light: '#0f766e', // teal-700
-          dark: '#14b8a6', // teal-500
+          DEFAULT: 'var(--color-primary)',
+          light: 'var(--primary-light)',
+          dark: 'var(--primary-dark)',
         },
         secondary: {
-          light: '#7e22ce', // purple-700
-          dark: '#a855f7', // purple-500
+          DEFAULT: 'var(--color-secondary)',
+          light: 'var(--secondary-color)',
+          dark: 'var(--secondary-color)',
         },
+        // Static theme colors for backgrounds and text
         background: {
           light: '#f8fafc', // slate-50
           dark: '#1e293b', // slate-800
@@ -29,14 +32,14 @@ module.exports = {
       },
       // Override the default ring and border colors for form elements
       ringColor: {
-        DEFAULT: '#0f766e', // teal-700 for light mode
+        DEFAULT: 'var(--color-primary)',
       },
       ringOffsetColor: {
         DEFAULT: '#ffffff', // white for light mode
       },
       borderColor: {
         DEFAULT: '#e5e7eb', // gray-200
-        focus: '#0f766e', // teal-700 for light mode
+        focus: 'var(--color-primary)',
       },
     },
     container: {

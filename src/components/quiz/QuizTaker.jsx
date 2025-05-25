@@ -484,7 +484,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         </div>
 
         <button
-          className={`w-full py-3 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white font-medium rounded-lg transition-colors`}
+          className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
           onClick={handleStartQuiz}
         >
           Start Quiz
@@ -517,7 +517,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       {/* Progress bar */}
       <div className={`h-2 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded-full mb-8`}>
         <div
-          className={`h-full ${isDark ? 'bg-teal-500' : 'bg-teal-600'} rounded-full transition-all duration-300`}
+          className={`h-full ${isDark ? 'bg-primary-light' : 'bg-primary-dark'} rounded-full transition-all duration-300`}
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
@@ -542,7 +542,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           </button>
 
           <button
-            className={`px-6 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleNextQuestion}
             disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
           >

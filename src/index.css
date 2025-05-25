@@ -26,7 +26,7 @@
 
   .dark .spinner {
     border-color: rgba(255, 255, 255, 0.1);
-    border-top-color: #14b8a6;
+    border-top-color: var(--color-primary);
   }
 
   /* Custom form focus styles - with stronger specificity */
@@ -48,11 +48,11 @@
   [multiple]:focus,
   [type='checkbox']:focus,
   [type='radio']:focus {
-    --tw-ring-color: #0d9488 !important; /* teal-700 for light mode */
+    --tw-ring-color: var(--color-primary) !important; /* Dynamic primary color */
     --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
     --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
     box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
-    border-color: #0f766e !important;
+    border-color: var(--color-primary) !important;
     outline: 1px solid transparent !important;
     outline-offset: 1px !important;
   }
@@ -75,16 +75,22 @@
   .dark [multiple]:focus,
   .dark [type='checkbox']:focus,
   .dark [type='radio']:focus {
-    --tw-ring-color: #14b8a6 !important; /* teal-500 for dark mode */
-    border-color: #14b8a6 !important;
+    --tw-ring-color: var(--color-primary) !important; /* Dynamic primary color */
+    border-color: var(--color-primary) !important;
   }
 }
 
 :root { /* Light mode variables */
+  /* Dynamic theme colors - will be updated by ThemeContext */
+  /* Note: These will be overridden by JavaScript ThemeContext */
   --primary-color: #0f766e;
   --primary-dark: #0c5e57;
   --primary-light: #14b8a6;
   --secondary-color: #7e22ce;
+  --color-primary: #0f766e;
+  --color-secondary: #7e22ce;
+
+  /* Static system colors */
   --dark-color: #1e293b;
   --light-color: #f8fafc;
   --danger-color: #ef4444;
@@ -104,10 +110,10 @@
 }
 
 .dark { /* Dark mode variables */
-  --primary-color: #14b8a6;
-  --primary-dark: #0f766e;
-  --primary-light: #2dd4bf;
-  --secondary-color: #a855f7;
+  /* Dynamic theme colors - will be updated by ThemeContext */
+  /* Note: primary and secondary colors are set dynamically by JavaScript */
+
+  /* Static system colors */
   --dark-color: #f8fafc;
   --light-color: #1e293b;
   --danger-color: #f87171;

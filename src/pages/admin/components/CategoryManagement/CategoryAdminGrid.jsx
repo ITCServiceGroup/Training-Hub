@@ -113,13 +113,7 @@ const CategoryAdminGrid = ({
         style={style}
         className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
         onMouseEnter={() => !isDragging && setHoveredId(category.id)}
-        onMouseLeave={() => {
-          // Don't clear hover state if the category is being edited
-          const categoryCard = document.querySelector(`[data-category-id="${category.id}"] .category-edit-form`);
-          if (!categoryCard) {
-            setHoveredId(null);
-          }
-        }}
+        onMouseLeave={() => setHoveredId(null)}
       >
         {/* Outer drag handle div removed */}
         <CategoryCard
@@ -155,7 +149,7 @@ const CategoryAdminGrid = ({
         </div>
         {!isCreating && (
           <button
-            className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
+            className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center gap-2 cursor-pointer transition-colors"
             onClick={() => setIsCreating(true)}
           >
             <FaPlus />
@@ -172,7 +166,7 @@ const CategoryAdminGrid = ({
 
       {isLoading ? (
         <div className="flex justify-center items-center p-12 text-gray-500 dark:text-gray-300">
-          <div className="w-8 h-8 rounded-full border-3 border-gray-200 dark:border-gray-600 border-t-teal-600 animate-spin mr-3"></div>
+          <div className="w-8 h-8 rounded-full border-3 border-gray-200 dark:border-gray-600 border-t-primary animate-spin mr-3"></div>
           <span>Loading categories...</span>
         </div>
       ) : isCreating ? (

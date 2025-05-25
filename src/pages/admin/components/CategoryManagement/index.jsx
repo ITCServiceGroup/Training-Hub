@@ -72,10 +72,18 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
 
   const handleUpdateCategory = async (id, formData) => {
     try {
-      const updatedCategory = await categoriesService.update(id, {
+      // Use updateBasicInfo instead of update to avoid schema cache issues
+      await categoriesService.updateBasicInfo(id, {
         ...formData,
         section_id: section.id
       });
+
+      // Create an updated category object with the new data
+      const updatedCategory = {
+        id,
+        ...formData,
+        section_id: section.id
+      };
 
       // Optimistically update the UI
       const newSectionsData = sectionsData.map(s => {

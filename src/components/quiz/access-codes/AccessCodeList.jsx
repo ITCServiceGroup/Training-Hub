@@ -117,14 +117,14 @@ const AccessCodeList = ({ quizId }) => {
           <input
             type="text"
             placeholder="Search codes, users, or markets..."
-            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-400"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex gap-2">
           <select
-            className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-slate-800 dark:text-slate-200"
+            className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-slate-200"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -177,7 +177,7 @@ const AccessCodeList = ({ quizId }) => {
                     <div className="flex flex-wrap justify-end gap-2">
                       <button
                         type="button"
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white font-medium rounded-lg transition-colors"
+                        className="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors"
                         onClick={() => handleCopyCode(code.code)}
                         title="Copy code"
                       >

@@ -101,7 +101,7 @@ export const ImageSettings = () => {
                 />
                 <button
                   onClick={() => setIsMediaLibraryOpen(true)}
-                  className="px-3 bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center gap-1 h-[30px]"
+                  className="px-3 bg-primary text-white rounded hover:bg-primary/90 flex items-center gap-1 h-[30px]"
                   style={{ height: 'var(--input-height, 30px)' }}
                 >
                   <FaImage size={14} />
@@ -154,7 +154,7 @@ export const ImageSettings = () => {
                     key={fit}
                     className={`px-2 py-1 text-xs rounded capitalize ${
                       objectFit === fit
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => actions.setProp((props) => { props.objectFit = fit; })}
@@ -175,7 +175,7 @@ export const ImageSettings = () => {
                     key={ratio}
                     className={`px-2 py-1 text-xs rounded ${
                       aspectRatio === ratio
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => actions.setProp((props) => { props.aspectRatio = ratio; })}
@@ -224,7 +224,7 @@ export const ImageSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     alignment === 'left'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.alignment = 'left'; })}
@@ -234,7 +234,7 @@ export const ImageSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     alignment === 'center'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.alignment = 'center'; })}
@@ -244,7 +244,7 @@ export const ImageSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     alignment === 'right'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.alignment = 'right'; })}
@@ -498,7 +498,7 @@ export const ImageSettings = () => {
                     key={style}
                     className={`px-2 py-1 text-xs rounded capitalize ${
                       border.style === style
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => actions.setProp((props) => {
@@ -527,7 +527,7 @@ export const ImageSettings = () => {
                         onChange={(e) => actions.setProp((props) => {
                           props.border.width = parseInt(e.target.value);
                         })}
-                        className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                        className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                       />
                     </div>
                     <div className="w-1/4 flex items-center">
@@ -579,7 +579,7 @@ export const ImageSettings = () => {
                     min={0}
                     max={50}
                     onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
                 <div className="w-1/4 flex items-center">
@@ -610,7 +610,7 @@ export const ImageSettings = () => {
                   onChange={(e) => actions.setProp((props) => {
                     props.shadow.enabled = e.target.checked;
                   })}
-                  className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
+                  className="mr-2 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
                 />
                 <label
                   htmlFor="enableShadow"

@@ -63,7 +63,7 @@ export const Interactive = ({ name, title, description, iconUrl, margin = ['0', 
   return (
     <div
       ref={ref => connect(drag(ref))}
-      className={`interactive-element-container p-4 border-2 ${selected ? 'border-teal-600' : 'border-dashed border-gray-300 dark:border-gray-600'} rounded-md bg-white dark:bg-slate-700 w-full`}
+      className={`interactive-element-container p-4 border-2 ${selected ? 'border-primary' : 'border-dashed border-gray-300 dark:border-gray-600'} rounded-md bg-white dark:bg-slate-700 w-full`}
       style={{
         minHeight: '100px',
         margin: `${topMargin}px ${rightMargin}px ${bottomMargin}px ${leftMargin}px`

@@ -10,7 +10,8 @@ const CategoryItem = ({ category, onSelect, selectedId, onCategoryUpdate }) => {
 
   const handleEditSubmit = async (formData) => {
     try {
-      await categoriesService.update(category.id, formData);
+      // Use updateBasicInfo instead of update to avoid schema cache issues
+      await categoriesService.updateBasicInfo(category.id, formData);
       setIsEditing(false);
       onCategoryUpdate();
     } catch (err) {
@@ -187,7 +188,7 @@ const SectionItem = ({ section, categories, onSelectCategory, selectedCategoryId
           <div className="flex gap-2">
             <button
               onClick={() => setIsAddingCategory(true)}
-              className="py-1.5 px-3 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-md border-none cursor-pointer shadow-sm flex items-center gap-1"
+              className="py-1.5 px-3 text-xs bg-primary hover:bg-primary-dark text-white rounded-md border-none cursor-pointer shadow-sm flex items-center gap-1"
               title="Add category"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
@@ -332,7 +333,7 @@ const CategoryTree = ({ onSelectCategory, selectedCategoryId }) => {
         <h3 className="text-xl font-bold text-gray-800">Study Guide Categories</h3>
         <button
           onClick={() => setIsAddingSection(true)}
-          className="py-2 px-4 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-md border-none cursor-pointer shadow-sm flex items-center gap-1"
+          className="py-2 px-4 text-sm bg-primary hover:bg-primary-dark text-white rounded-md border-none cursor-pointer shadow-sm flex items-center gap-1"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />

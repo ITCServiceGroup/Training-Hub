@@ -79,8 +79,8 @@ const QuestionDisplay = ({
               "w-full px-4 py-3 text-left border rounded-lg transition-colors flex justify-between items-center",
               // Base interaction styles
               {
-                'hover:border-teal-600 hover:bg-teal-50': !isDisabled && !isDark,
-                'hover:border-teal-500 hover:bg-teal-900/30': !isDisabled && isDark,
+                'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark,
+                'hover:border-primary hover:bg-primary/20': !isDisabled && isDark,
                 'cursor-not-allowed opacity-60': isDisabled,
                 'cursor-pointer': !isDisabled,
               },
@@ -95,8 +95,8 @@ const QuestionDisplay = ({
                     'border-slate-700 bg-slate-800': !isSelected && !isCorrectAnswer && isDark, // Unselected incorrect answer (dark)
                   }
                 : { // Default State (Not Practice Feedback)
-                    'border-teal-600 bg-teal-50': isSelected && !isDark, // Selected (light)
-                    'border-teal-500 bg-teal-900/30': isSelected && isDark, // Selected (dark)
+                    'border-primary bg-primary/10': isSelected && !isDark, // Selected (light)
+                    'border-primary bg-primary/20': isSelected && isDark, // Selected (dark)
                     'border-slate-200 bg-white': !isSelected && !isDark, // Unselected (light)
                     'border-slate-700 bg-slate-800': !isSelected && isDark, // Unselected (dark)
                   }
@@ -134,14 +134,14 @@ const QuestionDisplay = ({
               className={classNames(
                 "flex items-center px-4 py-3 border rounded-lg transition-colors",
                 {
-                  'border-teal-600 bg-teal-50': isSelected && (!isPractice || !showFeedback) && !isDark, // Selected style (light)
-                  'border-teal-500 bg-teal-900/30': isSelected && (!isPractice || !showFeedback) && isDark, // Selected style (dark)
+                  'border-primary bg-primary/10': isSelected && (!isPractice || !showFeedback) && !isDark, // Selected style (light)
+                  'border-primary bg-primary/20': isSelected && (!isPractice || !showFeedback) && isDark, // Selected style (dark)
                   'border-green-500 bg-green-50': isPractice && showFeedback && question.correct_answer?.includes(index) && !isDark, // Correct answer style (light)
                   'border-green-700 bg-green-900/30': isPractice && showFeedback && question.correct_answer?.includes(index) && isDark, // Correct answer style (dark)
                   'border-red-500 bg-red-50': isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index) && !isDark, // Incorrect selection style (light)
                   'border-red-700 bg-red-900/30': isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index) && isDark, // Incorrect selection style (dark)
-                  'hover:border-teal-600 hover:bg-teal-50': !isDisabled && !isDark, // Hover (light)
-                  'hover:border-teal-500 hover:bg-teal-900/30': !isDisabled && isDark, // Hover (dark)
+                  'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark, // Hover (light)
+                  'hover:border-primary hover:bg-primary/20': !isDisabled && isDark, // Hover (dark)
                   'border-slate-200': !isSelected && (!isPractice || !showFeedback) && !isDark, // Default border (light)
                   'border-slate-700': !isSelected && (!isPractice || !showFeedback) && isDark, // Default border (dark)
                   'cursor-pointer': !isDisabled,
@@ -195,8 +195,8 @@ const QuestionDisplay = ({
             "px-4 py-3 border rounded-lg text-center font-medium transition-colors flex justify-center items-center",
             // Interaction
             {
-              'hover:border-teal-600 hover:bg-teal-50': !isDisabled && !isDark,
-              'hover:border-teal-500 hover:bg-teal-900/30': !isDisabled && isDark,
+              'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark,
+              'hover:border-primary hover:bg-primary/20': !isDisabled && isDark,
               'cursor-not-allowed opacity-60': isDisabled,
               'cursor-pointer': !isDisabled,
             },
@@ -211,8 +211,8 @@ const QuestionDisplay = ({
                   'border-slate-700 bg-slate-800': !trueSelected && !trueIsCorrect && isDark, // Unselected (dark)
                 }
               : { // Default State
-                  'border-teal-600 bg-teal-50': trueSelected && !isDark, // Selected (light)
-                  'border-teal-500 bg-teal-900/30': trueSelected && isDark, // Selected (dark)
+                  'border-primary bg-primary/10': trueSelected && !isDark, // Selected (light)
+                  'border-primary bg-primary/20': trueSelected && isDark, // Selected (dark)
                   'border-slate-200 bg-white': !trueSelected && !isDark, // Unselected (light)
                   'border-slate-700 bg-slate-800': !trueSelected && isDark, // Unselected (dark)
                 }
@@ -229,8 +229,8 @@ const QuestionDisplay = ({
             "px-4 py-3 border rounded-lg text-center font-medium transition-colors flex justify-center items-center",
             // Interaction
             {
-              'hover:border-teal-600 hover:bg-teal-50': !isDisabled && !isDark,
-              'hover:border-teal-500 hover:bg-teal-900/30': !isDisabled && isDark,
+              'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark,
+              'hover:border-primary hover:bg-primary/20': !isDisabled && isDark,
               'cursor-not-allowed opacity-60': isDisabled,
               'cursor-pointer': !isDisabled,
             },
@@ -245,8 +245,8 @@ const QuestionDisplay = ({
                   'border-slate-700 bg-slate-800': !falseSelected && !falseIsCorrect && isDark, // Unselected (dark)
                 }
               : { // Default State
-                  'border-teal-600 bg-teal-50': falseSelected && !isDark, // Selected (light)
-                  'border-teal-500 bg-teal-900/30': falseSelected && isDark, // Selected (dark)
+                  'border-primary bg-primary/10': falseSelected && !isDark, // Selected (light)
+                  'border-primary bg-primary/20': falseSelected && isDark, // Selected (dark)
                   'border-slate-200 bg-white': !falseSelected && !isDark, // Unselected (light)
                   'border-slate-700 bg-slate-800': !falseSelected && isDark, // Unselected (dark)
                 }

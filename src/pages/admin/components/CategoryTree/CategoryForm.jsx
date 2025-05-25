@@ -67,7 +67,7 @@ const CategoryForm = ({
           id="name"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
           placeholder="Enter category name"
           required
         />
@@ -82,7 +82,7 @@ const CategoryForm = ({
           value={formData.description || ''}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           rows={3}
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-h-[80px] resize-y`}
+          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary min-h-[80px] resize-y`}
           placeholder="Enter category description"
         />
       </div>
@@ -104,7 +104,7 @@ const CategoryForm = ({
             id="section_id"
             value={formData.section_id}
             onChange={(e) => setFormData(prev => ({ ...prev, section_id: e.target.value }))}
-            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
             required
           >
             <option value="">Select a section</option>
@@ -133,7 +133,7 @@ const CategoryForm = ({
         </button>
         <button
           type="submit"
-          className="py-2 px-4 text-sm font-medium text-white bg-teal-600 border border-transparent rounded-md hover:bg-teal-700 transition-colors flex items-center justify-center"
+          className="py-2 px-4 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center"
         >
           {isEditing ? 'Update' : 'Create'}
         </button>

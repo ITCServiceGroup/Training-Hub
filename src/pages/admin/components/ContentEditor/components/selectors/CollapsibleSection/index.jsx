@@ -54,12 +54,12 @@ const defaultProps = {
   expanded: false, // Default to collapsed in the viewer
   currentStep: 1, // Added currentStep to defaultProps
   stepButtonColor: {
-    light: { r: 13, g: 148, b: 136, a: 1 }, // #0d9488 (teal-600)
-    dark: { r: 13, g: 148, b: 136, a: 1 }  // Same teal color for dark mode
+    light: { r: 15, g: 118, b: 110, a: 1 }, // Default primary color light
+    dark: { r: 20, g: 184, b: 166, a: 1 }   // Default primary color dark
   },
   stepIndicatorColor: {
-    light: { r: 13, g: 148, b: 136, a: 1 }, // #0d9488 (teal-600)
-    dark: { r: 13, g: 148, b: 136, a: 1 }  // Same teal color for dark mode
+    light: { r: 15, g: 118, b: 110, a: 1 }, // Default primary color light
+    dark: { r: 20, g: 184, b: 166, a: 1 }   // Default primary color dark
   },
   autoConvertColors: true // Whether to automatically convert colors between themes
 };
@@ -233,7 +233,7 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
       return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
     } catch (error) {
       console.warn('Error generating step button color:', error);
-      return '#0d9488'; // Default teal color
+      return 'var(--color-primary)'; // Default primary color
     }
   };
 
@@ -243,7 +243,7 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
       return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
     } catch (error) {
       console.warn('Error generating step indicator color:', error);
-      return '#0d9488'; // Default teal color
+      return 'var(--color-primary)'; // Default primary color
     }
   };
 

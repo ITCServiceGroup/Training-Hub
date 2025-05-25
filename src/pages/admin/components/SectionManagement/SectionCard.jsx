@@ -8,7 +8,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
-  // isHovered state is now controlled by parent via prop, but edit form visibility is controlled locally
+  // isHovered state is now controlled by parent via prop
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -26,7 +26,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
   // Using Tailwind classes instead of inline styles
 
   return (
-    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer" data-section-id={section.id}>
+    <div className="p-0 flex flex-col h-full bg-white dark:bg-slate-700 cursor-pointer">
       {!isEditing ? (
         <>
           {/* Card Header */}
@@ -45,8 +45,8 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
                 {/* Title */}
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={section.name}>{section.name}</h3>
              </div>
-            {/* Action Buttons - Always visible when editing */}
-            <div className={`${isHovered || isEditing ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
+            {/* Action Buttons */}
+            <div className={`${isHovered ? 'flex' : 'hidden'} gap-2 flex-shrink-0 ml-2`}>
               <button
                 onClick={(e) => { stopPropagation(e); setIsEditing(true); }}
                 className="p-2 border-none rounded-md cursor-pointer transition-colors text-white flex items-center justify-center w-8 h-8 bg-amber-600 hover:bg-amber-700"
@@ -81,7 +81,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
           {/* Footer Button Area */}
            <div className="px-6 pb-6 mt-auto flex-shrink-0">
              <button
-               className="bg-teal-600 hover:bg-teal-700 text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
+               className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
                onClick={(e) => { stopPropagation(e); onViewCategories(section); }}
              >
                <span>View Categories</span>
@@ -91,7 +91,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
         </>
       ) : (
         // Keep Edit Form padding consistent
-        <div className="p-6 section-edit-form">
+        <div className="p-6">
           <SectionForm
             initialData={section}
             onSubmit={async (formData) => {

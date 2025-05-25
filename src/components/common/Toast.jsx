@@ -33,8 +33,8 @@ const Toast = ({ message, type = 'success', duration = 2000, onClose }) => {
     switch (type) {
       case 'success':
         return isDarkMode
-          ? 'bg-teal-700 border-teal-600 text-white'
-          : 'bg-teal-600 border-teal-500 text-white';
+          ? 'bg-primary border-primary text-white'
+          : 'bg-primary border-primary text-white';
       case 'error':
         return isDarkMode
           ? 'bg-red-800 border-red-600 text-white'

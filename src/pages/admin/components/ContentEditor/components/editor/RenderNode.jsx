@@ -131,7 +131,7 @@ export const RenderNode = ({ render }) => {
   // Utility function to check if element is within editor UI
   const isEditorUiElement = useCallback((target) => {
     return Boolean(
-      target.closest('.px-2.py-2.text-white.bg-teal-600') || // Toolbar
+      target.closest('.px-2.py-2.text-white.bg-primary') || // Toolbar
       target.closest('.settings-panel') || // Settings panel
       target.closest('.settings-panel-content') || // Settings content
       target.closest('.settings-panel-body') || // Settings body
@@ -297,7 +297,7 @@ export const RenderNode = ({ render }) => {
         ? ReactDOM.createPortal(
             <div
               ref={toolbarRef}
-              className="px-2 py-2 text-white bg-teal-600 fixed flex items-center"
+              className="px-2 py-2 text-white bg-primary fixed flex items-center"
               style={{
                 left: getPos(dom).left,
                 top: getPos(dom).top,

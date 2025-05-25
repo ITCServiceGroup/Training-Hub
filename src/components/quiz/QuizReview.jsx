@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { BiSolidError, BiCheck, BiX } from 'react-icons/bi';
 
-const QuizReview = ({ 
-  quiz, 
-  selectedAnswers, 
-  onSubmit, 
-  onBack, 
-  timeLeft 
+const QuizReview = ({
+  quiz,
+  selectedAnswers,
+  onSubmit,
+  onBack,
+  timeLeft
 }) => {
   // Count answered and unanswered questions
   const countAnswers = () => {
@@ -41,7 +41,7 @@ const QuizReview = ({
   return (
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-slate-900">Review Your Answers</h3>
-      
+
       <div className="p-6 bg-slate-100 rounded-lg space-y-4">
         <div className="flex flex-wrap gap-6">
           <div>
@@ -78,7 +78,7 @@ const QuizReview = ({
           {quiz.questions.map((question, index) => {
             const answer = selectedAnswers[question.id];
             let isAnswered, statusClasses;
-            
+
             if (quiz.is_practice) {
               isAnswered = answer?.answer !== undefined;
               if (isAnswered) {
@@ -120,7 +120,7 @@ const QuizReview = ({
                             className={classNames(
                               "flex items-center p-3 rounded border",
                               {
-                                'bg-teal-50 border-teal-600': isSelected && !quiz.is_practice,
+                                'bg-primary/10 border-primary': isSelected && !quiz.is_practice,
                                 'bg-green-50 border-green-500': isCorrect,
                                 'bg-red-50 border-red-500': isIncorrect,
                                 'border-slate-300': !isSelected && !quiz.is_practice
@@ -151,7 +151,7 @@ const QuizReview = ({
                   return (
                     <div className="mt-3 space-y-2">
                       {question.options.map((option, idx) => {
-                        const isSelected = quiz.is_practice 
+                        const isSelected = quiz.is_practice
                           ? Array.isArray(answer?.answer) && answer.answer.includes(idx)
                           : Array.isArray(answer) && answer.includes(idx);
                         const isCorrect = quiz.is_practice && isSelected && answer?.isCorrect;
@@ -204,7 +204,7 @@ const QuizReview = ({
                             className={classNames(
                               "flex items-center justify-between p-3 rounded border",
                               {
-                                'bg-teal-50 border-teal-600': isSelected && !quiz.is_practice,
+                                'bg-primary/10 border-primary': isSelected && !quiz.is_practice,
                                 'bg-green-50 border-green-500': isCorrect,
                                 'bg-red-50 border-red-500': isIncorrect,
                                 'border-slate-300': !isSelected && !quiz.is_practice
@@ -235,7 +235,7 @@ const QuizReview = ({
                   return null;
               }
             };
-            
+
             return (
               <button
                 key={question.id}

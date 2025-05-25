@@ -399,7 +399,7 @@ const SortableStudyGuideItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-teal-600' : 'border border-gray-200 dark:border-slate-600'} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-lg opacity-80' : selectedId === guide.id ? 'shadow-md' : 'shadow'}`}
+      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-primary' : 'border border-gray-200 dark:border-slate-600'} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-lg opacity-80' : selectedId === guide.id ? 'shadow-md' : 'shadow'}`}
       onMouseEnter={() => !isDragging && setHoveredId(guide.id)}
       onMouseLeave={() => setHoveredId(null)}
       onClick={() => onSelect(guide)}
@@ -531,7 +531,7 @@ const SortableStudyGuideItem = ({
             </div>
           </div>
 
-          <div className={`text-xs font-medium text-teal-600 dark:text-teal-400 transition-opacity duration-200 ${hoveredId === guide.id || selectedId === guide.id ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`text-xs font-medium text-primary transition-opacity duration-200 ${hoveredId === guide.id || selectedId === guide.id ? 'opacity-100' : 'opacity-0'}`}>
             Click to edit
           </div>
         </div>

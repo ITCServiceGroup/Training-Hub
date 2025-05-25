@@ -286,7 +286,7 @@ export const TabsSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     tabAlignment === 'left' || !tabAlignment
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.tabAlignment = 'left'; })}
@@ -296,7 +296,7 @@ export const TabsSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     tabAlignment === 'center'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.tabAlignment = 'center'; })}
@@ -306,7 +306,7 @@ export const TabsSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     tabAlignment === 'right'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.tabAlignment = 'right'; })}
@@ -316,7 +316,7 @@ export const TabsSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     tabAlignment === 'space-between'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.tabAlignment = 'space-between'; })}
@@ -431,7 +431,7 @@ export const TabsSettings = () => {
                       return props;
                     });
                   }}
-                  className="mr-2 h-4 w-4 text-teal-600 border-gray-300 rounded"
+                  className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">
                   Auto convert colors between light and dark mode
@@ -771,7 +771,7 @@ export const TabsSettings = () => {
                     key={style}
                     className={`px-2 py-1 text-xs rounded capitalize ${
                       border.style === style
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => actions.setProp((props) => { props.border = { ...props.border, style }; })}
@@ -796,7 +796,7 @@ export const TabsSettings = () => {
                         onChange={(e) => actions.setProp((props) => {
                           props.border = { ...props.border, width: parseInt(e.target.value) };
                         })}
-                        className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                        className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                       />
                     </div>
                     <div className="w-1/4 flex items-center">
@@ -948,7 +948,7 @@ export const TabsSettings = () => {
                     min={0}
                     max={50}
                     onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
                 <div className="w-1/4 flex items-center">
@@ -979,7 +979,7 @@ export const TabsSettings = () => {
                   onChange={(e) => actions.setProp((props) => {
                     props.shadow = { ...props.shadow, enabled: e.target.checked };
                   })}
-                  className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
+                  className="mr-2 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
                 />
                 <label
                   htmlFor="enableShadow"

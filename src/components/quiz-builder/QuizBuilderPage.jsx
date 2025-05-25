@@ -135,7 +135,7 @@ const QuizBuilderPage = () => {
 
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h2 className={`text-4xl ${isDark ? 'text-teal-500' : 'text-teal-700'} m-0`}>
+          <h2 className={`text-4xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0`}>
             {quizId ? 'Edit Quiz' : 'Create Quiz'}
           </h2>
           {quizId && quiz.title && (
@@ -145,7 +145,7 @@ const QuizBuilderPage = () => {
           )}
         </div>
         <button
-          className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-primary-dark hover:bg-primary text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSave}
           disabled={isLoading}
         >
@@ -167,7 +167,7 @@ const QuizBuilderPage = () => {
             <button
               className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                 activeTab === 'metadata'
-                  ? 'bg-teal-700 text-white border-slate-200 z-10' // Active: teal bg, white text
+                  ? 'bg-primary-dark text-white border-slate-200 z-10' // Active: primary bg, white text
                   : isDark
                     ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
                     : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: darker gray, even darker on hover
@@ -181,7 +181,7 @@ const QuizBuilderPage = () => {
             <button
               className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                 activeTab === 'questions'
-                  ? 'bg-teal-700 text-white border-slate-200 z-10'
+                  ? 'bg-primary-dark text-white border-slate-200 z-10'
                   : isDark
                     ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
                     : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
@@ -195,7 +195,7 @@ const QuizBuilderPage = () => {
             <button
               className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                 activeTab === 'preview'
-                  ? 'bg-teal-700 text-white border-slate-200 z-10'
+                  ? 'bg-primary-dark text-white border-slate-200 z-10'
                   : isDark
                     ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
                     : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'

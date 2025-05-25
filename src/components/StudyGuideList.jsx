@@ -31,7 +31,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
           )}
         </div>
         <div className={`flex justify-center items-center p-4 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-          <div className={`w-5 h-5 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-3`}></div>
+          <div className={`w-5 h-5 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-primary' : 'border-gray-200 border-t-primary'} animate-spin mr-3`}></div>
           <span>Loading...</span>
         </div>
       </div>
@@ -58,11 +58,11 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
           {studyGuides.map(guide => (
             <li
               key={guide.id}
-              className={`p-3 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} rounded transition-colors ${guide.id === selectedGuideId ? isDark ? 'bg-teal-900/30' : 'bg-teal-50' : 'bg-transparent'}`}
+              className={`p-3 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} rounded transition-colors ${guide.id === selectedGuideId ? isDark ? 'bg-primary/20' : 'bg-primary/10' : 'bg-transparent'}`}
             >
               <Link
                 to={`/study/${sectionId}/${categoryId}/${guide.id}`}
-                className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline block w-full`}
+                className={`${isDark ? 'text-primary' : 'text-primary'} no-underline block w-full`}
                 onClick={handleLinkClick}
               >
                 {guide.title}

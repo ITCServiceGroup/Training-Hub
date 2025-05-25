@@ -17,7 +17,7 @@ const BreadcrumbNav = ({ items }) => {
             <span className="text-gray-800 dark:text-white font-medium">{item.label}</span>
           ) : (
             <span
-              className="text-teal-600 dark:text-teal-500 no-underline cursor-pointer transition-colors hover:text-teal-700 dark:hover:text-teal-400"
+              className="text-primary-dark dark:text-primary-light no-underline cursor-pointer transition-colors hover:text-primary dark:hover:text-primary"
               onClick={item.onClick}
             >
               {item.label}

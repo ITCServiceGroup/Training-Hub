@@ -48,7 +48,7 @@ export const Header = () => {
           className={classNames([
             'p-2 transition-colors',
             canUndo
-              ? 'text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400'
+              ? 'text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light'
               : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
           ])}
           onClick={() => canUndo && actions.history.undo()}
@@ -61,7 +61,7 @@ export const Header = () => {
           className={classNames([
             'p-2 transition-colors',
             canRedo
-              ? 'text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400'
+              ? 'text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light'
               : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
           ])}
           onClick={() => canRedo && actions.history.redo()}
@@ -72,21 +72,21 @@ export const Header = () => {
         </button>
         <div className="h-6 border-l border-gray-300 dark:border-slate-600 mx-1"></div>
         <button
-          className={`p-2 ${!enabled ? 'text-teal-600 dark:text-teal-400' : 'text-gray-600 dark:text-gray-300'} hover:text-teal-600 dark:hover:text-teal-400 transition-colors`}
+          className={`p-2 ${!enabled ? 'text-primary dark:text-primary-light' : 'text-gray-600 dark:text-gray-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}
           onClick={togglePreview}
           title={enabled ? 'Preview Mode' : 'Edit Mode'}
         >
           {enabled ? <FaEye size={14} /> : <FaEyeSlash size={14} />}
         </button>
         <button
-          className={`p-2 ${showJSON ? 'text-teal-600 dark:text-teal-400' : 'text-gray-600 dark:text-gray-300'} hover:text-teal-600 dark:hover:text-teal-400 transition-colors`}
+          className={`p-2 ${showJSON ? 'text-primary dark:text-primary-light' : 'text-gray-600 dark:text-gray-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}
           onClick={toggleJSON}
           title="View JSON"
         >
           <FaCode size={14} />
         </button>
         <button
-          className="p-2 text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+          className="p-2 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light transition-colors"
           onClick={copyJSON}
           title="Copy JSON"
         >

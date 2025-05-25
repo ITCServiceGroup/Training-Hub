@@ -109,7 +109,7 @@ const AdminLayout = () => {
         <div className="w-[250px] bg-slate-800 dark:bg-slate-900 text-white py-8 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
           <ul className="list-none p-0 m-0">
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
+              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin"
@@ -119,7 +119,7 @@ const AdminLayout = () => {
               </Link>
             </li>
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'study-guides' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
+              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'study-guides' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/study-guides"
@@ -135,7 +135,7 @@ const AdminLayout = () => {
             </li>
             {/* Media Library Link */}
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'media' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
+              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'media' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/media"
@@ -146,7 +146,7 @@ const AdminLayout = () => {
             </li>
             {/* End Media Library Link */}
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
+              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/quizzes"
@@ -156,7 +156,7 @@ const AdminLayout = () => {
               </Link>
             </li>
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'results' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
+              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'results' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/results"
@@ -166,7 +166,7 @@ const AdminLayout = () => {
               </Link>
             </li>
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'settings' ? 'bg-teal-700' : 'hover:bg-teal-700'}`}
+              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'settings' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/settings"

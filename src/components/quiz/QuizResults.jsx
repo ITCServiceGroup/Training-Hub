@@ -103,7 +103,7 @@ const QuizResults = ({
 
         {isPractice && (
           <button
-            className={`px-6 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded-lg font-medium transition-colors`}
+            className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors"
             onClick={onRetry}
           >
             Try Again

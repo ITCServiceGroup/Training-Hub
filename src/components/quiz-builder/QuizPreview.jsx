@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
 
+// Helper function to convert hex to rgba
+const hexToRgba = (hex, alpha) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
+
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 // Helper to create initial answers state from questions
 const createInitialAnswers = (questions) => {
   const initial = {};
@@ -12,8 +24,11 @@ const createInitialAnswers = (questions) => {
 };
 
 const QuizPreview = ({ quiz }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questionData, setQuestionData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,9 +81,12 @@ const QuizPreview = ({ quiz }) => {
                 key={index}
                 className={`w-full p-3 border rounded-md cursor-pointer transition-colors text-left flex items-center ${
                   selectedAnswers[question.id] === option
-                    ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
-                    : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
+                    ? 'border-primary'
+                    : isDark ? 'border-slate-600 hover:border-primary bg-slate-700' : 'border-slate-200 hover:border-primary bg-white'
                 }`}
+                style={selectedAnswers[question.id] === option ? {
+                  backgroundColor: hexToRgba(currentPrimaryColor, 0.15)
+                } : {}}
                 onClick={() => setSelectedAnswers({
                   ...selectedAnswers,
                   [question.id]: option
@@ -77,7 +95,7 @@ const QuizPreview = ({ quiz }) => {
                 <div className="flex items-center">
                   <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2
                     ${isDark ? 'border-slate-400' : 'border-slate-300'}
-                    ${selectedAnswers[question.id] === option ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                    ${selectedAnswers[question.id] === option ? 'bg-primary border-primary' : 'bg-transparent'}`}>
                     {selectedAnswers[question.id] === option && (
                       <div className="w-2 h-2 rounded-full bg-white"></div>
                     )}
@@ -97,9 +115,12 @@ const QuizPreview = ({ quiz }) => {
                 key={index}
                 className={`w-full p-3 border rounded-md cursor-pointer transition-colors text-left flex items-center ${
                   selectedAnswers[question.id]?.includes(option)
-                    ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
-                    : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
+                    ? 'border-primary'
+                    : isDark ? 'border-slate-600 hover:border-primary bg-slate-700' : 'border-slate-200 hover:border-primary bg-white'
                 }`}
+                style={selectedAnswers[question.id]?.includes(option) ? {
+                  backgroundColor: hexToRgba(currentPrimaryColor, 0.2)
+                } : {}}
                 onClick={(e) => {
                   e.stopPropagation();
                   const currentAnswers = selectedAnswers[question.id] || [];
@@ -118,7 +139,7 @@ const QuizPreview = ({ quiz }) => {
                 <div className="flex items-center">
                   <div className={`w-4 h-4 border flex-shrink-0 flex items-center justify-center mr-2 rounded
                     ${isDark ? 'border-slate-400' : 'border-slate-300'}
-                    ${selectedAnswers[question.id]?.includes(option) ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                    ${selectedAnswers[question.id]?.includes(option) ? 'bg-primary border-primary' : 'bg-transparent'}`}>
                     {selectedAnswers[question.id]?.includes(option) && (
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
@@ -138,9 +159,12 @@ const QuizPreview = ({ quiz }) => {
             <button
               className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors flex items-center justify-center ${
                 selectedAnswers[question.id] === 'true'
-                  ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
-                  : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
+                  ? 'border-primary'
+                  : isDark ? 'border-slate-600 hover:border-primary bg-slate-700' : 'border-slate-200 hover:border-primary bg-white'
               }`}
+              style={selectedAnswers[question.id] === 'true' ? {
+                backgroundColor: hexToRgba(currentPrimaryColor, 0.2)
+              } : {}}
               onClick={() => setSelectedAnswers({
                 ...selectedAnswers,
                 [question.id]: 'true'
@@ -149,7 +173,7 @@ const QuizPreview = ({ quiz }) => {
               <div className="flex items-center">
                 <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2
                   ${isDark ? 'border-slate-400' : 'border-slate-300'}
-                  ${selectedAnswers[question.id] === 'true' ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                  ${selectedAnswers[question.id] === 'true' ? 'bg-primary border-primary' : 'bg-transparent'}`}>
                   {selectedAnswers[question.id] === 'true' && (
                     <div className="w-2 h-2 rounded-full bg-white"></div>
                   )}
@@ -160,9 +184,12 @@ const QuizPreview = ({ quiz }) => {
             <button
               className={`flex-1 p-3 border rounded-md cursor-pointer transition-colors flex items-center justify-center ${
                 selectedAnswers[question.id] === 'false'
-                  ? isDark ? 'border-teal-500 bg-teal-900/30' : 'border-teal-500 bg-teal-50'
-                  : isDark ? 'border-slate-600 hover:border-teal-500 bg-slate-700' : 'border-slate-200 hover:border-teal-500 bg-white'
+                  ? 'border-primary'
+                  : isDark ? 'border-slate-600 hover:border-primary bg-slate-700' : 'border-slate-200 hover:border-primary bg-white'
               }`}
+              style={selectedAnswers[question.id] === 'false' ? {
+                backgroundColor: hexToRgba(currentPrimaryColor, 0.2)
+              } : {}}
               onClick={() => setSelectedAnswers({
                 ...selectedAnswers,
                 [question.id]: 'false'
@@ -171,7 +198,7 @@ const QuizPreview = ({ quiz }) => {
               <div className="flex items-center">
                 <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2
                   ${isDark ? 'border-slate-400' : 'border-slate-300'}
-                  ${selectedAnswers[question.id] === 'false' ? 'bg-teal-600 border-teal-600' : 'bg-transparent'}`}>
+                  ${selectedAnswers[question.id] === 'false' ? 'bg-primary border-primary' : 'bg-transparent'}`}>
                   {selectedAnswers[question.id] === 'false' && (
                     <div className="w-2 h-2 rounded-full bg-white"></div>
                   )}
@@ -198,7 +225,7 @@ const QuizPreview = ({ quiz }) => {
           <div>Time Limit: {formatTime(quiz.time_limit)}</div>
           <div>Passing Score: {quiz.passing_score}%</div>
           {quiz.is_practice && (
-            <div className={`${isDark ? 'text-teal-400' : 'text-teal-600'} font-medium`}>Practice Quiz</div>
+            <div className={`${isDark ? 'text-primary-light' : 'text-primary-dark'} font-medium`}>Practice Quiz</div>
           )}
         </div>
       </div>
@@ -233,7 +260,7 @@ const QuizPreview = ({ quiz }) => {
             </div>
             <div className={`h-1 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded overflow-hidden`}>
               <div
-                className="h-full bg-teal-500 transition-all duration-300"
+                className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${((currentQuestionIndex + 1) / questionData.length) * 100}%` }}
               />
             </div>

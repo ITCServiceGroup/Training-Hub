@@ -3,11 +3,26 @@ import { listMedia, uploadMedia } from '../../../../services/api/media'; // Adde
 import { useAuth } from '../../../../contexts/AuthContext'; // Changed import to useAuth hook
 import { useTheme } from '../../../../contexts/ThemeContext'; // Import ThemeContext for dark mode
 
+// Helper function to convert hex to rgba
+const hexToRgba = (hex, alpha) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
+
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 // Reusable Media Grid Component (adapted from MediaLibraryPage)
 // Note: Removed edit/delete buttons for selection context
 const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
-  const { theme } = useTheme(); // Get current theme
+  const { theme, themeColors } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
 
   return (
   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-3 overflow-y-auto"> {/* Removed h-full */}
@@ -15,7 +30,13 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
     {mediaItems.map((item) => (
       <div
         key={item.id}
-        className="border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all bg-white dark:bg-slate-700 dark:border-slate-600"
+        className="border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer hover:ring-2 transition-all bg-white dark:bg-slate-700 dark:border-slate-600"
+        style={{
+          '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.5)
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.setProperty('--tw-ring-color', hexToRgba(currentPrimaryColor, 0.5));
+        }}
         onClick={() => onSelectItem(item)}
         title={`Select ${item.file_name}`}
       >
@@ -60,7 +81,12 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
 
 
 const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType }) => {
-  const { theme } = useTheme(); // Get current theme
+  const { theme, themeColors } = useTheme(); // Get current theme
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   const [mediaItems, setMediaItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading media list
   const [error, setError] = useState(null); // Error fetching media list
@@ -175,7 +201,7 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Media</h2>
           <button
             onClick={onClose}
-            className="text-white bg-teal-600 hover:bg-teal-700 rounded text-2xl w-8 h-8 flex items-center justify-center" // Updated styles: green bg, white text, square, centered
+            className="text-white bg-primary hover:bg-primary-dark rounded text-2xl w-8 h-8 flex items-center justify-center" // Updated styles: primary bg, white text, square, centered
             title="Close"
           >
             &times;
@@ -208,8 +234,17 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
              className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${
                isUploading
                  ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                 : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'
+                 : ''
              }`}
+             style={!isUploading ? {
+               backgroundColor: currentPrimaryColor
+             } : {}}
+             onMouseEnter={(e) => {
+               if (!isUploading) e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.8);
+             }}
+             onMouseLeave={(e) => {
+               if (!isUploading) e.target.style.backgroundColor = currentPrimaryColor;
+             }}
            >
              {isUploading ? 'Uploading...' : 'Upload New Media'}
            </button>

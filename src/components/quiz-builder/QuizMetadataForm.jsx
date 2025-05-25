@@ -131,7 +131,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                  className="h-4 w-4 text-primary border-slate-300 rounded"
                   checked={quiz.is_practice || false}
                   onChange={(e) => {
                     const isPracticeChecked = e.target.checked;

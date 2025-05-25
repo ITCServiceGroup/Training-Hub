@@ -310,7 +310,7 @@ const StudyGuidePage = () => {
         {sectionId && (
           <Link
             to={`/study/${sectionId}`}
-            className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-1 ${!categoryId ? 'font-bold' : 'font-normal'}`}
+            className={`${isDark ? 'text-primary-light' : 'text-primary-dark'} no-underline mr-1 ${!categoryId ? 'font-bold' : 'font-normal'}`}
           >
             {currentSection?.name || 'Section'}
           </Link>
@@ -321,7 +321,7 @@ const StudyGuidePage = () => {
             <span className="mx-1">›</span>
             <Link
               to={`/study/${sectionId}/${categoryId}`}
-              className={`${isDark ? 'text-teal-400' : 'text-teal-700'} no-underline mr-1 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
+              className={`${isDark ? 'text-primary-light' : 'text-primary-dark'} no-underline mr-1 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
             >
               {currentCategory?.name || 'Category'}
             </Link>
@@ -347,7 +347,7 @@ const StudyGuidePage = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/study" className="no-underline">
-              <h2 className={`text-3xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0 hover:opacity-90 transition-opacity`}>Study Guides</h2>
+              <h2 className={`text-3xl text-primary m-0 hover:opacity-90 transition-opacity`}>Study Guides</h2>
             </Link>
             {(sectionId || categoryId || studyGuideId) && (
               <div className="ml-2 pt-1">
@@ -375,7 +375,7 @@ const StudyGuidePage = () => {
             )}
             {isSearching && (
               <div className={`absolute right-3 ${searchQuery ? 'right-8' : 'right-3'}`}>
-                <div className={`w-4 h-4 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin`}></div>
+                <div className={`w-4 h-4 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-primary' : 'border-gray-200 border-t-primary'} animate-spin`}></div>
               </div>
             )}
           </div>
@@ -436,7 +436,7 @@ const StudyGuidePage = () => {
           <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full overflow-hidden">
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
-              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-teal-400 hover:text-teal-300' : 'bg-white text-teal-700 hover:text-teal-800'} rounded-lg shadow-lg transition-colors`}
+              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-primary hover:text-primary-light' : 'bg-white text-primary hover:text-primary-dark'} rounded-lg shadow-lg transition-colors`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle menu"
             >

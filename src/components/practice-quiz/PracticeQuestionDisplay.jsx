@@ -4,13 +4,13 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  
+
   // Handle selecting an answer
   const handleSelectAnswer = (answer) => {
     if (showFeedback) return; // Prevent changing answer after feedback is shown
-    
+
     setSelectedAnswer(answer);
-    
+
     // Check if answer is correct
     let correct = false;
     switch (question.question_type) {
@@ -19,7 +19,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
         break;
       case 'check_all_that_apply':
         if (Array.isArray(answer) && Array.isArray(question.correct_answer)) {
-          correct = 
+          correct =
             answer.length === question.correct_answer.length &&
             answer.every(a => question.correct_answer.includes(a));
         }
@@ -30,7 +30,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
       default:
         break;
     }
-    
+
     if (question.question_type !== 'check_all_that_apply') {
       setIsCorrect(correct);
       setShowFeedback(true);
@@ -41,11 +41,11 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
   // Handle submitting check-all-that-apply answers
   const handleCheckAllSubmit = () => {
     if (!Array.isArray(selectedAnswer)) return;
-    
-    const correct = 
+
+    const correct =
       selectedAnswer.length === question.correct_answer.length &&
       selectedAnswer.every(a => question.correct_answer.includes(a));
-    
+
     setIsCorrect(correct);
     setShowFeedback(true);
     onAnswered(); // Notify parent that question is answered
@@ -68,13 +68,13 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
               const isSelected = selectedAnswer === index;
               const isCorrectAnswer = showFeedback && index === question.correct_answer;
               const isIncorrectSelection = showFeedback && isSelected && !isCorrectAnswer;
-              
+
               return (
                 <li
                   key={index}
-                  className={`p-4 mb-3 border rounded cursor-pointer transition-all 
-                    ${showFeedback ? 'pointer-events-none' : 'hover:border-teal-700 hover:bg-teal-50'} 
-                    ${isSelected ? 'border-teal-700 bg-teal-50' : 'border-slate-200 bg-white'}
+                  className={`p-4 mb-3 border rounded cursor-pointer transition-all
+                    ${showFeedback ? 'pointer-events-none' : 'hover:border-primary hover:bg-primary/10'}
+                    ${isSelected ? 'border-primary bg-primary/10' : 'border-slate-200 bg-white'}
                     ${isCorrectAnswer ? 'border-green-500 bg-green-50' : ''}
                     ${isIncorrectSelection ? 'border-red-500 bg-red-50' : ''}`}
                   onClick={() => handleSelectAnswer(index)}
@@ -87,7 +87,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
             })}
           </ul>
         );
-        
+
       case 'check_all_that_apply':
         return (
           <div className="space-y-3">
@@ -95,7 +95,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
               const isSelected = Array.isArray(selectedAnswer) && selectedAnswer.includes(index);
               const isCorrectAnswer = showFeedback && question.correct_answer.includes(index);
               const isIncorrectSelection = showFeedback && isSelected && !isCorrectAnswer;
-              
+
               return (
                 <label
                   key={index}
@@ -111,7 +111,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
                     checked={isSelected}
                     onChange={() => {
                       if (showFeedback) return;
-                      
+
                       const newSelection = Array.isArray(selectedAnswer) ? [...selectedAnswer] : [];
                       if (isSelected) {
                         const idx = newSelection.indexOf(index);
@@ -129,7 +129,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
                 </label>
               );
             })}
-            
+
             {!showFeedback && (
               <button
                 className="mt-4 bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-3 text-sm font-bold cursor-pointer transition-colors"
@@ -141,7 +141,7 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
             )}
           </div>
         );
-        
+
       case 'true_false':
         return (
           <div className="flex space-x-4">
@@ -149,13 +149,13 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
               const isSelected = selectedAnswer === value;
               const isCorrectAnswer = showFeedback && value === question.correct_answer;
               const isIncorrectSelection = showFeedback && isSelected && !isCorrectAnswer;
-              
+
               return (
                 <button
                   key={value.toString()}
                   className={`flex-1 p-4 border rounded cursor-pointer transition-all
-                    ${showFeedback ? 'pointer-events-none' : 'hover:border-teal-700 hover:bg-teal-50'}
-                    ${isSelected ? 'border-teal-700 bg-teal-50' : 'border-slate-200 bg-white'}
+                    ${showFeedback ? 'pointer-events-none' : 'hover:border-primary hover:bg-primary/10'}
+                    ${isSelected ? 'border-primary bg-primary/10' : 'border-slate-200 bg-white'}
                     ${isCorrectAnswer ? 'border-green-500 bg-green-50' : ''}
                     ${isIncorrectSelection ? 'border-red-500 bg-red-50' : ''}`}
                   onClick={() => handleSelectAnswer(value)}
@@ -169,29 +169,29 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
             })}
           </div>
         );
-        
+
       default:
         return <p>Unsupported question type</p>;
     }
   };
-  
+
   // Render feedback
   const renderFeedback = () => {
     if (!showFeedback) return null;
-    
+
     return (
       <div className={`mt-6 p-4 rounded-lg ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
         <h4 className={`font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
           {isCorrect ? 'Correct!' : 'Incorrect'}
         </h4>
-        
+
         {!isCorrect && (
           <div className="mt-2">
             <p className="font-medium mb-2">Correct answer:</p>
             {question.question_type === 'multiple_choice' && (
               <p>{question.options[question.correct_answer]}</p>
             )}
-            
+
             {question.question_type === 'check_all_that_apply' && (
               <ul className="list-disc pl-5 mt-1">
                 {question.correct_answer.map(index => (
@@ -199,11 +199,11 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
                 ))}
               </ul>
             )}
-            
+
             {question.question_type === 'true_false' && (
               <p>{question.correct_answer ? 'True' : 'False'}</p>
             )}
-            
+
             {question.explanation && (
               <div className="mt-3 pt-3 border-t border-red-200">
                 <p className="font-medium">Explanation:</p>
@@ -216,17 +216,17 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
       </div>
     );
   };
-  
+
   if (!question) {
     return <div>No question available</div>;
   }
-  
+
   return (
     <div className="mb-8">
       <p className="text-xl font-bold mb-6 text-slate-900">
         {question.question_text}
       </p>
-      
+
       {renderQuestionContent()}
       {renderFeedback()}
     </div>

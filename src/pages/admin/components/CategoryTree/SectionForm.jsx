@@ -57,7 +57,7 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full py-2 px-3 border ${errors.name ? 'border-red-500' : isDark ? 'border-slate-500' : 'border-gray-300'} rounded-md text-sm ${isDark ? 'text-white bg-slate-600' : 'text-gray-700 bg-white'} outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+            className={`w-full py-2 px-3 border ${errors.name ? 'border-red-500' : isDark ? 'border-slate-500' : 'border-gray-300'} rounded-md text-sm ${isDark ? 'text-white bg-slate-600' : 'text-gray-700 bg-white'} outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
             placeholder="Enter section name"
           />
           {errors.name && (
@@ -75,7 +75,7 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
             value={formData.description}
             onChange={handleChange}
             rows="3"
-            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-h-[80px] resize-y`}
+            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary min-h-[80px] resize-y`}
             placeholder="Enter section description"
           />
         </div>
@@ -98,7 +98,7 @@ const SectionForm = ({ initialData, onSubmit, onCancel, isEditing = false, darkM
           </button>
           <button
             type="submit"
-            className="py-2 px-4 text-sm font-medium text-white bg-teal-600 border border-transparent rounded-md hover:bg-teal-700 transition-colors flex items-center justify-center"
+            className="py-2 px-4 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center"
           >
             {isEditing ? 'Update' : 'Create'}
           </button>

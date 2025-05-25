@@ -432,7 +432,7 @@ export const TableSettings = () => {
                       }
                     });
                   }}
-                  className="mr-2 h-4 w-4 text-teal-600 border-gray-300 rounded"
+                  className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <span className="text-xs text-gray-700 dark:text-gray-300" style={{ position: 'relative', top: '-8px' }}>
                   Use first row as header
@@ -526,7 +526,7 @@ export const TableSettings = () => {
                         props.fontSize = parseInt(e.target.value, 10);
                       });
                     }}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
                 <div className="w-1/4 flex items-center">
@@ -559,7 +559,7 @@ export const TableSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     textAlign === 'left'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => {
@@ -573,7 +573,7 @@ export const TableSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     textAlign === 'center'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => {
@@ -587,7 +587,7 @@ export const TableSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     textAlign === 'right'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => {
@@ -620,7 +620,7 @@ export const TableSettings = () => {
                             props.headerFontSize = parseInt(e.target.value, 10);
                           });
                         }}
-                        className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                        className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                       />
                     </div>
                     <div className="w-1/4 flex items-center">
@@ -653,7 +653,7 @@ export const TableSettings = () => {
                     <button
                       className={`px-2 py-1 text-xs rounded ${
                         headerTextAlign === 'left'
-                          ? 'bg-teal-600 text-white'
+                          ? 'bg-primary text-white'
                           : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                       }`}
                       onClick={() => {
@@ -667,7 +667,7 @@ export const TableSettings = () => {
                     <button
                       className={`px-2 py-1 text-xs rounded ${
                         headerTextAlign === 'center'
-                          ? 'bg-teal-600 text-white'
+                          ? 'bg-primary text-white'
                           : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                       }`}
                       onClick={() => {
@@ -681,7 +681,7 @@ export const TableSettings = () => {
                     <button
                       className={`px-2 py-1 text-xs rounded ${
                         headerTextAlign === 'right'
-                          ? 'bg-teal-600 text-white'
+                          ? 'bg-primary text-white'
                           : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                       }`}
                       onClick={() => {
@@ -707,7 +707,7 @@ export const TableSettings = () => {
                     key={style}
                     className={`px-2 py-1 text-xs rounded capitalize ${
                       borderStyle === style
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => {
@@ -738,7 +738,7 @@ export const TableSettings = () => {
                         props.borderWidth = parseInt(e.target.value, 10);
                       });
                     }}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
                 <div className="w-1/4 flex items-center">
@@ -799,7 +799,7 @@ export const TableSettings = () => {
                       return props;
                     });
                   }}
-                  className="mr-2 h-4 w-4 text-teal-600 border-gray-300 rounded"
+                  className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">
                   Auto convert colors between light and dark mode
@@ -1314,7 +1314,7 @@ export const TableSettings = () => {
                     key={option.value}
                     className={`px-2 py-1 text-xs rounded ${
                       cellAlignment === option.value
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => {

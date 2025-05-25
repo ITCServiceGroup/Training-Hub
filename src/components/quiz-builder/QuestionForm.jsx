@@ -80,7 +80,7 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
             isDark
               ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
               : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
-          } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
+          } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
           value={formData.question_text}
           onChange={(e) => handleChange('question_text', e.target.value)}
           rows={3}
@@ -99,7 +99,7 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
             isDark
               ? 'border-slate-600 bg-slate-700 text-white'
               : 'border-slate-300 bg-white text-slate-900'
-          } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
+          } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
           value={formData.question_type}
           onChange={(e) => handleQuestionTypeChange(e.target.value)}
           required
@@ -182,7 +182,7 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
         </button>
         <button
           type="submit"
-          className="py-2 px-4 bg-teal-700 text-white rounded-md hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="py-2 px-4 bg-primary-dark text-white rounded-md hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
           {isLoading ? 'Saving...' : question ? 'Update Question' : 'Create Question'}

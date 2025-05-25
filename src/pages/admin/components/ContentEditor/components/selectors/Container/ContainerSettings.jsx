@@ -200,7 +200,7 @@ export const ContainerSettings = () => {
                     <button
                       className={`flex-1 px-2 py-1 text-xs rounded ${
                         flexDirection === 'row'
-                          ? 'bg-teal-600 text-white'
+                          ? 'bg-primary text-white'
                           : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                       }`}
                       onClick={() => actions.setProp((props) => { props.flexDirection = 'row'; })}
@@ -211,7 +211,7 @@ export const ContainerSettings = () => {
                     <button
                       className={`flex-1 px-2 py-1 text-xs rounded ${
                         flexDirection === 'column'
-                          ? 'bg-teal-600 text-white'
+                          ? 'bg-primary text-white'
                           : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                       }`}
                       onClick={() => actions.setProp((props) => { props.flexDirection = 'column'; })}
@@ -323,7 +323,7 @@ export const ContainerSettings = () => {
                       return props;
                     });
                   }}
-                  className="mr-2 h-4 w-4 text-teal-600 border-gray-300 rounded"
+                  className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">
                   Auto convert colors between light and dark mode
@@ -498,7 +498,7 @@ export const ContainerSettings = () => {
                       min={0}
                       max={50}
                       onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-                      className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                      className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                     />
                   </div>
                   <div className="w-1/4 flex items-center">
@@ -555,7 +555,7 @@ export const ContainerSettings = () => {
                         }
                       });
                     }}
-                    className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
+                    className="mr-2 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
                   />
                   <label
                     htmlFor="enableShadow"

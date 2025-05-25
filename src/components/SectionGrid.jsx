@@ -50,7 +50,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
   if (isLoading) {
     return (
       <div className={`flex justify-center items-center p-12 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-4`}></div>
+        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-primary-light' : 'border-gray-200 border-t-primary-dark'} animate-spin mr-4`}></div>
         <span>Loading sections...</span>
       </div>
     );
@@ -99,7 +99,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
               <span>{categoryCount} {categoryCount === 1 ? 'Category' : 'Categories'}</span>
             </div>
             <button
-              className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full`}
+              className={`bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full`}
             >
               View Categories
             </button>

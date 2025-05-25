@@ -60,16 +60,16 @@ export const ButtonSettings = () => {
     const r = parseInt(newColor.substring(1, 3), 16);
     const g = parseInt(newColor.substring(3, 5), 16);
     const b = parseInt(newColor.substring(5, 7), 16);
-    
+
     actions.setProp((props) => {
       const currentTheme = isDark ? 'dark' : 'light';
       const oppositeTheme = isDark ? 'light' : 'dark';
-      
+
       // Create the new color for the current theme
       const newThemeColor = { r, g, b, a: props[colorKey][currentTheme].a };
       // Generate the opposite theme color
       const oppositeColor = convertToThemeColor(newThemeColor, !isDark);
-      
+
       // Update both theme colors
       props[colorKey] = {
         [currentTheme]: newThemeColor,
@@ -82,12 +82,12 @@ export const ButtonSettings = () => {
     actions.setProp((props) => {
       const currentTheme = isDark ? 'dark' : 'light';
       const oppositeTheme = isDark ? 'light' : 'dark';
-      
+
       // Create the new color for the current theme
       const newThemeColor = { ...props[colorKey][currentTheme], a: opacity };
       // Generate the opposite theme color
       const oppositeColor = convertToThemeColor(newThemeColor, !isDark);
-      
+
       // Update both theme colors
       props[colorKey] = {
         [currentTheme]: newThemeColor,
@@ -122,7 +122,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 size === 'small'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.size = 'small'; })}
@@ -132,7 +132,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 size === 'medium'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.size = 'medium'; })}
@@ -142,7 +142,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 size === 'large'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.size = 'large'; })}
@@ -162,7 +162,7 @@ export const ButtonSettings = () => {
               min={10}
               max={40}
               onChange={(e) => actions.setProp((props) => { props.fontSize = parseInt(e.target.value); })}
-              className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+              className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
             />
             <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{fontSize}px</span>
           </div>
@@ -175,7 +175,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 fontWeight === '400'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.fontWeight = '400'; })}
@@ -185,7 +185,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 fontWeight === '500'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.fontWeight = '500'; })}
@@ -195,7 +195,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 fontWeight === '700'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.fontWeight = '700'; })}
@@ -219,7 +219,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 buttonStyle === 'filled'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.buttonStyle = 'filled'; })}
@@ -229,7 +229,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 buttonStyle === 'outline'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.buttonStyle = 'outline'; })}
@@ -239,7 +239,7 @@ export const ButtonSettings = () => {
             <button
               className={`px-2 py-1 text-xs rounded ${
                 buttonStyle === 'text'
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
               }`}
               onClick={() => actions.setProp((props) => { props.buttonStyle = 'text'; })}
@@ -261,7 +261,7 @@ export const ButtonSettings = () => {
                 min={1}
                 max={10}
                 onChange={(e) => actions.setProp((props) => { props.borderWidth = parseInt(e.target.value); })}
-                className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
               />
               <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{borderWidth}px</span>
             </div>
@@ -279,7 +279,7 @@ export const ButtonSettings = () => {
               min={0}
               max={50}
               onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-              className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+              className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
             />
             <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{radius}px</span>
           </div>
@@ -306,7 +306,7 @@ export const ButtonSettings = () => {
                   step="0.1"
                   value={getThemeColor(background, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('background', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                  className="flex-1 accent-primary [&::-webkit-slider-thumb]:bg-primary"
                 />
               </div>
             </div>
@@ -326,7 +326,7 @@ export const ButtonSettings = () => {
                   step="0.1"
                   value={getThemeColor(color, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('color', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                  className="flex-1 accent-primary [&::-webkit-slider-thumb]:bg-primary"
                 />
               </div>
             </div>
@@ -354,7 +354,7 @@ export const ButtonSettings = () => {
                   step="0.1"
                   value={getThemeColor(hoverBackground, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('hoverBackground', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                  className="flex-1 accent-primary [&::-webkit-slider-thumb]:bg-primary"
                 />
               </div>
             </div>
@@ -374,7 +374,7 @@ export const ButtonSettings = () => {
                   step="0.1"
                   value={getThemeColor(hoverColor, isDark, 'button').a}
                   onChange={(e) => handleOpacityChange('hoverColor', parseFloat(e.target.value))}
-                  className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                  className="flex-1 accent-primary [&::-webkit-slider-thumb]:bg-primary"
                 />
               </div>
             </div>

@@ -67,7 +67,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="bg-teal-700 dark:bg-slate-800 text-white py-4 shadow-md sticky top-0 z-[100]">
+    <header className="bg-primary text-white py-4 shadow-md sticky top-0 z-[100]">
       <div className="w-full px-6">
         <div className="flex justify-between items-center">
           {/* Logo and page title */}
@@ -76,7 +76,7 @@ const Header = () => {
               <h1 className="m-0">Training Hub</h1>
             </Link>
             {pageTitle && (
-              <div className="ml-6 text-xl font-semibold border-l border-teal-400 dark:border-slate-600 pl-6">
+              <div className="ml-6 text-xl font-semibold border-l border-primary-dark dark:border-slate-600 pl-6">
                 {pageTitle}
               </div>
             )}
@@ -85,7 +85,7 @@ const Header = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-white hover:bg-teal-600 rounded-md transition-colors relative z-10"
+            className="md:hidden p-2 text-white hover:bg-primary-dark rounded-md transition-colors relative z-10"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
@@ -97,7 +97,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/"
-                  className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                  className="inline-block text-white no-underline font-medium hover:bg-primary-dark hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
                 >
                   Home
                 </Link>
@@ -105,7 +105,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/study"
-                  className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                  className="inline-block text-white no-underline font-medium hover:bg-primary-dark hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
                 >
                   Study Guides
                 </Link>
@@ -113,7 +113,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/quiz"
-                  className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                  className="inline-block text-white no-underline font-medium hover:bg-primary-dark hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
                 >
                   Quizzes
                 </Link>
@@ -124,14 +124,14 @@ const Header = () => {
                   <li className="relative" ref={userDropdownRef}>
                     <button
                       onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                      className="flex items-center gap-2 text-white hover:bg-teal-600 px-3 py-2 rounded-md transition-colors"
+                      className="flex items-center gap-2 text-white hover:bg-primary-dark px-3 py-2 rounded-md transition-colors"
                     >
-                      <div className="w-8 h-8 rounded-full bg-teal-600 dark:bg-teal-500 text-white flex items-center justify-center font-bold">
+                      <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
                         {getInitials(user?.email)}
                       </div>
                       <div className="flex flex-col items-start">
                         <span className="text-sm font-medium">{user?.email || 'Administrator'}</span>
-                        <span className="text-xs text-teal-200">Admin</span>
+                        <span className="text-xs text-slate-200">Admin</span>
                       </div>
                     </button>
 
@@ -175,7 +175,7 @@ const Header = () => {
                 <li>
                   <Link
                     to="/login"
-                    className="inline-block text-white no-underline font-medium hover:bg-teal-600 hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
+                    className="inline-block text-white no-underline font-medium hover:bg-primary hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
                   >
                     Admin Login
                   </Link>
@@ -185,7 +185,7 @@ const Header = () => {
               <li>
                 <button
                   onClick={toggleTheme}
-                  className="inline-flex items-center justify-center p-2 text-white bg-teal-600 dark:bg-slate-700 hover:bg-teal-500 dark:hover:bg-slate-600 rounded-md transition-colors"
+                  className="inline-flex items-center justify-center p-2 text-white bg-primary dark:bg-slate-700 hover:bg-primary-dark dark:hover:bg-slate-600 rounded-md transition-colors"
                   aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                 >
                   {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
@@ -207,14 +207,14 @@ const Header = () => {
       />
       <div
         className={`
-          md:hidden fixed right-0 top-0 w-64 h-full bg-teal-700 dark:bg-slate-800 shadow-lg
+          md:hidden fixed right-0 top-0 w-64 h-full bg-primary shadow-lg
           transform transition-transform duration-300 ease-in-out z-[95]
           ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
       >
         <div className="pt-20 px-4">
           {pageTitle && (
-            <div className="mb-4 pb-3 border-b border-teal-600 dark:border-slate-700">
+            <div className="mb-4 pb-3 border-b border-primary-dark dark:border-slate-700">
               <h2 className="text-xl font-semibold text-white">{pageTitle}</h2>
             </div>
           )}
@@ -223,7 +223,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/"
-                  className="block text-white no-underline font-medium hover:bg-teal-600 px-3 py-3 rounded-md transition-colors"
+                  className="block text-white no-underline font-medium hover:bg-primary-dark px-3 py-3 rounded-md transition-colors"
                   onClick={handleMenuItemClick}
                 >
                   Home
@@ -232,7 +232,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/study"
-                  className="block text-white no-underline font-medium hover:bg-teal-600 px-3 py-3 rounded-md transition-colors"
+                  className="block text-white no-underline font-medium hover:bg-primary-dark px-3 py-3 rounded-md transition-colors"
                   onClick={handleMenuItemClick}
                 >
                   Study Guides
@@ -241,7 +241,7 @@ const Header = () => {
               <li>
                 <Link
                   to="/quiz"
-                  className="block text-white no-underline font-medium hover:bg-teal-600 px-3 py-3 rounded-md transition-colors"
+                  className="block text-white no-underline font-medium hover:bg-primary-dark px-3 py-3 rounded-md transition-colors"
                   onClick={handleMenuItemClick}
                 >
                   Quizzes
@@ -252,19 +252,19 @@ const Header = () => {
                   {/* User info in mobile menu */}
                   <li className="mt-4 mb-2">
                     <div className="flex items-center gap-3 px-3 py-2">
-                      <div className="w-10 h-10 rounded-full bg-teal-600 dark:bg-teal-500 text-white flex items-center justify-center font-bold">
+                      <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">
                         {getInitials(user?.email)}
                       </div>
                       <div>
                         <div className="font-medium text-white">{user?.email || 'Administrator'}</div>
-                        <div className="text-xs text-teal-200">Admin</div>
+                        <div className="text-xs text-slate-200">Admin</div>
                       </div>
                     </div>
                   </li>
                   <li>
                     <Link
                       to="/admin"
-                      className="flex items-center text-white no-underline font-medium hover:bg-teal-600 hover:text-white px-3 py-3 rounded-md transition-colors"
+                      className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
                       onClick={handleMenuItemClick}
                     >
                       <MdDashboard className="mr-2" />
@@ -274,7 +274,7 @@ const Header = () => {
                   <li>
                     <Link
                       to="/admin/settings"
-                      className="flex items-center text-white no-underline font-medium hover:bg-teal-600 hover:text-white px-3 py-3 rounded-md transition-colors"
+                      className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
                       onClick={handleMenuItemClick}
                     >
                       <FiSettings className="mr-2" />
@@ -284,7 +284,7 @@ const Header = () => {
                   <li>
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center text-left bg-transparent border-none text-white cursor-pointer font-medium hover:bg-teal-600 px-3 py-3 rounded-md transition-colors"
+                      className="w-full flex items-center text-left bg-transparent border-none text-white cursor-pointer font-medium hover:bg-primary-dark px-3 py-3 rounded-md transition-colors"
                     >
                       <FiLogOut className="mr-2" />
                       Sign Out
@@ -295,7 +295,7 @@ const Header = () => {
                 <li>
                   <Link
                     to="/login"
-                    className="block text-white no-underline font-medium hover:bg-teal-600 px-3 py-3 rounded-md transition-colors"
+                    className="block text-white no-underline font-medium hover:bg-primary-dark px-3 py-3 rounded-md transition-colors"
                     onClick={handleMenuItemClick}
                   >
                     Admin Login
@@ -306,7 +306,7 @@ const Header = () => {
               <li className="mt-4">
                 <button
                   onClick={toggleTheme}
-                  className="flex items-center w-full text-white font-medium hover:bg-teal-600 dark:hover:bg-slate-700 px-3 py-3 rounded-md transition-colors"
+                  className="flex items-center w-full text-white font-medium hover:bg-primary dark:hover:bg-slate-700 px-3 py-3 rounded-md transition-colors"
                 >
                   <span className="mr-2">
                     {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}

@@ -107,7 +107,7 @@ export const CardSettings = () => {
                 step="0.1"
                 value={background.a}
                 onChange={(e) => handleOpacityChange('background', parseFloat(e.target.value))}
-                className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                className="flex-1 accent-primary [&::-webkit-slider-thumb]:bg-primary"
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ export const CardSettings = () => {
                 step="0.1"
                 value={color.a}
                 onChange={(e) => handleOpacityChange('color', parseFloat(e.target.value))}
-                className="flex-1 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                className="flex-1 accent-primary [&::-webkit-slider-thumb]:bg-primary"
               />
             </div>
           </div>
@@ -281,7 +281,7 @@ export const CardSettings = () => {
                   key={style}
                   className={`px-2 py-1 text-xs rounded capitalize ${
                     border.style === style
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.border = { ...props.border, style }; })}
@@ -291,7 +291,7 @@ export const CardSettings = () => {
               ))}
             </div>
           </div>
-          
+
           {border.style !== 'none' && (
             <>
               <div>
@@ -305,7 +305,7 @@ export const CardSettings = () => {
                     onChange={(e) => actions.setProp((props) => {
                       props.border = { ...props.border, width: parseInt(e.target.value) };
                     })}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary"
                   />
                   <span className="text-xs text-gray-500 dark:text-gray-400 w-8">{border.width}px</span>
                 </div>

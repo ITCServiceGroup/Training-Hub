@@ -9,7 +9,7 @@ const TrueFalseForm = ({ correctAnswer, onChange, disabled, isDark }) => {
           <label className="flex items-center">
             <input
               type="radio"
-              className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
+              className={`h-4 w-4 text-primary ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
               checked={correctAnswer === true}
               onChange={() => onChange(true)}
               disabled={disabled}
@@ -21,7 +21,7 @@ const TrueFalseForm = ({ correctAnswer, onChange, disabled, isDark }) => {
           <label className="flex items-center">
             <input
               type="radio"
-              className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
+              className={`h-4 w-4 text-primary ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
               checked={correctAnswer === false}
               onChange={() => onChange(false)}
               disabled={disabled}

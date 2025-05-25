@@ -68,7 +68,16 @@ const SettingsPage = () => {
   ]);
 
   // Get theme from ThemeContext
-  const { theme, setThemeMode } = useTheme();
+  const {
+    theme,
+    setThemeMode,
+    themeColors,
+    colorModes,
+    setPrimaryColor,
+    setSecondaryColor,
+    toggleAutoCalculate,
+    resetColors
+  } = useTheme();
 
   // System settings state
   const [systemSettings, setSystemSettings] = useState({
@@ -434,6 +443,15 @@ const SettingsPage = () => {
           </li>
           <li>
             <a
+              href="#theme-colors"
+              onClick={(e) => { e.preventDefault(); scrollToSection('theme-colors'); }}
+              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            >
+              Theme Colors
+            </a>
+          </li>
+          <li>
+            <a
               href="#system"
               onClick={(e) => { e.preventDefault(); scrollToSection('system'); }}
               className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
@@ -464,7 +482,7 @@ const SettingsPage = () => {
                     value={profileData.name}
                     onChange={handleProfileChange}
                     placeholder="Your full name"
-                    className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                    className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
                   />
                 </div>
                 <div>
@@ -486,7 +504,7 @@ const SettingsPage = () => {
                   className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
                     isUpdatingProfile
                       ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500'
+                      : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
                   }`}
                 >
                   {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
@@ -510,7 +528,7 @@ const SettingsPage = () => {
                       name="currentPassword"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
                       required
                     />
                     <button
@@ -539,7 +557,7 @@ const SettingsPage = () => {
                       name="newPassword"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
                     />
                     <button
                       type="button"
@@ -602,7 +620,7 @@ const SettingsPage = () => {
                       name="confirmPassword"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
                     />
                     <button
                       type="button"
@@ -627,7 +645,7 @@ const SettingsPage = () => {
                   className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
                     isChangingPassword
                       ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500'
+                      : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
                   }`}
                 >
                   {isChangingPassword ? 'Changing...' : 'Change Password'}
@@ -655,7 +673,7 @@ const SettingsPage = () => {
                   min="0"
                   max="180"
                   step="5"
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
                 <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-0.5">
                   <span>0 min</span>
@@ -674,7 +692,7 @@ const SettingsPage = () => {
                       name="defaultQuestionRandomization"
                       checked={quizSettings.defaultQuestionRandomization}
                       onChange={handleQuizSettingChange}
-                      className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded"
+                      className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded"
                     />
                   </div>
                   <div className="ml-3">
@@ -698,7 +716,7 @@ const SettingsPage = () => {
                       name="defaultAnswerRandomization"
                       checked={quizSettings.defaultAnswerRandomization}
                       onChange={handleQuizSettingChange}
-                      className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded"
+                      className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded"
                     />
                   </div>
                   <div className="ml-3">
@@ -718,15 +736,15 @@ const SettingsPage = () => {
               </div>
 
               {/* Settings Note */}
-              <div className="mt-6 rounded-md bg-teal-50 dark:bg-teal-900/30 p-4">
+              <div className="mt-6 rounded-md bg-primary/10 dark:bg-primary/20 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-teal-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-teal-700 dark:text-teal-300">
+                    <p className="text-sm text-primary dark:text-primary">
                       Settings are automatically saved when changed. These preferences will be used as defaults when creating new quizzes.
                     </p>
                   </div>
@@ -739,7 +757,7 @@ const SettingsPage = () => {
               <h3 className="text-lg font-medium mb-2 dark:text-white">Archived Quizzes</h3>
               <button
                 onClick={() => setIsArchiveModalOpen(true)}
-                className="inline-flex justify-center py-2 px-4 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                className="inline-flex justify-center py-2 px-4 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 Manage Archived Quizzes ({archivedQuizzes.length})
               </button>
@@ -760,7 +778,7 @@ const SettingsPage = () => {
                     setDialogMessage('Enter supervisor name:');
                     setDialogOpen(true);
                   }}
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                  className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
                 >
                   Add Supervisor
                 </button>
@@ -782,7 +800,7 @@ const SettingsPage = () => {
                           <div className="flex flex-wrap justify-end gap-2">
                             <button
                               onClick={() => handleEditSupervisor(supervisor)}
-                              className="text-teal-600 hover:text-teal-900 dark:hover:text-teal-400"
+                              className="text-primary hover:text-primary-dark dark:hover:text-primary"
                             >
                               Edit
                             </button>
@@ -811,7 +829,7 @@ const SettingsPage = () => {
                     setDialogMessage('Enter market name:');
                     setDialogOpen(true);
                   }}
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                  className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
                 >
                   Add Market
                 </button>
@@ -832,7 +850,7 @@ const SettingsPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
                             onClick={() => handleEditMarket(market)}
-                            className="text-teal-600 hover:text-teal-900 dark:hover:text-teal-400 mr-4"
+                            className="text-primary hover:text-primary-dark dark:hover:text-primary mr-4"
                           >
                             Edit
                           </button>
@@ -851,6 +869,218 @@ const SettingsPage = () => {
             </div>
           </section>
 
+          {/* Theme Colors */}
+          <section id="theme-colors" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-medium mb-4 dark:text-white">Theme Colors</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Customize your organization's brand colors. These colors will be used throughout the application for buttons, links, and other interactive elements.
+            </p>
+
+            <div className="space-y-6">
+              {/* Primary Color */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Primary Color
+                </label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Used for buttons, links, focus states, and primary actions
+                </p>
+
+                {/* Auto-calculation toggle */}
+                <div className="mb-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={colorModes.primary.autoCalculate}
+                      onChange={() => toggleAutoCalculate('primary')}
+                      className="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      Auto-convert colors between themes
+                    </span>
+                  </label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-6">
+                    {colorModes.primary.autoCalculate
+                      ? 'Dark mode color is automatically calculated from light mode color'
+                      : 'Choose separate colors for light and dark modes'
+                    }
+                  </p>
+                </div>
+
+                {/* Color pickers */}
+                <div className="space-y-4">
+                  {/* Light mode color */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={themeColors.primary.light}
+                        onChange={(e) => setPrimaryColor(e.target.value, 'light')}
+                        className="w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer"
+                      />
+                      <div className="text-sm">
+                        <div className="font-medium text-slate-700 dark:text-slate-300">
+                          Light Mode
+                        </div>
+                        <div className="text-slate-500 dark:text-slate-400">
+                          {themeColors.primary.light}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
+                        style={{ backgroundColor: themeColors.primary.light }}
+                      >
+                        Light Mode Preview
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark mode color */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={themeColors.primary.dark}
+                        onChange={(e) => setPrimaryColor(e.target.value, 'dark')}
+                        disabled={colorModes.primary.autoCalculate}
+                        className={`w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer ${
+                          colorModes.primary.autoCalculate ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      />
+                      <div className="text-sm">
+                        <div className="font-medium text-slate-700 dark:text-slate-300">
+                          Dark Mode
+                          {colorModes.primary.autoCalculate && (
+                            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(Auto)</span>
+                          )}
+                        </div>
+                        <div className="text-slate-500 dark:text-slate-400">
+                          {themeColors.primary.dark}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
+                        style={{ backgroundColor: themeColors.primary.dark }}
+                      >
+                        Dark Mode Preview
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Secondary Color */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Secondary Color
+                </label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Used for secondary actions, accents, and complementary elements
+                </p>
+
+                {/* Auto-calculation toggle */}
+                <div className="mb-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={colorModes.secondary.autoCalculate}
+                      onChange={() => toggleAutoCalculate('secondary')}
+                      className="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      Auto-convert colors between themes
+                    </span>
+                  </label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-6">
+                    {colorModes.secondary.autoCalculate
+                      ? 'Dark mode color is automatically calculated from light mode color'
+                      : 'Choose separate colors for light and dark modes'
+                    }
+                  </p>
+                </div>
+
+                {/* Color pickers */}
+                <div className="space-y-4">
+                  {/* Light mode color */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={themeColors.secondary.light}
+                        onChange={(e) => setSecondaryColor(e.target.value, 'light')}
+                        className="w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer"
+                      />
+                      <div className="text-sm">
+                        <div className="font-medium text-slate-700 dark:text-slate-300">
+                          Light Mode
+                        </div>
+                        <div className="text-slate-500 dark:text-slate-400">
+                          {themeColors.secondary.light}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
+                        style={{ backgroundColor: themeColors.secondary.light }}
+                      >
+                        Light Mode Preview
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark mode color */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={themeColors.secondary.dark}
+                        onChange={(e) => setSecondaryColor(e.target.value, 'dark')}
+                        disabled={colorModes.secondary.autoCalculate}
+                        className={`w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer ${
+                          colorModes.secondary.autoCalculate ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      />
+                      <div className="text-sm">
+                        <div className="font-medium text-slate-700 dark:text-slate-300">
+                          Dark Mode
+                          {colorModes.secondary.autoCalculate && (
+                            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(Auto)</span>
+                          )}
+                        </div>
+                        <div className="text-slate-500 dark:text-slate-400">
+                          {themeColors.secondary.dark}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
+                        style={{ backgroundColor: themeColors.secondary.dark }}
+                      >
+                        Dark Mode Preview
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reset Button */}
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  onClick={resetColors}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
+                >
+                  Reset to Default Colors
+                </button>
+              </div>
+            </div>
+          </section>
+
           {/* System Settings */}
           <section id="system" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
             <h2 className="text-xl font-medium mb-4 dark:text-white">System Settings</h2>
@@ -860,7 +1090,7 @@ const SettingsPage = () => {
                 <div
                   className={`p-4 border rounded-lg cursor-pointer transition-all ${
                     systemSettings.theme === 'light'
-                      ? 'border-teal-500 shadow-sm bg-white dark:bg-slate-800'
+                      ? 'border-primary shadow-sm bg-white dark:bg-slate-800'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                   onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'light' } })}
@@ -873,7 +1103,7 @@ const SettingsPage = () => {
                 <div
                   className={`p-4 border rounded-lg cursor-pointer transition-all ${
                     systemSettings.theme === 'dark'
-                      ? 'border-teal-500 shadow-sm bg-slate-800 text-white'
+                      ? 'border-primary shadow-sm bg-slate-800 text-white'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                   onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'dark' } })}
@@ -915,7 +1145,7 @@ const SettingsPage = () => {
               </button>
               <button
                 type="button"
-                className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none"
+                className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark focus:outline-none"
                 onClick={handleSaveItem}
               >
                 Save
@@ -948,7 +1178,7 @@ const SettingsPage = () => {
                       <span className="text-sm text-slate-700 dark:text-slate-300">{quiz.title}</span>
                       <button
                         onClick={() => handleRestoreQuiz(quiz.id)}
-                        className="py-1 px-3 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-500"
+                        className="py-1 px-3 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary"
                       >
                         Restore
                       </button>

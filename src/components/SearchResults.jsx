@@ -125,7 +125,7 @@ const SearchResults = ({
   if (isLoading) {
     return (
       <div className={`flex justify-center items-center p-12 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-4`}></div>
+        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-primary-light' : 'border-gray-200 border-t-primary-dark'} animate-spin mr-4`}></div>
         <span>Searching...</span>
       </div>
     );
@@ -176,7 +176,7 @@ const SearchResults = ({
                     </p>
                   )}
                   <div className="flex justify-end">
-                    <span className={`text-sm ${isDark ? 'text-teal-400' : 'text-teal-700'} flex items-center`}>
+                    <span className={`text-sm ${isDark ? 'text-primary-light' : 'text-primary-dark'} flex items-center`}>
                       View Section <FaChevronRight size={12} className="ml-1" />
                     </span>
                   </div>
@@ -255,8 +255,8 @@ const SearchResults = ({
                 }}
               >
                 <div className="flex items-start">
-                  <div className={`p-2 rounded-full ${isDark ? 'bg-teal-900' : 'bg-teal-100'} mr-3`}>
-                    <FaFile size={16} className={isDark ? 'text-teal-400' : 'text-teal-700'} />
+                  <div className={`p-2 rounded-full ${isDark ? 'bg-primary/20' : 'bg-primary/10'} mr-3`}>
+                    <FaFile size={16} className={isDark ? 'text-primary' : 'text-primary'} />
                   </div>
                   <div className="flex-1">
                     <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{guide.title}</h4>
@@ -334,7 +334,7 @@ const SearchResults = ({
                         <div className="flex justify-between items-start">
                           <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{guide.title}</h4>
                           {matchCount > 0 && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-teal-900 text-teal-300' : 'bg-teal-100 text-teal-800'}`}>
+                            <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                               {matchCount} {matchCount === 1 ? 'match' : 'matches'}
                             </span>
                           )}

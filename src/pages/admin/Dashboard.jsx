@@ -99,7 +99,7 @@ const AdminDashboard = () => {
   const getBadgeClasses = (type) => {
     switch (type) {
       case 'quiz_completion':
-        return 'bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-700';
+        return 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary border border-primary/30 dark:border-primary/30';
       default:
         return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700';
     }
@@ -150,19 +150,19 @@ const AdminDashboard = () => {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
-          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.studyGuides}</div>
+          <div className="text-4xl font-bold text-primary mb-2">{quizStats.studyGuides}</div>
           <div className="text-sm text-slate-500 dark:text-slate-300">Study Guides</div>
         </div>
         <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
-          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.questions}</div>
+          <div className="text-4xl font-bold text-primary mb-2">{quizStats.questions}</div>
           <div className="text-sm text-slate-500 dark:text-slate-300">Questions</div>
         </div>
         <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
-          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.quizzes}</div>
+          <div className="text-4xl font-bold text-primary mb-2">{quizStats.quizzes}</div>
           <div className="text-sm text-slate-500 dark:text-slate-300">Quizzes</div>
         </div>
         <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 flex flex-col hover:shadow-lg transition-shadow duration-200">
-          <div className="text-4xl font-bold text-teal-700 dark:text-teal-400 mb-2">{quizStats.completions}</div>
+          <div className="text-4xl font-bold text-primary mb-2">{quizStats.completions}</div>
           <div className="text-sm text-slate-500 dark:text-slate-300">Quiz Completions</div>
         </div>
       </div>
@@ -224,14 +224,14 @@ const AdminDashboard = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-teal-700 dark:bg-teal-600 flex items-center justify-center mb-4 shadow-md">
+            <div className="w-[50px] h-[50px] rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
               <BiBook className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Study Guides</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Manage study guide content and categories.</p>
             <Link
               to="/admin/study-guides"
-              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
+              className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               Manage Study Guides
             </Link>
@@ -240,28 +240,28 @@ const AdminDashboard = () => {
 
 
           <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-blue-900 dark:bg-blue-800 flex items-center justify-center mb-4 shadow-md">
+            <div className="w-[50px] h-[50px] rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
               <MdQuiz className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Quizzes</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Create and manage quizzes and access codes.</p>
             <Link
               to="/admin/quizzes"
-              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
+              className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               Manage Quizzes
             </Link>
           </div>
 
           <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-blue-700 dark:bg-blue-600 flex items-center justify-center mb-4 shadow-md">
+            <div className="w-[50px] h-[50px] rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
               <BiBarChart className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Results</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">View quiz results and analytics.</p>
             <Link
               to="/admin/results"
-              className="bg-teal-700 hover:bg-teal-800 text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
+              className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
             >
               View Results
             </Link>

@@ -9,15 +9,15 @@ body.craftjs-dragging {
 
 /* Highlight potential drop targets immediately */
 body.craftjs-dragging .craft-container.is-canvas {
-  outline: 2px dashed rgba(13, 148, 136, 0.3) !important; /* Teal color with transparency */
+  outline: 2px dashed color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
   outline-offset: -2px;
   transition: all 0.1s ease-in-out;
 }
 
 /* Style for the container being dragged over */
 .craft-container.drag-hover {
-  background-color: rgba(13, 148, 136, 0.1) !important; /* Teal color with transparency */
-  outline: 2px solid rgba(13, 148, 136, 0.8) !important; /* Teal color */
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 80%, transparent) !important;
   outline-offset: -2px;
   transition: all 0.1s ease-in-out;
 }

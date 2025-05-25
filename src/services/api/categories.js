@@ -15,16 +15,37 @@ class CategoriesService extends BaseService {
    */
   async getAllCategories() {
     try {
-      const { data, error } = await supabase
+      // First get all categories
+      const { data: categories, error } = await supabase
         .from(this.tableName)
-        .select('*, v2_sections(*)')
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
         .order('display_order', { nullsLast: true });
 
       if (error) {
         throw error;
       }
 
-      return data;
+      // Get all sections
+      const { data: sections, error: sectionsError } = await supabase
+        .from('v2_sections')
+        .select('*');
+
+      if (sectionsError) {
+        throw sectionsError;
+      }
+
+      // Create a map of section IDs to sections for quick lookup
+      const sectionsMap = {};
+      sections.forEach(section => {
+        sectionsMap[section.id] = section;
+      });
+
+      // For each category, add its section info
+      for (const category of categories) {
+        category.v2_sections = sectionsMap[category.section_id];
+      }
+
+      return categories;
     } catch (error) {
       console.error('Error fetching all categories:', error.message);
       throw error;
@@ -38,12 +59,10 @@ class CategoriesService extends BaseService {
    */
   async getBySectionId(sectionId) {
     try {
-      const { data, error } = await supabase
+      // First get the categories
+      const { data: categories, error } = await supabase
         .from(this.tableName)
-        .select(`
-          *,
-          v2_study_guides(*)
-        `)
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
         .eq('section_id', sectionId)
         .order('display_order', { nullsLast: true });
 
@@ -51,7 +70,23 @@ class CategoriesService extends BaseService {
         throw error;
       }
 
-      return data;
+      // Then for each category, get its study guides
+      for (const category of categories) {
+        const { data: studyGuides, error: studyGuidesError } = await supabase
+          .from('v2_study_guides')
+          .select('*')
+          .eq('category_id', category.id)
+          .order('display_order', { nullsLast: true });
+
+        if (studyGuidesError) {
+          console.error('Error fetching study guides for category:', studyGuidesError.message);
+          category.v2_study_guides = [];
+        } else {
+          category.v2_study_guides = studyGuides;
+        }
+      }
+
+      return categories;
     } catch (error) {
       console.error('Error fetching categories by section ID:', error.message);
       throw error;
@@ -64,20 +99,52 @@ class CategoriesService extends BaseService {
    */
   async getAllWithStudyGuides() {
     try {
-      const { data, error } = await supabase
+      // First get all categories
+      const { data: categories, error } = await supabase
         .from(this.tableName)
-        .select(`
-          *,
-          v2_sections(*),
-          v2_study_guides(*)
-        `)
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
         .order('display_order', { nullsLast: true });
 
       if (error) {
         throw error;
       }
 
-      return data;
+      // Get all sections
+      const { data: sections, error: sectionsError } = await supabase
+        .from('v2_sections')
+        .select('*');
+
+      if (sectionsError) {
+        throw sectionsError;
+      }
+
+      // Create a map of section IDs to sections for quick lookup
+      const sectionsMap = {};
+      sections.forEach(section => {
+        sectionsMap[section.id] = section;
+      });
+
+      // For each category, get its study guides and add section info
+      for (const category of categories) {
+        // Add section info
+        category.v2_sections = sectionsMap[category.section_id];
+
+        // Get study guides
+        const { data: studyGuides, error: studyGuidesError } = await supabase
+          .from('v2_study_guides')
+          .select('*')
+          .eq('category_id', category.id)
+          .order('display_order', { nullsLast: true });
+
+        if (studyGuidesError) {
+          console.error('Error fetching study guides for category:', studyGuidesError.message);
+          category.v2_study_guides = [];
+        } else {
+          category.v2_study_guides = studyGuides;
+        }
+      }
+
+      return categories;
     } catch (error) {
       console.error('Error fetching categories with study guides:', error.message);
       throw error;
@@ -119,20 +186,38 @@ class CategoriesService extends BaseService {
    */
   async update(id, updates) {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      // Just perform the update without any select
+      await this.updateBasicInfo(id, updates);
 
-      if (error) {
-        throw error;
-      }
-
-      return data;
+      // Return the updates with the id
+      return { id, ...updates };
     } catch (error) {
       console.error('Error updating category:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update only the basic info of a category (name, description, icon)
+   * This method doesn't try to fetch or return any data to avoid schema cache issues
+   * @param {string} id - Category ID
+   * @param {Object} updates - Category updates (name, description, icon)
+   */
+  async updateBasicInfo(id, updates) {
+    // Create a new object with only the allowed fields
+    const safeUpdates = {};
+    if (updates.name !== undefined) safeUpdates.name = updates.name;
+    if (updates.description !== undefined) safeUpdates.description = updates.description;
+    if (updates.icon !== undefined) safeUpdates.icon = updates.icon;
+    if (updates.section_id !== undefined) safeUpdates.section_id = updates.section_id;
+
+    // Perform the update without any select
+    const { error } = await supabase
+      .from(this.tableName)
+      .update(safeUpdates)
+      .eq('id', id);
+
+    if (error) {
       throw error;
     }
   }

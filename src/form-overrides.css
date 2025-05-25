@@ -12,7 +12,7 @@
   flex-shrink: 0 !important;
   height: 1rem !important;
   width: 1rem !important;
-  color: #0d9488 !important; /* teal-600 */
+  color: var(--color-primary) !important; /* Dynamic primary color */
   background-color: #fff !important;
   border-color: #d1d5db !important; /* gray-300 */
   border-width: 1px !important;
@@ -29,7 +29,7 @@
 }
 
 .dark [type='checkbox'] {
-  color: #14b8a6 !important; /* teal-500 */
+  color: var(--color-primary) !important; /* Dynamic primary color */
   background-color: #1e293b !important; /* slate-800 */
   border-color: #4b5563 !important; /* gray-600 */
 }
@@ -53,11 +53,11 @@ textarea:focus,
 [multiple]:focus,
 [type='checkbox']:focus,
 [type='radio']:focus {
-  --tw-ring-color: #0d9488 !important; /* teal-600 for light mode - more teal, less green */
+  --tw-ring-color: var(--color-primary) !important; /* Dynamic primary color */
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
-  border-color: #0d9488 !important;
+  border-color: var(--color-primary) !important;
   outline: 1px solid transparent !important;
   outline-offset: 1px !important;
 }
@@ -81,6 +81,6 @@ textarea:focus,
 .dark [multiple]:focus,
 .dark [type='checkbox']:focus,
 .dark [type='radio']:focus {
-  --tw-ring-color: #14b8a6 !important; /* teal-500 for dark mode */
-  border-color: #14b8a6 !important;
+  --tw-ring-color: var(--color-primary) !important; /* Dynamic primary color */
+  border-color: var(--color-primary) !important;
 }

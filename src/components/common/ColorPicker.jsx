@@ -621,7 +621,7 @@ const ColorPicker = ({
                 const newAlpha = parseFloat(e.target.value);
                 onChange({ ...color, a: newAlpha });
               }}
-              className="w-full h-3 rounded appearance-none cursor-pointer accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+              className="w-full h-3 rounded appearance-none cursor-pointer accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
               style={{
                 background: `linear-gradient(to right,
                   rgba(${color.r}, ${color.g}, ${color.b}, 0),
@@ -716,7 +716,7 @@ const ColorPicker = ({
                 max="360"
                 value={hue}
                 onChange={handleHueChange}
-                className="w-full h-3 rounded appearance-none cursor-pointer accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                className="w-full h-3 rounded appearance-none cursor-pointer accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                 style={{
                   background: `linear-gradient(to right,
                     #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`,
@@ -745,7 +745,7 @@ const ColorPicker = ({
                 type="button"
                 className={`px-2 py-1 text-xs rounded-md ${
                   colorFormat === 'hex'
-                    ? 'bg-teal-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                 }`}
                 onClick={() => setColorFormat('hex')}
@@ -756,7 +756,7 @@ const ColorPicker = ({
                 type="button"
                 className={`px-2 py-1 text-xs rounded-md ${
                   colorFormat === 'rgb'
-                    ? 'bg-teal-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                 }`}
                 onClick={() => setColorFormat('rgb')}
@@ -767,7 +767,7 @@ const ColorPicker = ({
                 type="button"
                 className={`px-2 py-1 text-xs rounded-md ${
                   colorFormat === 'hsl'
-                    ? 'bg-teal-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                 }`}
                 onClick={() => setColorFormat('hsl')}

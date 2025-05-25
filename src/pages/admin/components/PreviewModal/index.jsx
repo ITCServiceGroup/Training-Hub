@@ -473,7 +473,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
         border-color: #000000;
       }
       .image-grid-wrapper > .image-cell > img.border-color-blue {
-        border-color: #0f766e; /* Changed from blue to teal */
+        border-color: var(--color-primary); /* Use dynamic primary color */
       }
       .image-grid-wrapper > .image-cell > img.border-color-red {
         border-color: #dc2626;

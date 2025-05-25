@@ -459,7 +459,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
             {searchTerm && (
               <div className={`ml-2 px-3 py-1 text-xs rounded-full ${
                 searchHighlighted
-                  ? (isDark ? 'bg-teal-900 text-teal-300 border border-teal-700' : 'bg-teal-100 text-teal-800 border border-teal-300')
+                  ? (isDark ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-primary/10 text-primary border border-primary/30')
                   : (isDark ? 'bg-amber-900 text-amber-300' : 'bg-amber-100 text-amber-800')
               } flex items-center shadow-sm`}>
                 <FaSearch size={10} className="mr-1" />
@@ -551,7 +551,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           {studyGuide && studyGuide.category_id && (
             <button
               onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}
-              className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
+              className={`bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
             >
               <span>📝</span> Take Practice Quiz
             </button>
@@ -880,7 +880,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           border-color: ${isDark ? '#f8fafc' : '#000000'};
         }
         .image-grid-wrapper > .image-cell > img.border-color-blue {
-          border-color: ${isDark ? '#14b8a6' : '#0f766e'}; /* Changed from blue to teal */
+          border-color: ${isDark ? 'var(--primary-light)' : 'var(--primary-dark)'}; /* Use dynamic primary colors */
         }
         .image-grid-wrapper > .image-cell > img.border-color-red {
           border-color: ${isDark ? '#f87171' : '#dc2626'};
@@ -950,7 +950,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           {searchTerm && (
             <div className={`ml-2 px-3 py-1 text-xs rounded-full ${
               searchHighlighted
-                ? (isDark ? 'bg-teal-900 text-teal-300 border border-teal-700' : 'bg-teal-100 text-teal-800 border border-teal-300')
+                ? (isDark ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-primary/10 text-primary border border-primary/30')
                 : (isDark ? 'bg-amber-900 text-amber-300' : 'bg-amber-100 text-amber-800')
             } flex items-center shadow-sm`}>
               <FaSearch size={10} className="mr-1" />
@@ -1030,7 +1030,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         {studyGuide && studyGuide.category_id && (
           <button
             onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}
-            className={`${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-700 hover:bg-teal-800'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
+            className={`bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
           >
             <span>📝</span> Take Practice Quiz
           </button>

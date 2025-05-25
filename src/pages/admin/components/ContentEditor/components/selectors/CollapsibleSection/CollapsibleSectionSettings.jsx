@@ -41,9 +41,9 @@ const ensureThemeColors = (props, isDark) => {
       } else if (colorKey === 'headerTextColor') {
         props[colorKey].light = { r: 0, g: 0, b: 0, a: 1 };
       } else if (colorKey === 'stepButtonColor') {
-        props[colorKey].light = { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+        props[colorKey].light = { r: 15, g: 118, b: 110, a: 1 }; // Default primary color light
       } else if (colorKey === 'stepIndicatorColor') {
-        props[colorKey].light = { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+        props[colorKey].light = { r: 15, g: 118, b: 110, a: 1 }; // Default primary color light
       }
     }
 
@@ -57,9 +57,9 @@ const ensureThemeColors = (props, isDark) => {
       } else if (colorKey === 'headerTextColor') {
         props[colorKey].dark = { r: 229, g: 231, b: 235, a: 1 };
       } else if (colorKey === 'stepButtonColor') {
-        props[colorKey].dark = { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+        props[colorKey].dark = { r: 20, g: 184, b: 166, a: 1 }; // Default primary color dark
       } else if (colorKey === 'stepIndicatorColor') {
-        props[colorKey].dark = { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+        props[colorKey].dark = { r: 20, g: 184, b: 166, a: 1 }; // Default primary color dark
       }
     }
 
@@ -239,12 +239,12 @@ export const CollapsibleSectionSettings = () => {
       },
       headerFontSize: props.headerFontSize || 16,
       stepButtonColor: props.stepButtonColor || {
-        light: { r: 13, g: 148, b: 136, a: 1 }, // #0d9488 (teal-600)
-        dark: { r: 13, g: 148, b: 136, a: 1 }  // Same teal color for dark mode
+        light: { r: 15, g: 118, b: 110, a: 1 }, // Default primary color light
+        dark: { r: 20, g: 184, b: 166, a: 1 }   // Default primary color dark
       },
       stepIndicatorColor: props.stepIndicatorColor || {
-        light: { r: 13, g: 148, b: 136, a: 1 }, // #0d9488 (teal-600)
-        dark: { r: 13, g: 148, b: 136, a: 1 }  // Same teal color for dark mode
+        light: { r: 15, g: 118, b: 110, a: 1 }, // Default primary color light
+        dark: { r: 20, g: 184, b: 166, a: 1 }   // Default primary color dark
       },
       autoConvertColors: typeof props.autoConvertColors !== 'undefined' ? props.autoConvertColors : true
     };
@@ -546,7 +546,7 @@ export const CollapsibleSectionSettings = () => {
                       return props;
                     });
                   }}
-                  className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  className="mr-2 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <label
                   htmlFor="autoConvertColors"
@@ -798,7 +798,7 @@ export const CollapsibleSectionSettings = () => {
                     max={32}
                     value={headerFontSize}
                     onChange={(e) => actions.setProp((props) => { props.headerFontSize = parseInt(e.target.value); })}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
                 <div className="w-1/4 flex items-center">
@@ -903,7 +903,7 @@ export const CollapsibleSectionSettings = () => {
                     key={style}
                     className={`px-2 py-1 text-xs rounded capitalize ${
                       border.style === style
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => actions.setProp((props) => { props.border = { ...props.border, style }; })}
@@ -928,7 +928,7 @@ export const CollapsibleSectionSettings = () => {
                         onChange={(e) => actions.setProp((props) => {
                           props.border = { ...props.border, width: parseInt(e.target.value) };
                         })}
-                        className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                        className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                       />
                     </div>
                     <div className="w-1/4 flex items-center">
@@ -1078,7 +1078,7 @@ export const CollapsibleSectionSettings = () => {
                     min={0}
                     max={50}
                     onChange={(e) => actions.setProp((props) => { props.radius = parseInt(e.target.value); })}
-                    className="w-full mr-2 accent-teal-600 [&::-webkit-slider-thumb]:bg-teal-600 [&::-moz-range-thumb]:bg-teal-600"
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
                 <div className="w-1/4 flex items-center">
@@ -1124,7 +1124,7 @@ export const CollapsibleSectionSettings = () => {
                       }
                     });
                   }}
-                  className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
+                  className="mr-2 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
                 />
                 <label
                   htmlFor="enableShadow"
@@ -1371,7 +1371,7 @@ export const CollapsibleSectionSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     !stepsEnabled
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.stepsEnabled = false; })}
@@ -1381,7 +1381,7 @@ export const CollapsibleSectionSettings = () => {
                 <button
                   className={`px-2 py-1 text-xs rounded ${
                     stepsEnabled
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                   }`}
                   onClick={() => actions.setProp((props) => { props.stepsEnabled = true; })}
@@ -1418,10 +1418,10 @@ export const CollapsibleSectionSettings = () => {
                             return stepButtonColor[currentTheme];
                           }
                           // Fallback to default color for current theme
-                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                          return isDark ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 }; // Default primary colors
                         } catch (error) {
                           console.warn('Error getting current theme color:', error);
-                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                          return isDark ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 }; // Default primary colors
                         }
                       })()}
                       onChange={(newColor) => handleColorChange('stepButtonColor', newColor)}
@@ -1453,10 +1453,10 @@ export const CollapsibleSectionSettings = () => {
                                 return convertToThemeColor(stepButtonColor[currentTheme], !isDark, 'button');
                               }
                               // Fallback to default color for opposite theme
-                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                              return !isDark ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 }; // Default primary colors
                             } catch (error) {
                               console.warn('Error getting opposite theme color:', error);
-                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                              return !isDark ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 }; // Default primary colors
                             }
                           })()}
                           onChange={(newColor) => handleOppositeThemeColorChange('stepButtonColor', newColor)}
@@ -1485,10 +1485,10 @@ export const CollapsibleSectionSettings = () => {
                             return stepIndicatorColor[currentTheme];
                           }
                           // Fallback to default color for current theme
-                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                          return isDark ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 }; // Default primary colors
                         } catch (error) {
                           console.warn('Error getting current theme color:', error);
-                          return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                          return isDark ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 }; // Default primary colors
                         }
                       })()}
                       onChange={(newColor) => handleColorChange('stepIndicatorColor', newColor)}
@@ -1520,10 +1520,10 @@ export const CollapsibleSectionSettings = () => {
                                 return convertToThemeColor(stepIndicatorColor[currentTheme], !isDark, 'button');
                               }
                               // Fallback to default color for opposite theme
-                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                              return isDark ? { r: 15, g: 118, b: 110, a: 1 } : { r: 20, g: 184, b: 166, a: 1 }; // Default primary colors
                             } catch (error) {
                               console.warn('Error getting opposite theme color:', error);
-                              return { r: 13, g: 148, b: 136, a: 1 }; // #0d9488 (teal-600)
+                              return isDark ? { r: 15, g: 118, b: 110, a: 1 } : { r: 20, g: 184, b: 166, a: 1 }; // Default primary colors
                             }
                           })()}
                           onChange={(newColor) => handleOppositeThemeColorChange('stepIndicatorColor', newColor)}
@@ -1543,7 +1543,7 @@ export const CollapsibleSectionSettings = () => {
                     id="autoConvertStepColors"
                     checked={autoConvertColors}
                     onChange={(e) => actions.setProp((props) => { props.autoConvertColors = e.target.checked; })}
-                    className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-0.5"
+                    className="mr-2 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
                   />
                   <div className="flex items-center">
                     <label

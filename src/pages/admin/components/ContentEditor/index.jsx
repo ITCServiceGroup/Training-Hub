@@ -520,7 +520,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
               id="title"
               value={title}
               onChange={(e) => { setTitle(e.target.value); setHasUnsavedChanges(true); }}
-              className={`w-full h-full px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+              className={`w-full h-full px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary`}
               placeholder="Enter content title"
               required
             />
@@ -569,8 +569,8 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
                   py-2 px-4 rounded-md text-sm cursor-pointer transition-colors flex items-center gap-2
                   ${isPublishing ? 'opacity-50 cursor-not-allowed' : ''}
                   ${isDark
-                    ? 'bg-slate-700 hover:bg-slate-600 border border-teal-500 text-teal-400'
-                    : 'bg-white hover:bg-gray-100 border border-teal-500 text-teal-600'
+                    ? 'bg-slate-700 hover:bg-slate-600 border border-primary text-primary'
+                    : 'bg-white hover:bg-gray-100 border border-primary text-primary'
                   }
                 `}
               >
@@ -620,8 +620,8 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         )}
         <div className="flex-1"></div>
         <button type="button" onClick={handleCancelClick} className={`py-2 px-4 ${isDark ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500 text-white' : 'bg-white hover:bg-gray-100 border-gray-300 hover:border-gray-400 text-gray-700'} rounded-md text-sm cursor-pointer transition-colors`}>Cancel</button>
-        <button type="button" onClick={handleSaveAndContinue} disabled={isSaving} className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : 'Save and Continue'}</button>
-        <button type="button" onClick={() => handleSave(true)} disabled={isSaving} className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save and Exit')}</button>
+        <button type="button" onClick={handleSaveAndContinue} disabled={isSaving} className={`py-2 px-4 bg-primary hover:bg-primary-dark text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : 'Save and Continue'}</button>
+        <button type="button" onClick={() => handleSave(true)} disabled={isSaving} className={`py-2 px-4 bg-primary hover:bg-primary-dark text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save and Exit')}</button>
       </div>
 
       {/* Confirmation Dialog for unsaved changes */}

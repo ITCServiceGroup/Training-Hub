@@ -111,7 +111,7 @@ const QuizPage = () => {
         <div className="mb-1 flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Link to="/quiz" className="no-underline">
-              <h2 className={`text-3xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
+              <h2 className={`text-3xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
             </Link>
           </div>
         </div>
@@ -130,7 +130,7 @@ const QuizPage = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/quiz" className="no-underline">
-              <h2 className={`text-3xl ${isDark ? 'text-teal-400' : 'text-teal-700'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
+              <h2 className={`text-3xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
             </Link>
           </div>
           <div className="flex items-center max-w-md w-full">
@@ -158,14 +158,14 @@ const QuizPage = () => {
             <input
               type="text"
               placeholder="Enter access code"
-              className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
+              className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
               value={localAccessCode}
               onChange={(e) => setLocalAccessCode(e.target.value.toUpperCase())}
               maxLength={8}
             />
             <button
               type="submit"
-              className={`px-5 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
+              className={`px-5 py-2 ${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary-dark hover:bg-primary'} text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
               disabled={!localAccessCode}
             >
               Submit
@@ -182,7 +182,7 @@ const QuizPage = () => {
 
       {/* Practice Quizzes Section - Grouped */}
       <div className="mb-6">
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-teal-400' : 'text-teal-700'} mb-3`}>Practice Quizzes</h2>
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-primary-light' : 'text-primary-dark'} mb-3`}>Practice Quizzes</h2>
         <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a quiz below to start practicing.</p>
         {isLoading ? (
           <div className="text-center py-6">
@@ -196,7 +196,7 @@ const QuizPage = () => {
           <div className="space-y-8">
             {Object.entries(groupedQuizzes).map(([sectionId, sectionData]) => (
               <div key={sectionId}>
-                <h3 className={`text-xl font-semibold ${isDark ? 'text-teal-300 border-slate-700' : 'text-teal-600 border-slate-300'} mb-3 border-b pb-2`}>
+                <h3 className={`text-xl font-semibold ${isDark ? 'text-primary-light border-slate-700' : 'text-primary-dark border-slate-300'} mb-3 border-b pb-2`}>
                   {sectionData.sectionName}
                 </h3>
                 <div className="space-y-5">
@@ -215,8 +215,8 @@ const QuizPage = () => {
                             <div className="p-6 flex-grow">
                               <div className="mb-2">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ?
-                                  (quiz.is_practice ? 'bg-green-900/50 text-green-400' : 'bg-teal-900/50 text-teal-400') :
-                                  (quiz.is_practice ? 'bg-green-100 text-green-800' : 'bg-teal-100 text-teal-800')
+                                  (quiz.is_practice ? 'bg-green-900/50 text-green-400' : 'bg-primary/20 text-primary-light') :
+                                  (quiz.is_practice ? 'bg-green-100 text-green-800' : 'bg-primary/10 text-primary-dark')
                                 }`}>
                                   {quiz.is_practice ? 'Practice Quiz' : 'Practice Mode Available'}
                                 </span>
@@ -247,7 +247,7 @@ const QuizPage = () => {
                                 </button>
                               ) : (
                                 <button
-                                  className={`w-full py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white text-sm font-medium rounded-lg transition-colors`}
+                                  className={`w-full py-2 ${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary-dark hover:bg-primary'} text-white text-sm font-medium rounded-lg transition-colors`}
                                   onClick={(e) => {
                                     e.stopPropagation(); // Prevent card click
                                     handleQuizSelect(quiz);
