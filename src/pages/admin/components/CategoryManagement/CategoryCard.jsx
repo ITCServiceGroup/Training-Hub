@@ -1,14 +1,42 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaEdit, FaTrash, FaChevronRight, FaBars } from 'react-icons/fa'; // Added FaBars
+import { getIconByName } from '../../../../utils/iconMappings';
 import CategoryForm from '../CategoryTree/CategoryForm';
 
 // Accept sortableProps
 const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides, isHovered, sortableProps }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
   // isHovered state is now controlled by parent via prop, but edit form visibility is controlled locally
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
+
+  // Get icon for the category
+  const getCategoryIcon = (category) => {
+    // If the category has a custom icon set, use it
+    if (category.icon) {
+      const { component: IconComponent } = getIconByName(category.icon);
+      return <IconComponent size={20} color="white" />;
+    }
+
+    // Fallback to name-based detection for backward compatibility
+    const name = category.name.toLowerCase();
+    let iconName = 'Book';
+
+    if (name.includes('network')) iconName = 'Network';
+    else if (name.includes('install')) iconName = 'Download';
+    else if (name.includes('service')) iconName = 'Wrench';
+    else if (name.includes('troubleshoot')) iconName = 'Search';
+    else if (name.includes('security')) iconName = 'Lock';
+    else if (name.includes('hardware')) iconName = 'Laptop';
+    else if (name.includes('software')) iconName = 'Chart';
+
+    const { component: IconComponent } = getIconByName(iconName);
+    return <IconComponent size={20} color="white" />;
+  };
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -47,6 +75,13 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
                 >
                   <FaBars />
                 </span>
+                {/* Icon */}
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: currentSecondaryColor }}
+                >
+                  {getCategoryIcon(category)}
+                </div>
                 {/* Title */}
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={category.name}>{category.name}</h3>
              </div>

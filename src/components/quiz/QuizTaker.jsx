@@ -517,7 +517,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       {/* Progress bar */}
       <div className={`h-2 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded-full mb-8`}>
         <div
-          className={`h-full ${isDark ? 'bg-primary-light' : 'bg-primary-dark'} rounded-full transition-all duration-300`}
+          className="h-full bg-primary rounded-full transition-all duration-300"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>

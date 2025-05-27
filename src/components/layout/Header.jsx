@@ -126,7 +126,7 @@ const Header = () => {
                       onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                       className="flex items-center gap-2 text-white hover:bg-primary-dark px-3 py-2 rounded-md transition-colors"
                     >
-                      <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                      <div className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center font-bold">
                         {getInitials(user?.email)}
                       </div>
                       <div className="flex flex-col items-start">
@@ -185,7 +185,7 @@ const Header = () => {
               <li>
                 <button
                   onClick={toggleTheme}
-                  className="inline-flex items-center justify-center p-2 text-white bg-primary dark:bg-slate-700 hover:bg-primary-dark dark:hover:bg-slate-600 rounded-md transition-colors"
+                  className="inline-flex items-center justify-center p-2 text-primary bg-white dark:text-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-md transition-colors"
                   aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                 >
                   {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
@@ -252,7 +252,7 @@ const Header = () => {
                   {/* User info in mobile menu */}
                   <li className="mt-4 mb-2">
                     <div className="flex items-center gap-3 px-3 py-2">
-                      <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                      <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center font-bold">
                         {getInitials(user?.email)}
                       </div>
                       <div>

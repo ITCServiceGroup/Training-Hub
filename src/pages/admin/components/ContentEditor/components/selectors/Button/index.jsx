@@ -16,8 +16,8 @@ export const Button = ({
   },
   buttonStyle = 'filled',
   background = {
-    light: { r: 13, g: 148, b: 136, a: 1 },
-    dark: { r: 56, g: 189, b: 248, a: 1 }
+    light: { r: 15, g: 118, b: 110, a: 1 }, // Default to primary color
+    dark: { r: 20, g: 184, b: 166, a: 1 }
   },
   margin = ['5', '0', '5', '0'],
   padding = ['10', '16', '10', '16'],
@@ -27,8 +27,8 @@ export const Button = ({
   fontWeight = '500',
   borderWidth = 2,
   hoverBackground = {
-    light: { r: 11, g: 133, b: 122, a: 1 },
-    dark: { r: 45, g: 178, b: 237, a: 1 }
+    light: { r: 12, g: 94, b: 87, a: 1 }, // Darker primary color for hover
+    dark: { r: 17, g: 147, b: 133, a: 1 }
   },
   hoverColor = {
     light: { r: 255, g: 255, b: 255, a: 1 },
@@ -57,7 +57,7 @@ export const Button = ({
   const themeHoverBackground = getThemeColor(hoverBackground, isDark, 'button');
   const themeHoverColor = getThemeColor(hoverColor, isDark, 'button');
 
-  const buttonBackground = buttonStyle === 'filled' 
+  const buttonBackground = buttonStyle === 'filled'
     ? `rgba(${Object.values(themeBackground)})`
     : 'transparent';
 
@@ -117,16 +117,16 @@ Button.craft = {
   displayName: 'Button',
   props: {
     background: {
-      light: { r: 13, g: 148, b: 136, a: 1 },
-      dark: { r: 56, g: 189, b: 248, a: 1 }
+      light: { r: 15, g: 118, b: 110, a: 1 }, // Default to primary color
+      dark: { r: 20, g: 184, b: 166, a: 1 }
     },
     color: {
       light: { r: 255, g: 255, b: 255, a: 1 },
       dark: { r: 255, g: 255, b: 255, a: 1 }
     },
     hoverBackground: {
-      light: { r: 11, g: 133, b: 122, a: 1 },
-      dark: { r: 45, g: 178, b: 237, a: 1 }
+      light: { r: 12, g: 94, b: 87, a: 1 }, // Darker primary color for hover
+      dark: { r: 17, g: 147, b: 133, a: 1 }
     },
     hoverColor: {
       light: { r: 255, g: 255, b: 255, a: 1 },

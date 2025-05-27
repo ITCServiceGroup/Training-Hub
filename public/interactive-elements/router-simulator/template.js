@@ -8,12 +8,12 @@ routerSimulatorTemplate.innerHTML = `
         /* Light mode variables */
         --text-color-light: #333;
         --border-color-light: #ddd;
-        --bg-color-light: #fff;
+        --bg-color-light: var(--custom-primary-bg-color, #fff);
         --heading-color-light: #1976D2;
-        --router-placement-bg-light: #f5f5f5;
+        --router-placement-bg-light: var(--custom-secondary-bg-color, #f5f5f5);
         --router-placement-border-light: #ccc;
-        --tooltip-bg-light: #E3F2FD;
-        --tooltip-border-light: #BBDEFB;
+        --tooltip-bg-light: var(--custom-secondary-bg-color, #E3F2FD);
+        --tooltip-border-light: rgba(0, 0, 0, 0.1);
         --tooltip-color-light: #1976D2;
         --tab-active-bg-light: #fff;
         --tab-active-color-light: #1976D2;
@@ -38,12 +38,12 @@ routerSimulatorTemplate.innerHTML = `
         /* Dark mode variables */
         --text-color-dark: #f1f5f9;
         --border-color-dark: #334155;
-        --bg-color-dark: #0f172a;
+        --bg-color-dark: var(--custom-primary-bg-color, #0f172a);
         --heading-color-dark: #60a5fa;
-        --router-placement-bg-dark: #1e293b;
+        --router-placement-bg-dark: var(--custom-secondary-bg-color, #1e293b);
         --router-placement-border-dark: #475569;
-        --tooltip-bg-dark: #1e3a8a;
-        --tooltip-border-dark: #3b82f6;
+        --tooltip-bg-dark: var(--custom-secondary-bg-color, #1e3a8a);
+        --tooltip-border-dark: rgba(255, 255, 255, 0.2);
         --tooltip-color-dark: #e0f2fe;
         --tab-active-bg-dark: #1e293b;
         --tab-active-color-dark: #60a5fa;
@@ -151,7 +151,7 @@ routerSimulatorTemplate.innerHTML = `
     }
 
     h3 {
-        color: var(--heading-color);
+        color: var(--custom-title-color, var(--heading-color));
         margin-top: 0;
         margin-bottom: 15px;
         transition: color 0.3s ease;
@@ -254,7 +254,7 @@ routerSimulatorTemplate.innerHTML = `
         all: initial !important; /* Reset all properties */
         font-family: Arial, sans-serif !important;
         padding: 8px 16px !important;
-        background-color: var(--button-primary-bg) !important;
+        background-color: var(--custom-button-color, var(--button-primary-bg)) !important;
         color: var(--button-primary-color) !important;
         border: none !important;
         border-radius: 4px !important;
@@ -273,6 +273,7 @@ routerSimulatorTemplate.innerHTML = `
 
     button:hover {
         background-color: var(--button-hover-bg);
+        filter: brightness(0.9);
     }
 
     /* .controls removed */
@@ -282,9 +283,10 @@ routerSimulatorTemplate.innerHTML = `
         padding: 10px;
         margin: 10px 0;
         border-radius: 4px;
+        border: 1px solid var(--tooltip-border);
         font-size: 0.9em;
         color: var(--tooltip-color);
-        transition: background-color 0.3s ease, color 0.3s ease;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     /* Floorplan Tabs */

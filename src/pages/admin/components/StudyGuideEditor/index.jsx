@@ -9,6 +9,7 @@ import PreviewModal from '../PreviewModal';
 // import { listMedia } from '../../../../services/api/media'; // No longer needed here
 // import { useAuth } from '../../../../contexts/AuthContext'; // No longer needed directly here
 import MediaSelectionModal from '../MediaSelectionModal'; // Import the actual modal component
+import TemplateSelector from '../../../../components/TemplateSelector';
 import {
   extractBodyContent,
   extractStyleContent,
@@ -55,6 +56,7 @@ const StudyGuideEditor = ({
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false); // State for media modal visibility
   const mediaPickerCallbackRef = useRef(null); // Ref to store TinyMCE's file picker callback
   const mediaPickerFileTypeRef = useRef('file'); // Ref to store the type ('image', 'media', 'file')
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   // Listen for the custom event from the TinyMCE plugin
   useEffect(() => {
@@ -654,7 +656,7 @@ const StudyGuideEditor = ({
         <button
           type="button"
           onClick={onCancel}
-          className={`py-2 px-4 ${isDark ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500 text-white' : 'bg-white hover:bg-gray-100 border-gray-300 hover:border-gray-400 text-gray-700'} rounded-md text-sm cursor-pointer transition-colors`}
+          className={`py-2 px-4 bg-secondary hover:bg-secondary/80 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5`}
         >
           Cancel
         </button>
@@ -662,7 +664,7 @@ const StudyGuideEditor = ({
           type="button"
           onClick={handleSaveAndContinue}
           disabled={isSaving}
-          className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`py-2 px-4 bg-primary hover:bg-primary-dark text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isSaving ? 'Saving...' : 'Save and Continue'}
         </button>
@@ -728,6 +730,25 @@ const StudyGuideEditor = ({
         onSelectMedia={handleSelectMedia}
         filterFileType={mediaPickerFileTypeRef.current} // Pass the type to filter if needed
       />
+
+      {/* Template Selection Modal */}
+      {isTemplateModalOpen && (
+        <Dialog
+          open={isTemplateModalOpen}
+          onClose={() => setIsTemplateModalOpen(false)}
+          className="fixed inset-0 z-50 overflow-y-auto"
+        >
+          <div className="flex items-center justify-center min-h-screen">
+            <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+            <div className="relative bg-white rounded-lg max-w-4xl w-full mx-auto">
+              <TemplateSelector 
+                onSelect={handleTemplateSelect} 
+                onCancel={() => setIsTemplateModalOpen(false)} 
+              />
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 };

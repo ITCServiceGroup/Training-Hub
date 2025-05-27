@@ -23,7 +23,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
           {onClose && (
             <button
               onClick={onClose}
-              className={`md:hidden p-2 ${isDark ? 'text-gray-300 hover:text-white' : 'text-white hover:text-white/80'}`}
+              className={`md:hidden p-2 text-secondary hover:text-secondary/80 transition-colors`}
               aria-label="Close menu"
             >
               <FaTimes size={20} />
@@ -45,7 +45,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
         {onClose && (
           <button
             onClick={onClose}
-            className={`md:hidden p-2 ${isDark ? 'text-gray-300 hover:text-white' : 'text-white hover:text-white/80'}`}
+            className={`md:hidden p-2 text-secondary hover:text-secondary/80 transition-colors`}
             aria-label="Close menu"
           >
             <FaTimes size={20} />
@@ -62,7 +62,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
             >
               <Link
                 to={`/study/${sectionId}/${categoryId}/${guide.id}`}
-                className={`${isDark ? 'text-primary' : 'text-primary'} no-underline block w-full`}
+                className={`text-secondary hover:text-secondary/80 no-underline block w-full transition-colors`}
                 onClick={handleLinkClick}
               >
                 {guide.title}

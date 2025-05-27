@@ -313,8 +313,11 @@ const SortableStudyGuideItem = ({
   onMove,
   onUpdateDescription
 }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
   const [showActions, setShowActions] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [description, setDescription] = useState(guide.description || '');
@@ -467,7 +470,17 @@ const SortableStudyGuideItem = ({
               </span>
               {!isEditingDescription && (
                 <button
-                  className="ml-2 text-xs text-teal-600 dark:text-teal-400 hover:underline"
+                  className="ml-2 px-2 py-1 text-xs font-medium rounded transition-colors"
+                  style={{
+                    backgroundColor: currentSecondaryColor,
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.opacity = '1';
+                  }}
                   onClick={handleDescriptionClick}
                 >
                   {guide.description ? 'Edit' : 'Add'}

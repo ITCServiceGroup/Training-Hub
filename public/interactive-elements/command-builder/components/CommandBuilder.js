@@ -26,6 +26,7 @@ export class CommandBuilderElement extends HTMLElement {
         const template = document.createElement('template');
         template.innerHTML = `
             <div class="container">
+                <h2>Command Builder</h2>
                 <p class="instruction-label">Choose your Operating System:</p>
                 <div class="os-tabs">
                     <button id="windows-tab" class="os-tab active">Windows</button>
@@ -358,6 +359,16 @@ export class CommandBuilderElement extends HTMLElement {
                 // Add toggle listener to the main button
                 button.addEventListener('click', () => {
                     const isVisible = subButtonContainer.style.display !== 'none';
+
+                    // Close all other dropdowns first
+                    const allSubButtons = this.tutorialGrid.querySelectorAll('.tutorial-sub-buttons');
+                    allSubButtons.forEach(subButton => {
+                        if (subButton !== subButtonContainer) {
+                            subButton.style.display = 'none';
+                        }
+                    });
+
+                    // Toggle current dropdown
                     subButtonContainer.style.display = isVisible ? 'none' : 'block';
                 });
 

@@ -4,7 +4,7 @@ import { useTheme } from '../../../../../../../contexts/ThemeContext';
 /**
  * Component for rendering interactive elements in an iframe for proper isolation
  */
-const InteractiveRenderer = ({ name }) => {
+const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgroundColor, secondaryBackgroundColor }) => {
   const iframeRef = useRef(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -38,9 +38,23 @@ const InteractiveRenderer = ({ name }) => {
     iframeDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
     iframeDoc.close();
 
+    // Get current theme colors
+    const currentTitleColor = titleTextColor ? titleTextColor[isDark ? 'dark' : 'light'] : null;
+    const currentButtonColor = buttonColor ? buttonColor[isDark ? 'dark' : 'light'] : null;
+    const currentPrimaryBgColor = primaryBackgroundColor ? primaryBackgroundColor[isDark ? 'dark' : 'light'] : null;
+    const currentSecondaryBgColor = secondaryBackgroundColor ? secondaryBackgroundColor[isDark ? 'dark' : 'light'] : null;
+
     // Add styles to the iframe
     const style = iframeDoc.createElement('style');
     style.textContent = `
+      :root {
+        /* Custom color variables from ContentEditor */
+        ${currentTitleColor ? `--custom-title-color: rgba(${currentTitleColor.r}, ${currentTitleColor.g}, ${currentTitleColor.b}, ${currentTitleColor.a});` : ''}
+        ${currentButtonColor ? `--custom-button-color: rgba(${currentButtonColor.r}, ${currentButtonColor.g}, ${currentButtonColor.b}, ${currentButtonColor.a});` : ''}
+        ${currentPrimaryBgColor ? `--custom-primary-bg-color: rgba(${currentPrimaryBgColor.r}, ${currentPrimaryBgColor.g}, ${currentPrimaryBgColor.b}, ${currentPrimaryBgColor.a});` : ''}
+        ${currentSecondaryBgColor ? `--custom-secondary-bg-color: rgba(${currentSecondaryBgColor.r}, ${currentSecondaryBgColor.g}, ${currentSecondaryBgColor.b}, ${currentSecondaryBgColor.a});` : ''}
+      }
+
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         margin: 0;
@@ -236,7 +250,7 @@ const InteractiveRenderer = ({ name }) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [name, isDark, notifyThemeChange]);
+  }, [name, isDark, notifyThemeChange, titleTextColor, buttonColor, primaryBackgroundColor, secondaryBackgroundColor]);
 
   // Effect to detect theme changes and notify the iframe
   useEffect(() => {

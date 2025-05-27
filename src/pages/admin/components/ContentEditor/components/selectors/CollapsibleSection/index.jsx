@@ -1,5 +1,5 @@
-import { useNode, Element } from '@craftjs/core';
-import React, { useEffect } from 'react'; // Removed useState
+import { useNode, Element, useEditor } from '@craftjs/core';
+import React, { useEffect, useRef } from 'react'; // Removed useState
 import { CollapsibleSectionSettings } from './CollapsibleSectionSettings';
 import { Resizer } from '../Resizer';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
@@ -65,8 +65,8 @@ const defaultProps = {
 };
 
 export const CollapsibleSection = (componentProps) => { // Renamed to avoid conflict
-  // Get current theme
-  const { theme } = useTheme();
+  // Get current theme and theme colors
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
 
   // Merge default props with provided props
@@ -112,6 +112,73 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
     id: node.id
   }));
 
+  // Get editor actions for content transfer
+  const { actions: editorActions, query } = useEditor();
+
+  // Track previous stepsEnabled state to detect changes
+  const prevStepsEnabledRef = useRef(props.stepsEnabled);
+
+  // Helper function to get theme primary color
+  const getThemePrimaryColorForMode = (forDarkMode = false) => {
+    try {
+      const primaryHex = themeColors.primary[forDarkMode ? 'dark' : 'light'];
+      // Convert hex to RGB
+      const hex = primaryHex.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return { r, g, b, a: 1 };
+    } catch (error) {
+      console.warn('Error getting theme primary color:', error);
+      // Fallback to hardcoded primary color
+      return forDarkMode ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 };
+    }
+  };
+
+  // Update step colors to use theme colors if they are using hardcoded defaults
+  useEffect(() => {
+    const isDefaultStepColor = (color) => {
+      return (
+        color &&
+        color.light &&
+        color.dark &&
+        color.light.r === 15 &&
+        color.light.g === 118 &&
+        color.light.b === 110 &&
+        color.dark.r === 20 &&
+        color.dark.g === 184 &&
+        color.dark.b === 166
+      );
+    };
+
+    let needsUpdate = false;
+    const updates = {};
+
+    // Check if step button color needs updating
+    if (isDefaultStepColor(props.stepButtonColor)) {
+      updates.stepButtonColor = {
+        light: getThemePrimaryColorForMode(false),
+        dark: getThemePrimaryColorForMode(true)
+      };
+      needsUpdate = true;
+    }
+
+    // Check if step indicator color needs updating
+    if (isDefaultStepColor(props.stepIndicatorColor)) {
+      updates.stepIndicatorColor = {
+        light: getThemePrimaryColorForMode(false),
+        dark: getThemePrimaryColorForMode(true)
+      };
+      needsUpdate = true;
+    }
+
+    // Apply updates if needed
+    if (needsUpdate) {
+      setProp((props) => {
+        Object.assign(props, updates);
+      });
+    }
+  }, [themeColors, setProp, props.stepButtonColor, props.stepIndicatorColor]);
 
   // Ensure currentStep is valid when numberOfSteps changes
   useEffect(() => {
@@ -119,6 +186,123 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
       setProp(propUpdater => propUpdater.currentStep = 1);
     }
   }, [props.numberOfSteps, props.currentStep, props.stepsEnabled, setProp]);
+
+  // Handle content transfer when steps are enabled/disabled
+  useEffect(() => {
+    const prevStepsEnabled = prevStepsEnabledRef.current;
+    const currentStepsEnabled = props.stepsEnabled;
+
+    // If steps were just enabled (false -> true), transfer content from content-canvas to step-1-canvas
+    if (!prevStepsEnabled && currentStepsEnabled) {
+      console.log('CollapsibleSection: Steps enabled, transferring content from content-canvas to step-1-canvas');
+
+      try {
+        // Get the current node to access its linkedNodes
+        const currentNode = query.node(id).get();
+
+        if (currentNode && currentNode.data.linkedNodes) {
+          const contentCanvasId = currentNode.data.linkedNodes['content-canvas'];
+
+          if (contentCanvasId) {
+            // Get the content canvas node
+            const contentCanvasNode = query.node(contentCanvasId).get();
+
+            if (contentCanvasNode && contentCanvasNode.data.nodes && contentCanvasNode.data.nodes.length > 0) {
+              console.log('CollapsibleSection: Found content to transfer:', contentCanvasNode.data.nodes);
+
+              // Wait for the step-1-canvas to be created, then transfer content
+              setTimeout(() => {
+                try {
+                  const updatedNode = query.node(id).get();
+                  const step1CanvasId = updatedNode.data.linkedNodes['step-1-canvas'];
+
+                  if (step1CanvasId) {
+                    console.log('CollapsibleSection: Moving content to step-1-canvas');
+
+                    // Move all child nodes from content-canvas to step-1-canvas
+                    const childNodesToMove = [...contentCanvasNode.data.nodes];
+
+                    childNodesToMove.forEach((childNodeId, index) => {
+                      editorActions.move(childNodeId, step1CanvasId, index);
+                    });
+
+                    console.log('CollapsibleSection: Content transfer completed');
+                  } else {
+                    console.warn('CollapsibleSection: step-1-canvas not found after timeout');
+                  }
+                } catch (error) {
+                  console.error('CollapsibleSection: Error during delayed content transfer:', error);
+                }
+              }, 100); // Small delay to ensure step canvases are created
+            } else {
+              console.log('CollapsibleSection: No content found in content-canvas to transfer');
+            }
+          } else {
+            console.log('CollapsibleSection: content-canvas linkedNode not found');
+          }
+        }
+      } catch (error) {
+        console.error('CollapsibleSection: Error transferring content to steps:', error);
+      }
+    }
+
+    // If steps were just disabled (true -> false), transfer content from step-1-canvas to content-canvas
+    else if (prevStepsEnabled && !currentStepsEnabled) {
+      console.log('CollapsibleSection: Steps disabled, transferring content from step-1-canvas to content-canvas');
+
+      try {
+        // Get the current node to access its linkedNodes
+        const currentNode = query.node(id).get();
+
+        if (currentNode && currentNode.data.linkedNodes) {
+          const step1CanvasId = currentNode.data.linkedNodes['step-1-canvas'];
+
+          if (step1CanvasId) {
+            // Get the step-1 canvas node
+            const step1CanvasNode = query.node(step1CanvasId).get();
+
+            if (step1CanvasNode && step1CanvasNode.data.nodes && step1CanvasNode.data.nodes.length > 0) {
+              console.log('CollapsibleSection: Found content to transfer back:', step1CanvasNode.data.nodes);
+
+              // Wait for the content-canvas to be created, then transfer content
+              setTimeout(() => {
+                try {
+                  const updatedNode = query.node(id).get();
+                  const contentCanvasId = updatedNode.data.linkedNodes['content-canvas'];
+
+                  if (contentCanvasId) {
+                    console.log('CollapsibleSection: Moving content back to content-canvas');
+
+                    // Move all child nodes from step-1-canvas to content-canvas
+                    const childNodesToMove = [...step1CanvasNode.data.nodes];
+
+                    childNodesToMove.forEach((childNodeId, index) => {
+                      editorActions.move(childNodeId, contentCanvasId, index);
+                    });
+
+                    console.log('CollapsibleSection: Content transfer back completed');
+                  } else {
+                    console.warn('CollapsibleSection: content-canvas not found after timeout');
+                  }
+                } catch (error) {
+                  console.error('CollapsibleSection: Error during delayed content transfer back:', error);
+                }
+              }, 100); // Small delay to ensure content-canvas is created
+            } else {
+              console.log('CollapsibleSection: No content found in step-1-canvas to transfer back');
+            }
+          } else {
+            console.log('CollapsibleSection: step-1-canvas linkedNode not found');
+          }
+        }
+      } catch (error) {
+        console.error('CollapsibleSection: Error transferring content back from steps:', error);
+      }
+    }
+
+    // Update the ref for next comparison
+    prevStepsEnabledRef.current = currentStepsEnabled;
+  }, [props.stepsEnabled, id, query, editorActions]);
 
   const handleNextStep = () => {
     if (props.currentStep < props.numberOfSteps) {

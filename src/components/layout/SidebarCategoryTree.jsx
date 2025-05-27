@@ -20,7 +20,7 @@ const SidebarCategoryItem = ({
   return (
     <div className="ml-1 relative py-2">
       <div
-        className={`text-white flex items-center cursor-pointer p-3 rounded text-sm ${selectedId === category.id ? 'bg-primary' : 'bg-transparent'}`}
+        className={`text-white flex items-center cursor-pointer p-3 rounded text-sm transition-colors ${selectedId === category.id ? 'bg-primary' : 'bg-transparent hover:bg-secondary/20'}`}
         onClick={handleCategoryClick}
       >
         <FaFileAlt className="mr-2 text-base" />

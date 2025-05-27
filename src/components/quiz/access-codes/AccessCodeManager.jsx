@@ -43,8 +43,10 @@ const AccessCodeManager = ({ quizId, quizTitle }) => {
               <button
                 className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                   activeTab === 'generate'
-                    ? 'bg-primary-dark dark:bg-primary text-white border-slate-200 dark:border-slate-700 z-10' // Active: primary bg, white text
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-transparent hover:bg-slate-200 dark:hover:bg-slate-600' // Inactive: light bg, darker on hover
+                    ? 'bg-primary-dark text-white border-slate-200 z-10' // Active: primary bg, white text
+                    : isDarkMode
+                      ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
+                      : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: light bg, darker on hover
                 }`}
                 onClick={() => setActiveTab('generate')}
               >
@@ -55,8 +57,10 @@ const AccessCodeManager = ({ quizId, quizTitle }) => {
               <button
                 className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
                   activeTab === 'list'
-                    ? 'bg-primary-dark dark:bg-primary text-white border-slate-200 dark:border-slate-700 z-10'
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-transparent hover:bg-slate-200 dark:hover:bg-slate-600'
+                    ? 'bg-primary-dark text-white border-slate-200 z-10'
+                    : isDarkMode
+                      ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
+                      : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
                 }`}
                 onClick={() => setActiveTab('list')}
               >

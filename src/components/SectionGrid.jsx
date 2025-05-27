@@ -8,9 +8,12 @@ import { getIconByName } from '../utils/iconMappings';
  * Component for displaying a grid of sections
  */
 const SectionGrid = ({ sections, isLoading, searchQuery }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
   const handleSectionClick = (sectionId) => {
     navigate(`/study/${sectionId}`);
@@ -20,10 +23,10 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
   const getSectionIcon = (section) => {
     // If the section has a custom icon set, use it
     if (section.icon) {
-      const { component: IconComponent, color } = getIconByName(section.icon);
+      const { component: IconComponent } = getIconByName(section.icon);
       return {
         icon: <IconComponent size={24} color="white" />,
-        color: color
+        color: currentSecondaryColor // Always use secondary color
       };
     }
 
@@ -40,10 +43,10 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
     else if (name.includes('software')) iconName = 'Chart';
     else if (name.includes('advanced')) iconName = 'Rocket';
 
-    const { component: IconComponent, color } = getIconByName(iconName);
+    const { component: IconComponent } = getIconByName(iconName);
     return {
       icon: <IconComponent size={24} color="white" />,
-      color: color
+      color: currentSecondaryColor // Always use secondary color
     };
   };
 
@@ -84,18 +87,18 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
         return (
           <div
             key={section.id}
-            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 cursor-pointer flex flex-col h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
+            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 cursor-pointer flex flex-col items-center text-center h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
             onClick={() => handleSectionClick(section.id)}
           >
             <div
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: color || '#0f766e' }}
+              style={{ backgroundColor: color }}
             >
               {icon}
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{section.description || 'No description available'}</p>
-            <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto`}>
+            <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto w-full`}>
               <span>{categoryCount} {categoryCount === 1 ? 'Category' : 'Categories'}</span>
             </div>
             <button

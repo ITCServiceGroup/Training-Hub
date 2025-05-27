@@ -219,7 +219,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                 backgroundColor: hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.1)
               } : {}}
             >
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-center">
                 <div className="flex-1">
                   <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{question.question_text}</p>
                   <div className="text-sm text-slate-500">
@@ -233,14 +233,11 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                 </div>
                 <div className="flex gap-2 ml-4">
                   <button
-                    className={`px-3 py-1 text-sm rounded ${
+                    className={`inline-flex justify-center py-2 px-4 border shadow-sm text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                       isQuestionIncluded(question.id)
-                        ? isDark ? 'text-white hover:bg-primary-dark' : 'text-primary-dark hover:bg-primary-dark hover:text-white'
-                        : isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'border-transparent text-white bg-primary hover:bg-primary-dark focus:ring-primary'
+                        : 'border-secondary text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:ring-secondary'
                     }`}
-                    style={isQuestionIncluded(question.id) ? {
-                      backgroundColor: hexToRgba(currentPrimaryColor, isDark ? 0.5 : 0.15)
-                    } : {}}
                     onClick={() => {
                       if (isQuestionIncluded(question.id)) {
                         handleRemoveQuestion(question.id);
@@ -252,7 +249,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                     {isQuestionIncluded(question.id) ? 'Remove' : 'Add'}
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded ${isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                    className="inline-flex justify-center py-2 px-4 border border-secondary shadow-sm text-sm font-medium rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-colors"
                     onClick={() => {
                       setSelectedQuestion(question);
                       setIsAddingQuestion(true);
@@ -261,10 +258,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
                     Edit
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded ${isDark ? 'text-red-400 hover:bg-red-900' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
-                    style={isDark ? {
-                      backgroundColor: 'rgba(127, 29, 29, 0.3)'
-                    } : {}}
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                     onClick={() => openDeleteConfirmation(question.id)}
                   >
                     Delete

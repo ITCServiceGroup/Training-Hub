@@ -531,7 +531,7 @@ fiberFaultTemplate.innerHTML = `
             width: 100%;
         }
         .interactive-container {
-            background-color: #fff;
+            background-color: var(--custom-primary-bg-color, #fff);
             border: 1px solid #ddd;
             border-radius: 5px;
             margin: 0;
@@ -545,19 +545,19 @@ fiberFaultTemplate.innerHTML = `
             padding: 20px;
             box-sizing: border-box;
         }
-        h1, h3 { text-align: center; margin-top: 0; }
+        h1, h3 { text-align: center; margin-top: 0; color: var(--custom-title-color, #333); }
         .fault-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0; }
-        button { padding: 8px 16px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
-        button:hover { background-color: #1976D2; }
+        button { padding: 8px 16px; background-color: var(--custom-button-color, #2196F3); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        button:hover { background-color: #1976D2; filter: brightness(0.9); }
         .canvas-container { display: flex; flex-direction: column; align-items: center; gap: 20px; margin: 20px 0; width: 100%; }
         canvas { display: block; max-width: 100%; height: auto; border: 1px solid #eee; }
-        .fault-info { background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #2196F3; width: 100%; box-sizing: border-box; }
+        .fault-info { background-color: var(--custom-secondary-bg-color, #f5f5f5); padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #2196F3; width: 100%; box-sizing: border-box; }
         .fault-severity { display: flex; align-items: center; margin: 10px 0; }
         .severity-indicator { width: 20px; height: 20px; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
         .low { background-color: #4CAF50; }
         .medium { background-color: #FF9800; }
         .high { background-color: #F44336; }
-        .troubleshooting-steps { background-color: #e8f5e9; padding: 15px; margin: 15px 0; border-left: 4px solid #4CAF50; border-radius: 4px; }
+        .troubleshooting-steps { background-color: var(--custom-secondary-bg-color, #e8f5e9); padding: 15px; margin: 15px 0; border-left: 4px solid #4CAF50; border-radius: 4px; }
         .troubleshooting-steps h4 { margin-top: 0; }
         .troubleshooting-steps ol { padding-left: 20px; margin-bottom: 0; }
     </style>

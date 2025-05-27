@@ -1,7 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { availableIcons } from '../../utils/iconMappings';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
+  const { theme, themeColors } = useTheme();
+  const themeIsDark = theme === 'dark';
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[themeIsDark ? 'dark' : 'light'];
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
@@ -89,7 +96,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
       >
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: selectedIconObj.color }}
+          style={{ backgroundColor: currentSecondaryColor }}
         >
           {React.createElement(selectedIconObj.component, { size: 16, color: "white" })}
         </div>
@@ -130,7 +137,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
               >
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center mb-1"
-                  style={{ backgroundColor: icon.color }}
+                  style={{ backgroundColor: currentSecondaryColor }}
                 >
                   {React.createElement(icon.component, { size: 24, color: "white" })}
                 </div>

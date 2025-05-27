@@ -87,7 +87,7 @@ const AccessCodeList = ({ quizId }) => {
 
     if (code.is_used) {
       return (
-        <span className="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">
+        <span className="px-2 py-1 text-xs font-medium bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary rounded-full">
           Used
         </span>
       );

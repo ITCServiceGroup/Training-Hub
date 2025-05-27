@@ -2,7 +2,7 @@
 export const lightDefaults = {
   container: { r: 255, g: 255, b: 255, a: 1 },
   text: { r: 92, g: 90, b: 90, a: 1 },
-  button: { r: 14, g: 165, b: 233, a: 1 }, // sky-500
+  button: { r: 15, g: 118, b: 110, a: 1 }, // Primary color (teal)
   card: { r: 255, g: 255, b: 255, a: 1 },
   table: { r: 255, g: 255, b: 255, a: 1 },
   icon: { r: 92, g: 90, b: 90, a: 1 },
@@ -13,7 +13,7 @@ export const lightDefaults = {
 export const darkDefaults = {
   container: { r: 31, g: 41, b: 55, a: 1 }, // slate-800
   text: { r: 229, g: 231, b: 235, a: 1 }, // gray-200
-  button: { r: 56, g: 189, b: 248, a: 1 }, // sky-400
+  button: { r: 20, g: 184, b: 166, a: 1 }, // Primary color dark (teal)
   card: { r: 51, g: 65, b: 85, a: 1 }, // slate-700
   table: { r: 51, g: 65, b: 85, a: 1 }, // slate-700
   icon: { r: 229, g: 231, b: 235, a: 1 }, // gray-200
@@ -146,16 +146,19 @@ export const convertToThemeColor = (color, isDark, componentType = 'container') 
     }
   } else {
     // For container and other components
-    // For white or near-white colors in light mode
-    const isNearWhite = color.r > 240 && color.g > 240 && color.b > 240;
-    if (isDark && isNearWhite) {
-      return darkDefaults.container;
-    }
+    // Skip the early returns for background colors to allow our improved algorithm
+    if (componentType !== 'background') {
+      // For white or near-white colors in light mode
+      const isNearWhite = color.r > 240 && color.g > 240 && color.b > 240;
+      if (isDark && isNearWhite) {
+        return darkDefaults.container;
+      }
 
-    // For black or near-black colors in dark mode
-    const isNearBlack = color.r < 30 && color.g < 30 && color.b < 30;
-    if (!isDark && isNearBlack) {
-      return lightDefaults.container;
+      // For black or near-black colors in dark mode
+      const isNearBlack = color.r < 30 && color.g < 30 && color.b < 30;
+      if (!isDark && isNearBlack) {
+        return lightDefaults.container;
+      }
     }
   }
 
@@ -170,10 +173,29 @@ export const convertToThemeColor = (color, isDark, componentType = 'container') 
       // Calculate normalized lightness (0 to 1 scale)
       const normalizedLightness = (hsl.l - 0.5) / 0.5;
 
-      // For white or near-white colors, use a more aggressive darkening
-      if (hsl.l > 0.9 && hsl.s < 0.1) {
-        // Map from very light (0.9-1.0) to dark (0.3-0.2)
-        hsl.l = 0.3 - (normalizedLightness * 0.2);
+      // For white or near-white colors, use a more aggressive darkening while preserving relative differences
+      if (hsl.l > 0.9 && hsl.s < 0.3) {
+        // Create much more separation for very similar light colors
+        // Use the original RGB values for more precise differentiation
+        const originalLuminance = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b;
+
+        // Map based on actual RGB luminance for better distinction
+        // Pure white (255,255,255) luminance ≈ 255
+        // Light gray (248,249,250) luminance ≈ 248.7
+        const luminanceNormalized = originalLuminance / 255;
+
+        // Create a more aggressive mapping with exponential scaling
+        // This ensures even tiny differences in light colors become significant in dark mode
+        const exponentialFactor = Math.pow(luminanceNormalized, 3); // Cubic for maximum separation
+
+        // Map from very light to a wider dark range (0.45-0.12)
+        hsl.l = 0.45 - (exponentialFactor * 0.33);
+
+        // Also adjust saturation based on original color characteristics
+        if (hsl.s < 0.05) {
+          // For nearly achromatic colors, add slight saturation for better distinction
+          hsl.s = Math.min(0.15, 0.05 + (1 - luminanceNormalized) * 0.1);
+        }
       } else {
         // Map from light (0.5-1.0) to dark (0.5-0.25) with a smooth transition
         hsl.l = 0.5 - (normalizedLightness * 0.25);
@@ -214,9 +236,27 @@ export const convertToThemeColor = (color, isDark, componentType = 'container') 
       // Calculate normalized lightness (0 to 1 scale)
       const normalizedLightness = (hsl.l - 0.5) / 0.5;
 
-      // Map from light (0.5-1.0) to medium-dark (0.5-0.2) with a smooth transition
-      const targetLightness = 0.5 - (normalizedLightness * 0.3);
-      hsl.l = targetLightness;
+      // For very light colors (like whites and light grays), preserve more distinction
+      if (hsl.l > 0.9 && hsl.s < 0.3) {
+        // Use the same improved algorithm for light mode conversion
+        const originalLuminance = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b;
+        const luminanceNormalized = originalLuminance / 255;
+
+        // Create aggressive mapping with exponential scaling for light mode too
+        const exponentialFactor = Math.pow(luminanceNormalized, 3);
+
+        // Map from very light to darker range (0.45-0.12) for light mode
+        hsl.l = 0.45 - (exponentialFactor * 0.33);
+
+        // Adjust saturation for better distinction
+        if (hsl.s < 0.05) {
+          hsl.s = Math.min(0.15, 0.05 + (1 - luminanceNormalized) * 0.1);
+        }
+      } else {
+        // Map from light (0.5-1.0) to medium-dark (0.5-0.2) with a smooth transition
+        const targetLightness = 0.5 - (normalizedLightness * 0.3);
+        hsl.l = targetLightness;
+      }
 
       // Slightly adjust saturation
       hsl.s = Math.max(0.2, Math.min(0.7, hsl.s * 0.9));

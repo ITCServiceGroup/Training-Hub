@@ -11,10 +11,10 @@ channelVisualizerTemplate.innerHTML = `
       --success-color-light: #4CAF50;
       --warning-color-light: #ff9800;
       --error-color-light: #f44336;
-      --bg-color-light: #f8f9fa;
+      --bg-color-light: var(--custom-secondary-bg-color, #f8f9fa);
       --text-color-light: #2c3e50;
       --border-color-light: #e0e0e0;
-      --element-bg-light: #ffffff;
+      --element-bg-light: var(--custom-primary-bg-color, #ffffff);
       --shadow-sm-light: 0 2px 4px rgba(0,0,0,0.05);
       --shadow-md-light: 0 4px 6px rgba(0,0,0,0.1);
       --axis-border-light: #ddd;
@@ -25,10 +25,10 @@ channelVisualizerTemplate.innerHTML = `
       --success-color-dark: #22c55e;
       --warning-color-dark: #f59e0b;
       --error-color-dark: #ef4444;
-      --bg-color-dark: #1e293b;
+      --bg-color-dark: var(--custom-secondary-bg-color, #1e293b);
       --text-color-dark: #f1f5f9;
       --border-color-dark: #334155;
-      --element-bg-dark: #0f172a;
+      --element-bg-dark: var(--custom-primary-bg-color, #0f172a);
       --shadow-sm-dark: 0 2px 4px rgba(0,0,0,0.2);
       --shadow-md-dark: 0 4px 8px rgba(0,0,0,0.3);
       --axis-border-dark: #475569;
@@ -84,7 +84,7 @@ channelVisualizerTemplate.innerHTML = `
     }
 
     h3 {
-      color: var(--primary-dark);
+      color: var(--custom-title-color, var(--primary-dark));
       font-size: 1.4em;
       font-weight: 600;
       margin: 0 0 15px 0;
@@ -118,16 +118,16 @@ channelVisualizerTemplate.innerHTML = `
     }
 
     .band-button:hover {
-      background-color: var(--primary-color);
+      background-color: var(--custom-button-color, var(--primary-color));
       color: white;
-      border-color: var(--primary-color);
+      border-color: var(--custom-button-color, var(--primary-color));
       transform: translateY(-1px);
     }
 
     .band-button.active {
-      background-color: var(--primary-color);
+      background-color: var(--custom-button-color, var(--primary-color));
       color: white;
-      border-color: var(--primary-color);
+      border-color: var(--custom-button-color, var(--primary-color));
       box-shadow: var(--shadow-sm);
     }
 

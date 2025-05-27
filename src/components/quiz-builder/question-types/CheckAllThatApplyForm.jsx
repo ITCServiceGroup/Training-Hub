@@ -33,7 +33,7 @@ const CheckAllThatApplyForm = ({ options, correctAnswers, onChange, disabled, is
         <h3 className={`text-lg font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Answer Options (Select all correct answers)</h3>
         <button
           type="button"
-          className="bg-primary-dark text-white px-3 py-1 rounded text-sm hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-teal-700 text-white px-3 py-1 rounded text-sm hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddOption}
           disabled={disabled || options.length >= 6}
         >
@@ -45,7 +45,7 @@ const CheckAllThatApplyForm = ({ options, correctAnswers, onChange, disabled, is
         <div key={index} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: '12px' }}>
           <input
             type="checkbox"
-            className={`text-primary rounded ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
+            className={`text-teal-600 rounded ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
             checked={correctAnswers.includes(index)}
             onChange={(e) => handleCorrectAnswerChange(index, e.target.checked)}
             disabled={disabled}
@@ -58,7 +58,7 @@ const CheckAllThatApplyForm = ({ options, correctAnswers, onChange, disabled, is
               isDark
                 ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
                 : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
-            } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
+            } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
             placeholder={`Option ${index + 1}`}
             required
             disabled={disabled}

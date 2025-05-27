@@ -310,7 +310,7 @@ const StudyGuidePage = () => {
         {sectionId && (
           <Link
             to={`/study/${sectionId}`}
-            className={`${isDark ? 'text-primary-light' : 'text-primary-dark'} no-underline mr-1 ${!categoryId ? 'font-bold' : 'font-normal'}`}
+            className={`text-secondary hover:text-secondary/80 no-underline mr-1 transition-colors ${!categoryId ? 'font-bold' : 'font-normal'}`}
           >
             {currentSection?.name || 'Section'}
           </Link>
@@ -321,7 +321,7 @@ const StudyGuidePage = () => {
             <span className="mx-1">›</span>
             <Link
               to={`/study/${sectionId}/${categoryId}`}
-              className={`${isDark ? 'text-primary-light' : 'text-primary-dark'} no-underline mr-1 ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
+              className={`text-secondary hover:text-secondary/80 no-underline mr-1 transition-colors ${!studyGuideId ? 'font-bold' : 'font-normal'}`}
             >
               {currentCategory?.name || 'Category'}
             </Link>
@@ -366,7 +366,7 @@ const StudyGuidePage = () => {
             />
             {searchQuery && (
               <button
-                className={`absolute right-3 ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`absolute right-3 text-secondary hover:text-secondary/80 transition-colors`}
                 onClick={handleClearSearch}
                 aria-label="Clear search"
               >
@@ -396,7 +396,7 @@ const StudyGuidePage = () => {
             </h2>
             <button
               onClick={handleClearSearch}
-              className={`px-3 py-1 text-sm rounded ${isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+              className={`px-3 py-1 text-sm rounded bg-secondary hover:bg-secondary/80 text-white transition-colors`}
             >
               Clear Search
             </button>
@@ -436,7 +436,7 @@ const StudyGuidePage = () => {
           <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full overflow-hidden">
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
-              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-primary hover:text-primary-light' : 'bg-white text-primary hover:text-primary-dark'} rounded-lg shadow-lg transition-colors`}
+              className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-secondary hover:text-secondary/80' : 'bg-white text-secondary hover:text-secondary/80'} rounded-lg shadow-lg transition-colors`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle menu"
             >

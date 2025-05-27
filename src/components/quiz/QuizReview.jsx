@@ -163,7 +163,7 @@ const QuizReview = ({
                             className={classNames(
                               "flex items-center p-3 rounded border",
                               {
-                                'bg-teal-50 border-teal-600': isSelected && !quiz.is_practice,
+                                'bg-primary/10 border-primary': isSelected && !quiz.is_practice,
                                 'bg-green-50 border-green-500': isCorrect,
                                 'bg-red-50 border-red-500': isIncorrect,
                                 'border-slate-300': !isSelected && !quiz.is_practice

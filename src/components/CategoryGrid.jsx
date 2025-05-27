@@ -8,9 +8,12 @@ import { getIconByName } from '../utils/iconMappings';
  * Component for displaying a grid of categories
  */
 const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
   const handleCategoryClick = (categoryId, sectionId) => {
     navigate(`/study/${sectionId}/${categoryId}`);
@@ -20,10 +23,10 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   const getCategoryIcon = (category) => {
     // If the category has a custom icon set, use it
     if (category.icon) {
-      const { component: IconComponent, color } = getIconByName(category.icon);
+      const { component: IconComponent } = getIconByName(category.icon);
       return {
         icon: <IconComponent size={24} color="white" />,
-        color: color
+        color: currentSecondaryColor // Always use secondary color
       };
     }
 
@@ -39,10 +42,10 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
     else if (name.includes('hardware')) iconName = 'Laptop';
     else if (name.includes('software')) iconName = 'Chart';
 
-    const { component: IconComponent, color } = getIconByName(iconName);
+    const { component: IconComponent } = getIconByName(iconName);
     return {
       icon: <IconComponent size={24} color="white" />,
-      color: color
+      color: currentSecondaryColor // Always use secondary color
     };
   };
 
@@ -84,18 +87,18 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
         return (
           <div
             key={category.id}
-            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 cursor-pointer flex flex-col h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
+            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 cursor-pointer flex flex-col items-center text-center h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
             onClick={() => handleCategoryClick(category.id, sectionId)}
           >
             <div
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: color || 'var(--color-primary)' }}
+              style={{ backgroundColor: color }}
             >
               {icon}
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{category.description || 'No description available'}</p>
-            <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto`}>
+            <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto w-full`}>
               <span>{studyGuideCount} {studyGuideCount === 1 ? 'Study Guide' : 'Study Guides'}</span>
             </div>
             <button

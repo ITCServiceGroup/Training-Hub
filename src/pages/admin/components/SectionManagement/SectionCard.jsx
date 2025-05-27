@@ -1,14 +1,46 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaEdit, FaTrash, FaChevronRight, FaBars } from 'react-icons/fa'; // Added FaBars
+import { getIconByName } from '../../../../utils/iconMappings';
 import SectionForm from '../CategoryTree/SectionForm';
 
 // Accept sortableProps
 const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered, sortableProps }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
   // isHovered state is now controlled by parent via prop
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
+
+  // Get icon for the section
+  const getSectionIcon = (section) => {
+    // If the section has a custom icon set, use it
+    if (section.icon) {
+      const { component: IconComponent } = getIconByName(section.icon);
+      return <IconComponent size={20} color="white" />;
+    }
+
+    // Fallback to name-based detection for backward compatibility
+    const name = section.name.toLowerCase();
+    let iconName = 'Book';
+
+    if (name.includes('network')) iconName = 'Network';
+    else if (name.includes('install')) iconName = 'Download';
+    else if (name.includes('service')) iconName = 'Wrench';
+    else if (name.includes('troubleshoot')) iconName = 'Search';
+    else if (name.includes('security')) iconName = 'Lock';
+    else if (name.includes('hardware')) iconName = 'Laptop';
+    else if (name.includes('software')) iconName = 'Chart';
+    else if (name.includes('advanced')) iconName = 'Rocket';
+
+    const { component: IconComponent } = getIconByName(iconName);
+    return <IconComponent size={20} color="white" />;
+  };
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -42,6 +74,13 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
                 >
                   <FaBars />
                 </span>
+                {/* Icon */}
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: currentSecondaryColor }}
+                >
+                  {getSectionIcon(section)}
+                </div>
                 {/* Title */}
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={section.name}>{section.name}</h3>
              </div>
@@ -81,7 +120,17 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
           {/* Footer Button Area */}
            <div className="px-6 pb-6 mt-auto flex-shrink-0">
              <button
-               className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
+               className="text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
+               style={{
+                 backgroundColor: currentPrimaryColor,
+                 filter: 'brightness(1)',
+               }}
+               onMouseEnter={(e) => {
+                 e.target.style.filter = 'brightness(0.9)';
+               }}
+               onMouseLeave={(e) => {
+                 e.target.style.filter = 'brightness(1)';
+               }}
                onClick={(e) => { stopPropagation(e); onViewCategories(section); }}
              >
                <span>View Categories</span>

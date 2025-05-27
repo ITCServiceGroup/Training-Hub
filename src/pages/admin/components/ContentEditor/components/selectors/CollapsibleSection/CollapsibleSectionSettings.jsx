@@ -6,7 +6,23 @@ import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
 // Helper function to ensure theme colors are properly initialized
-const ensureThemeColors = (props, isDark) => {
+const ensureThemeColors = (props, isDark, themeColors) => {
+  // Helper to get theme primary color for a specific mode
+  const getThemePrimaryColorForMode = (forDarkMode = false) => {
+    try {
+      const primaryHex = themeColors.primary[forDarkMode ? 'dark' : 'light'];
+      // Convert hex to RGB
+      const hex = primaryHex.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return { r, g, b, a: 1 };
+    } catch (error) {
+      console.warn('Error getting theme primary color:', error);
+      // Fallback to hardcoded primary color
+      return forDarkMode ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 };
+    }
+  };
   const currentTheme = isDark ? 'dark' : 'light';
   const oppositeTheme = isDark ? 'light' : 'dark';
 
@@ -41,9 +57,9 @@ const ensureThemeColors = (props, isDark) => {
       } else if (colorKey === 'headerTextColor') {
         props[colorKey].light = { r: 0, g: 0, b: 0, a: 1 };
       } else if (colorKey === 'stepButtonColor') {
-        props[colorKey].light = { r: 15, g: 118, b: 110, a: 1 }; // Default primary color light
+        props[colorKey].light = getThemePrimaryColorForMode(false); // Use theme primary color light
       } else if (colorKey === 'stepIndicatorColor') {
-        props[colorKey].light = { r: 15, g: 118, b: 110, a: 1 }; // Default primary color light
+        props[colorKey].light = getThemePrimaryColorForMode(false); // Use theme primary color light
       }
     }
 
@@ -57,9 +73,9 @@ const ensureThemeColors = (props, isDark) => {
       } else if (colorKey === 'headerTextColor') {
         props[colorKey].dark = { r: 229, g: 231, b: 235, a: 1 };
       } else if (colorKey === 'stepButtonColor') {
-        props[colorKey].dark = { r: 20, g: 184, b: 166, a: 1 }; // Default primary color dark
+        props[colorKey].dark = getThemePrimaryColorForMode(true); // Use theme primary color dark
       } else if (colorKey === 'stepIndicatorColor') {
-        props[colorKey].dark = { r: 20, g: 184, b: 166, a: 1 }; // Default primary color dark
+        props[colorKey].dark = getThemePrimaryColorForMode(true); // Use theme primary color dark
       }
     }
 
@@ -150,13 +166,30 @@ export const CollapsibleSectionSettings = () => {
   const [showSteps, setShowSteps] = useState(true);
   const [showSpacing, setShowSpacing] = useState(true);
 
-  // Get current theme
-  const { theme } = useTheme();
+  // Get current theme and theme colors
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
 
   const { actions, setProp } = useNode((node) => ({
     selected: node.id,
   }));
+
+  // Helper to get theme primary color for a specific mode
+  const getThemePrimaryColorForMode = (forDarkMode = false) => {
+    try {
+      const primaryHex = themeColors.primary[forDarkMode ? 'dark' : 'light'];
+      // Convert hex to RGB
+      const hex = primaryHex.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return { r, g, b, a: 1 };
+    } catch (error) {
+      console.warn('Error getting theme primary color:', error);
+      // Fallback to hardcoded primary color
+      return forDarkMode ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 };
+    }
+  };
 
   const {
     background,
@@ -239,12 +272,12 @@ export const CollapsibleSectionSettings = () => {
       },
       headerFontSize: props.headerFontSize || 16,
       stepButtonColor: props.stepButtonColor || {
-        light: { r: 15, g: 118, b: 110, a: 1 }, // Default primary color light
-        dark: { r: 20, g: 184, b: 166, a: 1 }   // Default primary color dark
+        light: getThemePrimaryColorForMode(false), // Use theme primary color light
+        dark: getThemePrimaryColorForMode(true)    // Use theme primary color dark
       },
       stepIndicatorColor: props.stepIndicatorColor || {
-        light: { r: 15, g: 118, b: 110, a: 1 }, // Default primary color light
-        dark: { r: 20, g: 184, b: 166, a: 1 }   // Default primary color dark
+        light: getThemePrimaryColorForMode(false), // Use theme primary color light
+        dark: getThemePrimaryColorForMode(true)    // Use theme primary color dark
       },
       autoConvertColors: typeof props.autoConvertColors !== 'undefined' ? props.autoConvertColors : true
     };
@@ -255,11 +288,43 @@ export const CollapsibleSectionSettings = () => {
     setProp((props) => {
       // Add console logging to debug header text color
       console.log('Before ensureThemeColors - headerTextColor:', JSON.stringify(props.headerTextColor));
-      const updatedProps = ensureThemeColors(props, isDark);
+      const updatedProps = ensureThemeColors(props, isDark, themeColors);
       console.log('After ensureThemeColors - headerTextColor:', JSON.stringify(updatedProps.headerTextColor));
+
+      // Also update step colors to use theme colors if they are using hardcoded defaults
+      const isDefaultStepColor = (color) => {
+        return (
+          color &&
+          color.light &&
+          color.dark &&
+          color.light.r === 15 &&
+          color.light.g === 118 &&
+          color.light.b === 110 &&
+          color.dark.r === 20 &&
+          color.dark.g === 184 &&
+          color.dark.b === 166
+        );
+      };
+
+      // Update step button color if it's using defaults
+      if (isDefaultStepColor(updatedProps.stepButtonColor)) {
+        updatedProps.stepButtonColor = {
+          light: getThemePrimaryColorForMode(false),
+          dark: getThemePrimaryColorForMode(true)
+        };
+      }
+
+      // Update step indicator color if it's using defaults
+      if (isDefaultStepColor(updatedProps.stepIndicatorColor)) {
+        updatedProps.stepIndicatorColor = {
+          light: getThemePrimaryColorForMode(false),
+          dark: getThemePrimaryColorForMode(true)
+        };
+      }
+
       return updatedProps;
     });
-  }, [setProp, isDark]);
+  }, [setProp, isDark, themeColors]);
 
   const handleColorChange = (colorKey, newColor) => {
     // Add debug logging for header text color changes
@@ -513,7 +578,7 @@ export const CollapsibleSectionSettings = () => {
                       // When disabling auto-convert, make sure both light and dark theme colors are properly set
                       if (!isChecked) {
                         // Use the ensureThemeColors helper to ensure both light and dark colors are set
-                        return ensureThemeColors(props, isDark);
+                        return ensureThemeColors(props, isDark, themeColors);
                       }
 
                       // If turning auto-convert on, update all colors

@@ -4,7 +4,30 @@ import { FaPuzzlePiece } from 'react-icons/fa';
 import { InteractiveSettings } from './InteractiveSettings';
 import InteractiveRenderer from './InteractiveRenderer';
 
-export const Interactive = ({ name, title, description, iconUrl, margin = ['0', '0', '0', '0'] }) => {
+export const Interactive = ({
+  name,
+  title,
+  description,
+  iconUrl,
+  margin = ['0', '0', '0', '0'],
+  titleTextColor = {
+    light: { r: 44, g: 62, b: 80, a: 1 }, // Default dark text for light mode
+    dark: { r: 241, g: 245, b: 249, a: 1 } // Default light text for dark mode
+  },
+  buttonColor = {
+    light: { r: 15, g: 118, b: 110, a: 1 }, // Default teal for light mode
+    dark: { r: 20, g: 184, b: 166, a: 1 } // Default lighter teal for dark mode
+  },
+  primaryBackgroundColor = {
+    light: { r: 248, g: 249, b: 250, a: 1 }, // Light gray for light mode
+    dark: { r: 30, g: 41, b: 59, a: 1 } // Dark slate for dark mode
+  },
+  secondaryBackgroundColor = {
+    light: { r: 255, g: 255, b: 255, a: 1 }, // White for light mode
+    dark: { r: 15, g: 23, b: 42, a: 1 } // Darker slate for dark mode
+  },
+  autoConvertColors = true
+}) => {
   const { connectors: { connect, drag }, selected } = useNode((node) => ({
     selected: node.events.selected,
     dragged: node.events.dragged
@@ -54,7 +77,13 @@ export const Interactive = ({ name, title, description, iconUrl, margin = ['0', 
           margin: `${topMargin}px ${rightMargin}px ${bottomMargin}px ${leftMargin}px`
         }}
       >
-        <InteractiveRenderer name={name} />
+        <InteractiveRenderer
+          name={name}
+          titleTextColor={titleTextColor}
+          buttonColor={buttonColor}
+          primaryBackgroundColor={primaryBackgroundColor}
+          secondaryBackgroundColor={secondaryBackgroundColor}
+        />
       </div>
     );
   }
@@ -110,7 +139,24 @@ Interactive.craft = {
     title: 'Interactive Element',
     description: 'Select an interactive element from the settings',
     iconUrl: '',
-    margin: ['0', '0', '0', '0'] // [top, right, bottom, left]
+    margin: ['0', '0', '0', '0'], // [top, right, bottom, left]
+    titleTextColor: {
+      light: { r: 44, g: 62, b: 80, a: 1 }, // Default dark text for light mode
+      dark: { r: 241, g: 245, b: 249, a: 1 } // Default light text for dark mode
+    },
+    buttonColor: {
+      light: { r: 15, g: 118, b: 110, a: 1 }, // Default teal for light mode
+      dark: { r: 20, g: 184, b: 166, a: 1 } // Default lighter teal for dark mode
+    },
+    primaryBackgroundColor: {
+      light: { r: 248, g: 249, b: 250, a: 1 }, // Light gray for light mode
+      dark: { r: 30, g: 41, b: 59, a: 1 } // Dark slate for dark mode
+    },
+    secondaryBackgroundColor: {
+      light: { r: 255, g: 255, b: 255, a: 1 }, // White for light mode
+      dark: { r: 15, g: 23, b: 42, a: 1 } // Darker slate for dark mode
+    },
+    autoConvertColors: true
   },
   rules: {
     canDrag: () => true,

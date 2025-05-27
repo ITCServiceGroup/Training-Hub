@@ -7,6 +7,7 @@ import CategoryManagement from './components/CategoryManagement';
 import CategorySelectionModal from './components/CategorySelectionModal';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
+import StudyGuideTemplateModal from './components/StudyGuideTemplateModal';
 import { studyGuidesService } from '../../services/api/studyGuides';
 import { sectionsService } from '../../services/api/sections';
 import { CategoryContext } from '../../components/layout/AdminLayout';
@@ -190,6 +191,9 @@ const StudyGuides = () => {
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [guideToAction, setGuideToAction] = useState(null);
 
+  // State for template selection modal
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
   // State for confirmation dialogs
   const [isCopyConfirmOpen, setIsCopyConfirmOpen] = useState(false);
   const [isMoveConfirmOpen, setIsMoveConfirmOpen] = useState(false);
@@ -304,9 +308,23 @@ const StudyGuides = () => {
   };
 
   const handleCreateNew = () => {
+    // Show template selection modal instead of directly creating
+    setIsTemplateModalOpen(true);
+  };
+
+  const handleStartFromScratch = () => {
+    setIsTemplateModalOpen(false);
     setSelectedStudyGuide(null);
     setIsCreating(true);
     // State update happens via useEffect watching isCreating
+  };
+
+  const handleTemplateSelect = (template) => {
+    setIsTemplateModalOpen(false);
+    setSelectedStudyGuide(null);
+    setIsCreating(true);
+    // Set the editor content to the template content
+    setCurrentEditorJson(template.content);
   };
 
   // Function to open the delete confirmation dialog
@@ -979,6 +997,14 @@ const StudyGuides = () => {
             description={successMessage}
             confirmButtonText="OK"
             confirmButtonVariant="primary"
+          />
+
+          {/* Template Selection Modal */}
+          <StudyGuideTemplateModal
+            isOpen={isTemplateModalOpen}
+            onClose={() => setIsTemplateModalOpen(false)}
+            onStartFromScratch={handleStartFromScratch}
+            onSelectTemplate={handleTemplateSelect}
           />
         </>
       );

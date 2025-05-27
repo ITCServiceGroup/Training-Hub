@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../config/supabase';
 import { quizResultsService } from '../../services/api/quizResults';
 import { studyGuidesService } from '../../services/api/studyGuides';
@@ -45,6 +46,12 @@ window.clearAdminLogs = () => {
 
 const AdminDashboard = () => {
   const { user, session, isAuthenticated } = useAuth();
+  const { theme, themeColors } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
+
   const [error, setError] = useState(null);
   const [quizStats, setQuizStats] = useState({
     studyGuides: 0,
@@ -101,7 +108,7 @@ const AdminDashboard = () => {
       case 'quiz_completion':
         return 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary border border-primary/30 dark:border-primary/30';
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700';
+        return 'bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary border border-secondary/30 dark:border-secondary/30';
     }
   };
 
@@ -223,8 +230,11 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200">
+            <div
+              className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4 shadow-md"
+              style={{ backgroundColor: currentSecondaryColor }}
+            >
               <BiBook className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Study Guides</h3>
@@ -239,8 +249,11 @@ const AdminDashboard = () => {
 
 
 
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200">
+            <div
+              className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4 shadow-md"
+              style={{ backgroundColor: currentSecondaryColor }}
+            >
               <MdQuiz className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Quizzes</h3>
@@ -253,8 +266,11 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
-            <div className="w-[50px] h-[50px] rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
+          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200">
+            <div
+              className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4 shadow-md"
+              style={{ backgroundColor: currentSecondaryColor }}
+            >
               <BiBarChart className="text-white text-2xl" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Results</h3>

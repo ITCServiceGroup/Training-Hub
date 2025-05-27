@@ -17,6 +17,7 @@ const AdminQuizzes = lazy(() => import('./pages/admin/AdminQuizzes'));
 const QuizBuilderPage = lazy(() => import('./components/quiz-builder/QuizBuilderPage'));
 const AdminResults = lazy(() => import('./pages/admin/Results'));
 const MediaLibraryPage = lazy(() => import('./pages/admin/MediaLibraryPage'));
+
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage')); // Import SettingsPage
 const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
@@ -120,6 +121,7 @@ function App() {
                   <MediaLibraryPage />
                 </Suspense>
               } />
+
               {/* Add Settings Route */}
               <Route path="settings" element={
                 <Suspense fallback={<LoadingFallback />}>

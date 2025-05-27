@@ -78,6 +78,7 @@ const hslToRgb = (color) => {
 const ColorPicker = ({
   color = { r: 0, g: 0, b: 0, a: 1 },
   onChange,
+  hideOpacity = false,
 }) => {
   // We don't need theme for this component
   const [isOpen, setIsOpen] = useState(false);
@@ -608,49 +609,51 @@ const ColorPicker = ({
           aria-label="Open color picker"
         />
 
-        {/* Opacity slider with input field */}
-        <div className="flex-1 flex items-center gap-2" style={{ height: '32px' }}>
-          <div className="w-2/3 flex items-center">
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={color.a}
-              onChange={(e) => {
-                const newAlpha = parseFloat(e.target.value);
-                onChange({ ...color, a: newAlpha });
-              }}
-              className="w-full h-3 rounded appearance-none cursor-pointer accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
-              style={{
-                background: `linear-gradient(to right,
-                  rgba(${color.r}, ${color.g}, ${color.b}, 0),
-                  rgba(${color.r}, ${color.g}, ${color.b}, 1))`,
-                WebkitAppearance: 'none',
-                margin: 0
-              }}
-              aria-label="Adjust opacity"
-            />
-          </div>
-          <div className="w-1/3 flex items-center">
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={Math.round(color.a * 100)}
-              onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                if (!isNaN(value) && value >= 0 && value <= 100) {
-                  const newAlpha = value / 100;
+        {/* Opacity slider with input field - hidden when hideOpacity is true */}
+        {!hideOpacity && (
+          <div className="flex-1 flex items-center gap-2" style={{ height: '32px' }}>
+            <div className="w-2/3 flex items-center">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={color.a}
+                onChange={(e) => {
+                  const newAlpha = parseFloat(e.target.value);
                   onChange({ ...color, a: newAlpha });
-                }
-              }}
-              className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
-              style={{ margin: 0 }}
-              aria-label="Opacity percentage"
-            />
+                }}
+                className="w-full h-3 rounded appearance-none cursor-pointer accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
+                style={{
+                  background: `linear-gradient(to right,
+                    rgba(${color.r}, ${color.g}, ${color.b}, 0),
+                    rgba(${color.r}, ${color.g}, ${color.b}, 1))`,
+                  WebkitAppearance: 'none',
+                  margin: 0
+                }}
+                aria-label="Adjust opacity"
+              />
+            </div>
+            <div className="w-1/3 flex items-center">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={Math.round(color.a * 100)}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  if (!isNaN(value) && value >= 0 && value <= 100) {
+                    const newAlpha = value / 100;
+                    onChange({ ...color, a: newAlpha });
+                  }
+                }}
+                className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                style={{ margin: 0 }}
+                aria-label="Opacity percentage"
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Color picker dropdown */}

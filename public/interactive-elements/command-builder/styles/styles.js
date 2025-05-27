@@ -4,50 +4,54 @@ export const styles = `
         /* Light mode variables */
         --text-color-light: #495057;
         --border-color-light: #dee2e6;
-        --bg-color-light: #f8f9fa;
-        --component-bg-light: #ffffff;
+        --bg-color-light: var(--custom-primary-bg-color, #ffffff);
+        --component-bg-light: var(--custom-secondary-bg-color, #f8f9fa);
         --component-border-light: #e9ecef;
         --component-hover-border-light: #007bff;
         --component-hover-shadow-light: rgba(0,123,255,0.15);
-        --primary-color-light: #007bff;
-        --primary-color-rgb-light: 0,123,255;
-        --primary-hover-light: #0056b3;
-        --secondary-color-light: #6c757d;
-        --secondary-hover-light: #5a6268;
+        --primary-color-light: var(--color-primary, #0f766e);
+        --primary-color-rgb-light: 15,118,110;
+        --primary-hover-light: var(--primary-dark, #0c5e57);
+        --secondary-color-light: var(--color-secondary, #7e22ce);
+        --secondary-hover-light: #6b1f9e;
         --success-color-light: #28a745;
         --error-color-light: #dc3545;
-        --drop-zone-bg-light: rgba(248,249,250,0.8);
+        --drop-zone-bg-light: var(--custom-secondary-bg-color, rgba(248,249,250,0.8));
         --drop-zone-empty-light: #adb5bd;
-        --preview-bg-light: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
-        --preview-color-light: #fff;
-        --tutorial-bg-light: #ffffff;
-        --tutorial-border-light: #e9ecef;
+        --preview-bg-light: linear-gradient(to bottom, #ffffff, #f8f9fa);
+        --preview-color-light: #000;
+        --tutorial-bg-light: var(--custom-secondary-bg-color, #ffffff);
+        --tutorial-border-light: rgba(0, 0, 0, 0.1);
         --tutorial-shadow-light: rgba(0,0,0,0.15);
         --tutorial-header-bg-light: linear-gradient(to right, #f8f9fa, #ffffff);
+        --accent-color-light: var(--custom-button-color, var(--secondary-hover));
+        --accent-bg-light: var(--custom-secondary-bg-color, rgba(107, 31, 158, 0.1));
 
         /* Dark mode variables */
         --text-color-dark: #e2e8f0;
         --border-color-dark: #4a5568;
-        --bg-color-dark: #2d3748;
-        --component-bg-dark: #1a202c;
+        --bg-color-dark: var(--custom-primary-bg-color, #1a202c);
+        --component-bg-dark: var(--custom-secondary-bg-color, #2d3748);
         --component-border-dark: #4a5568;
         --component-hover-border-dark: #4299e1;
         --component-hover-shadow-dark: rgba(66, 153, 225, 0.3);
-        --primary-color-dark: #4299e1;
-        --primary-color-rgb-dark: 66,153,225;
-        --primary-hover-dark: #3182ce;
-        --secondary-color-dark: #718096;
-        --secondary-hover-dark: #4a5568;
+        --primary-color-dark: var(--color-primary, #14b8a6);
+        --primary-color-rgb-dark: 20,184,166;
+        --primary-hover-dark: var(--primary-light, #0f766e);
+        --secondary-color-dark: var(--color-secondary, #a855f7);
+        --secondary-hover-dark: #9333ea;
         --success-color-dark: #48bb78;
         --error-color-dark: #fc8181;
-        --drop-zone-bg-dark: rgba(26, 32, 44, 0.8);
+        --drop-zone-bg-dark: var(--custom-secondary-bg-color, rgba(26, 32, 44, 0.8));
         --drop-zone-empty-dark: #718096;
-        --preview-bg-dark: linear-gradient(to bottom, #1a202c, #171923);
-        --preview-color-dark: #e2e8f0;
-        --tutorial-bg-dark: #2d3748;
-        --tutorial-border-dark: #4a5568;
+        --preview-bg-dark: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+        --preview-color-dark: #fff;
+        --tutorial-bg-dark: var(--custom-secondary-bg-color, #2d3748);
+        --tutorial-border-dark: rgba(255, 255, 255, 0.2);
         --tutorial-shadow-dark: rgba(0,0,0,0.3);
         --tutorial-header-bg-dark: linear-gradient(to right, #1a202c, #2d3748);
+        --accent-color-dark: var(--custom-button-color, var(--secondary-hover));
+        --accent-bg-dark: var(--custom-secondary-bg-color, rgba(147, 51, 234, 0.1));
 
         /* Default to light mode */
         --text-color: var(--text-color-light);
@@ -72,6 +76,8 @@ export const styles = `
         --tutorial-border: var(--tutorial-border-light);
         --tutorial-shadow: var(--tutorial-shadow-light);
         --tutorial-header-bg: var(--tutorial-header-bg-light);
+        --accent-color: var(--accent-color-light);
+        --accent-bg: var(--accent-bg-light);
 
         /* Transitions for smooth theme switching */
         transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
@@ -101,6 +107,8 @@ export const styles = `
         --tutorial-border: var(--tutorial-border-dark);
         --tutorial-shadow: var(--tutorial-shadow-dark);
         --tutorial-header-bg: var(--tutorial-header-bg-dark);
+        --accent-color: var(--accent-color-dark);
+        --accent-bg: var(--accent-bg-dark);
     }
 
     /* Add transition classes */
@@ -152,9 +160,9 @@ export const styles = `
 
     .tutorial-highlight {
         position: absolute;
-        border: 2px solid var(--success-color);
+        border: 2px solid var(--accent-color);
         border-radius: 4px;
-        background: rgba(76, 175, 80, 0.1);
+        background: transparent;
         pointer-events: none;
         z-index: 1;
     }
@@ -197,12 +205,12 @@ export const styles = `
     .completion-message {
         display: none;
         padding: 20px;
-        background: linear-gradient(45deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+        background: var(--accent-bg);
         border-radius: 4px;
         margin-top: 20px;
-        color: var(--success-color);
+        color: var(--accent-color);
         text-align: center;
-        border: 1px solid rgba(40, 167, 69, 0.2);
+        border: 1px solid var(--accent-color);
     }
 
     :host {
@@ -211,14 +219,26 @@ export const styles = `
         background: var(--bg-color);
         color: var(--text-color);
         padding: 20px;
-        border-radius: 8px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 15px 0;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     .container {
         max-width: 800px;
         margin: 0 auto;
         color: var(--text-color);
+    }
+
+    h2 {
+        font-size: 1.5em;
+        color: var(--custom-title-color, var(--text-color));
+        margin: 0 0 20px 0;
+        text-align: center;
+        font-weight: 600;
+        transition: color 0.3s ease;
     }
 
     .os-tabs {
@@ -242,18 +262,18 @@ export const styles = `
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 14px;
         font-weight: 500;
-        color: var(--text-color);
+        color: var(--custom-title-color, var(--text-color));
         position: relative;
         overflow: hidden;
     }
 
     .os-tab:hover:not(.active) {
-        background: rgba(0,123,255,0.1);
-        color: var(--primary-color);
+        background: var(--custom-button-color, var(--primary-color));
+        color: white;
     }
 
     .os-tab.active {
-        background: var(--primary-color);
+        background: var(--custom-button-color, var(--primary-color));
         color: white;
         box-shadow: 0 2px 4px var(--component-hover-shadow);
     }
@@ -302,7 +322,7 @@ export const styles = `
 
     .command-component:hover {
         background: var(--component-bg);
-        border-color: var(--component-hover-border);
+        border-color: var(--custom-button-color, var(--primary-color));
         transform: translateY(-1px);
         box-shadow: 0 4px 8px var(--component-hover-shadow);
     }
@@ -363,7 +383,7 @@ export const styles = `
     }
 
     .drop-zone.drag-over::before {
-        border-color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
         box-shadow: 0 0 0 4px var(--component-hover-shadow);
     }
 
@@ -522,10 +542,10 @@ export const styles = `
     }
 
     .validation-message.success {
-        background: linear-gradient(to right, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
-        border: 1px solid rgba(40, 167, 69, 0.2);
-        color: var(--success-color);
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+        background: var(--accent-bg);
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
+        box-shadow: 0 2px 8px var(--accent-bg);
     }
 
     .output-preview {
@@ -636,7 +656,7 @@ export const styles = `
         position: absolute;
         pointer-events: none;
         border-radius: 4px;
-        box-shadow: 0 0 0 2px #007bff, 0 0 10px rgba(0,123,255,0.3);
+        box-shadow: 0 0 0 2px var(--accent-color), 0 0 10px rgba(0,0,0,0.2);
         z-index: 999;
         opacity: 0;
         animation: highlight-fade 0.3s ease-out forwards;
@@ -684,7 +704,7 @@ export const styles = `
         font-size: 20px;
         line-height: 1;
         background: transparent;
-        color: var(--secondary-color);
+        color: var(--accent-color);
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
@@ -719,7 +739,7 @@ export const styles = `
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.8em;
-    color: var(--secondary-color);
+    color: var(--accent-color);
     white-space: nowrap;
 }
 
@@ -727,7 +747,7 @@ export const styles = `
         padding: 10px 20px;
         border: none;
         border-radius: 6px;
-        background: var(--primary-color);
+        background: var(--custom-button-color, var(--primary-color));
         color: white;
         cursor: pointer;
         transition: all 0.2s;
@@ -802,8 +822,8 @@ export const styles = `
     }
 
     .step-indicator.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
+        background: var(--accent-color);
+        border-color: var(--accent-color);
         transform: scale(1.2);
     }
 
@@ -812,8 +832,8 @@ export const styles = `
     }
 
     .step-indicator.completed {
-        background: var(--success-color);
-        border-color: var(--success-color);
+        background: var(--accent-color);
+        border-color: var(--accent-color);
     }
 
     .tutorial-hint {
@@ -822,7 +842,7 @@ export const styles = `
         padding: 16px 16px 16px 48px;
         background: var(--bg-color);
         border: 1px solid var(--border-color);
-        border-left: 4px solid var(--primary-color);
+        border-left: 4px solid var(--accent-color);
         border-radius: 8px;
         font-size: 14px;
         line-height: 1.5;
@@ -849,9 +869,9 @@ export const styles = `
     .completion-message {
         display: none;
         padding: 16px;
-        background: linear-gradient(45deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
-        border: 1px solid rgba(40, 167, 69, 0.2);
-        color: var(--success-color);
+        background: var(--accent-bg);
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
         border-radius: 8px;
         margin-top: 20px;
         font-weight: 500;
@@ -877,7 +897,7 @@ export const styles = `
         box-sizing: border-box; /* Ensure padding and border are included in width */
         margin-bottom: 20px;
         padding: 0 24px 24px 24px; /* Removed top padding */
-        background: var(--bg-color);
+        background: var(--component-bg);
         border-radius: 12px; /* Matches command-area */
         border: 1px solid var(--border-color); /* Matches command-area */
         box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Matches command-area */
@@ -894,7 +914,7 @@ export const styles = `
         width: 100%;
         text-align: center;
         padding: 8px 6px;
-        background: var(--component-bg);
+        background: var(--bg-color);
         color: var(--text-color);
         border: 1px solid var(--border-color);
         border-radius: 6px;
@@ -908,8 +928,8 @@ export const styles = `
 
     .tutorial-grid .tutorial-button:hover {
         background: var(--bg-color);
-        border-color: var(--primary-color);
-        color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
+        color: var(--custom-button-color, var(--primary-color));
         transform: translateY(-2px);
         box-shadow: 0 4px 8px var(--component-hover-shadow);
     }
@@ -924,28 +944,38 @@ export const styles = `
         left: 0;
         right: 0;
         z-index: 10;
-        background: var(--component-bg);
+        background: var(--bg-color);
         border: 1px solid var(--border-color);
         border-radius: 6px;
         margin-top: 4px;
-        padding: 8px;
+        padding: 12px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         box-shadow: 0 4px 8px var(--component-hover-shadow);
+    }
+
+    .tutorial-entry-wrapper .tutorial-sub-buttons .tutorial-button {
+        margin: 0 0 8px 0 !important;
+        width: 100%;
+    }
+
+    .tutorial-entry-wrapper .tutorial-sub-buttons .tutorial-button:last-child {
+        margin-bottom: 0 !important;
     }
 
     .instruction-label {
         font-weight: 600; /* Semi-bold */
         margin-bottom: 8px;
-        color: var(--text-color); /* Use theme variable */
+        color: var(--custom-title-color, var(--primary-color)); /* Use custom title color or primary color */
         padding-left: 4px; /* Align slightly with tabs/buttons */
         text-align: center; /* Center the text */
+        transition: color 0.3s ease; /* Smooth color transitions */
     }
 
     .drop-zone-tutorial-target {
         border-style: solid; /* Change from dashed to solid */
-        border-color: var(--primary-color); /* Use highlight color */
+        border-color: var(--custom-button-color, var(--primary-color)); /* Use highlight color */
         box-shadow: 0 0 8px var(--component-hover-shadow); /* Add a subtle glow */
     }
 
@@ -997,7 +1027,7 @@ export const styles = `
 
     .placed-component:hover:not(.dragging) {
         background: var(--bg-color);
-        border-color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
         transform: translateY(-1px);
         box-shadow: 0 4px 8px var(--component-hover-shadow);
         z-index: 2;
@@ -1018,7 +1048,7 @@ export const styles = `
     }
 
     .placed-component.snap-target {
-        border-color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
         background: rgba(var(--primary-color-rgb), 0.1);
         transform: scale(1.05);
         box-shadow: 0 0 0 2px var(--component-hover-shadow);
@@ -1040,7 +1070,7 @@ export const styles = `
     .drag-placeholder {
         width: 3px;
         height: 24px;
-        background: var(--primary-color);
+        background: var(--custom-button-color, var(--primary-color));
         border-radius: 2px;
         margin: 0 2px;
         opacity: 0;
@@ -1064,7 +1094,7 @@ export const styles = `
 
     .placed-component:hover:not(.dragging) {
         background: var(--bg-color);
-        border-color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
         transform: translateY(-1px);
         box-shadow: 0 4px 8px var(--component-hover-shadow);
         z-index: 2;
@@ -1075,7 +1105,7 @@ export const styles = `
         pointer-events: none;
         transform: scale(0.95);
         transition: none;
-        border: 1px dashed var(--primary-color);
+        border: 1px dashed var(--custom-button-color, var(--primary-color));
         background: rgba(var(--primary-color-rgb), 0.05);
     }
 
@@ -1083,7 +1113,7 @@ export const styles = `
         position: fixed;
         opacity: 1;
         background: var(--component-bg);
-        border-color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
         cursor: grabbing;
         z-index: 1000;
         transform: scale(1.05);
@@ -1094,7 +1124,7 @@ export const styles = `
 
     .placed-component.snap-target {
         transform: scale(1.05);
-        border-color: var(--primary-color);
+        border-color: var(--custom-button-color, var(--primary-color));
         box-shadow: 0 0 8px var(--component-hover-shadow);
         background: rgba(var(--primary-color-rgb), 0.1);
         z-index: 5;
@@ -1123,7 +1153,7 @@ export const styles = `
         flex-shrink: 0;
         width: 3px;
         height: 24px;
-        background: var(--primary-color);
+        background: var(--custom-button-color, var(--primary-color));
         border-radius: 1.5px;
         pointer-events: none;
         position: relative;

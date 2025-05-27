@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNode } from '@craftjs/core';
-import { FaCog } from 'react-icons/fa';
+import { FaCog, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import ColorPicker from '../../../../../../../components/common/ColorPicker';
+import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
 
 export const InteractiveSettings = () => {
   const { actions, name, id, related } = useNode((node) => ({
@@ -17,6 +20,31 @@ export const InteractiveSettings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSpacing, setShowSpacing] = useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
+
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Extract props with defaults
+  const {
+    titleTextColor = {
+      light: { r: 44, g: 62, b: 80, a: 1 },
+      dark: { r: 241, g: 245, b: 249, a: 1 }
+    },
+    buttonColor = {
+      light: { r: 15, g: 118, b: 110, a: 1 },
+      dark: { r: 20, g: 184, b: 166, a: 1 }
+    },
+    primaryBackgroundColor = {
+      light: { r: 248, g: 249, b: 250, a: 1 },
+      dark: { r: 30, g: 41, b: 59, a: 1 }
+    },
+    secondaryBackgroundColor = {
+      light: { r: 255, g: 255, b: 255, a: 1 },
+      dark: { r: 15, g: 23, b: 42, a: 1 }
+    },
+    autoConvertColors = true
+  } = props;
 
   // Initialize margin with default values if not set
   const margin = props.margin || ['0', '0', '0', '0'];
@@ -259,6 +287,645 @@ export const InteractiveSettings = () => {
           </div>
         )}
       </div>
+
+      {/* Appearance Settings - Only show if an element is selected */}
+      {props.name && (
+        <div className="mb-4">
+          <button
+            className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-left text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-600 rounded-md hover:bg-gray-200 dark:hover:bg-slate-500 focus:outline-none focus-visible:ring focus-visible:ring-teal-500 focus-visible:ring-opacity-50"
+            onClick={() => setShowAppearance(!showAppearance)}
+          >
+            <div className="flex items-center">
+              <FaCog className="mr-2" />
+              <span>Appearance</span>
+            </div>
+            <svg
+              className={`w-5 h-5 transform ${showAppearance ? 'rotate-180' : ''}`}
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          {showAppearance && (
+            <div className="space-y-4 px-1 py-3 bg-white dark:bg-slate-700 border-t border-gray-200 dark:border-slate-600">
+              {/* Auto Convert Colors Checkbox */}
+              <div className="mb-3 relative">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="autoConvertColors"
+                    checked={autoConvertColors}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      setProp((props) => {
+                        props.autoConvertColors = isChecked;
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        // If turning auto-convert on, update all colors
+                        if (isChecked) {
+                          // Update title text color
+                          if (props.titleTextColor && props.titleTextColor[currentTheme]) {
+                            const currentColor = props.titleTextColor[currentTheme];
+                            props.titleTextColor[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'text');
+                          }
+
+                          // Update button color
+                          if (props.buttonColor && props.buttonColor[currentTheme]) {
+                            const currentColor = props.buttonColor[currentTheme];
+                            props.buttonColor[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'button');
+                          }
+
+                          // Update primary background color
+                          if (props.primaryBackgroundColor && props.primaryBackgroundColor[currentTheme]) {
+                            const currentColor = props.primaryBackgroundColor[currentTheme];
+                            props.primaryBackgroundColor[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'background');
+                          }
+
+                          // Update secondary background color
+                          if (props.secondaryBackgroundColor && props.secondaryBackgroundColor[currentTheme]) {
+                            const currentColor = props.secondaryBackgroundColor[currentTheme];
+                            props.secondaryBackgroundColor[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'background');
+                          }
+                        }
+                      });
+                    }}
+                    className="mr-2 w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <label htmlFor="autoConvertColors" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    Auto-convert colors between themes
+                  </label>
+                </div>
+              </div>
+
+              {/* Title Text Color */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Title Text Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(titleTextColor, isDark, 'text')}
+                    onChange={(newColor) => {
+                      setProp((props) => {
+                        // Ensure titleTextColor has the expected structure
+                        if (!props.titleTextColor) {
+                          props.titleTextColor = {
+                            light: { r: 44, g: 62, b: 80, a: 1 },
+                            dark: { r: 241, g: 245, b: 249, a: 1 }
+                          };
+                        }
+
+                        // Handle legacy format (single RGBA object)
+                        if ('r' in props.titleTextColor) {
+                          const oldColor = { ...props.titleTextColor };
+                          props.titleTextColor = {
+                            light: oldColor,
+                            dark: convertToThemeColor(oldColor, true, 'text')
+                          };
+                        }
+
+                        // Ensure both light and dark properties exist
+                        if (!props.titleTextColor.light) {
+                          props.titleTextColor.light = { r: 44, g: 62, b: 80, a: 1 };
+                        }
+                        if (!props.titleTextColor.dark) {
+                          props.titleTextColor.dark = { r: 241, g: 245, b: 249, a: 1 };
+                        }
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        if (props.autoConvertColors) {
+                          // Auto-convert the color for the opposite theme
+                          const oppositeColor = convertToThemeColor(newColor, !isDark, 'text');
+
+                          props.titleTextColor = {
+                            ...props.titleTextColor,
+                            [currentTheme]: newColor,
+                            [oppositeTheme]: oppositeColor
+                          };
+                        } else {
+                          // Only update the current theme's color
+                          props.titleTextColor = {
+                            ...props.titleTextColor,
+                            [currentTheme]: newColor
+                          };
+                        }
+                      });
+                    }}
+                    componentType="text"
+                  />
+                </div>
+
+                {!autoConvertColors && (
+                  <div className="mt-3">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Title Text Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                    </label>
+                    <div className="flex items-center">
+                      <ColorPicker
+                        color={(() => {
+                          try {
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+                            const currentTheme = isDark ? 'dark' : 'light';
+
+                            // Ensure we have a valid color for the opposite theme
+                            if (titleTextColor && titleTextColor[oppositeTheme] &&
+                                typeof titleTextColor[oppositeTheme].r !== 'undefined' &&
+                                typeof titleTextColor[oppositeTheme].g !== 'undefined' &&
+                                typeof titleTextColor[oppositeTheme].b !== 'undefined') {
+                              return titleTextColor[oppositeTheme];
+                            } else if (titleTextColor && titleTextColor[currentTheme]) {
+                              // If opposite theme color is missing but current theme exists, convert it
+                              return convertToThemeColor(titleTextColor[currentTheme], !isDark, 'text');
+                            }
+                            // Default fallback colors
+                            return !isDark ?
+                              { r: 241, g: 245, b: 249, a: 1 } :
+                              { r: 44, g: 62, b: 80, a: 1 };
+                          } catch (error) {
+                            console.warn('Error getting opposite theme color:', error);
+                            return !isDark ?
+                              { r: 241, g: 245, b: 249, a: 1 } :
+                              { r: 44, g: 62, b: 80, a: 1 };
+                          }
+                        })()}
+                        onChange={(newColor) => {
+                          setProp((props) => {
+                            // Ensure titleTextColor has the expected structure
+                            if (!props.titleTextColor) {
+                              props.titleTextColor = {
+                                light: { r: 44, g: 62, b: 80, a: 1 },
+                                dark: { r: 241, g: 245, b: 249, a: 1 }
+                              };
+                            }
+
+                            // Handle legacy format (single RGBA object)
+                            if ('r' in props.titleTextColor) {
+                              const oldColor = { ...props.titleTextColor };
+                              props.titleTextColor = {
+                                light: oldColor,
+                                dark: convertToThemeColor(oldColor, true, 'text')
+                              };
+                            }
+
+                            // Ensure both light and dark properties exist
+                            if (!props.titleTextColor.light) {
+                              props.titleTextColor.light = { r: 44, g: 62, b: 80, a: 1 };
+                            }
+                            if (!props.titleTextColor.dark) {
+                              props.titleTextColor.dark = { r: 241, g: 245, b: 249, a: 1 };
+                            }
+
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+
+                            // Only update the opposite theme's color
+                            props.titleTextColor = {
+                              ...props.titleTextColor,
+                              [oppositeTheme]: newColor
+                            };
+                          });
+                        }}
+                        componentType="text"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Button Color */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Button Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(buttonColor, isDark, 'button')}
+                    onChange={(newColor) => {
+                      setProp((props) => {
+                        // Ensure buttonColor has the expected structure
+                        if (!props.buttonColor) {
+                          props.buttonColor = {
+                            light: { r: 15, g: 118, b: 110, a: 1 },
+                            dark: { r: 20, g: 184, b: 166, a: 1 }
+                          };
+                        }
+
+                        // Handle legacy format (single RGBA object)
+                        if ('r' in props.buttonColor) {
+                          const oldColor = { ...props.buttonColor };
+                          props.buttonColor = {
+                            light: oldColor,
+                            dark: convertToThemeColor(oldColor, true, 'button')
+                          };
+                        }
+
+                        // Ensure both light and dark properties exist
+                        if (!props.buttonColor.light) {
+                          props.buttonColor.light = { r: 15, g: 118, b: 110, a: 1 };
+                        }
+                        if (!props.buttonColor.dark) {
+                          props.buttonColor.dark = { r: 20, g: 184, b: 166, a: 1 };
+                        }
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        if (props.autoConvertColors) {
+                          // Auto-convert the color for the opposite theme
+                          const oppositeColor = convertToThemeColor(newColor, !isDark, 'button');
+
+                          props.buttonColor = {
+                            ...props.buttonColor,
+                            [currentTheme]: newColor,
+                            [oppositeTheme]: oppositeColor
+                          };
+                        } else {
+                          // Only update the current theme's color
+                          props.buttonColor = {
+                            ...props.buttonColor,
+                            [currentTheme]: newColor
+                          };
+                        }
+                      });
+                    }}
+                    componentType="button"
+                  />
+                </div>
+
+                {!autoConvertColors && (
+                  <div className="mt-3">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Button Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                    </label>
+                    <div className="flex items-center">
+                      <ColorPicker
+                        color={(() => {
+                          try {
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+                            const currentTheme = isDark ? 'dark' : 'light';
+
+                            // Ensure we have a valid color for the opposite theme
+                            if (buttonColor && buttonColor[oppositeTheme] &&
+                                typeof buttonColor[oppositeTheme].r !== 'undefined' &&
+                                typeof buttonColor[oppositeTheme].g !== 'undefined' &&
+                                typeof buttonColor[oppositeTheme].b !== 'undefined') {
+                              return buttonColor[oppositeTheme];
+                            } else if (buttonColor && buttonColor[currentTheme]) {
+                              // If opposite theme color is missing but current theme exists, convert it
+                              return convertToThemeColor(buttonColor[currentTheme], !isDark, 'button');
+                            }
+                            // Default fallback colors
+                            return !isDark ?
+                              { r: 20, g: 184, b: 166, a: 1 } :
+                              { r: 15, g: 118, b: 110, a: 1 };
+                          } catch (error) {
+                            console.warn('Error getting opposite theme color:', error);
+                            return !isDark ?
+                              { r: 20, g: 184, b: 166, a: 1 } :
+                              { r: 15, g: 118, b: 110, a: 1 };
+                          }
+                        })()}
+                        onChange={(newColor) => {
+                          setProp((props) => {
+                            // Ensure buttonColor has the expected structure
+                            if (!props.buttonColor) {
+                              props.buttonColor = {
+                                light: { r: 15, g: 118, b: 110, a: 1 },
+                                dark: { r: 20, g: 184, b: 166, a: 1 }
+                              };
+                            }
+
+                            // Handle legacy format (single RGBA object)
+                            if ('r' in props.buttonColor) {
+                              const oldColor = { ...props.buttonColor };
+                              props.buttonColor = {
+                                light: oldColor,
+                                dark: convertToThemeColor(oldColor, true, 'button')
+                              };
+                            }
+
+                            // Ensure both light and dark properties exist
+                            if (!props.buttonColor.light) {
+                              props.buttonColor.light = { r: 15, g: 118, b: 110, a: 1 };
+                            }
+                            if (!props.buttonColor.dark) {
+                              props.buttonColor.dark = { r: 20, g: 184, b: 166, a: 1 };
+                            }
+
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+
+                            // Only update the opposite theme's color
+                            props.buttonColor = {
+                              ...props.buttonColor,
+                              [oppositeTheme]: newColor
+                            };
+                          });
+                        }}
+                        componentType="button"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Primary Background Color */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Primary Background Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(primaryBackgroundColor, isDark, 'background')}
+                    onChange={(newColor) => {
+                      setProp((props) => {
+                        // Ensure primaryBackgroundColor has the expected structure
+                        if (!props.primaryBackgroundColor) {
+                          props.primaryBackgroundColor = {
+                            light: { r: 248, g: 249, b: 250, a: 1 },
+                            dark: { r: 30, g: 41, b: 59, a: 1 }
+                          };
+                        }
+
+                        // Handle legacy format (single RGBA object)
+                        if ('r' in props.primaryBackgroundColor) {
+                          const oldColor = { ...props.primaryBackgroundColor };
+                          props.primaryBackgroundColor = {
+                            light: oldColor,
+                            dark: convertToThemeColor(oldColor, true, 'background')
+                          };
+                        }
+
+                        // Ensure both light and dark properties exist
+                        if (!props.primaryBackgroundColor.light) {
+                          props.primaryBackgroundColor.light = { r: 248, g: 249, b: 250, a: 1 };
+                        }
+                        if (!props.primaryBackgroundColor.dark) {
+                          props.primaryBackgroundColor.dark = { r: 30, g: 41, b: 59, a: 1 };
+                        }
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        if (props.autoConvertColors) {
+                          // Auto-convert the color for the opposite theme
+                          const oppositeColor = convertToThemeColor(newColor, !isDark, 'background');
+
+                          props.primaryBackgroundColor = {
+                            ...props.primaryBackgroundColor,
+                            [currentTheme]: newColor,
+                            [oppositeTheme]: oppositeColor
+                          };
+                        } else {
+                          // Only update the current theme's color
+                          props.primaryBackgroundColor = {
+                            ...props.primaryBackgroundColor,
+                            [currentTheme]: newColor
+                          };
+                        }
+                      });
+                    }}
+                    componentType="background"
+                  />
+                </div>
+
+                {!autoConvertColors && (
+                  <div className="mt-3">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Primary Background Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                    </label>
+                    <div className="flex items-center">
+                      <ColorPicker
+                        color={(() => {
+                          try {
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+                            const currentTheme = isDark ? 'dark' : 'light';
+
+                            // Ensure we have a valid color for the opposite theme
+                            if (primaryBackgroundColor && primaryBackgroundColor[oppositeTheme] &&
+                                typeof primaryBackgroundColor[oppositeTheme].r !== 'undefined' &&
+                                typeof primaryBackgroundColor[oppositeTheme].g !== 'undefined' &&
+                                typeof primaryBackgroundColor[oppositeTheme].b !== 'undefined') {
+                              return primaryBackgroundColor[oppositeTheme];
+                            } else if (primaryBackgroundColor && primaryBackgroundColor[currentTheme]) {
+                              // If opposite theme color is missing but current theme exists, convert it
+                              return convertToThemeColor(primaryBackgroundColor[currentTheme], !isDark, 'background');
+                            }
+                            // Default fallback colors
+                            return !isDark ?
+                              { r: 30, g: 41, b: 59, a: 1 } :
+                              { r: 248, g: 249, b: 250, a: 1 };
+                          } catch (error) {
+                            console.warn('Error getting opposite theme color:', error);
+                            return !isDark ?
+                              { r: 30, g: 41, b: 59, a: 1 } :
+                              { r: 248, g: 249, b: 250, a: 1 };
+                          }
+                        })()}
+                        onChange={(newColor) => {
+                          setProp((props) => {
+                            // Ensure primaryBackgroundColor has the expected structure
+                            if (!props.primaryBackgroundColor) {
+                              props.primaryBackgroundColor = {
+                                light: { r: 248, g: 249, b: 250, a: 1 },
+                                dark: { r: 30, g: 41, b: 59, a: 1 }
+                              };
+                            }
+
+                            // Handle legacy format (single RGBA object)
+                            if ('r' in props.primaryBackgroundColor) {
+                              const oldColor = { ...props.primaryBackgroundColor };
+                              props.primaryBackgroundColor = {
+                                light: oldColor,
+                                dark: convertToThemeColor(oldColor, true, 'background')
+                              };
+                            }
+
+                            // Ensure both light and dark properties exist
+                            if (!props.primaryBackgroundColor.light) {
+                              props.primaryBackgroundColor.light = { r: 248, g: 249, b: 250, a: 1 };
+                            }
+                            if (!props.primaryBackgroundColor.dark) {
+                              props.primaryBackgroundColor.dark = { r: 30, g: 41, b: 59, a: 1 };
+                            }
+
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+
+                            // Only update the opposite theme's color
+                            props.primaryBackgroundColor = {
+                              ...props.primaryBackgroundColor,
+                              [oppositeTheme]: newColor
+                            };
+                          });
+                        }}
+                        componentType="background"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Secondary Background Color */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Secondary Background Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(secondaryBackgroundColor, isDark, 'background')}
+                    onChange={(newColor) => {
+                      setProp((props) => {
+                        // Ensure secondaryBackgroundColor has the expected structure
+                        if (!props.secondaryBackgroundColor) {
+                          props.secondaryBackgroundColor = {
+                            light: { r: 255, g: 255, b: 255, a: 1 },
+                            dark: { r: 15, g: 23, b: 42, a: 1 }
+                          };
+                        }
+
+                        // Handle legacy format (single RGBA object)
+                        if ('r' in props.secondaryBackgroundColor) {
+                          const oldColor = { ...props.secondaryBackgroundColor };
+                          props.secondaryBackgroundColor = {
+                            light: oldColor,
+                            dark: convertToThemeColor(oldColor, true, 'background')
+                          };
+                        }
+
+                        // Ensure both light and dark properties exist
+                        if (!props.secondaryBackgroundColor.light) {
+                          props.secondaryBackgroundColor.light = { r: 255, g: 255, b: 255, a: 1 };
+                        }
+                        if (!props.secondaryBackgroundColor.dark) {
+                          props.secondaryBackgroundColor.dark = { r: 15, g: 23, b: 42, a: 1 };
+                        }
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        if (props.autoConvertColors) {
+                          // Auto-convert the color for the opposite theme
+                          const oppositeColor = convertToThemeColor(newColor, !isDark, 'background');
+
+                          props.secondaryBackgroundColor = {
+                            ...props.secondaryBackgroundColor,
+                            [currentTheme]: newColor,
+                            [oppositeTheme]: oppositeColor
+                          };
+                        } else {
+                          // Only update the current theme's color
+                          props.secondaryBackgroundColor = {
+                            ...props.secondaryBackgroundColor,
+                            [currentTheme]: newColor
+                          };
+                        }
+                      });
+                    }}
+                    componentType="background"
+                  />
+                </div>
+
+                {!autoConvertColors && (
+                  <div className="mt-3">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Secondary Background Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                    </label>
+                    <div className="flex items-center">
+                      <ColorPicker
+                        color={(() => {
+                          try {
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+                            const currentTheme = isDark ? 'dark' : 'light';
+
+                            // Ensure we have a valid color for the opposite theme
+                            if (secondaryBackgroundColor && secondaryBackgroundColor[oppositeTheme] &&
+                                typeof secondaryBackgroundColor[oppositeTheme].r !== 'undefined' &&
+                                typeof secondaryBackgroundColor[oppositeTheme].g !== 'undefined' &&
+                                typeof secondaryBackgroundColor[oppositeTheme].b !== 'undefined') {
+                              return secondaryBackgroundColor[oppositeTheme];
+                            } else if (secondaryBackgroundColor && secondaryBackgroundColor[currentTheme]) {
+                              // If opposite theme color is missing but current theme exists, convert it
+                              return convertToThemeColor(secondaryBackgroundColor[currentTheme], !isDark, 'background');
+                            }
+                            // Default fallback colors
+                            return !isDark ?
+                              { r: 15, g: 23, b: 42, a: 1 } :
+                              { r: 255, g: 255, b: 255, a: 1 };
+                          } catch (error) {
+                            console.warn('Error getting opposite theme color:', error);
+                            return !isDark ?
+                              { r: 15, g: 23, b: 42, a: 1 } :
+                              { r: 255, g: 255, b: 255, a: 1 };
+                          }
+                        })()}
+                        onChange={(newColor) => {
+                          setProp((props) => {
+                            // Ensure secondaryBackgroundColor has the expected structure
+                            if (!props.secondaryBackgroundColor) {
+                              props.secondaryBackgroundColor = {
+                                light: { r: 255, g: 255, b: 255, a: 1 },
+                                dark: { r: 15, g: 23, b: 42, a: 1 }
+                              };
+                            }
+
+                            // Handle legacy format (single RGBA object)
+                            if ('r' in props.secondaryBackgroundColor) {
+                              const oldColor = { ...props.secondaryBackgroundColor };
+                              props.secondaryBackgroundColor = {
+                                light: oldColor,
+                                dark: convertToThemeColor(oldColor, true, 'background')
+                              };
+                            }
+
+                            // Ensure both light and dark properties exist
+                            if (!props.secondaryBackgroundColor.light) {
+                              props.secondaryBackgroundColor.light = { r: 255, g: 255, b: 255, a: 1 };
+                            }
+                            if (!props.secondaryBackgroundColor.dark) {
+                              props.secondaryBackgroundColor.dark = { r: 15, g: 23, b: 42, a: 1 };
+                            }
+
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+
+                            // Only update the opposite theme's color
+                            props.secondaryBackgroundColor = {
+                              ...props.secondaryBackgroundColor,
+                              [oppositeTheme]: newColor
+                            };
+                          });
+                        }}
+                        componentType="background"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { BiBook, BiBarChart } from 'react-icons/bi';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { FiSettings } from 'react-icons/fi';
 
+
 // Create a context to share selected category, sections data, and refresh function
 export const CategoryContext = createContext({
   selectedCategory: null,
@@ -68,6 +69,7 @@ const AdminLayout = () => {
     if (path === '/admin') return 'dashboard';
     if (path.includes('/admin/study-guides')) return 'study-guides';
     if (path.includes('/admin/media')) return 'media'; // Added media check
+
     if (path.includes('/admin/quizzes')) return 'quizzes';
     if (path.includes('/admin/results')) return 'results';
     if (path.includes('/admin/settings')) return 'settings';
@@ -84,6 +86,7 @@ const AdminLayout = () => {
       case 'dashboard': return 'Admin Dashboard';
       case 'study-guides': return 'Study Guides Management';
       case 'media': return 'Media Library'; // Added media title
+
       case 'quizzes': return 'Quizzes Management';
       case 'results': return 'Quiz Results';
       case 'settings': return 'Settings';
@@ -145,6 +148,7 @@ const AdminLayout = () => {
               </Link>
             </li>
             {/* End Media Library Link */}
+
             <li
               className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-primary' : 'hover:bg-primary'}`}
             >

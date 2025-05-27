@@ -13,7 +13,7 @@ const HomePage = () => {
         <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-slate-700'} mb-8`}>Your comprehensive platform for training materials and assessments</p>
         <div className="flex justify-center gap-4 flex-wrap">
           <Link to="/study" className={`${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary hover:bg-primary-dark'} text-white py-3 px-6 rounded font-bold no-underline transition-colors`}>Study Guides</Link>
-          <Link to="/quiz" className={`${isDark ? 'bg-purple-600 hover:bg-purple-500' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 px-6 rounded font-bold no-underline transition-colors`}>Take a Quiz</Link>
+          <Link to="/quiz" className={`${isDark ? 'bg-secondary hover:bg-secondary-light' : 'bg-secondary hover:bg-secondary-dark'} text-white py-3 px-6 rounded font-bold no-underline transition-colors`}>Take a Quiz</Link>
         </div>
       </section>
 

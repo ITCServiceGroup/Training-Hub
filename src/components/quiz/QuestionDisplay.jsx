@@ -151,7 +151,7 @@ const QuestionDisplay = ({
           >
             <input
               type="checkbox"
-              className="h-5 w-5 text-teal-600 rounded border-slate-300 focus:ring-teal-500 flex-shrink-0 my-auto"
+              className="h-5 w-5 text-primary rounded border-slate-300 focus:ring-primary flex-shrink-0 my-auto"
               checked={isSelected}
               onChange={() => handleSelect(index)} // Pass index to handleSelect
               disabled={isDisabled} // Use combined disabled state
@@ -169,7 +169,7 @@ const QuestionDisplay = ({
       {isPractice && !showFeedback && (
         <div className="mt-4">
           <button
-            className={`px-5 py-2 ${isDark ? 'bg-teal-600 hover:bg-teal-500' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`px-5 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             onClick={handleCheckAllSubmit}
             disabled={isDisabled || localCheckAllAnswer.length === 0}
           >

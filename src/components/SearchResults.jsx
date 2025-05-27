@@ -14,17 +14,20 @@ const SearchResults = ({
   searchQuery,
   onResultClick = () => {}
 }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
+
+  // Get current secondary color for the theme
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
   // Helper function to get section icon
   const getSectionIcon = (section) => {
     if (section.icon) {
-      const { component: IconComponent, color } = getIconByName(section.icon);
+      const { component: IconComponent } = getIconByName(section.icon);
       return {
         icon: <IconComponent size={20} color="white" />,
-        color: color
+        color: currentSecondaryColor // Always use secondary color
       };
     }
 
@@ -41,20 +44,20 @@ const SearchResults = ({
     else if (name.includes('software')) iconName = 'Chart';
     else if (name.includes('advanced')) iconName = 'Rocket';
 
-    const { component: IconComponent, color } = getIconByName(iconName);
+    const { component: IconComponent } = getIconByName(iconName);
     return {
       icon: <IconComponent size={20} color="white" />,
-      color: color
+      color: currentSecondaryColor // Always use secondary color
     };
   };
 
   // Helper function to get category icon
   const getCategoryIcon = (category) => {
     if (category.icon) {
-      const { component: IconComponent, color } = getIconByName(category.icon);
+      const { component: IconComponent } = getIconByName(category.icon);
       return {
         icon: <IconComponent size={20} color="white" />,
-        color: color
+        color: currentSecondaryColor // Always use secondary color
       };
     }
 
@@ -70,10 +73,10 @@ const SearchResults = ({
     else if (name.includes('hardware')) iconName = 'Laptop';
     else if (name.includes('software')) iconName = 'Chart';
 
-    const { component: IconComponent, color } = getIconByName(iconName);
+    const { component: IconComponent } = getIconByName(iconName);
     return {
       icon: <IconComponent size={20} color="white" />,
-      color: color
+      color: currentSecondaryColor // Always use secondary color
     };
   };
 
@@ -164,7 +167,7 @@ const SearchResults = ({
                   <div className="flex items-center mb-2">
                     <div
                       className="w-[40px] h-[40px] rounded-full flex items-center justify-center mr-3"
-                      style={{ backgroundColor: color || '#0f766e' }}
+                      style={{ backgroundColor: color }}
                     >
                       {icon}
                     </div>
@@ -208,7 +211,7 @@ const SearchResults = ({
                   <div className="flex items-center mb-2">
                     <div
                       className="w-[40px] h-[40px] rounded-full flex items-center justify-center mr-3"
-                      style={{ backgroundColor: color || '#0f766e' }}
+                      style={{ backgroundColor: color }}
                     >
                       {icon}
                     </div>
@@ -255,8 +258,8 @@ const SearchResults = ({
                 }}
               >
                 <div className="flex items-start">
-                  <div className={`p-2 rounded-full ${isDark ? 'bg-primary/20' : 'bg-primary/10'} mr-3`}>
-                    <FaFile size={16} className={isDark ? 'text-primary' : 'text-primary'} />
+                  <div className={`p-2 rounded-full ${isDark ? 'bg-secondary/20' : 'bg-secondary/10'} mr-3`}>
+                    <FaFile size={16} className={`text-secondary`} />
                   </div>
                   <div className="flex-1">
                     <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{guide.title}</h4>
@@ -334,7 +337,7 @@ const SearchResults = ({
                         <div className="flex justify-between items-start">
                           <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{guide.title}</h4>
                           {matchCount > 0 && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-secondary/20 text-secondary' : 'bg-secondary/10 text-secondary'}`}>
                               {matchCount} {matchCount === 1 ? 'match' : 'matches'}
                             </span>
                           )}

@@ -32,17 +32,13 @@ const Toast = ({ message, type = 'success', duration = 2000, onClose }) => {
   const getTypeStyles = () => {
     switch (type) {
       case 'success':
-        return isDarkMode
-          ? 'bg-primary border-primary text-white'
-          : 'bg-primary border-primary text-white';
+        return 'bg-primary border-primary text-white'; // Primary color for success
       case 'error':
         return isDarkMode
           ? 'bg-red-800 border-red-600 text-white'
           : 'bg-red-500 border-red-600 text-white';
       case 'info':
-        return isDarkMode
-          ? 'bg-blue-800 border-blue-600 text-white'
-          : 'bg-blue-500 border-blue-600 text-white';
+        return 'bg-secondary border-secondary text-white'; // Secondary color for info
       case 'warning':
         return isDarkMode
           ? 'bg-yellow-700 border-yellow-600 text-white'

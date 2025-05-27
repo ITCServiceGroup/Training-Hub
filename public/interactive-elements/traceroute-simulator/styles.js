@@ -9,16 +9,16 @@ export const styles = `
     padding: 20px;
 
     /* Light mode variables */
-    --bg-color-light: #ffffff;
+    --bg-color-light: var(--custom-primary-bg-color, #ffffff);
     --border-color-light: #e0e4e8;
     --text-color-light: #2c3e50;
     --text-secondary-light: #5d6d7e;
-    --fieldset-bg-light: #f8fafc;
-    --output-bg-light: #f8fafc;
+    --fieldset-bg-light: var(--custom-secondary-bg-color, #f8fafc);
+    --output-bg-light: var(--custom-secondary-bg-color, #f8fafc);
     --node-bg-light: #ffffff;
     --connector-color-light: #78909c;
-    --primary-color-light: #3498db;
-    --primary-hover-light: #2980b9;
+    --primary-color-light: var(--color-primary, #0f766e);
+    --primary-hover-light: var(--primary-dark, #0c5e57);
     --node-user-bg-light: #e3f2fd;
     --node-user-border-light: #2196f3;
     --node-router-bg-light: #e8f5e9;
@@ -35,16 +35,16 @@ export const styles = `
     --checkbox-checked-light: #3498db;
 
     /* Dark mode variables */
-    --bg-color-dark: #1e293b;
+    --bg-color-dark: var(--custom-primary-bg-color, #1e293b);
     --border-color-dark: #334155;
     --text-color-dark: #f1f5f9;
     --text-secondary-dark: #cbd5e1;
-    --fieldset-bg-dark: #0f172a;
-    --output-bg-dark: #0f172a;
+    --fieldset-bg-dark: var(--custom-secondary-bg-color, #0f172a);
+    --output-bg-dark: var(--custom-secondary-bg-color, #0f172a);
     --node-bg-dark: #1e293b;
     --connector-color-dark: #94a3b8;
-    --primary-color-dark: #60a5fa;
-    --primary-hover-dark: #3b82f6;
+    --primary-color-dark: var(--color-primary, #14b8a6);
+    --primary-hover-dark: var(--primary-light, #0f766e);
     --node-user-bg-dark: #1e3a8a;
     --node-user-border-dark: #3b82f6;
     --node-router-bg-dark: #14532d;
@@ -133,7 +133,7 @@ export const styles = `
 
   h2 {
     font-size: 1.5em;
-    color: var(--text-color);
+    color: var(--custom-title-color, var(--text-color));
     margin: 0 0 10px 0;
   }
 
@@ -288,7 +288,7 @@ export const styles = `
   }
 
   button {
-    background-color: var(--primary-color);
+    background-color: var(--custom-button-color, var(--primary-color));
     color: white;
     border: none;
     padding: 10px 18px;
@@ -301,6 +301,7 @@ export const styles = `
 
   button:hover {
     background-color: var(--primary-hover);
+    filter: brightness(0.9);
   }
 
   button:active {
@@ -325,7 +326,7 @@ export const styles = `
 
   fieldset legend {
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--custom-title-color, var(--text-color));
     padding: 0 8px;
   }
 
@@ -391,7 +392,7 @@ export const styles = `
 
   fieldset legend {
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--custom-title-color, var(--text-color));
     padding: 0 8px;
     font-size: 1.1em;
   }

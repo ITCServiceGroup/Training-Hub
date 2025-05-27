@@ -4,7 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../config/supabase';
 import { quizzesService } from '../../services/api/quizzes';
-import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+
+import ColorPicker from '../../components/common/ColorPicker';
 import { Dialog } from '@headlessui/react';
 import { organizationService } from '../../services/api/organization';
 
@@ -19,6 +20,7 @@ const SettingsPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
   const [dialogMessage, setDialogMessage] = useState('');
+  const [dialogType, setDialogType] = useState('input'); // 'input' or 'error'
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
 
   // State for profile form
@@ -76,7 +78,10 @@ const SettingsPage = () => {
     setPrimaryColor,
     setSecondaryColor,
     toggleAutoCalculate,
-    resetColors
+    applyPresetTheme,
+    presetThemes,
+    hexToRgbObject,
+    rgbObjectToHex
   } = useTheme();
 
   // System settings state
@@ -85,6 +90,9 @@ const SettingsPage = () => {
   });
 
   const [isLoadingArchived, setIsLoadingArchived] = useState(false);
+
+  // Active section state for navigation
+  const [activeSection, setActiveSection] = useState('account');
 
   const fetchArchivedQuizzes = useCallback(async () => {
     setIsLoadingArchived(true);
@@ -95,17 +103,31 @@ const SettingsPage = () => {
       console.error("Failed to fetch archived quizzes", error);
       setDialogTitle('Error');
       setDialogMessage('Failed to load archived quizzes.');
+      setDialogType('error');
       setDialogOpen(true);
     } finally {
       setIsLoadingArchived(false);
     }
   }, []);
 
-  // Function to handle smooth scrolling
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+  // Function to handle section navigation
+  const navigateToSection = (sectionId) => {
+    setActiveSection(sectionId);
+  };
+
+  // Function to render the active section
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'account':
+        return renderAccountSection();
+      case 'quiz':
+        return renderQuizSection();
+      case 'organization':
+        return renderOrganizationSection();
+      case 'system':
+        return renderSystemSection();
+      default:
+        return renderAccountSection();
     }
   };
 
@@ -130,6 +152,7 @@ const SettingsPage = () => {
       console.error('Error fetching organization data:', error);
       setDialogTitle('Error');
       setDialogMessage('Failed to load organization data');
+      setDialogType('error');
       setDialogOpen(true);
     } finally {
       setIsLoadingOrganization(false);
@@ -140,6 +163,7 @@ const SettingsPage = () => {
     setEditingItem({ ...item, type });
     setDialogTitle(`Edit ${type}`);
     setDialogMessage(`Update ${type.toLowerCase()} name:`);
+    setDialogType('input');
     setDialogOpen(true);
   };
 
@@ -155,6 +179,7 @@ const SettingsPage = () => {
       console.error(`Error deleting ${type}:`, error);
       setDialogTitle('Error');
       setDialogMessage(`Failed to delete ${type.toLowerCase()}`);
+      setDialogType('error');
       setDialogOpen(true);
     }
   };
@@ -180,6 +205,7 @@ const SettingsPage = () => {
     if (!inputValue?.trim()) {
       setDialogTitle('Error');
       setDialogMessage('Name cannot be empty');
+      setDialogType('error');
       return;
     }
 
@@ -208,6 +234,7 @@ const SettingsPage = () => {
       console.error('Error saving item:', error);
       setDialogTitle('Error');
       setDialogMessage(error.message);
+      setDialogType('error');
       setDialogOpen(true);
     }
   };
@@ -277,12 +304,14 @@ const SettingsPage = () => {
       await quizzesService.restore(quizId);
       setDialogTitle('Success');
       setDialogMessage('Quiz restored successfully!');
+      setDialogType('error'); // Success messages also use error type for now
       setDialogOpen(true);
       fetchArchivedQuizzes();
     } catch (error) {
       console.error(`Error restoring quiz ${quizId}:`, error);
       setDialogTitle('Error');
       setDialogMessage(`Failed to restore quiz: ${error.message}`);
+      setDialogType('error');
       setDialogOpen(true);
     }
   };
@@ -317,11 +346,13 @@ const SettingsPage = () => {
 
       setDialogTitle('Success');
       setDialogMessage('Profile updated successfully!');
+      setDialogType('error'); // Success messages also use error type for now
       setDialogOpen(true);
     } catch (error) {
       console.error('Error updating profile:', error);
       setDialogTitle('Error');
       setDialogMessage(`Failed to update profile: ${error.message}`);
+      setDialogType('error');
       setDialogOpen(true);
     } finally {
       setIsUpdatingProfile(false);
@@ -338,6 +369,7 @@ const SettingsPage = () => {
     if (hasFailedRules) {
       setDialogTitle('Error');
       setDialogMessage('Please ensure your new password meets all requirements.');
+      setDialogType('error');
       setDialogOpen(true);
       return;
     }
@@ -345,6 +377,7 @@ const SettingsPage = () => {
     if (!passwordData.currentPassword) {
       setDialogTitle('Error');
       setDialogMessage('Current password cannot be empty.');
+      setDialogType('error');
       setDialogOpen(true);
       return;
     }
@@ -352,6 +385,7 @@ const SettingsPage = () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setDialogTitle('Error');
       setDialogMessage("New passwords don't match!");
+      setDialogType('error');
       setDialogOpen(true);
       return;
     }
@@ -367,6 +401,7 @@ const SettingsPage = () => {
         console.error('Password verification failed:', signInError);
         setDialogTitle('Error');
         setDialogMessage('Incorrect current password.');
+        setDialogType('error');
         setDialogOpen(true);
         setIsChangingPassword(false);
         return;
@@ -380,6 +415,7 @@ const SettingsPage = () => {
 
       setDialogTitle('Success');
       setDialogMessage('Password changed successfully!');
+      setDialogType('error'); // Success messages also use error type for now
       setDialogOpen(true);
       setPasswordData({
         currentPassword: '',
@@ -394,11 +430,633 @@ const SettingsPage = () => {
       console.error('Error changing password:', error);
       setDialogTitle('Error');
       setDialogMessage(`Failed to change password: ${error.message}`);
+      setDialogType('error');
       setDialogOpen(true);
     } finally {
       setIsChangingPassword(false);
     }
   };
+
+  // Render functions for each section
+  const renderAccountSection = () => (
+    <section className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+      <h2 className="text-xl font-medium mb-4 dark:text-white">User Account</h2>
+
+      {/* Profile Information */}
+      <div className="mb-8">
+        <h3 className="text-lg font-medium mb-4 dark:text-white">Profile Information</h3>
+        <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="profileName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
+            <input
+              id="profileName"
+              type="text"
+              name="name"
+              value={profileData.name}
+              onChange={handleProfileChange}
+              placeholder="Your full name"
+              className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+            />
+          </div>
+          <div>
+            <label htmlFor="profileEmail" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+            <input
+              id="profileEmail"
+              type="email"
+              name="email"
+              value={profileData.email}
+              onChange={handleProfileChange}
+              placeholder="your.email@example.com"
+              className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 rounded-md bg-slate-100 dark:bg-slate-700 dark:text-slate-300 cursor-not-allowed"
+              disabled
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isUpdatingProfile}
+            className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+              isUpdatingProfile
+                ? 'bg-slate-400 cursor-not-allowed'
+                : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+            }`}
+          >
+            {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
+          </button>
+        </form>
+      </div>
+
+      {/* Password Change */}
+      <div>
+        <h3 className="text-lg font-medium mb-4 dark:text-white">Change Password</h3>
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          {/* Current Password */}
+          <div className="space-y-1">
+            <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Current Password
+            </label>
+            <div className="relative">
+              <input
+                id="currentPassword"
+                type={passwordData.showCurrentPassword ? 'text' : 'password'}
+                name="currentPassword"
+                value={passwordData.currentPassword}
+                onChange={handlePasswordChange}
+                className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility('showCurrentPassword')}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+              >
+                {passwordData.showCurrentPassword ? (
+                  <AiOutlineEyeInvisible className="h-5 w-5" />
+                ) : (
+                  <AiOutlineEye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* New Password */}
+          <div className="space-y-1">
+            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              New Password
+            </label>
+            <div className="relative">
+              <input
+                id="newPassword"
+                type={passwordData.showNewPassword ? 'text' : 'password'}
+                name="newPassword"
+                value={passwordData.newPassword}
+                onChange={handlePasswordChange}
+                className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility('showNewPassword')}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+              >
+                {passwordData.showNewPassword ? (
+                  <AiOutlineEyeInvisible className="h-5 w-5" />
+                ) : (
+                  <AiOutlineEye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+
+            {/* Password Requirements */}
+            <div className="mt-2 space-y-2">
+              {passwordValidation.map((rule, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center text-sm ${
+                    rule.passed ? 'text-green-600' : 'text-slate-500'
+                  }`}
+                >
+                  <svg
+                    className={`mr-2 h-4 w-4 ${
+                      rule.passed ? 'text-green-500' : 'text-slate-400'
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    {rule.passed ? (
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    ) : (
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                        clipRule="evenodd"
+                      />
+                    )}
+                  </svg>
+                  {rule.message}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Confirm New Password
+            </label>
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={passwordData.showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={passwordData.confirmPassword}
+                onChange={handlePasswordChange}
+                className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility('showConfirmPassword')}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+              >
+                {passwordData.showConfirmPassword ? (
+                  <AiOutlineEyeInvisible className="h-5 w-5" />
+                ) : (
+                  <AiOutlineEye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isChangingPassword}
+            className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+              isChangingPassword
+                ? 'bg-slate-400 cursor-not-allowed'
+                : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+            }`}
+          >
+            {isChangingPassword ? 'Changing...' : 'Change Password'}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+
+  const renderQuizSection = () => (
+    <section className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+      <h2 className="text-xl font-medium mb-4 dark:text-white">Quiz Creation Defaults</h2>
+      <div className="space-y-6">
+        {/* Default Quiz Timer with Slider */}
+        <div className="space-y-2 relative">
+          <label htmlFor="defaultTimer" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Default Quiz Timer
+            <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">{quizSettings.defaultTimer} minutes</span>
+          </label>
+          <input
+            id="defaultTimer"
+            type="range"
+            name="defaultTimer"
+            value={quizSettings.defaultTimer}
+            onChange={handleQuizSettingChange}
+            min="0"
+            max="180"
+            step="5"
+            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+          />
+          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-0.5">
+            <span>0 min</span>
+            <span className="absolute left-1/2 transform -translate-x-1/2">90 min</span>
+            <span>180 min</span>
+          </div>
+        </div>
+
+        {/* Default Question Randomization */}
+        <div className="mb-4">
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="defaultQuestionRandomization"
+              name="defaultQuestionRandomization"
+              checked={quizSettings.defaultQuestionRandomization}
+              onChange={handleQuizSettingChange}
+              className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+            />
+            <div className="ml-3">
+              <label htmlFor="defaultQuestionRandomization" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Question Order Randomization
+              </label>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Automatically shuffle the order of questions for each quiz attempt. This helps prevent memorization and promotes active learning.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Default Answer Option Randomization */}
+        <div className="mb-4">
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="defaultAnswerRandomization"
+              name="defaultAnswerRandomization"
+              checked={quizSettings.defaultAnswerRandomization}
+              onChange={handleQuizSettingChange}
+              className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+            />
+            <div className="ml-3">
+              <label htmlFor="defaultAnswerRandomization" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Answer Choice Randomization
+              </label>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Shuffle the order of answer choices for multiple choice questions. This discourages position-based memorization.
+              </p>
+              <div className="mt-2 rounded-md bg-slate-50 dark:bg-slate-800 p-3 text-sm">
+                <p className="text-slate-600 dark:text-slate-300">
+                  <span className="font-medium">Note:</span> This only affects multiple choice questions. True/False and other question types remain unchanged.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Settings Note */}
+        <div className="mt-6 rounded-md bg-primary/10 dark:bg-primary/20 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-primary dark:text-primary">
+                Settings are automatically saved when changed. These preferences will be used as defaults when creating new quizzes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quiz Archiving Section */}
+      <div className="mt-6 border-t pt-6">
+        <h3 className="text-lg font-medium mb-2 dark:text-white">Archived Quizzes</h3>
+        <button
+          onClick={() => setIsArchiveModalOpen(true)}
+          className="inline-flex justify-center py-2 px-4 border border-secondary shadow-sm text-sm font-medium rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+        >
+          Manage Archived Quizzes ({archivedQuizzes.length})
+        </button>
+      </div>
+    </section>
+  );
+
+  const renderOrganizationSection = () => (
+    <section className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+      <h2 className="text-xl font-medium mb-6 dark:text-white">Organization Management</h2>
+
+      {/* Supervisors */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium dark:text-white">Supervisors</h3>
+          <button
+            onClick={() => {
+              setDialogTitle('Add New Supervisor');
+              setDialogMessage('Enter supervisor name:');
+              setDialogType('input');
+              setDialogOpen(true);
+            }}
+            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+          >
+            Add Supervisor
+          </button>
+        </div>
+
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead className="bg-slate-100 dark:bg-slate-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+              {supervisors.map((supervisor) => (
+                <tr key={supervisor.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{supervisor.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        onClick={() => handleEditSupervisor(supervisor)}
+                        className="text-primary hover:text-primary-dark dark:hover:text-primary"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSupervisor(supervisor.id)}
+                        className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Markets */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium dark:text-white">Markets</h3>
+          <button
+            onClick={() => {
+              setDialogTitle('Add New Market');
+              setDialogMessage('Enter market name:');
+              setDialogType('input');
+              setDialogOpen(true);
+            }}
+            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+          >
+            Add Market
+          </button>
+        </div>
+
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead className="bg-slate-100 dark:bg-slate-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+              {markets.map((market) => (
+                <tr key={market.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{market.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleEditMarket(market)}
+                      className="text-primary hover:text-primary-dark dark:hover:text-primary mr-4"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMarket(market.id)}
+                      className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderSystemSection = () => (
+    <section className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+      <h2 className="text-xl font-medium mb-4 dark:text-white">System Settings</h2>
+
+      <div className="space-y-8">
+        {/* Theme Mode */}
+        <div>
+          <h3 className="text-lg font-medium mb-2 dark:text-white">Theme</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div
+              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                systemSettings.theme === 'light'
+                  ? 'border-primary shadow-sm bg-white dark:bg-slate-800'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+              }`}
+              onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'light' } })}
+            >
+              <div className="flex items-center space-x-2">
+                <span className="w-4 h-4 rounded-full bg-white border border-slate-300"></span>
+                <span className="text-sm font-medium dark:text-white">Light Mode</span>
+              </div>
+            </div>
+            <div
+              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                systemSettings.theme === 'dark'
+                  ? 'border-primary shadow-sm bg-slate-800 text-white'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+              }`}
+              onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'dark' } })}
+            >
+              <div className="flex items-center space-x-2">
+                <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-600"></span>
+                <span className="text-sm font-medium">Dark Mode</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Theme Colors */}
+        <div>
+          <h3 className="text-lg font-medium mb-4 dark:text-white">Theme Colors</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+            Choose from beautiful preset themes or customize your organization's brand colors.
+          </p>
+
+          <div className="space-y-8">
+            {/* Preset Themes */}
+            <div>
+              <h4 className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-4">Preset Themes</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                {presetThemes.map((preset, index) => (
+                  <div
+                    key={index}
+                    className="cursor-pointer group"
+                    onClick={() => applyPresetTheme(index)}
+                  >
+                    <div className="border border-slate-200 dark:border-slate-600 rounded-lg p-3 hover:border-slate-300 dark:hover:border-slate-500 transition-colors">
+                      {/* Color Preview */}
+                      <div className="flex mb-2">
+                        <div
+                          className="w-8 h-8 rounded-l-md border border-r-0 border-slate-300 dark:border-slate-600"
+                          style={{ backgroundColor: preset.primary.light }}
+                        />
+                        <div
+                          className="w-8 h-8 border border-l-0 border-r-0 border-slate-300 dark:border-slate-600"
+                          style={{ backgroundColor: preset.primary.dark }}
+                        />
+                        <div
+                          className="w-8 h-8 border border-l-0 border-r-0 border-slate-300 dark:border-slate-600"
+                          style={{ backgroundColor: preset.secondary.light }}
+                        />
+                        <div
+                          className="w-8 h-8 rounded-r-md border border-l-0 border-slate-300 dark:border-slate-600"
+                          style={{ backgroundColor: preset.secondary.dark }}
+                        />
+                      </div>
+                      {/* Theme Info */}
+                      <h5 className="text-sm font-medium text-slate-900 dark:text-white mb-1">
+                        {preset.name}
+                      </h5>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {preset.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Colors */}
+            <div>
+              <h4 className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-4">Custom Colors</h4>
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-6">
+                {/* Primary and Secondary Colors in a compact horizontal layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Primary Color */}
+                  <div>
+                    <div className="mb-4">
+                      <label className="block text-m font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Primary Color
+                      </label>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Used for primary buttons, links, focus states, and success messages
+                      </p>
+                    </div>
+
+                    {/* Auto-calculation toggle */}
+                    <div className="mb-4">
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={colorModes.primary.autoCalculate}
+                          onChange={() => toggleAutoCalculate('primary')}
+                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+                        />
+                        <div className="ml-3">
+                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                            Auto-convert colors between themes
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Color pickers in horizontal layout */}
+                    <div className="flex gap-4">
+                      {/* Light mode */}
+                      <div className="flex-1">
+                        <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Light Mode</label>
+                        <ColorPicker
+                          color={hexToRgbObject(themeColors.primary.light)}
+                          onChange={(color) => setPrimaryColor(rgbObjectToHex(color), 'light')}
+                          hideOpacity={true}
+                        />
+                      </div>
+
+                      {/* Dark mode */}
+                      <div className="flex-1">
+                        <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
+                          Dark Mode {colorModes.primary.autoCalculate && <span className="text-slate-500">(Auto)</span>}
+                        </label>
+                        <ColorPicker
+                          color={hexToRgbObject(themeColors.primary.dark)}
+                          onChange={(color) => setPrimaryColor(rgbObjectToHex(color), 'dark')}
+                          disabled={colorModes.primary.autoCalculate}
+                          hideOpacity={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary Color */}
+                  <div>
+                    <div className="mb-4">
+                      <label className="block text-m font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Secondary Color
+                      </label>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Used for icons, secondary buttons, and info states
+                      </p>
+                    </div>
+
+                    {/* Auto-calculation toggle */}
+                    <div className="mb-4">
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={colorModes.secondary.autoCalculate}
+                          onChange={() => toggleAutoCalculate('secondary')}
+                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+                        />
+                        <div className="ml-3">
+                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                            Auto-convert colors between themes
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Color pickers in horizontal layout */}
+                    <div className="flex gap-4">
+                      {/* Light mode */}
+                      <div className="flex-1">
+                        <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Light Mode</label>
+                        <ColorPicker
+                          color={hexToRgbObject(themeColors.secondary.light)}
+                          onChange={(color) => setSecondaryColor(rgbObjectToHex(color), 'light')}
+                          hideOpacity={true}
+                        />
+                      </div>
+
+                      {/* Dark mode */}
+                      <div className="flex-1">
+                        <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
+                          Dark Mode {colorModes.secondary.autoCalculate && <span className="text-slate-500">(Auto)</span>}
+                        </label>
+                        <ColorPicker
+                          color={hexToRgbObject(themeColors.secondary.dark)}
+                          onChange={(color) => setSecondaryColor(rgbObjectToHex(color), 'dark')}
+                          disabled={colorModes.secondary.autoCalculate}
+                          hideOpacity={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-800">
@@ -406,717 +1064,59 @@ const SettingsPage = () => {
       <nav className="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-700 sticky top-0 h-screen">
         <ul className="space-y-2 mt-8">
           <li>
-            <a
-              href="#account"
-              onClick={(e) => { e.preventDefault(); scrollToSection('account'); }}
-              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            <button
+              onClick={() => navigateToSection('account')}
+              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                activeSection === 'account'
+                  ? 'bg-primary text-white'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               User Account
-            </a>
+            </button>
           </li>
           <li>
-            <a
-              href="#quiz"
-              onClick={(e) => { e.preventDefault(); scrollToSection('quiz'); }}
-              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            <button
+              onClick={() => navigateToSection('quiz')}
+              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                activeSection === 'quiz'
+                  ? 'bg-primary text-white'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               Quiz Preferences
-            </a>
+            </button>
           </li>
           <li>
-            <a
-              href="#organization"
-              onClick={(e) => { e.preventDefault(); scrollToSection('organization'); }}
-              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            <button
+              onClick={() => navigateToSection('organization')}
+              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                activeSection === 'organization'
+                  ? 'bg-primary text-white'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               Organization Management
-            </a>
+            </button>
           </li>
           <li>
-            <a
-              href="#archived"
-              onClick={(e) => { e.preventDefault(); scrollToSection('archived-section'); }}
-              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
-            >
-              Archived Quizzes
-            </a>
-          </li>
-          <li>
-            <a
-              href="#theme-colors"
-              onClick={(e) => { e.preventDefault(); scrollToSection('theme-colors'); }}
-              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
-            >
-              Theme Colors
-            </a>
-          </li>
-          <li>
-            <a
-              href="#system"
-              onClick={(e) => { e.preventDefault(); scrollToSection('system'); }}
-              className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+            <button
+              onClick={() => navigateToSection('system')}
+              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                activeSection === 'system'
+                  ? 'bg-primary text-white'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               System Settings
-            </a>
+            </button>
           </li>
         </ul>
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 space-y-6">
-        <div className="space-y-6">
-          {/* User Account Settings */}
-          <section id="account" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-medium mb-4 dark:text-white">User Account</h2>
-
-            {/* Profile Information */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium mb-4 dark:text-white">Profile Information</h3>
-              <form onSubmit={handleProfileSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="profileName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
-                  <input
-                    id="profileName"
-                    type="text"
-                    name="name"
-                    value={profileData.name}
-                    onChange={handleProfileChange}
-                    placeholder="Your full name"
-                    className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="profileEmail" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                  <input
-                    id="profileEmail"
-                    type="email"
-                    name="email"
-                    value={profileData.email}
-                    onChange={handleProfileChange}
-                    placeholder="your.email@example.com"
-                    className="w-full py-2 px-3 border border-slate-300 dark:border-slate-600 rounded-md bg-slate-100 dark:bg-slate-700 dark:text-slate-300 cursor-not-allowed"
-                    disabled
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isUpdatingProfile}
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    isUpdatingProfile
-                      ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
-                  }`}
-                >
-                  {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
-                </button>
-              </form>
-            </div>
-
-            {/* Password Change */}
-            <div>
-              <h3 className="text-lg font-medium mb-4 dark:text-white">Change Password</h3>
-              <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                {/* Current Password */}
-                <div className="space-y-1">
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Current Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="currentPassword"
-                      type={passwordData.showCurrentPassword ? 'text' : 'password'}
-                      name="currentPassword"
-                      value={passwordData.currentPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility('showCurrentPassword')}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
-                    >
-                      {passwordData.showCurrentPassword ? (
-                        <AiOutlineEyeInvisible className="h-5 w-5" />
-                      ) : (
-                        <AiOutlineEye className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* New Password */}
-                <div className="space-y-1">
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="newPassword"
-                      type={passwordData.showNewPassword ? 'text' : 'password'}
-                      name="newPassword"
-                      value={passwordData.newPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility('showNewPassword')}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
-                    >
-                      {passwordData.showNewPassword ? (
-                        <AiOutlineEyeInvisible className="h-5 w-5" />
-                      ) : (
-                        <AiOutlineEye className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Password Requirements */}
-                  <div className="mt-2 space-y-2">
-                    {passwordValidation.map((rule, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center text-sm ${
-                          rule.passed ? 'text-green-600' : 'text-slate-500'
-                        }`}
-                      >
-                        <svg
-                          className={`mr-2 h-4 w-4 ${
-                            rule.passed ? 'text-green-500' : 'text-slate-400'
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          {rule.passed ? (
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          ) : (
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                              clipRule="evenodd"
-                            />
-                          )}
-                        </svg>
-                        {rule.message}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div className="space-y-1">
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="confirmPassword"
-                      type={passwordData.showConfirmPassword ? 'text' : 'password'}
-                      name="confirmPassword"
-                      value={passwordData.confirmPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility('showConfirmPassword')}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
-                    >
-                      {passwordData.showConfirmPassword ? (
-                        <AiOutlineEyeInvisible className="h-5 w-5" />
-                      ) : (
-                        <AiOutlineEye className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                  {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isChangingPassword}
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    isChangingPassword
-                      ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
-                  }`}
-                >
-                  {isChangingPassword ? 'Changing...' : 'Change Password'}
-                </button>
-              </form>
-            </div>
-          </section>
-
-          {/* Quiz Settings */}
-          <section id="quiz" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-medium mb-4 dark:text-white">Quiz Creation Defaults</h2>
-            <div className="space-y-6">
-              {/* Default Quiz Timer with Slider */}
-              <div className="space-y-2 relative">
-                <label htmlFor="defaultTimer" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Default Quiz Timer
-                  <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">{quizSettings.defaultTimer} minutes</span>
-                </label>
-                <input
-                  id="defaultTimer"
-                  type="range"
-                  name="defaultTimer"
-                  value={quizSettings.defaultTimer}
-                  onChange={handleQuizSettingChange}
-                  min="0"
-                  max="180"
-                  step="5"
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-0.5">
-                  <span>0 min</span>
-                  <span className="absolute left-1/2 transform -translate-x-1/2">90 min</span>
-                  <span>180 min</span>
-                </div>
-              </div>
-
-              {/* Default Question Randomization */}
-              <div className="mb-4">
-                <div className="flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      type="checkbox"
-                      id="defaultQuestionRandomization"
-                      name="defaultQuestionRandomization"
-                      checked={quizSettings.defaultQuestionRandomization}
-                      onChange={handleQuizSettingChange}
-                      className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded"
-                    />
-                  </div>
-                  <div className="ml-3">
-                    <label htmlFor="defaultQuestionRandomization" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Question Order Randomization
-                    </label>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Automatically shuffle the order of questions for each quiz attempt. This helps prevent memorization and promotes active learning.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Default Answer Option Randomization */}
-              <div className="mb-4">
-                <div className="flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      type="checkbox"
-                      id="defaultAnswerRandomization"
-                      name="defaultAnswerRandomization"
-                      checked={quizSettings.defaultAnswerRandomization}
-                      onChange={handleQuizSettingChange}
-                      className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded"
-                    />
-                  </div>
-                  <div className="ml-3">
-                    <label htmlFor="defaultAnswerRandomization" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Answer Choice Randomization
-                    </label>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Shuffle the order of answer choices for multiple choice questions. This discourages position-based memorization.
-                    </p>
-                    <div className="mt-2 rounded-md bg-slate-50 dark:bg-slate-800 p-3 text-sm">
-                      <p className="text-slate-600 dark:text-slate-300">
-                        <span className="font-medium">Note:</span> This only affects multiple choice questions. True/False and other question types remain unchanged.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Settings Note */}
-              <div className="mt-6 rounded-md bg-primary/10 dark:bg-primary/20 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-primary dark:text-primary">
-                      Settings are automatically saved when changed. These preferences will be used as defaults when creating new quizzes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quiz Archiving Section */}
-            <div id="archived-section" className="mt-6 border-t pt-6"> {/* Added ID here */}
-              <h3 className="text-lg font-medium mb-2 dark:text-white">Archived Quizzes</h3>
-              <button
-                onClick={() => setIsArchiveModalOpen(true)}
-                className="inline-flex justify-center py-2 px-4 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Manage Archived Quizzes ({archivedQuizzes.length})
-              </button>
-            </div>
-          </section>
-
-          {/* Organization Management */}
-          <section id="organization" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-medium mb-6 dark:text-white">Organization Management</h2>
-
-            {/* Supervisors */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium dark:text-white">Supervisors</h3>
-                <button
-                  onClick={() => {
-                    setDialogTitle('Add New Supervisor');
-                    setDialogMessage('Enter supervisor name:');
-                    setDialogOpen(true);
-                  }}
-                  className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
-                >
-                  Add Supervisor
-                </button>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                  <thead className="bg-slate-100 dark:bg-slate-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                    {supervisors.map((supervisor) => (
-                      <tr key={supervisor.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{supervisor.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <button
-                              onClick={() => handleEditSupervisor(supervisor)}
-                              className="text-primary hover:text-primary-dark dark:hover:text-primary"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteSupervisor(supervisor.id)}
-                              className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Markets */}
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium dark:text-white">Markets</h3>
-                <button
-                  onClick={() => {
-                    setDialogTitle('Add New Market');
-                    setDialogMessage('Enter market name:');
-                    setDialogOpen(true);
-                  }}
-                  className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
-                >
-                  Add Market
-                </button>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                  <thead className="bg-slate-100 dark:bg-slate-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                    {markets.map((market) => (
-                      <tr key={market.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{market.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleEditMarket(market)}
-                            className="text-primary hover:text-primary-dark dark:hover:text-primary mr-4"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMarket(market.id)}
-                            className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-
-          {/* Theme Colors */}
-          <section id="theme-colors" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-medium mb-4 dark:text-white">Theme Colors</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-              Customize your organization's brand colors. These colors will be used throughout the application for buttons, links, and other interactive elements.
-            </p>
-
-            <div className="space-y-6">
-              {/* Primary Color */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Primary Color
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                  Used for buttons, links, focus states, and primary actions
-                </p>
-
-                {/* Auto-calculation toggle */}
-                <div className="mb-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={colorModes.primary.autoCalculate}
-                      onChange={() => toggleAutoCalculate('primary')}
-                      className="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">
-                      Auto-convert colors between themes
-                    </span>
-                  </label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-6">
-                    {colorModes.primary.autoCalculate
-                      ? 'Dark mode color is automatically calculated from light mode color'
-                      : 'Choose separate colors for light and dark modes'
-                    }
-                  </p>
-                </div>
-
-                {/* Color pickers */}
-                <div className="space-y-4">
-                  {/* Light mode color */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={themeColors.primary.light}
-                        onChange={(e) => setPrimaryColor(e.target.value, 'light')}
-                        className="w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer"
-                      />
-                      <div className="text-sm">
-                        <div className="font-medium text-slate-700 dark:text-slate-300">
-                          Light Mode
-                        </div>
-                        <div className="text-slate-500 dark:text-slate-400">
-                          {themeColors.primary.light}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div
-                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
-                        style={{ backgroundColor: themeColors.primary.light }}
-                      >
-                        Light Mode Preview
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dark mode color */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={themeColors.primary.dark}
-                        onChange={(e) => setPrimaryColor(e.target.value, 'dark')}
-                        disabled={colorModes.primary.autoCalculate}
-                        className={`w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer ${
-                          colorModes.primary.autoCalculate ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      />
-                      <div className="text-sm">
-                        <div className="font-medium text-slate-700 dark:text-slate-300">
-                          Dark Mode
-                          {colorModes.primary.autoCalculate && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(Auto)</span>
-                          )}
-                        </div>
-                        <div className="text-slate-500 dark:text-slate-400">
-                          {themeColors.primary.dark}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div
-                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
-                        style={{ backgroundColor: themeColors.primary.dark }}
-                      >
-                        Dark Mode Preview
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Secondary Color */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Secondary Color
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                  Used for secondary actions, accents, and complementary elements
-                </p>
-
-                {/* Auto-calculation toggle */}
-                <div className="mb-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={colorModes.secondary.autoCalculate}
-                      onChange={() => toggleAutoCalculate('secondary')}
-                      className="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">
-                      Auto-convert colors between themes
-                    </span>
-                  </label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-6">
-                    {colorModes.secondary.autoCalculate
-                      ? 'Dark mode color is automatically calculated from light mode color'
-                      : 'Choose separate colors for light and dark modes'
-                    }
-                  </p>
-                </div>
-
-                {/* Color pickers */}
-                <div className="space-y-4">
-                  {/* Light mode color */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={themeColors.secondary.light}
-                        onChange={(e) => setSecondaryColor(e.target.value, 'light')}
-                        className="w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer"
-                      />
-                      <div className="text-sm">
-                        <div className="font-medium text-slate-700 dark:text-slate-300">
-                          Light Mode
-                        </div>
-                        <div className="text-slate-500 dark:text-slate-400">
-                          {themeColors.secondary.light}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div
-                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
-                        style={{ backgroundColor: themeColors.secondary.light }}
-                      >
-                        Light Mode Preview
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dark mode color */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={themeColors.secondary.dark}
-                        onChange={(e) => setSecondaryColor(e.target.value, 'dark')}
-                        disabled={colorModes.secondary.autoCalculate}
-                        className={`w-12 h-12 rounded border border-slate-300 dark:border-slate-600 cursor-pointer ${
-                          colorModes.secondary.autoCalculate ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      />
-                      <div className="text-sm">
-                        <div className="font-medium text-slate-700 dark:text-slate-300">
-                          Dark Mode
-                          {colorModes.secondary.autoCalculate && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(Auto)</span>
-                          )}
-                        </div>
-                        <div className="text-slate-500 dark:text-slate-400">
-                          {themeColors.secondary.dark}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div
-                        className="h-8 rounded flex items-center justify-center text-white text-xs font-medium border border-slate-300 dark:border-slate-600"
-                        style={{ backgroundColor: themeColors.secondary.dark }}
-                      >
-                        Dark Mode Preview
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Reset Button */}
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                <button
-                  onClick={resetColors}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
-                >
-                  Reset to Default Colors
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* System Settings */}
-          <section id="system" className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-medium mb-4 dark:text-white">System Settings</h2>
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium mb-2 dark:text-white">Theme</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    systemSettings.theme === 'light'
-                      ? 'border-primary shadow-sm bg-white dark:bg-slate-800'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                  onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'light' } })}
-                >
-                  <div className="flex items-center space-x-2">
-                    <span className="w-4 h-4 rounded-full bg-white border border-slate-300"></span>
-                    <span className="text-sm font-medium dark:text-white">Light Mode</span>
-                  </div>
-                </div>
-                <div
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    systemSettings.theme === 'dark'
-                      ? 'border-primary shadow-sm bg-slate-800 text-white'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                  onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'dark' } })}
-                >
-                  <div className="flex items-center space-x-2">
-                    <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-600"></span>
-                    <span className="text-sm font-medium">Dark Mode</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
+      <div className="flex-1 p-6">
+        {renderActiveSection()}
       </div>
 
       {/* Confirmation Dialog */}
@@ -1127,30 +1127,54 @@ const SettingsPage = () => {
             <Dialog.Title className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">
               {dialogTitle}
             </Dialog.Title>
-            <div className="mt-2">
-              <input
-                type="text"
-                className="dialog-input w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
-                defaultValue={editingItem?.name || ''}
-                placeholder={dialogMessage}
-              />
-            </div>
-            <div className="mt-4 flex justify-end space-x-3">
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-transparent bg-slate-100 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none"
-                onClick={() => setDialogOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark focus:outline-none"
-                onClick={handleSaveItem}
-              >
-                Save
-              </button>
-            </div>
+
+            {dialogType === 'input' ? (
+              // Input dialog for adding/editing items
+              <>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    className="dialog-input w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+                    defaultValue={editingItem?.name || ''}
+                    placeholder={dialogMessage}
+                  />
+                </div>
+                <div className="mt-4 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-slate-100 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark focus:outline-none"
+                    onClick={handleSaveItem}
+                  >
+                    Save
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Error/Success dialog - just show message with OK button
+              <>
+                <div className="mt-2">
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    {dialogMessage}
+                  </p>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark focus:outline-none"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    OK
+                  </button>
+                </div>
+              </>
+            )}
           </Dialog.Panel>
         </div>
       </Dialog>
@@ -1178,7 +1202,7 @@ const SettingsPage = () => {
                       <span className="text-sm text-slate-700 dark:text-slate-300">{quiz.title}</span>
                       <button
                         onClick={() => handleRestoreQuiz(quiz.id)}
-                        className="py-1 px-3 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-700 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary"
+                        className="py-1 px-3 border border-secondary shadow-sm text-sm font-medium rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-secondary"
                       >
                         Restore
                       </button>

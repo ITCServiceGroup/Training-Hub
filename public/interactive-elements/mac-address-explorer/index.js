@@ -11,12 +11,12 @@ macAddressTemplate.innerHTML = `
       --success-color-light: #4CAF50;
       --warning-color-light: #ff9800;
       --error-color-light: #f44336;
-      --bg-color-light: #f8f9fa;
+      --bg-color-light: var(--custom-primary-bg-color, #ffffff);
       --text-color-light: #2c3e50;
       --border-color-light: #e0e0e0;
-      --element-bg-light: #ffffff;
-      --explanation-bg-light: #e3f2fd;
-      --explanation-border-light: #bbdefb;
+      --element-bg-light: var(--custom-primary-bg-color, #ffffff);
+      --explanation-bg-light: var(--custom-secondary-bg-color, #e3f2fd);
+      --explanation-border-light: rgba(0, 0, 0, 0.1);
 
       /* Dark mode variables - with enhanced contrast */
       --primary-color-dark: #90CAF9; /* Lighter blue */
@@ -24,12 +24,12 @@ macAddressTemplate.innerHTML = `
       --success-color-dark: #A5D6A7; /* Lighter green */
       --warning-color-dark: #FFCC80; /* Lighter orange */
       --error-color-dark: #EF9A9A; /* Lighter red */
-      --bg-color-dark: #1E293B; /* Slate 800 */
+      --bg-color-dark: var(--custom-primary-bg-color, #0F172A); /* Slate 900 - very dark blue */
       --text-color-dark: #F8FAFC; /* Slate 50 - almost white */
       --border-color-dark: #475569; /* Slate 600 */
-      --element-bg-dark: #0F172A; /* Slate 900 - very dark blue */
-      --explanation-bg-dark: #1E40AF; /* Blue 800 */
-      --explanation-border-dark: #3B82F6; /* Blue 500 */
+      --element-bg-dark: var(--custom-primary-bg-color, #0F172A); /* Slate 900 - very dark blue */
+      --explanation-bg-dark: var(--custom-secondary-bg-color, #1E40AF); /* Blue 800 */
+      --explanation-border-dark: rgba(255, 255, 255, 0.2);
 
       /* Default to light mode */
       --primary-color: var(--primary-color-light);
@@ -81,7 +81,7 @@ macAddressTemplate.innerHTML = `
     }
 
     h3 {
-      color: var(--primary-dark);
+      color: var(--custom-title-color, var(--primary-dark));
       font-size: 1.4em;
       font-weight: 600;
       margin: 0 0 15px 0;
