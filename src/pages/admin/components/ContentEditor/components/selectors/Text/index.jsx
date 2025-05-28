@@ -15,6 +15,8 @@ const listStyles = `
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
+  display: block !important; /* Ensure proper block display for drop indicator calculation */
+  width: 100% !important; /* Ensure full width for proper positioning */
 }
 
 /* Base list styles */
@@ -257,7 +259,11 @@ export const Text = ({
   const IconComponent = hasIcon ? ICONS[iconName] : null;
 
   return (
-    <div className="flex items-center" style={{ width: '100%' }}>
+    <div
+      ref={connect}
+      className="flex items-center"
+      style={{ width: '100%' }}
+    >
       {hasIcon && IconComponent && (
         <div
           className="flex-shrink-0 flex items-center"
@@ -287,7 +293,6 @@ export const Text = ({
         </div>
       )}
       <ContentEditable
-        innerRef={connect}
         html={formattedHtml.current}
         disabled={!enabled}
         onClick={handleClick}

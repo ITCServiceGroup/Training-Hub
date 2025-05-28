@@ -114,7 +114,6 @@ const TemplatePreview = ({ content, className = '' }) => {
             };
 
           case 'Interactive':
-          case 'CollapsibleSection':
           case 'OSTab':
           case 'TutorialButton':
           case 'Simulator':

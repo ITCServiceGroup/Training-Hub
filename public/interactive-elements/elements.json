@@ -54,5 +54,13 @@
     "description": "Simulate traceroute paths and common network issues like latency and packet loss.",
     "thumbnailUrl": "/interactive-elements/traceroute-simulator/thumbnail.png",
     "iconUrl": "/interactive-elements/traceroute-simulator/icon.png"
+  },
+  {
+    "name": "subnet-calculator",
+    "path": "subnet-calculator/",
+    "title": "Subnet Calculator & Visualizer",
+    "description": "Interactive tool for subnet calculations and network visualization with real-time binary representation.",
+    "thumbnailUrl": "/interactive-elements/router-simulator/icon.png",
+    "iconUrl": "/interactive-elements/router-simulator/icon.png"
   }
 ]
