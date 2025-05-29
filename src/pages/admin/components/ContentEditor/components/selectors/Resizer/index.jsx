@@ -118,6 +118,9 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
     pointerEvents: 'auto'
   };
 
+  // Check if this is a CollapsibleSection component for width-only resizing
+  const isCollapsibleSection = props.className?.includes('craft-collapsible-section');
+
   return (
     <Resizable
       enable={[
@@ -130,7 +133,12 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
         'bottomLeft',
         'bottomRight',
       ].reduce((acc, key) => {
-        acc[key] = active;
+        // For CollapsibleSection, only enable left and right resizing
+        if (isCollapsibleSection) {
+          acc[key] = active && (key === 'left' || key === 'right');
+        } else {
+          acc[key] = active;
+        }
         return acc;
       }, {})}
       className={classNames({
@@ -232,7 +240,7 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
       }}>
         {children}
       </div>
-      {active && !props.className?.includes('craft-table') && (
+      {active && !props.className?.includes('craft-table') && !props.className?.includes('craft-collapsible-section') && (
         <>
           {/* Corner resize handles */}
           <div style={{...handleStyles, top: '-5px', left: '-5px', cursor: 'nw-resize'}} />

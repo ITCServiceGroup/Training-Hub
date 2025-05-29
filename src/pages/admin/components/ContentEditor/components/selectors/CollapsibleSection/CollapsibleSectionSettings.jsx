@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNode } from '@craftjs/core';
+import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown, FaInfoCircle } from 'react-icons/fa';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
@@ -170,7 +170,10 @@ export const CollapsibleSectionSettings = () => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
 
-  const { actions, setProp } = useNode((node) => ({
+  // Get editor actions for history.ignore functionality
+  const { actions: editorActions } = useEditor();
+
+  const { actions, setProp, id } = useNode((node) => ({
     selected: node.id,
   }));
 
@@ -285,7 +288,8 @@ export const CollapsibleSectionSettings = () => {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    setProp((props) => {
+    // Use history.ignore to prevent automatic theme color initialization from being tracked in undo history
+    editorActions.history.ignore().setProp(id, (props) => {
       // Add console logging to debug header text color
       console.log('Before ensureThemeColors - headerTextColor:', JSON.stringify(props.headerTextColor));
       const updatedProps = ensureThemeColors(props, isDark, themeColors);
@@ -324,7 +328,7 @@ export const CollapsibleSectionSettings = () => {
 
       return updatedProps;
     });
-  }, [setProp, isDark, themeColors]);
+  }, [editorActions, id, isDark, themeColors]);
 
   const handleColorChange = (colorKey, newColor) => {
     // Add debug logging for header text color changes

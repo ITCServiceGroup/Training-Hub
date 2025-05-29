@@ -51,7 +51,17 @@ export const Header = () => {
               ? 'text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light'
               : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
           ])}
-          onClick={() => canUndo && actions.history.undo()}
+          onClick={() => {
+            if (canUndo) {
+              try {
+                // Clear all selections before undo to prevent accessing deleted nodes
+                actions.clearEvents();
+                actions.history.undo();
+              } catch (error) {
+                console.error('Error during undo operation:', error);
+              }
+            }
+          }}
           title="Undo"
           disabled={!canUndo}
         >
@@ -64,7 +74,17 @@ export const Header = () => {
               ? 'text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light'
               : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
           ])}
-          onClick={() => canRedo && actions.history.redo()}
+          onClick={() => {
+            if (canRedo) {
+              try {
+                // Clear all selections before redo to prevent accessing deleted nodes
+                actions.clearEvents();
+                actions.history.redo();
+              } catch (error) {
+                console.error('Error during redo operation:', error);
+              }
+            }
+          }}
           title="Redo"
           disabled={!canRedo}
         >

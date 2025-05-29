@@ -1,5 +1,5 @@
 import { useNode, Element } from '@craftjs/core';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TabsSettings } from './TabsSettings';
 import { Resizer } from '../Resizer';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
@@ -51,6 +51,9 @@ const defaultProps = {
 };
 
 export const Tabs = (props) => {
+  // Add containerRef for the Resizer component
+  const containerRef = useRef(null);
+
   props = {
     ...defaultProps,
     ...props,
@@ -196,32 +199,40 @@ export const Tabs = (props) => {
 
   const content = (
     <div
-      ref={(dom) => {
-        try {
-          // Only connect if both dom and connect are available, id exists, and component is not being deleted
-          if (dom && connect && id && !pendingDeletion) {
-            connect(dom);
-          }
-        } catch (error) {
-          console.log('[Tabs] Ignoring connector during cleanup:', error.message);
-        }
-      }}
-      className={`craft-tabs main-component ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
       style={{
-        backgroundColor: `rgba(${Object.values(getThemeColor(background, isDark, 'tabs', autoConvertColors))})`,
-        color: `rgba(${Object.values(getThemeColor(color, isDark, 'text', autoConvertColors))})`,
-        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-        borderRadius: `${radius}px`,
-        border: 'none', /* Removed outer border */
+        // Force vertical drop indicators by creating a flex column parent
+        display: 'flex',
+        flexDirection: 'column',
         width: '100%',
-        position: 'relative',
-        margin: 0,
-        boxShadow: shadow.enabled
-          ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(getThemeColor(shadow.color, isDark, 'shadow', autoConvertColors))})`
-          : 'none',
       }}
-      data-id={id}
     >
+      <div
+        ref={(dom) => {
+          try {
+            // Only connect if both dom and connect are available, id exists, and component is not being deleted
+            if (dom && connect && id && !pendingDeletion) {
+              connect(dom);
+            }
+          } catch (error) {
+            console.log('[Tabs] Ignoring connector during cleanup:', error.message);
+          }
+        }}
+        className={`craft-tabs main-component ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
+        style={{
+          backgroundColor: `rgba(${Object.values(getThemeColor(background, isDark, 'tabs', autoConvertColors))})`,
+          color: `rgba(${Object.values(getThemeColor(color, isDark, 'text', autoConvertColors))})`,
+          padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
+          borderRadius: `${radius}px`,
+          border: 'none', /* Removed outer border */
+          width: '100%',
+          position: 'relative',
+          margin: 0,
+          boxShadow: shadow.enabled
+            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(getThemeColor(shadow.color, isDark, 'shadow', autoConvertColors))})`
+            : 'none',
+        }}
+        data-id={id}
+      >
       {/* Tab Navigation */}
       <div
         className="craft-tabs-navigation"
@@ -326,11 +337,12 @@ export const Tabs = (props) => {
           </div>
         ))}
       </div>
+      </div>
     </div>
   );
 
   return (
-    <>
+    <div style={{ width: '100%' }}>
       {/* Top margin spacer */}
       {topMarginValue > 0 && (
         <div style={{ height: `${topMarginValue}px`, width: '100%' }} />
@@ -346,11 +358,20 @@ export const Tabs = (props) => {
         {/* Main content */}
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           <Resizer
+            ref={containerRef}
             propKey={{ width: 'width', height: 'height' }}
+            className="craft-tabs"
             style={{
-              width,
-              height,
-              margin: 0
+              position: 'relative',
+              display: 'flex',
+              minHeight: '50px',
+              width: '100%',
+              boxSizing: 'border-box',
+              flexShrink: 0,
+              flexBasis: 'auto',
+              margin: 0,
+              padding: 0,
+              pointerEvents: 'auto'
             }}
           >
             {content}
@@ -367,7 +388,7 @@ export const Tabs = (props) => {
       {bottomMarginValue > 0 && (
         <div style={{ height: `${bottomMarginValue}px`, width: '100%' }} />
       )}
-    </>
+    </div>
   );
 };
 

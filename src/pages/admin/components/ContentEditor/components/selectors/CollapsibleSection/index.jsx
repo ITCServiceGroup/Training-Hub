@@ -1,9 +1,10 @@
 import { useNode, Element, useEditor } from '@craftjs/core';
-import React, { useEffect, useRef } from 'react'; // Removed useState
+import { useEffect, useRef } from 'react';
 import { CollapsibleSectionSettings } from './CollapsibleSectionSettings';
 import { Resizer } from '../Resizer';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
+import NodeErrorBoundary from '../../common/NodeErrorBoundary';
 
 // Default props for the CollapsibleSectionV2 component
 const defaultProps = {
@@ -65,6 +66,9 @@ const defaultProps = {
 };
 
 export const CollapsibleSection = (componentProps) => { // Renamed to avoid conflict
+  // Add containerRef for the Resizer component
+  const containerRef = useRef(null);
+
   // Get current theme and theme colors
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
@@ -105,18 +109,33 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
     selected,
     hovered,
     id,
-    actions: { setProp }
-  } = useNode((node) => ({
-    selected: node.events.selected,
-    hovered: node.events.hovered,
-    id: node.id
-  }));
+    actions
+  } = useNode((node) => {
+    // Add safety check to prevent "Node does not exist" errors
+    if (!node) {
+      return {
+        selected: false,
+        hovered: false,
+        id: null
+      };
+    }
+    return {
+      selected: node.events.selected,
+      hovered: node.events.hovered,
+      id: node.id
+    };
+  });
 
   // Get editor actions for content transfer
   const { actions: editorActions, query } = useEditor();
 
   // Track previous stepsEnabled state to detect changes
   const prevStepsEnabledRef = useRef(props.stepsEnabled);
+
+  // Simple log function for debugging
+  const log = (message, data) => {
+    console.log(`[CollapsibleSection] ${message}`, data);
+  };
 
   // Helper function to get theme primary color
   const getThemePrimaryColorForMode = (forDarkMode = false) => {
@@ -137,6 +156,9 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
 
   // Update step colors to use theme colors if they are using hardcoded defaults
   useEffect(() => {
+    // Early return if id is null (component is unmounting or in invalid state)
+    if (!id) return;
+
     const isDefaultStepColor = (color) => {
       return (
         color &&
@@ -172,23 +194,32 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
       needsUpdate = true;
     }
 
-    // Apply updates if needed
+    // Apply updates if needed - use history.ignore to prevent this from being tracked in undo history
     if (needsUpdate) {
-      setProp((props) => {
+      editorActions.history.ignore().setProp(id, (props) => {
         Object.assign(props, updates);
       });
     }
-  }, [themeColors, setProp, props.stepButtonColor, props.stepIndicatorColor]);
+  }, [themeColors, editorActions, id, props.stepButtonColor, props.stepIndicatorColor]);
 
   // Ensure currentStep is valid when numberOfSteps changes
   useEffect(() => {
+    // Early return if id is null (component is unmounting or in invalid state)
+    if (!id) return;
+
     if (props.stepsEnabled && props.currentStep > props.numberOfSteps) {
-      setProp(propUpdater => propUpdater.currentStep = 1);
+      // Use history.ignore to prevent this automatic correction from being tracked in undo history
+      editorActions.history.ignore().setProp(id, (props) => {
+        props.currentStep = 1;
+      });
     }
-  }, [props.numberOfSteps, props.currentStep, props.stepsEnabled, setProp]);
+  }, [props.numberOfSteps, props.currentStep, props.stepsEnabled, editorActions, id]);
 
   // Handle content transfer when steps are enabled/disabled
   useEffect(() => {
+    // Early return if id is null (component is unmounting or in invalid state)
+    if (!id) return;
+
     const prevStepsEnabled = prevStepsEnabledRef.current;
     const currentStepsEnabled = props.stepsEnabled;
 
@@ -197,13 +228,18 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
       console.log('CollapsibleSection: Steps enabled, transferring content from content-canvas to step-1-canvas');
 
       try {
-        // Get the current node to access its linkedNodes
+        // Get the current node to access its linkedNodes with safety check
+        if (!query.getNodes()[id]) {
+          console.warn('CollapsibleSection: Node no longer exists, skipping content transfer');
+          return;
+        }
+
         const currentNode = query.node(id).get();
 
         if (currentNode && currentNode.data.linkedNodes) {
           const contentCanvasId = currentNode.data.linkedNodes['content-canvas'];
 
-          if (contentCanvasId) {
+          if (contentCanvasId && query.getNodes()[contentCanvasId]) {
             // Get the content canvas node
             const contentCanvasNode = query.node(contentCanvasId).get();
 
@@ -213,17 +249,27 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
               // Wait for the step-1-canvas to be created, then transfer content
               setTimeout(() => {
                 try {
+                  // Double-check that nodes still exist before proceeding
+                  if (!query.getNodes()[id]) {
+                    console.warn('CollapsibleSection: Parent node no longer exists, aborting content transfer');
+                    return;
+                  }
+
                   const updatedNode = query.node(id).get();
                   const step1CanvasId = updatedNode.data.linkedNodes['step-1-canvas'];
 
-                  if (step1CanvasId) {
+                  if (step1CanvasId && query.getNodes()[step1CanvasId]) {
                     console.log('CollapsibleSection: Moving content to step-1-canvas');
 
                     // Move all child nodes from content-canvas to step-1-canvas
+                    // Use history.ignore to prevent this internal content transfer from being tracked in undo history
                     const childNodesToMove = [...contentCanvasNode.data.nodes];
 
                     childNodesToMove.forEach((childNodeId, index) => {
-                      editorActions.move(childNodeId, step1CanvasId, index);
+                      // Check if child node still exists before moving
+                      if (query.getNodes()[childNodeId]) {
+                        editorActions.history.ignore().move(childNodeId, step1CanvasId, index);
+                      }
                     });
 
                     console.log('CollapsibleSection: Content transfer completed');
@@ -238,7 +284,7 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
               console.log('CollapsibleSection: No content found in content-canvas to transfer');
             }
           } else {
-            console.log('CollapsibleSection: content-canvas linkedNode not found');
+            console.log('CollapsibleSection: content-canvas linkedNode not found or no longer exists');
           }
         }
       } catch (error) {
@@ -251,13 +297,18 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
       console.log('CollapsibleSection: Steps disabled, transferring content from step-1-canvas to content-canvas');
 
       try {
-        // Get the current node to access its linkedNodes
+        // Get the current node to access its linkedNodes with safety check
+        if (!query.getNodes()[id]) {
+          console.warn('CollapsibleSection: Node no longer exists, skipping content transfer back');
+          return;
+        }
+
         const currentNode = query.node(id).get();
 
         if (currentNode && currentNode.data.linkedNodes) {
           const step1CanvasId = currentNode.data.linkedNodes['step-1-canvas'];
 
-          if (step1CanvasId) {
+          if (step1CanvasId && query.getNodes()[step1CanvasId]) {
             // Get the step-1 canvas node
             const step1CanvasNode = query.node(step1CanvasId).get();
 
@@ -267,17 +318,27 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
               // Wait for the content-canvas to be created, then transfer content
               setTimeout(() => {
                 try {
+                  // Double-check that nodes still exist before proceeding
+                  if (!query.getNodes()[id]) {
+                    console.warn('CollapsibleSection: Parent node no longer exists, aborting content transfer back');
+                    return;
+                  }
+
                   const updatedNode = query.node(id).get();
                   const contentCanvasId = updatedNode.data.linkedNodes['content-canvas'];
 
-                  if (contentCanvasId) {
+                  if (contentCanvasId && query.getNodes()[contentCanvasId]) {
                     console.log('CollapsibleSection: Moving content back to content-canvas');
 
                     // Move all child nodes from step-1-canvas to content-canvas
+                    // Use history.ignore to prevent this internal content transfer from being tracked in undo history
                     const childNodesToMove = [...step1CanvasNode.data.nodes];
 
                     childNodesToMove.forEach((childNodeId, index) => {
-                      editorActions.move(childNodeId, contentCanvasId, index);
+                      // Check if child node still exists before moving
+                      if (query.getNodes()[childNodeId]) {
+                        editorActions.history.ignore().move(childNodeId, contentCanvasId, index);
+                      }
                     });
 
                     console.log('CollapsibleSection: Content transfer back completed');
@@ -292,7 +353,7 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
               console.log('CollapsibleSection: No content found in step-1-canvas to transfer back');
             }
           } else {
-            console.log('CollapsibleSection: step-1-canvas linkedNode not found');
+            console.log('CollapsibleSection: step-1-canvas linkedNode not found or no longer exists');
           }
         }
       } catch (error) {
@@ -307,14 +368,14 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
   const handleNextStep = () => {
     if (props.currentStep < props.numberOfSteps) {
       const newStep = props.currentStep + 1;
-      setProp(propUpdater => propUpdater.currentStep = newStep);
+      actions.setProp(propUpdater => propUpdater.currentStep = newStep);
     }
   };
 
   const handlePrevStep = () => {
     if (props.currentStep > 1) {
       const newStep = props.currentStep - 1;
-      setProp(propUpdater => propUpdater.currentStep = newStep);
+      actions.setProp(propUpdater => propUpdater.currentStep = newStep);
     }
   };
 
@@ -431,22 +492,36 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
     }
   };
 
+  // Early return if component is in invalid state
+  if (!id) {
+    console.warn('CollapsibleSection: Component rendered without valid id, returning null');
+    return null;
+  }
+
   const content = (
     <div
-      ref={connect}
-      className={`craft-collapsible-section main-component ${isInViewer ? 'in-viewer' : ''} ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
       style={{
-        backgroundColor: getBackgroundColor(),
-        color: getTextColor(),
-        padding: `${props.padding[0]}px ${props.padding[1]}px ${props.padding[2]}px ${props.padding[3]}px`,
-        borderRadius: `${props.radius}px`,
-        border: 'none',
+        // Force vertical drop indicators by creating a flex column parent
+        display: 'flex',
+        flexDirection: 'column',
         width: '100%',
-        position: 'relative',
-        margin: 0,
       }}
-      data-id={id}
     >
+      <div
+        ref={connect}
+        className={`craft-collapsible-section main-component ${isInViewer ? 'in-viewer' : ''} ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
+        style={{
+          backgroundColor: getBackgroundColor(),
+          color: getTextColor(),
+          padding: `${props.padding[0]}px ${props.padding[1]}px ${props.padding[2]}px ${props.padding[3]}px`,
+          borderRadius: `${props.radius}px`,
+          border: 'none',
+          width: '100%',
+          position: 'relative',
+          margin: 0,
+        }}
+        data-id={id}
+      >
       <div
         className={`craft-collapsible-header ${props.border.style === 'none' ? 'no-border' : ''}`}
         style={{
@@ -468,7 +543,7 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
             ? `${props.shadow.x}px ${props.shadow.y}px ${props.shadow.blur}px ${props.shadow.spread}px ${getShadowColor()}`
             : 'none',
         }}
-        onClick={() => setProp(propUpdater => propUpdater.expanded = !props.expanded)}
+        onClick={() => actions.setProp(propUpdater => propUpdater.expanded = !props.expanded)}
       >
         <div style={{
           fontWeight: 'bold',
@@ -525,7 +600,7 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setProp(propUpdater => propUpdater.currentStep = stepNumber);
+                          actions.setProp(propUpdater => propUpdater.currentStep = stepNumber);
                         }}
                       >
                         {stepNumber}
@@ -633,48 +708,86 @@ export const CollapsibleSection = (componentProps) => { // Renamed to avoid conf
           )}
         </div>
       )}
+
+
+      </div>
     </div>
   );
 
   return (
-    <>
-      {/* Top margin spacer */}
-      {parseInt(props.margin[0]) > 0 && (
-        <div style={{ height: `${parseInt(props.margin[0])}px`, width: '100%' }} />
-      )}
-
-      {/* Horizontal flexbox for left/right margins */}
-      <div style={{ display: 'flex', width: '100%' }}>
-        {/* Left margin spacer */}
-        {parseInt(props.margin[3]) > 0 && (
-          <div style={{ width: `${parseInt(props.margin[3])}px`, flexShrink: 0 }} />
+    <div style={{ width: '100%' }}>
+      <NodeErrorBoundary resetKey={id}>
+        {/* Top margin spacer */}
+        {parseInt(props.margin[0]) > 0 && (
+          <div style={{ height: `${parseInt(props.margin[0])}px`, width: '100%' }} />
         )}
 
-        {/* Main content */}
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          <Resizer
-            propKey={{ width: 'width', height: 'height' }}
-            style={{
-              width: props.width, // Ensure Resizer gets width from final props
-              height: props.height, // Ensure Resizer gets height from final props
-              margin: 0
-            }}
-          >
-            {content}
-          </Resizer>
+        {/* Horizontal flexbox for left/right margins */}
+        <div style={{ display: 'flex', width: '100%' }}>
+          {/* Left margin spacer */}
+          {parseInt(props.margin[3]) > 0 && (
+            <div style={{ width: `${parseInt(props.margin[3])}px`, flexShrink: 0 }} />
+          )}
+
+          {/* Main content */}
+          <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+            <Resizer
+              ref={containerRef}
+              propKey={{ width: 'width', height: 'height' }}
+              className="craft-collapsible-section"
+              style={{
+                position: 'relative',
+                display: 'flex',
+                minHeight: '50px',
+                width: '100%',
+                boxSizing: 'border-box',
+                flexShrink: 0,
+                flexBasis: 'auto',
+                margin: 0,
+                padding: 0,
+                pointerEvents: 'auto'
+              }}
+              onResize={(width, height) => {
+                try {
+                  log('Manual resize', { width, height });
+                  actions.setProp((props) => {
+                    // Convert width to percentage
+                    const widthNum = parseInt(width);
+                    props.width = widthNum ? `${widthNum}%` : '100%';
+
+                    // Convert height to pixels or auto
+                    const heightNum = parseInt(height);
+                    props.height = heightNum ? `${heightNum}px` : 'auto';
+                  });
+                } catch (error) {
+                  console.error('Error applying resize:', error);
+                }
+              }}
+            >
+              {content}
+
+              {/* Visual handles for resizing feedback - only show when selected and not in viewer */}
+              {selected && !isInViewer && (
+                <>
+                  <div className="collapsible-handle-left"></div>
+                  <div className="collapsible-handle-right"></div>
+                </>
+              )}
+            </Resizer>
+          </div>
+
+          {/* Right margin spacer */}
+          {parseInt(props.margin[1]) > 0 && (
+            <div style={{ width: `${parseInt(props.margin[1])}px`, flexShrink: 0 }} />
+          )}
         </div>
 
-        {/* Right margin spacer */}
-        {parseInt(props.margin[1]) > 0 && (
-          <div style={{ width: `${parseInt(props.margin[1])}px`, flexShrink: 0 }} />
+        {/* Bottom margin spacer */}
+        {parseInt(props.margin[2]) > 0 && (
+          <div style={{ height: `${parseInt(props.margin[2])}px`, width: '100%' }} />
         )}
-      </div>
-
-      {/* Bottom margin spacer */}
-      {parseInt(props.margin[2]) > 0 && (
-        <div style={{ height: `${parseInt(props.margin[2])}px`, width: '100%' }} />
-      )}
-    </>
+      </NodeErrorBoundary>
+    </div>
   );
 };
 

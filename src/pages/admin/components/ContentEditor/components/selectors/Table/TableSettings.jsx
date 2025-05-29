@@ -99,15 +99,16 @@ export const TableSettings = () => {
     autoConvertColors: node.data.props.autoConvertColors
   }));
 
-  // Get editor actions for selecting nodes
+  // Get editor actions for selecting nodes and history.ignore functionality
   const { actions } = useEditor();
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    setProp((props) => {
+    // Use history.ignore to prevent automatic theme color initialization from being tracked in undo history
+    actions.history.ignore().setProp(id, (props) => {
       return ensureThemeColors(props, isDark);
     });
-  }, [setProp, isDark]);
+  }, [actions, id, isDark]);
 
   const handleColorChange = (colorKey, newColor) => {
     setProp((props) => {

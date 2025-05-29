@@ -52,12 +52,7 @@ export const TableText = ({
     if (!isFocused || !newIsPlaceholder) {
       htmlContent.current = newIsPlaceholder ? (isFocused ? '' : 'Click to edit') : text;
     }
-
-    // Force a re-render by setting a prop
-    setProp(props => {
-      props._lastUpdate = Date.now();
-    });
-  }, [text, setProp, isFocused]);
+  }, [text, isFocused]);
 
   // Handle focus event
   const handleFocus = () => {
@@ -66,10 +61,6 @@ export const TableText = ({
     // If this is a placeholder, clear the content when focused
     if (isPlaceholder) {
       htmlContent.current = '';
-      // Force a re-render
-      setProp(props => {
-        props._lastUpdate = Date.now();
-      });
     }
   };
 
@@ -144,7 +135,6 @@ TableText.craft = {
       dark: { r: 229, g: 231, b: 235, a: 1 }
     },
     text: '', // Default to empty string to trigger placeholder
-    _lastUpdate: 0, // Add this to help with re-rendering
   },
   related: {
     toolbar: null, // No toolbar for table text

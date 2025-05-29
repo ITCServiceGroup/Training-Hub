@@ -323,37 +323,25 @@ Table.craft = {
   displayName: 'Table',
   props: {
     ...defaultProps,
-    // Handle backward compatibility for colors by converting single color objects to theme-aware format
-    get borderColor() {
-      if (defaultProps.borderColor.light && defaultProps.borderColor.dark) {
-        return defaultProps.borderColor;
-      }
-      const lightColor = defaultProps.borderColor;
-      return {
-        light: lightColor,
-        dark: convertToThemeColor(lightColor, true)
-      };
-    },
-    get headerBackgroundColor() {
-      if (defaultProps.headerBackgroundColor.light && defaultProps.headerBackgroundColor.dark) {
-        return defaultProps.headerBackgroundColor;
-      }
-      const lightColor = defaultProps.headerBackgroundColor;
-      return {
-        light: lightColor,
-        dark: convertToThemeColor(lightColor, true)
-      };
-    },
-    get alternateRowColor() {
-      if (defaultProps.alternateRowColor.light && defaultProps.alternateRowColor.dark) {
-        return defaultProps.alternateRowColor;
-      }
-      const lightColor = defaultProps.alternateRowColor;
-      return {
-        light: lightColor,
-        dark: convertToThemeColor(lightColor, true)
-      };
-    }
+    // Pre-compute the color values instead of using getters to avoid dynamic prop changes
+    borderColor: defaultProps.borderColor.light && defaultProps.borderColor.dark
+      ? defaultProps.borderColor
+      : {
+          light: defaultProps.borderColor,
+          dark: convertToThemeColor(defaultProps.borderColor, true)
+        },
+    headerBackgroundColor: defaultProps.headerBackgroundColor.light && defaultProps.headerBackgroundColor.dark
+      ? defaultProps.headerBackgroundColor
+      : {
+          light: defaultProps.headerBackgroundColor,
+          dark: convertToThemeColor(defaultProps.headerBackgroundColor, true)
+        },
+    alternateRowColor: defaultProps.alternateRowColor.light && defaultProps.alternateRowColor.dark
+      ? defaultProps.alternateRowColor
+      : {
+          light: defaultProps.alternateRowColor,
+          dark: convertToThemeColor(defaultProps.alternateRowColor, true)
+        }
   },
   rules: {
     canDrag: () => true,
