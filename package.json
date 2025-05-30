@@ -25,6 +25,7 @@
     "date-fns": "^4.1.0",
     "html2pdf.js": "^0.10.3",
     "postcss": "^8.5.3",
+    "re-resizable": "^6.11.2",
     "react": "^18.2.0",
     "react-contenteditable": "^3.3.7",
     "react-dom": "^18.2.0",

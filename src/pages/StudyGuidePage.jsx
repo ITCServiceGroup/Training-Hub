@@ -342,8 +342,8 @@ const StudyGuidePage = () => {
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
   return (
-    <div className="py-2 w-full">
-      <div className="mb-1 flex flex-col gap-1">
+    <div className="py-2 w-full h-full flex flex-col">
+      <div className={`mb-1 flex flex-col gap-1 ${categoryId ? 'px-8' : 'px-0'}`}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/study" className="no-underline">
@@ -383,57 +383,60 @@ const StudyGuidePage = () => {
       </div>
 
       {/* Error messages */}
-      {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{sectionsError}</div>}
-      {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuidesError}</div>}
-      {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuideError}</div>}
+      <div className={`${categoryId ? 'px-8' : 'px-0'}`}>
+        {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{sectionsError}</div>}
+        {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuidesError}</div>}
+        {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuideError}</div>}
+      </div>
 
       {/* Search Results */}
-      {searchResults && searchQuery ? (
-        <div className="mt-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              Search Results for "{searchQuery}"
-            </h2>
-            <button
-              onClick={handleClearSearch}
-              className={`px-3 py-1 text-sm rounded bg-secondary hover:bg-secondary/80 text-white transition-colors`}
-            >
-              Clear Search
-            </button>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {searchResults && searchQuery ? (
+          <div className="mt-4 px-8 flex-1 overflow-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Search Results for "{searchQuery}"
+              </h2>
+              <button
+                onClick={handleClearSearch}
+                className={`px-3 py-1 text-sm rounded bg-secondary hover:bg-secondary/80 text-white transition-colors`}
+              >
+                Clear Search
+              </button>
+            </div>
+            <SearchResults
+              results={searchResults}
+              isLoading={isSearching}
+              searchQuery={searchQuery}
+              onResultClick={handleClearSearch}
+            />
           </div>
-          <SearchResults
-            results={searchResults}
-            isLoading={isSearching}
-            searchQuery={searchQuery}
-            onResultClick={handleClearSearch}
-          />
-        </div>
-      ) : (
-        /* Main content area with conditional rendering based on navigation state */
-        !sectionId ? (
-          /* Section view (no section selected) */
-          <>
-            <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
-            <SectionGrid
-              sections={sectionsData} // Use context data
-              isLoading={isLoadingSections} // Use context loading state
-              searchQuery={searchQuery}
-            />
-          </>
-        ) : !categoryId ? (
-          /* Category view (section selected, no category selected) */
-          <>
-            <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
-            <CategoryGrid
-              categories={categories} // Use derived categories state
-              sectionId={sectionId}
-              isLoading={isLoadingSections} // Still depends on sections loading
-              searchQuery={searchQuery}
-            />
-          </>
         ) : (
-          /* Study guide view (section and category selected) */
-          <div className="flex relative w-full min-h-[calc(100vh-250px)] max-w-full overflow-hidden">
+          /* Main content area with conditional rendering based on navigation state */
+          !sectionId ? (
+            /* Section view (no section selected) */
+            <div className="px-8 flex-1 overflow-auto">
+              <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
+              <SectionGrid
+                sections={sectionsData} // Use context data
+                isLoading={isLoadingSections} // Use context loading state
+                searchQuery={searchQuery}
+              />
+            </div>
+          ) : !categoryId ? (
+            /* Category view (section selected, no category selected) */
+            <div className="px-8 flex-1 overflow-auto">
+              <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
+              <CategoryGrid
+                categories={categories} // Use derived categories state
+                sectionId={sectionId}
+                isLoading={isLoadingSections} // Still depends on sections loading
+                searchQuery={searchQuery}
+              />
+            </div>
+          ) : (
+            /* Study guide view (section and category selected) */
+            <div className="flex relative w-full flex-1 max-w-full overflow-hidden">
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
               className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-secondary hover:text-secondary/80' : 'bg-white text-secondary hover:text-secondary/80'} rounded-lg shadow-lg transition-colors`}
@@ -455,10 +458,10 @@ const StudyGuidePage = () => {
             <div className={`
               fixed md:sticky left-0 z-[55] md:z-auto
               w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out overflow-y-auto
-              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-60px)]'}
+              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-160px)]'}
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
               ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
-              md:top-2 md:self-start
+              md:top-0 md:h-full md:self-start
             `}>
             <StudyGuideList
               studyGuides={studyGuides}
@@ -472,7 +475,7 @@ const StudyGuidePage = () => {
           </div>
 
           {/* Main content area: Show list or viewer */}
-          <div className="flex-1 w-full md:ml-8 md:min-h-[calc(100vh-250px)]">
+          <div className="flex-1 w-full md:ml-8 pr-8 mb-4" style={{ height: 'calc(100vh - 160px)' }}>
             {studyGuideId ? (
               <StudyGuideViewer
                 studyGuide={currentStudyGuide}
@@ -490,6 +493,7 @@ const StudyGuidePage = () => {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 };

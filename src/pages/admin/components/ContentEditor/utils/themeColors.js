@@ -317,17 +317,19 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
                            ((colors.light && colors.light.r === 0 && colors.light.g === 0 && colors.light.b === 0) ||
                             (colors.dark && colors.dark.r === 229 && colors.dark.g === 231 && colors.dark.b === 235));
 
-  if (isHeaderTextColor) {
-    console.log('getThemeColor - headerTextColor detected:', JSON.stringify(colors));
-    console.log('isDark:', isDark, 'autoConvertColors:', autoConvertColors);
-  }
+  // Debug logging removed to reduce console noise
+  // if (isHeaderTextColor) {
+  //   console.log('getThemeColor - headerTextColor detected:', JSON.stringify(colors));
+  //   console.log('isDark:', isDark, 'autoConvertColors:', autoConvertColors);
+  // }
 
   // If no colors provided, use defaults
   if (!colors) {
     const defaultColor = isDark ? darkDefaults[componentType] : lightDefaults[componentType];
-    if (isHeaderTextColor) {
-      console.log('getThemeColor - using default color:', JSON.stringify(defaultColor));
-    }
+    // Debug logging removed to reduce console noise
+    // if (isHeaderTextColor) {
+    //   console.log('getThemeColor - using default color:', JSON.stringify(defaultColor));
+    // }
     return defaultColor;
   }
 
@@ -335,9 +337,10 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
     // If colors is a simple RGBA object, convert it to theme color
     if ('r' in colors) {
       const result = isDark && autoConvertColors ? convertToThemeColor(colors, true, componentType) : colors;
-      if (isHeaderTextColor) {
-        console.log('getThemeColor - simple RGBA result:', JSON.stringify(result));
-      }
+      // Debug logging removed to reduce console noise
+      // if (isHeaderTextColor) {
+      //   console.log('getThemeColor - simple RGBA result:', JSON.stringify(result));
+      // }
       return result;
     }
 
@@ -352,9 +355,10 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
       if (typeof themeColor.b === 'undefined') themeColor.b = isDark ? darkDefaults[componentType].b : lightDefaults[componentType].b;
       if (typeof themeColor.a === 'undefined') themeColor.a = 1;
 
-      if (isHeaderTextColor) {
-        console.log('getThemeColor - theme-specific result:', JSON.stringify(themeColor));
-      }
+      // Debug logging removed to reduce console noise
+      // if (isHeaderTextColor) {
+      //   console.log('getThemeColor - theme-specific result:', JSON.stringify(themeColor));
+      // }
       return themeColor;
     }
 
@@ -364,22 +368,25 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
         // In dark mode with only light color defined
         if (autoConvertColors) {
           const result = convertToThemeColor(colors.light, true, componentType);
-          if (isHeaderTextColor) {
-            console.log('getThemeColor - light->dark conversion result:', JSON.stringify(result));
-          }
+          // Debug logging removed to reduce console noise
+          // if (isHeaderTextColor) {
+          //   console.log('getThemeColor - light->dark conversion result:', JSON.stringify(result));
+          // }
           return result;
         } else {
           // If auto-convert is disabled, use default dark color
           const result = darkDefaults[componentType];
-          if (isHeaderTextColor) {
-            console.log('getThemeColor - using dark default (auto-convert off):', JSON.stringify(result));
-          }
+          // Debug logging removed to reduce console noise
+          // if (isHeaderTextColor) {
+          //   console.log('getThemeColor - using dark default (auto-convert off):', JSON.stringify(result));
+          // }
           return result;
         }
       } else {
-        if (isHeaderTextColor) {
-          console.log('getThemeColor - using light color directly:', JSON.stringify(colors.light));
-        }
+        // Debug logging removed to reduce console noise
+        // if (isHeaderTextColor) {
+        //   console.log('getThemeColor - using light color directly:', JSON.stringify(colors.light));
+        // }
         return colors.light;
       }
     }
@@ -389,36 +396,41 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
         // In light mode with only dark color defined
         if (autoConvertColors) {
           const result = convertToThemeColor(colors.dark, false, componentType);
-          if (isHeaderTextColor) {
-            console.log('getThemeColor - dark->light conversion result:', JSON.stringify(result));
-          }
+          // Debug logging removed to reduce console noise
+          // if (isHeaderTextColor) {
+          //   console.log('getThemeColor - dark->light conversion result:', JSON.stringify(result));
+          // }
           return result;
         } else {
           // If auto-convert is disabled, use default light color
           const result = lightDefaults[componentType];
-          if (isHeaderTextColor) {
-            console.log('getThemeColor - using light default (auto-convert off):', JSON.stringify(result));
-          }
+          // Debug logging removed to reduce console noise
+          // if (isHeaderTextColor) {
+          //   console.log('getThemeColor - using light default (auto-convert off):', JSON.stringify(result));
+          // }
           return result;
         }
       } else {
-        if (isHeaderTextColor) {
-          console.log('getThemeColor - using dark color directly:', JSON.stringify(colors.dark));
-        }
+        // Debug logging removed to reduce console noise
+        // if (isHeaderTextColor) {
+        //   console.log('getThemeColor - using dark color directly:', JSON.stringify(colors.dark));
+        // }
         return colors.dark;
       }
     }
   } catch (error) {
     console.warn('Error in getThemeColor:', error);
-    if (isHeaderTextColor) {
-      console.error('Error processing headerTextColor:', error);
-    }
+    // Debug logging removed to reduce console noise
+    // if (isHeaderTextColor) {
+    //   console.error('Error processing headerTextColor:', error);
+    // }
   }
 
   // Fallback to defaults
   const defaultColor = isDark ? darkDefaults[componentType] : lightDefaults[componentType];
-  if (isHeaderTextColor) {
-    console.log('getThemeColor - using fallback default:', JSON.stringify(defaultColor));
-  }
+  // Debug logging removed to reduce console noise
+  // if (isHeaderTextColor) {
+  //   console.log('getThemeColor - using fallback default:', JSON.stringify(defaultColor));
+  // }
   return defaultColor;
 };

@@ -1088,6 +1088,114 @@
   border: 2px dashed var(--color-primary) !important;
 }
 
+/* Visual resize handles for Tabs component - similar to CollapsibleSection */
+.craft-tabs .tabs-handle-left,
+.craft-tabs .tabs-handle-right {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0px 0px 12px -1px rgba(0, 0, 0, 0.25);
+  display: none;
+  z-index: 999;
+  pointer-events: none; /* Make handles non-interactive */
+  transition: transform 0.2s ease;
+}
+
+/* Dark theme support for tabs handles */
+.dark .craft-tabs .tabs-handle-left,
+.dark .craft-tabs .tabs-handle-right {
+  border: 2px solid #1f2937; /* dark: gray-800 */
+  box-shadow: 0px 0px 12px -1px rgba(255, 255, 255, 0.25);
+}
+
+/* Show visual handles only when tabs component is selected */
+.craft-tabs.component-selected .tabs-handle-left,
+.craft-tabs.component-selected .tabs-handle-right {
+  display: block;
+}
+
+/* Variables for handle positioning */
+.craft-tabs {
+  --handle-left-x: 1px;
+  --handle-right-x: 1px;
+  --handle-y: 50%;
+  --handle-y-offset: -50%;
+}
+
+/* Position the visual handles */
+.craft-tabs .tabs-handle-left {
+  top: var(--handle-y);
+  left: var(--handle-left-x);
+  transform: translate(-50%, var(--handle-y-offset));
+}
+
+.craft-tabs .tabs-handle-right {
+  top: var(--handle-y);
+  right: var(--handle-right-x);
+  transform: translate(50%, var(--handle-y-offset));
+}
+
+/* Actual resize handles (invisible but interactive) for tabs */
+.craft-tabs .react-resizable-handle {
+  position: absolute !important;
+  display: none !important; /* Hidden by default */
+  width: 20px !important; /* Wide grab area */
+  height: 100% !important;
+  top: 0 !important;
+  background: none !important;
+  z-index: 998 !important;
+  opacity: 0 !important;
+}
+
+/* Only show resize handles when tabs component is selected */
+.craft-tabs.component-selected .react-resizable-handle {
+  display: block !important;
+  pointer-events: auto !important;
+}
+
+/* Position the actual resize handles - aligned with visual handles */
+.craft-tabs .react-resizable-handle-w {
+  left: calc(var(--handle-left-x) - 10px) !important;
+  width: 20px !important;
+  cursor: ew-resize !important;
+}
+
+.craft-tabs .react-resizable-handle-e {
+  right: calc(var(--handle-right-x) - 10px) !important;
+  width: 20px !important;
+  cursor: ew-resize !important;
+}
+
+/* Highlight resize areas on hover for tabs */
+.craft-tabs .react-resizable-handle:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: var(--color-primary);
+  opacity: 0.3;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Tabs components should have dashed border when selected or hovered */
+.craft-tabs.component-selected::after,
+.craft-tabs.component-hovered::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--color-primary) !important;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Responsive Container Styles */
 /* Add a class for horizontal containers */
 .craft-container-horizontal {

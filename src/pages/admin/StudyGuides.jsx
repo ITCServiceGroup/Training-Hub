@@ -21,7 +21,12 @@ const getInitialJson = (studyGuide, isCreatingFlag) => {
   }
 
   const content = studyGuide.content;
-  console.log('Processing content type:', typeof content);
+  // Only log content type if it's not already been processed to reduce console noise
+  if (typeof content === 'string' && content.includes('\\"ROOT\\"')) {
+    console.log('Processing content type:', typeof content, '(detected double-stringified JSON)');
+  } else if (typeof content === 'string') {
+    console.log('Processing content type:', typeof content);
+  }
 
   // Function to validate ROOT node
   const validateRootNode = (obj) => {

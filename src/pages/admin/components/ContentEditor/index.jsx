@@ -32,7 +32,13 @@ import { CollapsibleSection } from './components/selectors/CollapsibleSection';
 import { Tabs } from './components/selectors/Tabs';
 
 // Helper function to recursively parse stringified JSON properties
-function deepParseJsonStrings(value) {
+function deepParseJsonStrings(value, depth = 0) {
+  // Prevent infinite recursion
+  if (depth > 10) {
+    console.warn('deepParseJsonStrings: Maximum recursion depth reached');
+    return value;
+  }
+
   // 1. Try to parse if it's a string that looks like JSON
   if (typeof value === 'string') {
     const trimmed = value.trim();
@@ -51,7 +57,7 @@ function deepParseJsonStrings(value) {
 
   // 2. If it's now an array after parsing (or was originally an array), recurse on its items
   if (Array.isArray(value)) {
-    return value.map(item => deepParseJsonStrings(item));
+    return value.map(item => deepParseJsonStrings(item, depth + 1));
   }
 
   // 3. If it's now an object after parsing (or was originally an object), recurse on its properties
@@ -59,7 +65,7 @@ function deepParseJsonStrings(value) {
     const newObj = {};
     for (const key in value) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {
-        newObj[key] = deepParseJsonStrings(value[key]); // Recurse on each property value
+        newObj[key] = deepParseJsonStrings(value[key], depth + 1); // Recurse on each property value
       }
     }
     return newObj;
@@ -67,6 +73,100 @@ function deepParseJsonStrings(value) {
 
   // 4. If it's not a string, array, or object (e.g., number, boolean), return as is
   return value;
+}
+
+// Helper function to safely parse potentially double-stringified JSON
+function safeParseJson(content, context = 'unknown') {
+  if (!content) {
+    return null;
+  }
+
+  // If already an object, return as is
+  if (typeof content === 'object' && content !== null) {
+    return content;
+  }
+
+  // If not a string, can't parse
+  if (typeof content !== 'string') {
+    console.warn(`safeParseJson (${context}): Content is not a string or object:`, typeof content);
+    return null;
+  }
+
+  // Debug logging for draft context
+  if (context === 'draft') {
+    console.log(`safeParseJson debug - content length: ${content.length}`);
+    console.log(`safeParseJson debug - starts with: "${content.substring(0, 20)}"`);
+    console.log(`safeParseJson debug - ends with: "${content.substring(content.length - 20)}"`);
+  }
+
+  let result = content;
+  let attempts = 0;
+  const maxAttempts = 5; // Allow more attempts for complex cases
+
+  try {
+    // Keep trying to parse while we have a string that looks like JSON
+    while (typeof result === 'string' && attempts < maxAttempts) {
+      const trimmed = result.trim();
+
+      // Check if it looks like JSON
+      if (!trimmed ||
+          (!trimmed.startsWith('{') && !trimmed.startsWith('[') && !trimmed.startsWith('"'))) {
+        break;
+      }
+
+      try {
+        const parsed = JSON.parse(result);
+        attempts++;
+
+        // Debug logging for draft context
+        if (context === 'draft') {
+          console.log(`safeParseJson debug - attempt ${attempts}, parsed type: ${typeof parsed}`);
+          if (typeof parsed === 'object' && parsed !== null) {
+            console.log(`safeParseJson debug - parsed object keys:`, Object.keys(parsed).slice(0, 5));
+          }
+        }
+
+        // If parsing succeeded and we got an object, we're done
+        if (typeof parsed === 'object' && parsed !== null) {
+          if (attempts > 1 && context !== 'editorJson prop') {
+            console.log(`safeParseJson (${context}): Successfully parsed after ${attempts} attempts`);
+          }
+          return parsed;
+        }
+
+        // If we got another string, continue parsing
+        if (typeof parsed === 'string' && parsed !== result) {
+          result = parsed;
+          if (context === 'draft') {
+            console.log(`safeParseJson debug - continuing with new string, length: ${result.length}`);
+          }
+        } else {
+          // If we got the same result or something unexpected, stop
+          if (context === 'draft') {
+            console.log(`safeParseJson debug - stopping, same result or unexpected type`);
+          }
+          break;
+        }
+      } catch (parseError) {
+        // If parsing failed, we can't continue
+        if (attempts === 0) {
+          console.error(`safeParseJson (${context}): Initial parse failed:`, parseError.message);
+        }
+        break;
+      }
+    }
+
+    // If we still have a string after all attempts, return null
+    if (typeof result === 'string') {
+      console.warn(`safeParseJson (${context}): Could not parse to object after ${attempts} attempts. Content preview:`, result.substring(0, 200));
+      return null;
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`safeParseJson (${context}): Unexpected error:`, error);
+    return null;
+  }
 }
 
 // Function to sanitize editor JSON data before deserializing
@@ -282,41 +382,49 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 
     if (draft && draft.content) {
         if (draft.content !== editorJson) {
+            // Check if we've already processed this exact draft content
+            if (lastProcessedDraftRef.current === draft.content) {
+                console.log("Skipping draft processing - already processed this content");
+                return;
+            }
+
             if (draft.title && draft.title.trim() !== '' && (!initialTitle || initialTitle.trim() === '')) {
                 setTitle(draft.title);
             }
             try {
-                let contentToProcess = draft.content;
-                // Ensure contentToProcess is an object after initial potential stringification
-                if (typeof contentToProcess === 'string') {
-                    console.log("Draft content is a string, attempting initial parse...");
-                    try {
-                        contentToProcess = JSON.parse(contentToProcess);
-                    } catch (e) {
-                        console.error("Initial parse of draft.content string failed:", e, draft.content.substring(0,500));
-                        return; // Cannot proceed
-                    }
-                }
-
-                // If after the first parse, it's *still* a string (e.g. "{\"ROOT\":{...}}"), parse again.
-                if (typeof contentToProcess === 'string') {
-                    console.warn("Draft content is STILL a string after initial parse. Attempting second parse for draft.");
-                    try {
-                        contentToProcess = JSON.parse(contentToProcess);
-                    } catch (e) {
-                        console.error("Second parse of draft content string failed:", e, contentToProcess.substring(0,500));
-                        return; // Critical error
-                    }
-                }
+                // Use the new safe parsing function
+                const contentToProcess = safeParseJson(draft.content, 'draft');
 
                 if (contentToProcess && typeof contentToProcess === 'object') {
-                    contentToProcess = deepParseJsonStrings(contentToProcess); // Deep parse for nested stringified JSON
-                    const sanitizedContent = sanitizeEditorJson(contentToProcess);
-                    console.log("Deserializing draft content.");
+                    const deepParsedContent = deepParseJsonStrings(contentToProcess); // Deep parse for nested stringified JSON
+                    const sanitizedContent = sanitizeEditorJson(deepParsedContent);
                     actions.deserialize(sanitizedContent);
                     contentLoaded = true;
+                    // Track that we've processed this draft content
+                    lastProcessedDraftRef.current = draft.content;
                 } else {
-                    console.error("Draft content could not be resolved to an object for processing.");
+                    console.warn("Draft content could not be resolved to an object for processing. Attempting fallback parsing...");
+                    // Fallback: try the old parsing method
+                    try {
+                        let fallbackContent = draft.content;
+                        if (typeof fallbackContent === 'string') {
+                            fallbackContent = JSON.parse(fallbackContent);
+                            if (typeof fallbackContent === 'string') {
+                                fallbackContent = JSON.parse(fallbackContent);
+                            }
+                        }
+                        if (fallbackContent && typeof fallbackContent === 'object') {
+                            const deepParsedContent = deepParseJsonStrings(fallbackContent);
+                            const sanitizedContent = sanitizeEditorJson(deepParsedContent);
+                            actions.deserialize(sanitizedContent);
+                            contentLoaded = true;
+                            lastProcessedDraftRef.current = draft.content;
+                        } else {
+                            console.error("Fallback parsing also failed for draft content.");
+                        }
+                    } catch (fallbackError) {
+                        console.error("Fallback parsing failed:", fallbackError);
+                    }
                 }
             } catch (error) {
                 console.error('Error processing draft content for deserialization:', error);
@@ -383,6 +491,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   }, [hasUnsavedChanges]);
 
   const prevEditorJsonRef = useRef(null);
+  const lastProcessedDraftRef = useRef(null);
   useEffect(() => {
     if (!editorJson || !actions) return;
     if (prevEditorJsonRef.current === editorJson && query.getNodes() && Object.keys(query.getNodes()).length > 1) {
@@ -392,40 +501,20 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     prevEditorJsonRef.current = editorJson;
 
     try {
-      let parsedData = editorJson; // Assume editorJson might already be an object from StudyGuides.jsx
-      if (typeof editorJson === 'string') {
-        console.log("editorJson prop is a string, attempting initial parse...");
-        try {
-            parsedData = JSON.parse(editorJson);
-        } catch (e) {
-            console.error("Initial parse of editorJson string failed:", e, editorJson.substring(0,500));
-            return; // Cannot proceed
-        }
-      }
-
-      // If after the first parse (if it was a string), it's *still* a string, parse again.
-      if (typeof parsedData === 'string') {
-        console.warn("editorJson is STILL a string after initial parse. Attempting second parse.");
-        try {
-            parsedData = JSON.parse(parsedData);
-        } catch (e) {
-            console.error("Second parse of editorJson string failed:", e, parsedData.substring(0,500));
-            return; // Critical error
-        }
-      }
+      // Use the new safe parsing function
+      const parsedData = safeParseJson(editorJson, 'editorJson prop');
 
       if (parsedData && typeof parsedData === 'object') {
-        parsedData = deepParseJsonStrings(parsedData); // Deep parse for nested stringified JSON
+        const deepParsedData = deepParseJsonStrings(parsedData); // Deep parse for nested stringified JSON
 
-        if (parsedData.ROOT) {
-            const sanitizedData = sanitizeEditorJson(parsedData);
-            console.log("Deserializing editorJson prop.");
+        if (deepParsedData.ROOT) {
+            const sanitizedData = sanitizeEditorJson(deepParsedData);
             actions.deserialize(sanitizedData);
-        } else if (Object.keys(parsedData).length === 0 && (editorJson === '{}' || (typeof editorJson === 'object' && Object.keys(editorJson).length === 0))) {
+        } else if (Object.keys(deepParsedData).length === 0 && (editorJson === '{}' || (typeof editorJson === 'object' && Object.keys(editorJson).length === 0))) {
             console.log("Received empty object for editorJson. Craft.js will load default if this is initial.");
-            actions.deserialize(parsedData);
-        } else if (!parsedData.ROOT) {
-            console.warn("Parsed editorJson does not contain ROOT node after all parsing. Skipping deserialize. Final parsedData:", parsedData);
+            actions.deserialize(deepParsedData);
+        } else if (!deepParsedData.ROOT) {
+            console.warn("Parsed editorJson does not contain ROOT node after all parsing. Skipping deserialize. Final parsedData:", deepParsedData);
         }
       } else {
         console.error("editorJson could not be resolved to an object for processing.");

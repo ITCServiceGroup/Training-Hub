@@ -118,8 +118,8 @@ export const Container = (props) => {
 
   const isContainer = data.custom?.isCanvas;
 
-  // Simple debug log function
-  const debug = process.env.NODE_ENV === 'development';
+  // Simple debug log function - disabled to reduce console noise
+  const debug = false; // process.env.NODE_ENV === 'development';
   const log = (message, data) => {
     if (debug) {
       console.log(`[Container ${id}] ${message}`, data || '');

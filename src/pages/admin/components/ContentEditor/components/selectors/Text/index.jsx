@@ -279,9 +279,10 @@ export const Text = ({
               height: `${Math.max(12, fontSize * 0.8)}px`,
               fill: (() => {
                 try {
-                  console.log('Icon color before conversion:', { iconColor, isDark, autoConvertColors });
+                  // Debug logging removed to reduce console noise
+                  // console.log('Icon color before conversion:', { iconColor, isDark, autoConvertColors });
                   const color = getThemeColor(iconColor, isDark, 'icon', autoConvertColors);
-                  console.log('Icon color after conversion:', color);
+                  // console.log('Icon color after conversion:', color);
                   return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
                 } catch (error) {
                   console.warn('Error generating icon color:', error);

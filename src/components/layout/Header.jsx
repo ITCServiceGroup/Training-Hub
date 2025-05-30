@@ -55,6 +55,11 @@ const Header = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Add safety checks for event and event.target
+      if (!event || !event.target) {
+        return;
+      }
+
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
         setIsUserDropdownOpen(false);
       }

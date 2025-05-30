@@ -106,6 +106,7 @@ export const Tabs = (props) => {
 
   const {
     connectors: { connect },
+    actions,
     selected,
     hovered,
     id,
@@ -360,7 +361,7 @@ export const Tabs = (props) => {
           <Resizer
             ref={containerRef}
             propKey={{ width: 'width', height: 'height' }}
-            className="craft-tabs"
+            className={`craft-tabs ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
             style={{
               position: 'relative',
               display: 'flex',
@@ -373,8 +374,32 @@ export const Tabs = (props) => {
               padding: 0,
               pointerEvents: 'auto'
             }}
+            onResize={(width, height) => {
+              try {
+                console.log('[Tabs] Manual resize', { width, height });
+                actions.setProp((props) => {
+                  // Convert width to percentage
+                  const widthNum = parseInt(width);
+                  props.width = widthNum ? `${widthNum}%` : '100%';
+
+                  // Convert height to pixels or auto
+                  const heightNum = parseInt(height);
+                  props.height = heightNum ? `${heightNum}px` : 'auto';
+                });
+              } catch (error) {
+                console.error('[Tabs] Error applying resize:', error);
+              }
+            }}
           >
             {content}
+
+            {/* Visual handles for resizing feedback - only show when selected and not in viewer */}
+            {selected && (
+              <>
+                <div className="tabs-handle-left"></div>
+                <div className="tabs-handle-right"></div>
+              </>
+            )}
           </Resizer>
         </div>
 

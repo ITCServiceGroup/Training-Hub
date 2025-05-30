@@ -724,6 +724,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         body {
           margin: 0;
           padding: 15px;
+          padding-bottom: 40px;
           font-family: 'Inter', sans-serif;
           line-height: 1.6;
           /* Ensure proper rendering context */
@@ -810,6 +811,17 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         p { white-space: pre-wrap; }
         /* Empty line divs have inline styles, no specific class rule needed here */
         /* Remove potentially conflicting rules for p[data-empty] */
+
+        /* Force bottom padding by adding margin to last element */
+        body > *:last-child {
+          margin-bottom: 40px !important;
+        }
+
+        /* Also target interactive elements specifically */
+        [class$="-simulator"]:last-child, [id$="-simulator"]:last-child,
+        *[id$="-simulator"]:last-child, *[class$="-simulator"]:last-child {
+          margin-bottom: 40px !important;
+        }
         /* Image Grid Layout Styles */
         .image-grid-wrapper {
           display: grid !important;
@@ -943,7 +955,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Main component return statement
   return (
-    <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-2 sm:p-8 shadow h-full overflow-auto w-full`}> {/* Changed p-8 to p-2 sm:p-8 */}
+    <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-2 sm:p-8 pb-6 sm:pb-12 shadow overflow-hidden w-full flex flex-col h-full`}> {/* Use h-full since parent has fixed height, added bottom padding */}
       <div className={`flex justify-between items-center mb-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} pb-3`}>
         <div className="flex items-center gap-2">
           <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
@@ -1041,8 +1053,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         title={studyGuide.title}
         // Set srcDoc to the manually constructed HTML with injected styles
         srcDoc={iframeHtml}
-        className="w-full border-none bg-white overflow-auto"
-        style={{ height: 'calc(100vh - 250px)' }} // Adjusted to have a fixed height that works with sticky sidebar
+        className="w-full border-none bg-white overflow-auto flex-1"
         // Sandbox is still good practice for the main content iframe
         sandbox="allow-scripts allow-same-origin"
       />
