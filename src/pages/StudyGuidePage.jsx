@@ -475,7 +475,7 @@ const StudyGuidePage = () => {
           </div>
 
           {/* Main content area: Show list or viewer */}
-          <div className="flex-1 w-full md:ml-8 pr-8 mb-4" style={{ height: 'calc(100vh - 160px)' }}>
+          <div className="flex-1 w-full md:ml-8 pr-8 mb-4 overflow-y-auto" style={{ height: 'calc(100vh - 160px)' }}>
             {studyGuideId ? (
               <StudyGuideViewer
                 studyGuide={currentStudyGuide}
