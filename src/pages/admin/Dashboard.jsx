@@ -230,7 +230,10 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200">
+          <Link
+            to="/admin/study-guides"
+            className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200 hover:bg-primary-light/10 no-underline"
+          >
             <div
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4 shadow-md"
               style={{ backgroundColor: currentSecondaryColor }}
@@ -239,17 +242,17 @@ const AdminDashboard = () => {
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Study Guides</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Manage study guide content and categories.</p>
-            <Link
-              to="/admin/study-guides"
-              className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
-            >
+            <span className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold transition-colors w-full block text-center">
               Manage Study Guides
-            </Link>
-          </div>
+            </span>
+          </Link>
 
 
 
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200">
+          <Link
+            to="/admin/quizzes"
+            className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200 hover:bg-primary-light/10 no-underline"
+          >
             <div
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4 shadow-md"
               style={{ backgroundColor: currentSecondaryColor }}
@@ -258,15 +261,15 @@ const AdminDashboard = () => {
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Quizzes</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">Create and manage quizzes and access codes.</p>
-            <Link
-              to="/admin/quizzes"
-              className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
-            >
+            <span className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold transition-colors w-full block text-center">
               Manage Quizzes
-            </Link>
-          </div>
+            </span>
+          </Link>
 
-          <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200">
+          <Link
+            to="/admin/results"
+            className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6 flex flex-col items-center text-center h-full hover:shadow-lg transition-shadow duration-200 hover:bg-primary-light/10 no-underline"
+          >
             <div
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4 shadow-md"
               style={{ backgroundColor: currentSecondaryColor }}
@@ -275,13 +278,10 @@ const AdminDashboard = () => {
             </div>
             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Results</h3>
             <p className="text-slate-500 dark:text-slate-300 mb-4 flex-1">View quiz results and analytics.</p>
-            <Link
-              to="/admin/results"
-              className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors w-full block text-center no-underline"
-            >
+            <span className="bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold transition-colors w-full block text-center">
               View Results
-            </Link>
-          </div>
+            </span>
+          </Link>
         </div>
       </div>
     </>

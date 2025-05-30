@@ -402,13 +402,13 @@ const SortableStudyGuideItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-primary' : 'border border-gray-200 dark:border-slate-600'} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-lg opacity-80' : selectedId === guide.id ? 'shadow-md' : 'shadow'}`}
+      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-primary shadow-lg' : `border-2 ${hoveredId === guide.id ? 'border-gray-400 dark:border-slate-500' : 'border-gray-300 dark:border-slate-500'}`} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-xl opacity-80' : selectedId === guide.id ? 'shadow-lg' : hoveredId === guide.id ? 'shadow-md' : 'shadow-sm'}`}
       onMouseEnter={() => !isDragging && setHoveredId(guide.id)}
       onMouseLeave={() => setHoveredId(null)}
       onClick={() => onSelect(guide)}
       {...attributes}
     >
-      <div className="bg-white dark:bg-slate-700 cursor-pointer">
+      <div className={`${hoveredId === guide.id ? 'bg-gray-50 dark:bg-slate-600' : 'bg-white dark:bg-slate-700'} cursor-pointer transition-colors duration-200`}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
@@ -563,7 +563,6 @@ const StudyGuideList = ({
   onUpdateDescription
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
-  const { theme } = useTheme();
   const { sectionsData, selectedCategory } = useContext(CategoryContext);
 
   // Combine prop data with context data

@@ -109,24 +109,24 @@ const AdminLayout = () => {
       }}
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0">
-        <div className="w-[250px] bg-slate-800 dark:bg-slate-900 text-white py-8 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+        <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white py-8 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
           <ul className="list-none p-0 m-0">
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
+              className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
+                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <MdDashboard className="text-lg" /> Dashboard
               </Link>
             </li>
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'study-guides' ? 'bg-primary' : 'hover:bg-primary'}`}
+              className={`group cursor-pointer transition-colors ${activeTab === 'study-guides' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/study-guides"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
+                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'study-guides' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <BiBook className="text-lg" /> Study Guides
               </Link>
@@ -138,11 +138,11 @@ const AdminLayout = () => {
             </li>
             {/* Media Library Link */}
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'media' ? 'bg-primary' : 'hover:bg-primary'}`}
+              className={`group cursor-pointer transition-colors ${activeTab === 'media' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/media"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
+                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'media' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <MdOutlinePermMedia className="text-lg" /> Media Library
               </Link>
@@ -150,31 +150,31 @@ const AdminLayout = () => {
             {/* End Media Library Link */}
 
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-primary' : 'hover:bg-primary'}`}
+              className={`group cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/quizzes"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
+                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <MdQuiz className="text-lg" /> Quizzes
               </Link>
             </li>
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'results' ? 'bg-primary' : 'hover:bg-primary'}`}
+              className={`group cursor-pointer transition-colors ${activeTab === 'results' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/results"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
+                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'results' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <BiBarChart className="text-lg" /> Results
               </Link>
             </li>
             <li
-              className={`py-3 px-6 cursor-pointer transition-colors ${activeTab === 'settings' ? 'bg-primary' : 'hover:bg-primary'}`}
+              className={`group cursor-pointer transition-colors ${activeTab === 'settings' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/settings"
-                className="text-white no-underline hover:text-white hover:no-underline flex items-center gap-3"
+                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'settings' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <FiSettings className="text-lg" /> Settings
               </Link>

@@ -111,7 +111,7 @@ const CategoryAdminGrid = ({
       <div
         ref={setNodeRef}
         style={style}
-        className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
+        className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border-2 border-gray-300 dark:border-slate-500 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
         onMouseEnter={() => !isDragging && setHoveredId(category.id)}
         onMouseLeave={() => setHoveredId(null)}
       >

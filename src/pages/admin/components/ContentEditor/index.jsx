@@ -4,8 +4,7 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 import { useToast } from '../../../../components/common/ToastContainer';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
 import { templatesService } from '../../../../services/api/templates';
-import { isDeveloper, isSystemTemplateCreationEnabled } from '../../../../config/developer';
-import { FaFileAlt, FaCog } from 'react-icons/fa';
+import { FaFileAlt } from 'react-icons/fa';
 import { Viewport } from './components/editor/Viewport';
 import { RenderNode } from './components/editor/RenderNode';
 import { ToolbarZIndexProvider } from './contexts/ToolbarZIndexContext';
@@ -343,28 +342,9 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const [newTag, setNewTag] = useState('');
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
-  // System template state
-  const [isSystemTemplateModalOpen, setIsSystemTemplateModalOpen] = useState(false);
-  const [systemTemplateData, setSystemTemplateData] = useState({
-    name: '',
-    description: '',
-    category: 'Basic',
-    tags: []
-  });
-  const [isSavingSystemTemplate, setIsSavingSystemTemplate] = useState(false);
-  const [systemTemplateCode, setSystemTemplateCode] = useState('');
 
-  // Check if current user is developer
-  const [isDev, setIsDev] = useState(false);
 
   useDragHighlight();
-
-  // Check if user is developer on mount
-  useEffect(() => {
-    // For now, we'll assume developer status based on config
-    // You can enhance this to check against actual user authentication
-    setIsDev(isSystemTemplateCreationEnabled());
-  }, []);
 
   useEffect(() => {
     const cleanup1 = applyDirectCraftJsFix();
@@ -651,77 +631,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     }
   };
 
-  // System template handlers
-  const handleSaveAsSystemTemplate = () => {
-    if (!title.trim()) {
-      showToast('Please enter a title first', 'warning');
-      return;
-    }
-    setSystemTemplateData({
-      name: title,
-      description: '',
-      category: 'Basic',
-      tags: []
-    });
-    setIsSystemTemplateModalOpen(true);
-  };
 
-  const handleSaveSystemTemplate = async () => {
-    if (!systemTemplateData.name.trim()) {
-      showToast('Please enter a template name', 'warning');
-      return;
-    }
-
-    setIsSavingSystemTemplate(true);
-    try {
-      const currentContent = JSON.stringify(query.serialize());
-      const template = {
-        name: systemTemplateData.name,
-        description: systemTemplateData.description,
-        category: systemTemplateData.category,
-        tags: systemTemplateData.tags,
-        content: currentContent
-      };
-
-      const result = await templatesService.saveAsSystemTemplate(template);
-      setSystemTemplateCode(result.code);
-      showToast('System template created! Copy the generated code.', 'success');
-
-      // Don't close modal immediately - let user copy the code
-    } catch (error) {
-      console.error('Error saving system template:', error);
-      showToast('Failed to save system template', 'error');
-    } finally {
-      setIsSavingSystemTemplate(false);
-    }
-  };
-
-  const handleAddSystemTag = () => {
-    if (newTag.trim() && !systemTemplateData.tags.includes(newTag.trim())) {
-      setSystemTemplateData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
-
-  const handleRemoveSystemTag = (tagToRemove) => {
-    setSystemTemplateData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
-  const copyCodeToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(systemTemplateCode);
-      showToast('Code copied to clipboard!', 'success');
-    } catch (error) {
-      console.error('Failed to copy code:', error);
-      showToast('Failed to copy code', 'error');
-    }
-  };
 
   // Handle publish/unpublish
   const handleTogglePublish = async () => {
@@ -884,16 +794,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
           <FaFileAlt />
           Save as Template
         </button>
-        {isDev && (
-          <button
-            type="button"
-            onClick={handleSaveAsSystemTemplate}
-            className={`py-2 px-4 flex items-center gap-2 ${isDark ? 'bg-orange-700 hover:bg-orange-600 text-white' : 'bg-orange-100 hover:bg-orange-200 text-orange-800'} border border-orange-300 rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5`}
-          >
-            <FaCog />
-            Save as System Template
-          </button>
-        )}
+
         <div className="flex-1"></div>
         <button type="button" onClick={handleCancelClick} className={`py-2 px-4 bg-secondary hover:bg-secondary/80 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5`}>Cancel</button>
         <button type="button" onClick={handleSaveAndContinue} disabled={isSaving} className={`py-2 px-4 bg-primary hover:bg-primary-dark text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>{isSaving ? 'Saving...' : 'Save and Continue'}</button>
@@ -1042,156 +943,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         </div>
       )}
 
-      {/* System Template Creation Modal */}
-      {isSystemTemplateModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div className="fixed inset-0 bg-black opacity-30" onClick={() => setIsSystemTemplateModalOpen(false)}></div>
-            <div className={`relative rounded-lg max-w-2xl w-full mx-auto p-6 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
-              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <FaCog className="text-orange-500" />
-                Save as System Template
-                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">Developer Only</span>
-              </h3>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Template Name *</label>
-                  <input
-                    type="text"
-                    value={systemTemplateData.name}
-                    onChange={(e) => setSystemTemplateData(prev => ({ ...prev, name: e.target.value }))}
-                    className={`w-full px-3 py-2 rounded-md border ${
-                      isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    placeholder="Enter system template name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select
-                    value={systemTemplateData.category}
-                    onChange={(e) => setSystemTemplateData(prev => ({ ...prev, category: e.target.value }))}
-                    className={`w-full px-3 py-2 rounded-md border ${
-                      isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                  >
-                    <option value="Basic">Basic</option>
-                    <option value="Advanced">Advanced</option>
-                    <option value="Interactive">Interactive</option>
-                    <option value="Layout">Layout</option>
-                    <option value="Educational">Educational</option>
-                    <option value="Business">Business</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
-                  <textarea
-                    value={systemTemplateData.description}
-                    onChange={(e) => setSystemTemplateData(prev => ({ ...prev, description: e.target.value }))}
-                    rows={3}
-                    className={`w-full px-3 py-2 rounded-md border ${
-                      isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    placeholder="Enter system template description"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Tags</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {systemTemplateData.tags.map(tag => (
-                      <span
-                        key={tag}
-                        className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${
-                          isDark ? 'bg-slate-600 text-gray-200' : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {tag}
-                        <button
-                          onClick={() => handleRemoveSystemTag(tag)}
-                          className="hover:text-red-500"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSystemTag())}
-                      placeholder="Add a tag"
-                      className={`flex-1 px-3 py-2 rounded-md border ${
-                        isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                    />
-                    <button
-                      onClick={handleAddSystemTag}
-                      className="px-3 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-
-                {/* Generated Code Display */}
-                {systemTemplateCode && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Generated Code (Copy to systemTemplates.js)</label>
-                    <div className="relative">
-                      <pre className={`p-3 rounded-md text-xs overflow-x-auto ${
-                        isDark ? 'bg-slate-900 text-gray-300' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {systemTemplateCode}
-                      </pre>
-                      <button
-                        onClick={copyCodeToClipboard}
-                        className="absolute top-2 right-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                      >
-                        Copy
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Copy this code and add it to the systemTemplates array in v2/src/data/systemTemplates.js
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setIsSystemTemplateModalOpen(false);
-                    setSystemTemplateCode('');
-                    setSystemTemplateData({ name: '', description: '', category: 'Basic', tags: [] });
-                  }}
-                  className={`px-4 py-2 rounded-md ${
-                    isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                  }`}
-                >
-                  {systemTemplateCode ? 'Close' : 'Cancel'}
-                </button>
-                {!systemTemplateCode && (
-                  <button
-                    onClick={handleSaveSystemTemplate}
-                    disabled={isSavingSystemTemplate}
-                    className={`px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 ${
-                      isSavingSystemTemplate ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {isSavingSystemTemplate ? 'Creating...' : 'Create System Template'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

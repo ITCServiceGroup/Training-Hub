@@ -18,10 +18,17 @@ const SidebarCategoryItem = ({
   };
 
   return (
-    <div className="ml-1 relative py-2">
+    <div className="relative py-0.5">
       <div
-        className={`text-white flex items-center cursor-pointer p-3 rounded text-sm transition-colors ${selectedId === category.id ? 'bg-primary' : 'bg-transparent hover:bg-secondary/20'}`}
+        className={`text-white flex items-center cursor-pointer py-1.5 px-3 rounded text-sm transition-colors ${selectedId === category.id ? 'bg-primary' : 'bg-transparent hover:bg-secondary/20'}`}
         onClick={handleCategoryClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleCategoryClick();
+          }
+        }}
       >
         <FaFileAlt className="mr-2 text-base" />
         <span>{category.name}</span>
@@ -63,7 +70,9 @@ const SidebarSectionItem = ({
     }
   }, [isExpanded, storageKey]); // Depend on isExpanded and storageKey
 
-  const handleSectionClick = () => {
+  const handleSectionClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     onSectionClick(section);
   };
 
@@ -76,8 +85,8 @@ const SidebarSectionItem = ({
   // Using Tailwind classes instead of inline styles
 
   return (
-    <div className="mb-1 relative ml-2">
-      <div className="text-white p-3 rounded cursor-pointer flex items-center">
+    <div className="mb-0.5 relative ml-2">
+      <div className="text-white py-1.5 px-3 rounded cursor-pointer flex items-center">
         <span
           className="cursor-pointer text-xs mr-2"
           onClick={handleExpandToggle}
@@ -86,8 +95,15 @@ const SidebarSectionItem = ({
           {hasCategories ? (isExpanded ? <FaChevronDown /> : <FaChevronRight />) : <span className="w-3 inline-block"></span>}
         </span>
         <div
-          className="flex items-center flex-1"
+          className="flex items-center flex-1 cursor-pointer"
           onClick={handleSectionClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handleSectionClick(e);
+            }
+          }}
         >
           <FaList className="text-base mr-2" />
           <span>{section.name}</span>
@@ -95,7 +111,7 @@ const SidebarSectionItem = ({
       </div>
 
       {isExpanded && hasCategories && (
-        <div className="mt-1 ml-3 border-l border-gray-600 pl-2">
+        <div className="ml-2 border-l border-gray-600 pl-2">
           {sectionCategories.map(category => (
             <SidebarCategoryItem
               key={category.id}
@@ -143,7 +159,9 @@ const SidebarCategoryTree = ({
     }
   }, [isOverallExpanded]);
 
-  const handleSectionsClick = () => {
+  const handleSectionsClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     resetStudyGuideSelection();
     onSelectCategory(null);
     const event = new CustomEvent('resetSections', { detail: null });
@@ -172,8 +190,8 @@ const SidebarCategoryTree = ({
 
 
   return (
-    <div className="mt-2">
-      <div className="flex items-center p-3 rounded text-white font-bold">
+    <div className="-mt-2 ml-4">
+      <div className="flex items-center py-2 px-3 rounded text-white font-bold">
         <span
           className="cursor-pointer text-xs mr-2"
           onClick={handleOverallExpandToggle}
@@ -186,6 +204,13 @@ const SidebarCategoryTree = ({
         <div
           className="cursor-pointer flex items-center flex-1"
           onClick={handleSectionsClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handleSectionsClick(e);
+            }
+          }}
         >
           <FaLayerGroup className="text-lg mr-2" />
           <span>Sections</span>

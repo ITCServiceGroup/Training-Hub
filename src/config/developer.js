@@ -4,16 +4,13 @@
  */
 
 export const developerConfig = {
-  // Enable system template creation features
-  enableSystemTemplateCreation: true,
-  
   // Developer email or identifier (you can change this to your email)
   developerIdentifier: 'developer@traininghub.com',
-  
+
   // Enable debug logging for system templates
   debugSystemTemplates: false,
-  
-  // Show system template development tools
+
+  // Show development tools
   showDevTools: true
 };
 
@@ -31,13 +28,7 @@ export const isDeveloper = (user) => {
          user?.isDeveloper === true;
 };
 
-/**
- * Check if system template creation is enabled
- * @returns {boolean} True if enabled
- */
-export const isSystemTemplateCreationEnabled = () => {
-  return developerConfig.enableSystemTemplateCreation;
-};
+
 
 /**
  * Log debug information for system templates

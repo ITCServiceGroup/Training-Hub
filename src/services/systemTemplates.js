@@ -50,7 +50,7 @@ class SystemTemplatesService {
     }
 
     const term = searchTerm.toLowerCase();
-    return this.templates.filter(template => 
+    return this.templates.filter(template =>
       template.name.toLowerCase().includes(term) ||
       template.description.toLowerCase().includes(term) ||
       template.category.toLowerCase().includes(term) ||
@@ -76,40 +76,7 @@ class SystemTemplatesService {
     return tags.sort();
   }
 
-  /**
-   * Add a new system template (for development use)
-   * This method is used when saving existing study guides as system templates
-   * @param {Object} templateData - Template data
-   * @returns {Object} The added template
-   */
-  addTemplate(templateData) {
-    const newTemplate = {
-      id: `system-${Date.now()}`,
-      ...templateData,
-      isSystemTemplate: true
-    };
-    
-    this.templates.push(newTemplate);
-    return newTemplate;
-  }
 
-  /**
-   * Export system templates as JavaScript code
-   * This is used for generating the systemTemplates.js file content
-   * @returns {string} JavaScript code for the templates
-   */
-  exportAsCode() {
-    const templatesCode = JSON.stringify(this.templates, null, 2);
-    
-    return `/**
- * System Templates - Pre-built templates available to all users
- * These templates are stored in the codebase and don't require database storage
- */
-
-export const systemTemplates = ${templatesCode};
-
-export default systemTemplates;`;
-  }
 
   /**
    * Check if a template is a system template

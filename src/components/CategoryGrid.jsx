@@ -87,7 +87,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
         return (
           <div
             key={category.id}
-            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 cursor-pointer flex flex-col items-center text-center h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
+            className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg border-2 border-gray-300 dark:border-slate-500 shadow p-6 cursor-pointer flex flex-col items-center text-center h-full transition-all hover:translate-y-[-5px] hover:shadow-md`}
             onClick={() => handleCategoryClick(category.id, sectionId)}
           >
             <div

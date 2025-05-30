@@ -318,7 +318,7 @@ const PublicStudyGuideItem = ({ guide, onSelect }) => {
   const isDark = theme === 'dark';
   return (
     <div
-      className={`rounded-lg border ${isDark ? 'border-slate-700' : 'border-gray-200'} overflow-hidden transition-all duration-200 shadow-sm cursor-pointer ${isDark ? 'hover:border-slate-600' : 'hover:border-gray-300'} hover:shadow-md`}
+      className={`rounded-lg border-2 ${isDark ? 'border-slate-500' : 'border-gray-300'} overflow-hidden transition-all duration-200 shadow-sm cursor-pointer ${isDark ? 'hover:border-slate-500' : 'hover:border-gray-400'} hover:shadow-md`}
       onClick={() => onSelect(guide)} // Use the passed onSelect handler
     >
       <div className={isDark ? 'bg-slate-800' : 'bg-white'}>
