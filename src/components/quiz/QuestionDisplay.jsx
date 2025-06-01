@@ -12,8 +12,23 @@ const QuestionDisplay = ({
   isCorrect = false,
   disabled: parentDisabled = false // Renamed to avoid conflict with internal disabled logic
 }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
+
+  // Get current theme's primary color
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
+  // Helper function to convert hex to rgba
+  const hexToRgba = (hex, alpha) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
+
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
   // Local state for check-all-that-apply before submission in practice mode
   const [localCheckAllAnswer, setLocalCheckAllAnswer] = useState([]);
 
@@ -35,26 +50,37 @@ const QuestionDisplay = ({
   // Handle selecting an answer
   const handleSelect = (answer) => {
     // Prevent action if disabled (covers parentDisabled and practice feedback shown)
-    if (isDisabled && question.question_type !== 'check_all_that_apply') return;
+    if (isDisabled) return;
 
-    if (isPractice && question.question_type === 'check_all_that_apply') {
-       // In practice mode for check-all, only update local state
-       // Actual submission happens via button
-       if (isDisabled) return; // Don't allow changes after feedback shown
+    if (question.question_type === 'check_all_that_apply') {
+      if (isPractice) {
+        // In practice mode for check-all, only update local state
+        // Actual submission happens via button
+        const newSelection = [...localCheckAllAnswer];
+        const index = answer; // In this context, 'answer' is the index being toggled
 
-       const newSelection = [...localCheckAllAnswer];
-       const index = answer; // In this context, 'answer' is the index being toggled
+        if (newSelection.includes(index)) {
+          const idx = newSelection.indexOf(index);
+          if (idx !== -1) newSelection.splice(idx, 1);
+        } else {
+          newSelection.push(index);
+        }
+        setLocalCheckAllAnswer(newSelection);
+      } else {
+        // In non-practice mode (access code quizzes), handle multiple selections directly
+        const currentSelection = Array.isArray(selectedAnswer) ? selectedAnswer : [];
+        const index = answer;
 
-       if (newSelection.includes(index)) {
-         const idx = newSelection.indexOf(index);
-         if (idx !== -1) newSelection.splice(idx, 1);
-       } else {
-         newSelection.push(index);
-       }
-       setLocalCheckAllAnswer(newSelection);
-
+        let newSelection;
+        if (currentSelection.includes(index)) {
+          newSelection = currentSelection.filter(i => i !== index);
+        } else {
+          newSelection = [...currentSelection, index];
+        }
+        onSelectAnswer(newSelection);
+      }
     } else {
-      // For non-practice or non-check-all, call parent immediately
+      // For multiple choice and true/false, call parent immediately
       onSelectAnswer(answer);
     }
   };
@@ -76,7 +102,7 @@ const QuestionDisplay = ({
           <button
             key={index}
             className={classNames(
-              "w-full px-4 py-3 text-left border rounded-lg transition-colors flex justify-between items-center",
+              "w-full px-4 py-3 text-left border rounded-lg transition-colors flex items-center",
               // Base interaction styles
               {
                 'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark,
@@ -87,24 +113,48 @@ const QuestionDisplay = ({
               // Conditional styles based on state
               isPractice && showFeedback
                 ? { // Practice Feedback State
-                    'bg-green-50 border-green-500': isCorrectAnswer && !isDark, // Correct answer (light)
-                    'bg-green-900/30 border-green-700': isCorrectAnswer && isDark, // Correct answer (dark)
-                    'bg-red-50 border-red-500': isSelected && !isCorrectAnswer && !isDark, // Selected incorrect answer (light)
-                    'bg-red-900/30 border-red-700': isSelected && !isCorrectAnswer && isDark, // Selected incorrect answer (dark)
-                    'border-slate-200 bg-white': !isSelected && !isCorrectAnswer && !isDark, // Unselected incorrect answer (light)
-                    'border-slate-700 bg-slate-800': !isSelected && !isCorrectAnswer && isDark, // Unselected incorrect answer (dark)
+                    'border-green-500': isCorrectAnswer, // Correct answer border
+                    'border-red-500': isSelected && !isCorrectAnswer, // Selected incorrect answer border
+                    'border-slate-200': !isSelected && !isCorrectAnswer && !isDark, // Unselected incorrect answer (light)
+                    'border-slate-700': !isSelected && !isCorrectAnswer && isDark, // Unselected incorrect answer (dark)
                   }
                 : { // Default State (Not Practice Feedback)
-                    'border-primary bg-primary/10': isSelected && !isDark, // Selected (light)
-                    'border-primary bg-primary/20': isSelected && isDark, // Selected (dark)
-                    'border-slate-200 bg-white': !isSelected && !isDark, // Unselected (light)
-                    'border-slate-700 bg-slate-800': !isSelected && isDark, // Unselected (dark)
+                    'border-primary': isSelected, // Selected border
+                    'border-slate-200': !isSelected && !isDark, // Unselected (light)
+                    'border-slate-700': !isSelected && isDark, // Unselected (dark)
                   }
             )}
+            style={{
+              backgroundColor: isPractice && showFeedback
+                ? isCorrectAnswer
+                  ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)' // Correct answer
+                  : isSelected && !isCorrectAnswer
+                    ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)' // Incorrect selection
+                    : isDark ? '#1e293b' : '#ffffff' // Default
+                : isSelected
+                  ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15) // Selected with theme color
+                  : isDark ? '#1e293b' : '#ffffff' // Unselected
+            }}
             onClick={() => handleSelect(index)}
             disabled={isDisabled} // Use combined disabled state
           >
-            <span className={isDark ? 'text-white' : ''}>{option}</span>
+            <div className="flex items-center">
+              {/* Radio button visual indicator */}
+              <div className={classNames(
+                "w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-3",
+                {
+                  'border-slate-400': isDark && !isSelected,
+                  'border-slate-300': !isDark && !isSelected,
+                  'bg-primary border-primary': isSelected,
+                  'bg-transparent': !isSelected
+                }
+              )}>
+                {isSelected && (
+                  <div className="w-2 h-2 rounded-full bg-white"></div>
+                )}
+              </div>
+              <span className={isDark ? 'text-white' : ''}>{option}</span>
+            </div>
             {/* Add checkmark for correct answer OR X for incorrect selection during practice feedback */}
             {isPractice && showFeedback && isCorrectAnswer && <span className="ml-2 text-green-500 font-bold">✓</span>}
             {isPractice && showFeedback && isSelected && !isCorrectAnswer && <span className="ml-2 text-red-500 font-bold">✗</span>}
@@ -132,28 +182,37 @@ const QuestionDisplay = ({
           <label
             key={index}
               className={classNames(
-                "flex items-center px-4 py-3 border rounded-lg transition-colors",
+                "flex items-center px-4 py-3 border rounded-lg transition-colors cursor-pointer",
                 {
-                  'border-primary bg-primary/10': isSelected && (!isPractice || !showFeedback) && !isDark, // Selected style (light)
-                  'border-primary bg-primary/20': isSelected && (!isPractice || !showFeedback) && isDark, // Selected style (dark)
-                  'border-green-500 bg-green-50': isPractice && showFeedback && question.correct_answer?.includes(index) && !isDark, // Correct answer style (light)
-                  'border-green-700 bg-green-900/30': isPractice && showFeedback && question.correct_answer?.includes(index) && isDark, // Correct answer style (dark)
-                  'border-red-500 bg-red-50': isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index) && !isDark, // Incorrect selection style (light)
-                  'border-red-700 bg-red-900/30': isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index) && isDark, // Incorrect selection style (dark)
-                  'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark, // Hover (light)
-                  'hover:border-primary hover:bg-primary/20': !isDisabled && isDark, // Hover (dark)
+                  'border-primary': isSelected && (!isPractice || !showFeedback), // Selected border
+                  'border-green-500': isPractice && showFeedback && question.correct_answer?.includes(index), // Correct answer border
+                  'border-red-500': isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index), // Incorrect selection border
                   'border-slate-200': !isSelected && (!isPractice || !showFeedback) && !isDark, // Default border (light)
                   'border-slate-700': !isSelected && (!isPractice || !showFeedback) && isDark, // Default border (dark)
-                  'cursor-pointer': !isDisabled,
+                  'hover:border-primary hover:bg-primary/10': !isDisabled && !isDark, // Hover (light)
+                  'hover:border-primary hover:bg-primary/20': !isDisabled && isDark, // Hover (dark)
                   'cursor-not-allowed opacity-60': isDisabled
                 }
               )}
+              style={{
+                backgroundColor: isSelected && (!isPractice || !showFeedback)
+                  ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15)
+                  : isPractice && showFeedback && question.correct_answer?.includes(index)
+                    ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)'
+                    : isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index)
+                      ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)'
+                      : isDark ? '#1e293b' : '#ffffff'
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!isDisabled) handleSelect(index);
+              }}
           >
             <input
               type="checkbox"
-              className="h-5 w-5 text-primary rounded border-slate-300 focus:ring-primary flex-shrink-0 my-auto"
+              className="h-5 w-5 text-primary rounded border-slate-300 focus:ring-primary flex-shrink-0 my-auto pointer-events-none"
               checked={isSelected}
-              onChange={() => handleSelect(index)} // Pass index to handleSelect
+              readOnly
               disabled={isDisabled} // Use combined disabled state
             />
             <span className={`ml-3 flex items-center ${isDark ? 'text-white' : ''}`}>
@@ -203,24 +262,48 @@ const QuestionDisplay = ({
             // State styles
             isPractice && showFeedback
               ? { // Practice Feedback
-                  'bg-green-50 border-green-500': trueIsCorrect && !isDark, // Correct (light)
-                  'bg-green-900/30 border-green-700': trueIsCorrect && isDark, // Correct (dark)
-                  'bg-red-50 border-red-500': trueSelected && !trueIsCorrect && !isDark, // Incorrect (light)
-                  'bg-red-900/30 border-red-700': trueSelected && !trueIsCorrect && isDark, // Incorrect (dark)
-                  'border-slate-200 bg-white': !trueSelected && !trueIsCorrect && !isDark, // Unselected (light)
-                  'border-slate-700 bg-slate-800': !trueSelected && !trueIsCorrect && isDark, // Unselected (dark)
+                  'border-green-500': trueIsCorrect, // Correct border
+                  'border-red-500': trueSelected && !trueIsCorrect, // Incorrect border
+                  'border-slate-200': !trueSelected && !trueIsCorrect && !isDark, // Unselected (light)
+                  'border-slate-700': !trueSelected && !trueIsCorrect && isDark, // Unselected (dark)
                 }
               : { // Default State
-                  'border-primary bg-primary/10': trueSelected && !isDark, // Selected (light)
-                  'border-primary bg-primary/20': trueSelected && isDark, // Selected (dark)
-                  'border-slate-200 bg-white': !trueSelected && !isDark, // Unselected (light)
-                  'border-slate-700 bg-slate-800': !trueSelected && isDark, // Unselected (dark)
+                  'border-primary': trueSelected, // Selected border
+                  'border-slate-200': !trueSelected && !isDark, // Unselected (light)
+                  'border-slate-700': !trueSelected && isDark, // Unselected (dark)
                 }
           )}
+          style={{
+            backgroundColor: isPractice && showFeedback
+              ? trueIsCorrect
+                ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)' // Correct
+                : trueSelected && !trueIsCorrect
+                  ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)' // Incorrect
+                  : isDark ? '#1e293b' : '#ffffff' // Default
+              : trueSelected
+                ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15) // Selected with theme color
+                : isDark ? '#1e293b' : '#ffffff' // Unselected
+          }}
           onClick={() => handleSelect(true)}
           disabled={isDisabled} // Use combined disabled state
         >
-          <span className={isDark ? 'text-white' : ''}>True</span>
+          <div className="flex items-center">
+            {/* Radio button visual indicator */}
+            <div className={classNames(
+              "w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2",
+              {
+                'border-slate-400': isDark && !trueSelected,
+                'border-slate-300': !isDark && !trueSelected,
+                'bg-primary border-primary': trueSelected,
+                'bg-transparent': !trueSelected
+              }
+            )}>
+              {trueSelected && (
+                <div className="w-2 h-2 rounded-full bg-white"></div>
+              )}
+            </div>
+            <span className={isDark ? 'text-white' : ''}>True</span>
+          </div>
           {isPractice && showFeedback && trueIsCorrect && <span className="ml-2 text-green-500 font-bold">✓</span>}
           {isPractice && showFeedback && trueSelected && !trueIsCorrect && <span className="ml-2 text-red-500 font-bold">✗</span>}
         </button>
@@ -237,24 +320,48 @@ const QuestionDisplay = ({
             // State styles
             isPractice && showFeedback
               ? { // Practice Feedback
-                  'bg-green-50 border-green-500': falseIsCorrect && !isDark, // Correct (light)
-                  'bg-green-900/30 border-green-700': falseIsCorrect && isDark, // Correct (dark)
-                  'bg-red-50 border-red-500': falseSelected && !falseIsCorrect && !isDark, // Incorrect (light)
-                  'bg-red-900/30 border-red-700': falseSelected && !falseIsCorrect && isDark, // Incorrect (dark)
-                  'border-slate-200 bg-white': !falseSelected && !falseIsCorrect && !isDark, // Unselected (light)
-                  'border-slate-700 bg-slate-800': !falseSelected && !falseIsCorrect && isDark, // Unselected (dark)
+                  'border-green-500': falseIsCorrect, // Correct border
+                  'border-red-500': falseSelected && !falseIsCorrect, // Incorrect border
+                  'border-slate-200': !falseSelected && !falseIsCorrect && !isDark, // Unselected (light)
+                  'border-slate-700': !falseSelected && !falseIsCorrect && isDark, // Unselected (dark)
                 }
               : { // Default State
-                  'border-primary bg-primary/10': falseSelected && !isDark, // Selected (light)
-                  'border-primary bg-primary/20': falseSelected && isDark, // Selected (dark)
-                  'border-slate-200 bg-white': !falseSelected && !isDark, // Unselected (light)
-                  'border-slate-700 bg-slate-800': !falseSelected && isDark, // Unselected (dark)
+                  'border-primary': falseSelected, // Selected border
+                  'border-slate-200': !falseSelected && !isDark, // Unselected (light)
+                  'border-slate-700': !falseSelected && isDark, // Unselected (dark)
                 }
           )}
+          style={{
+            backgroundColor: isPractice && showFeedback
+              ? falseIsCorrect
+                ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)' // Correct
+                : falseSelected && !falseIsCorrect
+                  ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)' // Incorrect
+                  : isDark ? '#1e293b' : '#ffffff' // Default
+              : falseSelected
+                ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15) // Selected with theme color
+                : isDark ? '#1e293b' : '#ffffff' // Unselected
+          }}
           onClick={() => handleSelect(false)}
           disabled={isDisabled} // Use combined disabled state
         >
-          <span className={isDark ? 'text-white' : ''}>False</span>
+          <div className="flex items-center">
+            {/* Radio button visual indicator */}
+            <div className={classNames(
+              "w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center mr-2",
+              {
+                'border-slate-400': isDark && !falseSelected,
+                'border-slate-300': !isDark && !falseSelected,
+                'bg-primary border-primary': falseSelected,
+                'bg-transparent': !falseSelected
+              }
+            )}>
+              {falseSelected && (
+                <div className="w-2 h-2 rounded-full bg-white"></div>
+              )}
+            </div>
+            <span className={isDark ? 'text-white' : ''}>False</span>
+          </div>
           {isPractice && showFeedback && falseIsCorrect && <span className="ml-2 text-green-500 font-bold">✓</span>}
           {isPractice && showFeedback && falseSelected && !falseIsCorrect && <span className="ml-2 text-red-500 font-bold">✗</span>}
         </button>
