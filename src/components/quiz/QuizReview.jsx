@@ -2,14 +2,34 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { BiSolidError, BiCheck, BiX } from 'react-icons/bi';
+import { useTheme } from '../../contexts/ThemeContext';
+
+// Helper function to convert hex to rgba
+const hexToRgba = (hex, alpha) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
+
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 const QuizReview = ({
   quiz,
   selectedAnswers,
   onSubmit,
   onBack,
-  timeLeft
+  timeLeft,
+  isSubmitting = false
 }) => {
+  const { theme, themeColors } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Get current primary color for the theme
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+
   // Count answered and unanswered questions
   const countAnswers = () => {
     if (quiz.is_practice) {
@@ -40,40 +60,40 @@ const QuizReview = ({
 
   return (
     <div className="space-y-6">
-      <h3 className="text-2xl font-bold text-slate-900">Review Your Answers</h3>
+      <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Review Your Answers</h3>
 
-      <div className="p-6 bg-slate-100 rounded-lg space-y-4">
+      <div className={`p-6 ${isDark ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg space-y-4`}>
         <div className="flex flex-wrap gap-6">
           <div>
-            <p className="text-sm text-slate-500">Questions Answered</p>
-            <p className="text-2xl font-bold text-slate-900">{answeredCount} / {quiz.questions.length}</p>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Questions Answered</p>
+            <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{answeredCount} / {quiz.questions.length}</p>
           </div>
 
           {timeLeft !== null && (
             <div>
-              <p className="text-sm text-slate-500">Time Remaining</p>
-              <p className="text-2xl font-bold text-slate-900">{formatTimeLeft()}</p>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Time Remaining</p>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatTimeLeft()}</p>
             </div>
           )}
         </div>
 
         {unansweredCount > 0 && (
-          <div className="p-4 bg-amber-100 border border-amber-300 rounded-lg">
-            <p className="text-amber-900">
+          <div className={`p-4 ${isDark ? 'bg-amber-900/30 border-amber-700' : 'bg-amber-100 border-amber-300'} border rounded-lg`}>
+            <p className={isDark ? 'text-amber-400' : 'text-amber-900'}>
               <span className="font-bold">Warning:</span> You have {unansweredCount} unanswered {unansweredCount === 1 ? 'question' : 'questions'}.
             </p>
           </div>
         )}
 
-        <div className="p-4 bg-slate-200 border border-slate-300 rounded-lg">
-          <p className="text-slate-700">
+        <div className={`p-4 ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-slate-200 border-slate-300'} border rounded-lg`}>
+          <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
             Once you submit, you will not be able to change your answers. Make sure you have reviewed all questions before proceeding.
           </p>
         </div>
       </div>
 
       <div>
-        <h4 className="text-lg font-semibold text-slate-900 mb-4">Question Summary</h4>
+        <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Question Summary</h4>
         <div className="space-y-3">
           {quiz.questions.map((question, index) => {
             const answer = selectedAnswers[question.id];
@@ -83,22 +103,22 @@ const QuizReview = ({
               isAnswered = answer?.answer !== undefined;
               if (isAnswered) {
                 statusClasses = answer.isCorrect
-                  ? "bg-green-100 border-green-300 hover:bg-green-200"
-                  : "bg-red-100 border-red-300 hover:bg-red-200";
+                  ? isDark ? "bg-green-900/30 border-green-700 hover:bg-green-900/40" : "bg-green-100 border-green-300 hover:bg-green-200"
+                  : isDark ? "bg-red-900/30 border-red-700 hover:bg-red-900/40" : "bg-red-100 border-red-300 hover:bg-red-200";
               } else {
-                statusClasses = "bg-amber-100 border-amber-300 hover:bg-amber-200";
+                statusClasses = isDark ? "bg-amber-900/30 border-amber-700 hover:bg-amber-900/40" : "bg-amber-100 border-amber-300 hover:bg-amber-200";
               }
             } else {
               isAnswered = answer !== undefined;
               statusClasses = isAnswered
-                ? "bg-slate-100 border-slate-300 hover:bg-slate-200"
-                : "bg-amber-100 border-amber-300 hover:bg-amber-200";
+                ? isDark ? "bg-slate-700 border-slate-600 hover:bg-slate-600" : "bg-slate-100 border-slate-300 hover:bg-slate-200"
+                : isDark ? "bg-amber-900/30 border-amber-700 hover:bg-amber-900/40" : "bg-amber-100 border-amber-300 hover:bg-amber-200";
             }
 
             const renderOptions = () => {
               if (!isAnswered) {
                 return (
-                  <div className="flex items-center text-amber-600 mt-1">
+                  <div className={`flex items-center ${isDark ? 'text-amber-400' : 'text-amber-600'} mt-1`}>
                     <BiSolidError className="w-5 h-5" />
                     <span className="ml-2 font-medium">Not answered</span>
                   </div>
@@ -120,12 +140,20 @@ const QuizReview = ({
                             className={classNames(
                               "flex items-center p-3 rounded border",
                               {
-                                'bg-primary/10 border-primary': isSelected && !quiz.is_practice,
-                                'bg-green-50 border-green-500': isCorrect,
-                                'bg-red-50 border-red-500': isIncorrect,
-                                'border-slate-300': !isSelected && !quiz.is_practice
+                                'border-primary': isSelected && !quiz.is_practice,
+                                'bg-green-50 border-green-500': isCorrect && !isDark,
+                                'bg-green-900/30 border-green-700': isCorrect && isDark,
+                                'bg-red-50 border-red-500': isIncorrect && !isDark,
+                                'bg-red-900/30 border-red-700': isIncorrect && isDark,
+                                'border-slate-300': !isSelected && !quiz.is_practice && !isDark,
+                                'border-slate-400': !isSelected && !quiz.is_practice && isDark
                               }
                             )}
+                            style={{
+                              backgroundColor: isSelected && !quiz.is_practice
+                                ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15)
+                                : undefined
+                            }}
                           >
                             <div className="flex-1">{option}</div>
                             {isSelected && (
@@ -163,12 +191,20 @@ const QuizReview = ({
                             className={classNames(
                               "flex items-center p-3 rounded border",
                               {
-                                'bg-primary/10 border-primary': isSelected && !quiz.is_practice,
-                                'bg-green-50 border-green-500': isCorrect,
-                                'bg-red-50 border-red-500': isIncorrect,
-                                'border-slate-300': !isSelected && !quiz.is_practice
+                                'border-primary': isSelected && !quiz.is_practice,
+                                'bg-green-50 border-green-500': isCorrect && !isDark,
+                                'bg-green-900/30 border-green-700': isCorrect && isDark,
+                                'bg-red-50 border-red-500': isIncorrect && !isDark,
+                                'bg-red-900/30 border-red-700': isIncorrect && isDark,
+                                'border-slate-300': !isSelected && !quiz.is_practice && !isDark,
+                                'border-slate-400': !isSelected && !quiz.is_practice && isDark
                               }
                             )}
+                            style={{
+                              backgroundColor: isSelected && !quiz.is_practice
+                                ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15)
+                                : undefined
+                            }}
                           >
                             <div className="flex-1">{option}</div>
                             {isSelected && (
@@ -204,12 +240,20 @@ const QuizReview = ({
                             className={classNames(
                               "flex items-center justify-between p-3 rounded border",
                               {
-                                'bg-primary/10 border-primary': isSelected && !quiz.is_practice,
-                                'bg-green-50 border-green-500': isCorrect,
-                                'bg-red-50 border-red-500': isIncorrect,
-                                'border-slate-300': !isSelected && !quiz.is_practice
+                                'border-primary': isSelected && !quiz.is_practice,
+                                'bg-green-50 border-green-500': isCorrect && !isDark,
+                                'bg-green-900/30 border-green-700': isCorrect && isDark,
+                                'bg-red-50 border-red-500': isIncorrect && !isDark,
+                                'bg-red-900/30 border-red-700': isIncorrect && isDark,
+                                'border-slate-300': !isSelected && !quiz.is_practice && !isDark,
+                                'border-slate-400': !isSelected && !quiz.is_practice && isDark
                               }
                             )}
+                            style={{
+                              backgroundColor: isSelected && !quiz.is_practice
+                                ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15)
+                                : undefined
+                            }}
                           >
                             <div>{option}</div>
                             {isSelected && (
@@ -246,11 +290,11 @@ const QuizReview = ({
               )}
               >
               <div className="flex gap-6">
-                <div className="font-bold text-slate-700 text-lg">
+                <div className={`font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'} text-lg`}>
                   Q{index + 1}
                 </div>
                   <div className="flex-1">
-                    <div className="font-medium text-slate-900 mb-4">
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>
                       {question.question_text}
                     </div>
                     {renderOptions()}
@@ -262,11 +306,11 @@ const QuizReview = ({
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-6 border-t border-slate-200">
+      <div className={`flex justify-between items-center pt-6 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         <button
           type="button"
           onClick={() => onBack()}
-          className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+          className={`px-6 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors`}
         >
           Back to Quiz
         </button>
@@ -274,19 +318,35 @@ const QuizReview = ({
         <button
           type="button"
           onClick={onSubmit}
+          disabled={isSubmitting}
           className={classNames(
-            "px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors",
+            "px-6 py-2 text-white rounded-lg font-medium transition-colors",
             {
-              'opacity-90 hover:opacity-100': unansweredCount > 0
+              'opacity-90 hover:opacity-100': unansweredCount > 0,
+              'opacity-50 cursor-not-allowed': isSubmitting
             }
           )}
+          style={{
+            backgroundColor: currentPrimaryColor,
+            borderColor: currentPrimaryColor
+          }}
+          onMouseEnter={(e) => {
+            if (!isSubmitting) {
+              e.target.style.backgroundColor = hexToRgba(currentPrimaryColor, 0.9);
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSubmitting) {
+              e.target.style.backgroundColor = currentPrimaryColor;
+            }
+          }}
         >
-          Submit Quiz
+          {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
         </button>
       </div>
 
       {unansweredCount > 0 && (
-        <p className="text-sm text-center text-slate-500">
+        <p className={`text-sm text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           You can submit with unanswered questions, but they will be marked as incorrect.
         </p>
       )}
@@ -310,7 +370,8 @@ QuizReview.propTypes = {
   selectedAnswers: PropTypes.object.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
-  timeLeft: PropTypes.number
+  timeLeft: PropTypes.number,
+  isSubmitting: PropTypes.bool
 };
 
 export default QuizReview;

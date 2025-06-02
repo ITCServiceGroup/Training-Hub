@@ -11,37 +11,10 @@ import QuizTimer from './QuizTimer';
 import QuestionDisplay from './QuestionDisplay';
 import QuizReview from './QuizReview';
 import QuizResults from './QuizResults';
+import { buildPdfContentHtml } from '../../utils/pdfGenerator';
+import { FaSpinner } from 'react-icons/fa';
 
-// Helper function to format question type (similar to old quiz.js)
-const formatQuestionType = (type) => {
-  switch (type) {
-    case 'multiple_choice': return 'Multiple Choice';
-    case 'true_false': return 'True/False';
-    case 'check_all_that_apply': return 'Check All That Apply';
-    default: return 'Unknown Type';
-  }
-};
 
-// Helper function to check answer correctness (needed for PDF generation)
-const isAnswerCorrect = (question, answerData, isPractice) => {
-  if (answerData === undefined) return false;
-  const answer = isPractice ? answerData.answer : answerData;
-  if (answer === undefined) return false;
-
-  switch (question.question_type) {
-    case 'multiple_choice':
-      return answer === question.correct_answer;
-    case 'check_all_that_apply':
-      return Array.isArray(answer) &&
-        Array.isArray(question.correct_answer) &&
-        answer.length === question.correct_answer.length &&
-        answer.every(a => question.correct_answer.includes(a));
-    case 'true_false':
-      return answer === question.correct_answer;
-    default:
-      return false;
-  }
-};
 
 
 const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
@@ -68,6 +41,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load quiz data
   useEffect(() => {
@@ -145,6 +119,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     // Prevent multiple submissions
     if (submitInProgressRef.current) return;
     submitInProgressRef.current = true;
+    setIsSubmitting(true);
 
     // Calculate score - defined inside handleSubmitQuiz again
     const calculateScore = () => {
@@ -197,7 +172,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       if (!quiz.is_practice && accessCodeData) {
         let pdfUrl = null;
         try {
-          const pdfHtml = buildPdfContentHtml(quiz, selectedAnswers, finalScore, timeTaken, accessCodeData.ldap);
+          const pdfHtml = buildPdfContentHtml(quiz, selectedAnswers, finalScore, timeTaken, accessCodeData.ldap, quiz.is_practice);
           pdfUrl = await generateAndUploadPdf(accessCodeData.ldap, pdfHtml, accessCodeData, quiz);
 
           if (!pdfUrl) {
@@ -241,6 +216,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       }
     } finally {
       submitInProgressRef.current = false;
+      setIsSubmitting(false);
     }
     // calculateScore is not needed in deps as it's defined inside
   }, [quiz, accessCodeData, accessCode, timeTaken, selectedAnswers]); // Removed stable state setters AND calculateScore
@@ -415,7 +391,13 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   if (error) {
     return (
       <div className={`p-6 ${isDark ? 'bg-red-900/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700'} border rounded-lg`}>
-        <p>{error}</p>
+        <p className="mb-4">{error}</p>
+        <button
+          onClick={() => window.location.hash = '/quiz'}
+          className={`px-4 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors`}
+        >
+          Return to Quiz Page
+        </button>
       </div>
     );
   }
@@ -435,6 +417,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         onRetry={quiz.is_practice ? handleStartQuiz : undefined}
         onExit={() => window.location.hash = '/admin/quizzes'} // Navigate to quizzes page
         isPractice={quiz.is_practice}
+        accessCodeData={accessCodeData}
       />
     );
   }
@@ -442,18 +425,36 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   // Review screen
   if (isReviewing) {
     return (
-      <QuizReview
-        quiz={quiz}
-        selectedAnswers={selectedAnswers}
-        onSubmit={handleSubmitQuiz}
-        onBack={(questionIndex) => {
-          setIsReviewing(false);
-          if (typeof questionIndex === 'number') {
-            setCurrentQuestionIndex(questionIndex);
-          }
-        }}
-        timeLeft={timeLeft}
-      />
+      <>
+        <QuizReview
+          quiz={quiz}
+          selectedAnswers={selectedAnswers}
+          onSubmit={handleSubmitQuiz}
+          onBack={(questionIndex) => {
+            setIsReviewing(false);
+            if (typeof questionIndex === 'number') {
+              setCurrentQuestionIndex(questionIndex);
+            }
+          }}
+          timeLeft={timeLeft}
+          isSubmitting={isSubmitting}
+        />
+
+        {/* Loading overlay */}
+        {isSubmitting && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-8 max-w-md mx-4 text-center shadow-xl`}>
+              <FaSpinner className={`animate-spin text-4xl ${isDark ? 'text-blue-400' : 'text-blue-600'} mx-auto mb-4`} />
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+                Saving Your Results
+              </h3>
+              <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                Please wait while we save your quiz results. You will be redirected to the results page shortly.
+              </p>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -498,59 +499,76 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const progressPercentage = Math.round(((currentQuestionIndex + 1) / quiz.questions.length) * 100);
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{quiz.title}</h2>
-          <p className={isDark ? 'text-gray-400' : 'text-slate-500'}>Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+    <>
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{quiz.title}</h2>
+            <p className={isDark ? 'text-gray-400' : 'text-slate-500'}>Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+          </div>
+
+          {timeLeft !== null && (
+            <QuizTimer
+              timeLeft={timeLeft}
+              formatTime={formatTime}
+              isWarning={timeLeft < 300} // Warning when less than 5 minutes left
+            />
+          )}
         </div>
 
-        {timeLeft !== null && (
-          <QuizTimer
-            timeLeft={timeLeft}
-            formatTime={formatTime}
-            isWarning={timeLeft < 300} // Warning when less than 5 minutes left
+        {/* Progress bar */}
+        <div className={`h-2 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded-full mb-8`}>
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${progressPercentage}%` }}
           />
-        )}
-      </div>
+        </div>
 
-      {/* Progress bar */}
-      <div className={`h-2 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded-full mb-8`}>
-        <div
-          className="h-full bg-primary rounded-full transition-all duration-300"
-          style={{ width: `${progressPercentage}%` }}
-        />
-      </div>
+        <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
+          <QuestionDisplay
+            question={currentQuestion}
+            selectedAnswer={quiz.is_practice ? selectedAnswers[currentQuestion.id]?.answer : selectedAnswers[currentQuestion.id]}
+            onSelectAnswer={handleSelectAnswer}
+            isPractice={quiz.is_practice}
+            showFeedback={quiz.is_practice && selectedAnswers[currentQuestion.id]?.showFeedback}
+            isCorrect={quiz.is_practice && selectedAnswers[currentQuestion.id]?.isCorrect}
+          />
 
-      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
-        <QuestionDisplay
-          question={currentQuestion}
-          selectedAnswer={quiz.is_practice ? selectedAnswers[currentQuestion.id]?.answer : selectedAnswers[currentQuestion.id]}
-          onSelectAnswer={handleSelectAnswer}
-          isPractice={quiz.is_practice}
-          showFeedback={quiz.is_practice && selectedAnswers[currentQuestion.id]?.showFeedback}
-          isCorrect={quiz.is_practice && selectedAnswers[currentQuestion.id]?.isCorrect}
-        />
+          <div className={`flex justify-between mt-8 pt-6 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+            <button
+              className={`px-6 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              onClick={handlePrevQuestion}
+              disabled={currentQuestionIndex === 0}
+            >
+              Previous
+            </button>
 
-        <div className={`flex justify-between mt-8 pt-6 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-          <button
-            className={`px-6 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-            onClick={handlePrevQuestion}
-            disabled={currentQuestionIndex === 0}
-          >
-            Previous
-          </button>
-
-          <button
-            className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleNextQuestion}
-            disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
-          >
-            {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : (quiz.is_practice ? 'Finish Quiz' : 'Review Answers')}
-          </button>
+            <button
+              className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleNextQuestion}
+              disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
+            >
+              {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : (quiz.is_practice ? 'Finish Quiz' : 'Review Answers')}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Loading overlay for practice quiz submission */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-8 max-w-md mx-4 text-center shadow-xl`}>
+            <FaSpinner className={`animate-spin text-4xl ${isDark ? 'text-blue-400' : 'text-blue-600'} mx-auto mb-4`} />
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+              Saving Your Results
+            </h3>
+            <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              Please wait while we save your quiz results and generate your certificate. You will be redirected to the results page shortly.
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -566,82 +584,6 @@ QuizTaker.propTypes = {
 };
 
 // --- PDF Generation Functions (adapted from quiz.js) ---
-
-// Builds the HTML string for the PDF content
-const buildPdfContentHtml = (quiz, selectedAnswers, score, timeTaken, ldap) => {
-  let summaryHTML = `
-    <div style="background: white; padding: 20px; font-family: Arial, sans-serif; width: 210mm; min-height: 297mm; box-sizing: border-box;">
-    <div style="margin-bottom: 20px; text-align: center;">
-      <h1 style="margin-bottom: 10px;">Quiz Results: ${quiz.title}</h1>
-      <h2 style="margin-bottom: 5px;">Score: ${score.correct}/${score.total} (${score.percentage}%)</h2>
-      <h3 style="margin: 0;">LDAP: ${ldap}</h3>
-      <p style="margin: 0;">Time Taken: ${Math.floor(timeTaken / 60)} minutes ${timeTaken % 60} seconds</p>
-      <p style="margin: 0;">Date: ${new Date().toLocaleDateString()}</p>
-    </div>
-      <div id="summary">
-        <h2 style="margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Detailed Summary:</h2>
-        <ul style="list-style: none; padding: 0;">
-  `;
-  quiz.questions.forEach((question, index) => {
-    const answerData = selectedAnswers[question.id];
-    const correct = isAnswerCorrect(question, answerData, quiz.is_practice); // Use helper
-    const answer = quiz.is_practice ? answerData?.answer : answerData;
-
-    let userAnswerText = 'No Answer Provided'; // Default for unanswered
-    let correctAnswerText = 'N/A'; // Default for correct answer text
-
-    // Only determine user answer text if an answer was actually selected
-    if (answer !== undefined) {
-      if (question.question_type === 'multiple_choice') {
-        userAnswerText = question.options?.[answer] ?? 'Invalid Answer Index';
-      } else if (question.question_type === 'true_false') {
-        userAnswerText = answer === true ? 'True' : 'False';
-      } else if (question.question_type === 'check_all_that_apply') {
-        userAnswerText = Array.isArray(answer) && answer.length > 0
-          ? answer.map(idx => question.options?.[idx] ?? 'Invalid Index').join(', ')
-          : 'No Selection'; // Should not happen if answer is defined array, but safe fallback
-      }
-    }
-
-    // Determine correct answer text (remains mostly the same, added safety checks)
-    if (question.question_type === 'multiple_choice') {
-      correctAnswerText = question.options?.[question.correct_answer] ?? 'N/A';
-    } else if (question.question_type === 'true_false') {
-      correctAnswerText = question.correct_answer === true ? 'True' : 'False';
-    } else if (question.question_type === 'check_all_that_apply') {
-      correctAnswerText = Array.isArray(question.correct_answer)
-        ? question.correct_answer.map(idx => question.options?.[idx] ?? 'Invalid Index').join(', ')
-        : 'N/A';
-    }
-
-
-    summaryHTML += `
-      <li style="page-break-inside: avoid; margin-bottom: 25px; border: 1px solid ${correct ? '#a3e6b4' : '#fecaca'}; padding: 15px; border-radius: 5px; background-color: ${correct ? '#f0fdf4' : '#fef2f2'};">
-        <div class="question-block">
-          <p style="font-weight: bold; margin-bottom: 5px;">Question ${index + 1}: ${question.question_text}</p>
-          <p style="font-size: 0.9em; color: #555; margin-bottom: 10px;">Type: ${formatQuestionType(question.question_type)}</p>
-          <div style="display: flex; gap: 20px; margin-bottom: 10px;">
-            <div style="flex: 1;">
-              <h4 style="margin: 0 0 5px 0; font-size: 0.95em;">Your Answer:</h4>
-              <p style="margin: 0; font-size: 0.9em; color: ${correct ? 'green' : 'red'};">${userAnswerText}</p>
-            </div>
-            ${!correct ? `
-            <div style="flex: 1;">
-              <h4 style="margin: 0 0 5px 0; font-size: 0.95em;">Correct Answer:</h4>
-              <p style="margin: 0; font-size: 0.9em;">${correctAnswerText}</p>
-            </div>` : ''}
-          </div>
-          ${question.explanation ? `
-          <div style="border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px;">
-            <p style="font-weight: bold; margin: 0 0 5px 0; font-size: 0.9em;">Explanation:</p>
-            <p style="margin: 0; font-size: 0.9em; color: #333;">${question.explanation}</p>
-          </div>` : ''}
-        </div>
-      </li>`;
-  });
-  summaryHTML += `</ul></div></div>`;
-  return summaryHTML;
-};
 
 // Generates and uploads the PDF, returns the public URL or path
 const generateAndUploadPdf = async (ldap, htmlContent, accessCodeData, quiz) => {
@@ -669,23 +611,42 @@ const generateAndUploadPdf = async (ldap, htmlContent, accessCodeData, quiz) => 
     const base64Data = await base64Promise;
 
     // Call the Edge Function to handle the upload
+    const requestBody = {
+      pdfData: base64Data,
+      accessCode: accessCodeData.code,
+      ldap: ldap,
+      quizId: quiz.id
+    };
+
+    console.log('Sending request to Edge Function:', {
+      url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-quiz-pdf`,
+      accessCode: accessCodeData.code,
+      ldap: ldap,
+      quizId: quiz.id,
+      pdfDataLength: base64Data.length
+    });
+
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-quiz-pdf`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify({
-        pdfData: base64Data,
-        accessCode: accessCodeData.code,
-        ldap: ldap,
-        quizId: quiz.id
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to upload PDF');
+      const errorText = await response.text();
+      console.error('Edge Function error response:', errorText);
+      console.error('Response status:', response.status);
+      console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      try {
+        const error = JSON.parse(errorText);
+        throw new Error(error.error || error.message || 'Failed to upload PDF');
+      } catch (parseError) {
+        throw new Error(`Failed to upload PDF. Status: ${response.status}, Response: ${errorText}`);
+      }
     }
 
     const { pdf_url } = await response.json();
