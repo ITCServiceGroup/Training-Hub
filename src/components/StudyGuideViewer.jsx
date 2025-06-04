@@ -110,9 +110,14 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
   // Render the study guide using CraftRenderer
   return (
-    <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow w-full h-full flex flex-col`}>
+    <div
+      className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow w-full flex flex-col`}
+      style={{ 
+        height: 'calc(100vh - 160px)', // Account for header (~60px) + footer (~80px)
+        maxHeight: 'calc(100vh - 160px)'}}
+    >
       {/* Fixed header section */}
-      <div className={`flex justify-between items-center p-2 sm:p-8 pb-3 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'} flex-shrink-0`}>
+      <div className={`flex justify-between items-center px-6 pt-4 flex-shrink-0`}>
         <div className="flex items-center gap-2">
           <h2 className={`text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{studyGuide.title}</h2>
             {searchTerm && (
@@ -200,12 +205,6 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
                 </button>
               </div>
             )}
-            <button
-              onClick={() => setShowDebug(!showDebug)}
-              className={`ml-2 px-2 py-1 text-xs rounded ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-            >
-              {showDebug ? 'Hide Debug' : 'Debug'}
-            </button>
           </div>
           {studyGuide && studyGuide.category_id && (
             <button
@@ -218,7 +217,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
         </div>
 
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-auto p-2 sm:p-8 pt-6">
+      <div className="flex-1 overflow-auto p-2 sm:p-6 pt-0 pb-8">
         {/* Process the content before passing it to CraftRenderer */}
         {(() => {
             // Prepare the content for the CraftRenderer
@@ -287,7 +286,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
 
         {/* Show debug info if debug mode is enabled */}
         {showDebug && (
-          <div className="mt-4 border-t border-gray-300 dark:border-slate-700 pt-4">
+          <div className="mt-4 pt-4">
             <div className="mb-4">
               <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Debug Information</h3>
               <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Raw JSON content:</p>

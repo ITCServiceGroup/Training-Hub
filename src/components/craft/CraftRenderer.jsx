@@ -35,10 +35,9 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
   const rendererStyles = {
     backgroundColor: isDark ? '#1e293b' : '#ffffff',
     color: isDark ? '#f8fafc' : '#1e293b',
-    height: 'calc(100vh - 100px)',
     width: '100%',
     overflow: 'auto',
-    padding: '15px',
+    padding: '0',
     borderRadius: '4px',
   };
 

@@ -438,7 +438,7 @@ const StudyGuidePage = () => {
             /* Study guide view (section and category selected) */
             <div
               className="flex relative w-full max-w-full"
-              style={{ border: '3px solid green', overflow: 'visible !important' }}
+              style={{ overflow: 'visible !important' }}
             >
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
@@ -458,14 +458,20 @@ const StudyGuidePage = () => {
             )}
 
             {/* Sidebar with study guide list - sticky on desktop, fixed on mobile */}
-            <div className={`
-              fixed md:sticky left-0 z-[55] md:z-auto
-              w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out
-              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-130px)]'}
-              ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-              ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
-              md:top-0 md:self-start
-            `}>
+            <div
+              className={`
+                fixed md:sticky left-0 z-[55] md:z-auto
+                w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out
+                ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-130px)]'}
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
+                md:top-0 md:self-start
+              `}
+              style={{
+                height: 'calc(100vh - 160px)',
+                maxHeight: 'calc(100vh - 160px)'
+              }}
+            >
             <StudyGuideList
               studyGuides={studyGuides}
               sectionId={sectionId}
@@ -480,7 +486,7 @@ const StudyGuidePage = () => {
           {/* Main content area: Show list or viewer */}
           <div
             className="w-full md:ml-8 pr-8 mb-4"
-            style={{ border: '3px solid blue', overflow: 'visible !important' }}
+            style={{ overflow: 'visible !important' }}
           >
             {studyGuideId ? (
               <StudyGuideViewer
