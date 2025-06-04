@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react'; // Import useContext
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaPlus, FaBars } from 'react-icons/fa';
+import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import {
   DndContext,
   closestCenter,
@@ -154,9 +155,8 @@ const SectionAdminGrid = ({
       )}
 
       {isLoading ? (
-        <div className="flex justify-center items-center p-12 text-gray-500 dark:text-gray-300">
-          <div className="w-8 h-8 rounded-full border-3 border-gray-200 dark:border-gray-600 border-t-primary animate-spin mr-3"></div>
-          <span>Loading sections...</span>
+        <div className="p-8">
+          <LoadingSpinner size="lg" text="Loading sections..." />
         </div>
       ) : isCreating ? (
         <SectionForm

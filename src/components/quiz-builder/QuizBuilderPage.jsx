@@ -3,6 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quizzesService } from '../../services/api/quizzes';
 import { useToast } from '../common/ToastContainer';
+import LoadingSpinner from '../common/LoadingSpinner';
 import QuizMetadataForm from './QuizMetadataForm';
 import QuestionManager from './QuestionManager';
 import QuizPreview from './QuizPreview';
@@ -125,7 +126,11 @@ const QuizBuilderPage = () => {
   };
 
   if (isLoading) {
-    return <div className={`text-center p-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading quiz...</div>;
+    return (
+      <div className="p-8">
+        <LoadingSpinner size="lg" text="Loading quiz..." />
+      </div>
+    );
   }
 
   return (

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa';
 import CraftRenderer from './craft/CraftRenderer';
 import { countSearchTermOccurrences, extractTextFromContent } from '../utils/contentTextExtractor';
+import LoadingSpinner from './common/LoadingSpinner';
 
 /**
  * Component for displaying study guide content using Craft.js renderer
@@ -89,10 +90,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   if (isLoading) {
     return (
       <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow w-full h-full flex items-center justify-center`}>
-        <div className={`flex justify-center items-center p-8 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-          <div className={`w-6 h-6 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-teal-500' : 'border-gray-200 border-t-teal-700'} animate-spin mr-3`}></div>
-          <span>Loading study guide...</span>
-        </div>
+        <LoadingSpinner size="lg" text="Loading study guide..." />
       </div>
     );
   }

@@ -8,6 +8,7 @@ import { studyGuidesService } from '../../services/api/studyGuides';
 import { BiBook } from 'react-icons/bi';
 import { MdQuiz } from 'react-icons/md';
 import { BiBarChart } from 'react-icons/bi';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // Debug helper function with localStorage persistence
 const logAdmin = (message, data = null) => {
@@ -192,11 +193,8 @@ const AdminDashboard = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" className="p-3 text-center text-slate-500 dark:text-slate-300">
-                  <div className="flex justify-center items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-t-teal-500 border-slate-200 dark:border-slate-600 rounded-full animate-spin"></div>
-                    <span>Loading...</span>
-                  </div>
+                <td colSpan="5" className="p-3">
+                  <LoadingSpinner size="md" text="Loading..." />
                 </td>
               </tr>
             ) : recentActivity.length > 0 ? (

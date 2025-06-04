@@ -7,6 +7,7 @@ import { format } from 'date-fns'; // For formatting dates
 import { MdOutlineAudioFile, MdOutlineInsertDriveFile, MdEdit, MdDelete } from 'react-icons/md'; // Icons
 import { FaTimes } from 'react-icons/fa'; // Import FaTimes for close icon
 import { useDropzone } from 'react-dropzone'; // Import useDropzone
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // Helper function to convert hex to rgba
 const hexToRgba = (hex, alpha) => {
@@ -632,16 +633,8 @@ function MediaLibraryPage() {
       {/* <div className="mb-4"> Search Input... </div> */}
 
       {isLoading && (
-          <div className="text-center py-10">
-              {/* Simple Spinner */}
-              <div
-                className="animate-spin inline-block w-10 h-10 border-4 rounded-full border-t-transparent"
-                role="status"
-                style={{ borderColor: hexToRgba(currentPrimaryColor, 0.3), borderTopColor: 'transparent' }}
-              >
-                  <span className="sr-only">Loading...</span>
-              </div>
-              <p className="mt-3 text-gray-500 dark:text-gray-300">Loading media...</p>
+          <div className="py-10">
+              <LoadingSpinner size="xl" text="Loading media..." />
           </div>
       )}
       {error && !isLoading && <p className="text-center py-10 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded-md shadow-sm">{error}</p>}

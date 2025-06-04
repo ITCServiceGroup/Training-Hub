@@ -7,6 +7,7 @@ import { useTheme } from './contexts/ThemeContext';
 import Layout from './components/layout/Layout';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
 // Lazy load page components to reduce initial load time
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -26,9 +27,8 @@ const PracticeQuizPage = lazy(() => import('./components/practice-quiz/PracticeQ
 
 // Loading fallback
 const LoadingFallback = () => (
-  <div className="loading-screen">
-    <div className="spinner"></div>
-    <p>Loading...</p>
+  <div className="min-h-screen flex items-center justify-center">
+    <LoadingSpinner size="lg" text="Loading..." />
   </div>
 );
 

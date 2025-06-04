@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
 const ResultsTable = ({ results, sortField, sortOrder, onSort, onViewPDF, loading }) => {
   const { theme } = useTheme(); // Get current theme
@@ -52,11 +53,8 @@ const ResultsTable = ({ results, sortField, sortOrder, onSort, onViewPDF, loadin
 
   if (loading) {
     return (
-      <div className="p-8 text-center">
-        <div className="inline-block w-6 h-6 border-2 border-slate-200 dark:border-slate-600 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin" role="status">
-          <span className="sr-only">Loading...</span>
-        </div>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">Loading results...</p>
+      <div className="p-8">
+        <LoadingSpinner size="lg" text="Loading results..." />
       </div>
     );
   }

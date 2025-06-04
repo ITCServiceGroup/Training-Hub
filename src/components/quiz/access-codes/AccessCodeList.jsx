@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { accessCodesService } from '../../../services/api/accessCodes';
 import ConfirmationDialog from '../../common/ConfirmationDialog';
+import LoadingSpinner from '../../common/LoadingSpinner';
 import { useToast } from '../../common/ToastContainer';
 
 const AccessCodeList = ({ quizId }) => {
@@ -107,7 +108,11 @@ const AccessCodeList = ({ quizId }) => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8 dark:text-slate-300">Loading access codes...</div>;
+    return (
+      <div className="p-8">
+        <LoadingSpinner size="lg" text="Loading access codes..." />
+      </div>
+    );
   }
 
   return (

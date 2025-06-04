@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { FaBook } from 'react-icons/fa';
 import { getIconByName } from '../utils/iconMappings';
+import LoadingSpinner from './common/LoadingSpinner';
 
 /**
  * Component for displaying a grid of categories
@@ -51,9 +52,8 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
 
   if (isLoading) {
     return (
-      <div className={`flex justify-center items-center p-12 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-        <div className={`w-8 h-8 rounded-full border-3 ${isDark ? 'border-gray-700 border-t-primary-light' : 'border-gray-200 border-t-primary-dark'} animate-spin mr-4`}></div>
-        <span>Loading categories...</span>
+      <div className="p-12">
+        <LoadingSpinner size="lg" text="Loading categories..." />
       </div>
     );
   }

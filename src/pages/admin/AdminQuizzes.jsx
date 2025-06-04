@@ -5,6 +5,7 @@ import AccessCodeManager from '../../components/quiz/access-codes/AccessCodeMana
 import { quizzesService } from '../../services/api/quizzes';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import { useTheme } from '../../contexts/ThemeContext';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminQuizzes = () => {
   const navigate = useNavigate();
@@ -140,8 +141,8 @@ const AdminQuizzes = () => {
 
       <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow overflow-hidden`}>
         {isLoading ? (
-          <div className={`p-8 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
-            Loading quizzes...
+          <div className="p-8">
+            <LoadingSpinner size="lg" text="Loading quizzes..." />
           </div>
         ) : quizzes.length === 0 ? (
           <div className={`p-8 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>

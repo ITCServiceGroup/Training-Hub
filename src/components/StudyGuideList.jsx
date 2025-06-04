@@ -2,6 +2,7 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
 import { FaTimes } from 'react-icons/fa';
+import LoadingSpinner from './common/LoadingSpinner';
 
 /**
  * Component for displaying a list of study guides within a category
@@ -30,9 +31,8 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
             </button>
           )}
         </div>
-        <div className={`flex justify-center items-center p-4 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-          <div className={`w-5 h-5 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-primary' : 'border-gray-200 border-t-primary'} animate-spin mr-3`}></div>
-          <span>Loading...</span>
+        <div className="p-4">
+          <LoadingSpinner size="md" text="Loading..." />
         </div>
       </div>
     );

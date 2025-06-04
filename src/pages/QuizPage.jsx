@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { quizzesService } from '../services/api/quizzes';
 import QuizTaker from '../components/quiz/QuizTaker';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { groupBy } from 'lodash'; // Assuming lodash is available, or implement a simple groupBy
 
 const QuizPage = () => {
@@ -185,8 +186,8 @@ const QuizPage = () => {
         <h2 className={`text-2xl font-bold ${isDark ? 'text-primary-light' : 'text-primary-dark'} mb-3`}>Practice Quizzes</h2>
         <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a quiz below to start practicing.</p>
         {isLoading ? (
-          <div className="text-center py-6">
-            <p className={`${isDark ? 'text-gray-400' : 'text-slate-600'} text-sm`}>Loading quizzes...</p>
+          <div className="p-8">
+            <LoadingSpinner size="lg" text="Loading quizzes..." />
           </div>
         ) : Object.keys(groupedQuizzes).length === 0 ? (
           <div className="text-center py-6">

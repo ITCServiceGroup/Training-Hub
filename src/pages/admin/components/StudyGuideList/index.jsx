@@ -18,6 +18,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import { FaCopy, FaArrowRight, FaEllipsisV } from 'react-icons/fa';
+import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 
 // Helper function to extract a preview from HTML or JSON content
 const extractPreview = (content, maxLength = 150) => {
@@ -560,7 +561,9 @@ const StudyGuideList = ({
   onReorder,
   onCopy,
   onMove,
-  onUpdateDescription
+  onUpdateDescription,
+  isLoading,
+  error
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
   const { sectionsData, selectedCategory } = useContext(CategoryContext);
@@ -613,6 +616,27 @@ const StudyGuideList = ({
   };
 
   // Using Tailwind classes instead of inline styles
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="p-8">
+        <LoadingSpinner size="lg" text="Loading study guides..." />
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+        <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+      </div>
+    );
+  }
 
   if (!studyGuidesToDisplay.length) {
     return (

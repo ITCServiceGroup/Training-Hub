@@ -4,6 +4,9 @@ module.exports = {
   darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
+      borderWidth: {
+        '3': '3px',
+      },
       colors: {
         // Dynamic theme colors using CSS variables
         primary: {

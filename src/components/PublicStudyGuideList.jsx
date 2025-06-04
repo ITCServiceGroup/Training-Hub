@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from './common/LoadingSpinner';
 
 // Helper function to extract a preview from HTML or JSON content
 const extractPreview = (content, maxLength = 300) => {
@@ -351,7 +352,11 @@ const PublicStudyGuideList = ({ studyGuides = [], onSelect, isLoading, error }) 
   const isDark = theme === 'dark';
 
   if (isLoading) {
-    return <div className={`text-center p-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Loading study guides...</div>;
+    return (
+      <div className="p-8">
+        <LoadingSpinner size="lg" text="Loading study guides..." />
+      </div>
+    );
   }
 
   if (error) {
