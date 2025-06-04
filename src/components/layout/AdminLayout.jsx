@@ -109,7 +109,7 @@ const AdminLayout = () => {
       }}
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0">
-        <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white py-8 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+        <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white pt-4 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
           <ul className="list-none p-0 m-0">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
@@ -182,7 +182,7 @@ const AdminLayout = () => {
           </ul>
         </div>
 
-        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto mt-0 h-[calc(100vh-73px)]">
+        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto h-[calc(100vh-73px)]">
           {/* Render the child routes */}
           <Outlet />
         </div>

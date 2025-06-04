@@ -15,7 +15,7 @@ const Layout = () => {
       <main className="main-content flex-1 flex flex-col w-full">
         {/* Apply padding conditionally - no padding for admin or study guide pages */}
         <div
-          className={`w-full flex-1 flex flex-col ${isAdminPage || isStudyGuidePage ? 'p-2' : 'p-8'}`}
+          className={`w-full flex-1 flex flex-col ${isAdminPage || isStudyGuidePage ? '' : 'p-8'}`}
           style={isStudyGuidePage ? { overflow: 'visible !important' } : {}}
         >
           <Outlet />
