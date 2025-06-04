@@ -78,7 +78,7 @@ const ensureThemeColors = (props, isDark) => {
 export const TableSettings = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, autoConvertColors } = useNode((node) => ({
+  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, radius, shadow, autoConvertColors } = useNode((node) => ({
     id: node.id,
     borderStyle: node.data.props.borderStyle,
     borderWidth: node.data.props.borderWidth,
@@ -96,6 +96,8 @@ export const TableSettings = () => {
     headerFontSize: node.data.props.headerFontSize,
     textAlign: node.data.props.textAlign,
     headerTextAlign: node.data.props.headerTextAlign,
+    radius: node.data.props.radius,
+    shadow: node.data.props.shadow,
     autoConvertColors: node.data.props.autoConvertColors
   }));
 
@@ -763,6 +765,39 @@ export const TableSettings = () => {
               </div>
             </div>
 
+            {/* Border Radius */}
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Border Radius</label>
+              <div className="flex items-center">
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    value={radius}
+                    min={0}
+                    max={50}
+                    onChange={(e) => setProp((props) => { props.radius = parseInt(e.target.value); })}
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={radius}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 0 && value <= 50) {
+                        setProp((props) => { props.radius = value; });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Border radius in pixels"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Auto-convert colors between themes */}
             <div className="mb-3 relative">
               <div className="flex items-center">
@@ -1044,6 +1079,298 @@ export const TableSettings = () => {
                       onChange={(newColor) => handleOppositeThemeColorChange('alternateRowColor', newColor)}
                       componentType="table"
                     />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Shadow Settings */}
+            <div className="mb-3">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="enableShadow"
+                  checked={shadow?.enabled || false}
+                  onChange={(e) => {
+                    setProp((props) => {
+                      if (!props.shadow) {
+                        props.shadow = {
+                          enabled: e.target.checked,
+                          x: 0,
+                          y: 4,
+                          blur: 8,
+                          spread: 0,
+                          color: {
+                            light: { r: 0, g: 0, b: 0, a: 0.15 },
+                            dark: { r: 255, g: 255, b: 255, a: 0.15 }
+                          }
+                        };
+                      } else {
+                        props.shadow.enabled = e.target.checked;
+                      }
+                    });
+                  }}
+                  className="mr-2 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
+                />
+                <label
+                  htmlFor="enableShadow"
+                  className="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer leading-none pt-1"
+                >
+                  Enable Shadow
+                </label>
+              </div>
+              {shadow?.enabled && (
+                <div className="space-y-2 pl-6 mt-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">X Offset</label>
+                      <input
+                        type="number"
+                        value={shadow?.x || 0}
+                        onChange={(e) => setProp((props) => {
+                          if (!props.shadow) {
+                            props.shadow = {
+                              enabled: true,
+                              x: parseInt(e.target.value),
+                              y: 4,
+                              blur: 8,
+                              spread: 0,
+                              color: {
+                                light: { r: 0, g: 0, b: 0, a: 0.15 },
+                                dark: { r: 255, g: 255, b: 255, a: 0.15 }
+                              }
+                            };
+                          } else {
+                            props.shadow.x = parseInt(e.target.value);
+                          }
+                        })}
+                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Y Offset</label>
+                      <input
+                        type="number"
+                        value={shadow?.y || 4}
+                        onChange={(e) => setProp((props) => {
+                          if (!props.shadow) {
+                            props.shadow = {
+                              enabled: true,
+                              x: 0,
+                              y: parseInt(e.target.value),
+                              blur: 8,
+                              spread: 0,
+                              color: {
+                                light: { r: 0, g: 0, b: 0, a: 0.15 },
+                                dark: { r: 255, g: 255, b: 255, a: 0.15 }
+                              }
+                            };
+                          } else {
+                            props.shadow.y = parseInt(e.target.value);
+                          }
+                        })}
+                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Blur</label>
+                      <input
+                        type="number"
+                        value={shadow?.blur || 8}
+                        onChange={(e) => setProp((props) => {
+                          if (!props.shadow) {
+                            props.shadow = {
+                              enabled: true,
+                              x: 0,
+                              y: 4,
+                              blur: parseInt(e.target.value),
+                              spread: 0,
+                              color: {
+                                light: { r: 0, g: 0, b: 0, a: 0.15 },
+                                dark: { r: 255, g: 255, b: 255, a: 0.15 }
+                              }
+                            };
+                          } else {
+                            props.shadow.blur = parseInt(e.target.value);
+                          }
+                        })}
+                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Spread</label>
+                      <input
+                        type="number"
+                        value={shadow?.spread || 0}
+                        onChange={(e) => setProp((props) => {
+                          if (!props.shadow) {
+                            props.shadow = {
+                              enabled: true,
+                              x: 0,
+                              y: 4,
+                              blur: 8,
+                              spread: parseInt(e.target.value),
+                              color: {
+                                light: { r: 0, g: 0, b: 0, a: 0.15 },
+                                dark: { r: 255, g: 255, b: 255, a: 0.15 }
+                              }
+                            };
+                          } else {
+                            props.shadow.spread = parseInt(e.target.value);
+                          }
+                        })}
+                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Shadow Color */}
+                  <div className="mb-3">
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Shadow Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                    </label>
+                    <div className="flex items-center">
+                      <ColorPicker
+                        color={(() => {
+                          try {
+                            const currentTheme = isDark ? 'dark' : 'light';
+                            // Always use the current theme's color directly
+                            if (shadow?.color && shadow.color[currentTheme] &&
+                                typeof shadow.color[currentTheme].r !== 'undefined' &&
+                                typeof shadow.color[currentTheme].g !== 'undefined' &&
+                                typeof shadow.color[currentTheme].b !== 'undefined') {
+                              return shadow.color[currentTheme];
+                            }
+                            // Fallback to default color for current theme
+                            return isDark ?
+                              { r: 255, g: 255, b: 255, a: 0.15 } :
+                              { r: 0, g: 0, b: 0, a: 0.15 };
+                          } catch (error) {
+                            console.warn('Error getting current theme shadow color:', error);
+                            return isDark ?
+                              { r: 255, g: 255, b: 255, a: 0.15 } :
+                              { r: 0, g: 0, b: 0, a: 0.15 };
+                          }
+                        })()}
+                        onChange={(newColor) => {
+                          setProp((props) => {
+                            const currentTheme = isDark ? 'dark' : 'light';
+                            const oppositeTheme = isDark ? 'light' : 'dark';
+
+                            if (!props.shadow) {
+                              props.shadow = {
+                                enabled: true,
+                                x: 0,
+                                y: 4,
+                                blur: 8,
+                                spread: 0,
+                                color: {
+                                  [currentTheme]: newColor,
+                                  [oppositeTheme]: isDark ?
+                                    { r: 0, g: 0, b: 0, a: 0.15 } :
+                                    { r: 255, g: 255, b: 255, a: 0.15 }
+                                }
+                              };
+                            } else {
+                              if (!props.shadow.color) {
+                                props.shadow.color = {};
+                              }
+
+                              if (props.autoConvertColors) {
+                                // Auto-convert the color for the opposite theme
+                                const oppositeColor = convertToThemeColor(newColor, !isDark, 'shadow');
+
+                                props.shadow.color = {
+                                  ...props.shadow.color,
+                                  [currentTheme]: newColor,
+                                  [oppositeTheme]: oppositeColor
+                                };
+                              } else {
+                                // Only update the current theme's color
+                                props.shadow.color = {
+                                  ...props.shadow.color,
+                                  [currentTheme]: newColor
+                                };
+                              }
+                            }
+                          });
+                        }}
+                        componentType="shadow"
+                      />
+                    </div>
+
+                    {/* Show opposite theme color control when auto-convert is disabled */}
+                    {!autoConvertColors && (
+                      <div className="mt-2">
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          Shadow Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                        </label>
+                        <div className="flex items-center">
+                          <ColorPicker
+                            color={(() => {
+                              try {
+                                const oppositeTheme = isDark ? 'light' : 'dark';
+                                const currentTheme = isDark ? 'dark' : 'light';
+
+                                // Ensure we have a valid color for the opposite theme
+                                if (shadow?.color && shadow.color[oppositeTheme] &&
+                                    typeof shadow.color[oppositeTheme].r !== 'undefined' &&
+                                    typeof shadow.color[oppositeTheme].g !== 'undefined' &&
+                                    typeof shadow.color[oppositeTheme].b !== 'undefined') {
+                                  return shadow.color[oppositeTheme];
+                                } else if (shadow?.color && shadow.color[currentTheme]) {
+                                  // If opposite theme color is missing but current theme exists, convert it
+                                  return convertToThemeColor(shadow.color[currentTheme], !isDark, 'shadow');
+                                }
+                                // Fallback to default color for opposite theme
+                                return !isDark ?
+                                  { r: 255, g: 255, b: 255, a: 0.15 } :
+                                  { r: 0, g: 0, b: 0, a: 0.15 };
+                              } catch (error) {
+                                console.warn('Error getting opposite theme shadow color:', error);
+                                return !isDark ?
+                                  { r: 255, g: 255, b: 255, a: 0.15 } :
+                                  { r: 0, g: 0, b: 0, a: 0.15 };
+                              }
+                            })()}
+                            onChange={(newColor) => {
+                              setProp((props) => {
+                                const oppositeTheme = isDark ? 'light' : 'dark';
+
+                                if (!props.shadow) {
+                                  props.shadow = {
+                                    enabled: true,
+                                    x: 0,
+                                    y: 4,
+                                    blur: 8,
+                                    spread: 0,
+                                    color: {
+                                      [oppositeTheme]: newColor
+                                    }
+                                  };
+                                } else {
+                                  if (!props.shadow.color) {
+                                    props.shadow.color = {};
+                                  }
+
+                                  // Only update the opposite theme's color
+                                  props.shadow.color = {
+                                    ...props.shadow.color,
+                                    [oppositeTheme]: newColor
+                                  };
+                                }
+                              });
+                            }}
+                            componentType="shadow"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1332,6 +1659,8 @@ export const TableSettings = () => {
           </div>
         )}
       </div>
+
+
     </div>
   );
 };

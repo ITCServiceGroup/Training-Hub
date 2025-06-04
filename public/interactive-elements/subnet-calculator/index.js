@@ -10,22 +10,32 @@ class SubnetCalculatorElement extends HTMLElement {
                 :host {
                     display: block;
                     font-family: 'Inter', sans-serif;
-                    background: var(--bg-color, #ffffff);
-                    color: var(--text-color, #2c3e50);
+                    background: var(--custom-primary-bg-color, var(--bg-color, #ffffff));
+                    color: var(--custom-title-color, var(--text-color, #2c3e50));
                     padding: 20px;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+                    /* Light mode defaults using custom properties */
+                    --bg-color: var(--custom-primary-bg-color, #ffffff);
+                    --text-color: var(--custom-title-color, #2c3e50);
+                    --border-color: #e5e7eb;
+                    --input-bg: var(--custom-secondary-bg-color, #ffffff);
+                    --input-text: var(--custom-title-color, #2c3e50);
+                    --button-bg: var(--custom-button-color, #3b82f6);
+                    --button-text: #ffffff;
+                    --canvas-bg: var(--custom-secondary-bg-color, #f8f9fa);
                 }
 
                 :host(.dark-mode) {
-                    --bg-color: #1e293b;
-                    --text-color: #f1f5f9;
+                    --bg-color: var(--custom-primary-bg-color, #1e293b);
+                    --text-color: var(--custom-title-color, #f1f5f9);
                     --border-color: #334155;
-                    --input-bg: #334155;
-                    --input-text: #f1f5f9;
-                    --button-bg: #3b82f6;
+                    --input-bg: var(--custom-secondary-bg-color, #334155);
+                    --input-text: var(--custom-title-color, #f1f5f9);
+                    --button-bg: var(--custom-button-color, #3b82f6);
                     --button-text: #ffffff;
-                    --canvas-bg: #0f172a;
+                    --canvas-bg: var(--custom-secondary-bg-color, #0f172a);
                 }
 
                 .calculator-container {
@@ -68,7 +78,7 @@ class SubnetCalculatorElement extends HTMLElement {
 
                 input:focus {
                     outline: none;
-                    border-color: var(--button-bg, #3b82f6);
+                    border-color: var(--custom-button-color, #3b82f6);
                     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
                 }
 
@@ -80,9 +90,9 @@ class SubnetCalculatorElement extends HTMLElement {
                 }
 
                 :host(.dark-mode) input:focus {
-                    border-color: var(--button-bg);
+                    border-color: var(--custom-button-color, #3b82f6);
                     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.1);
-                    background: #3c4858;
+                    background: var(--custom-secondary-bg-color, #3c4858);
                 }
 
                 .visualization-section {
@@ -131,9 +141,9 @@ class SubnetCalculatorElement extends HTMLElement {
 
                 .example-btn {
                     padding: 10px 14px;
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    color: var(--text-color);
-                    border: 1px solid var(--border-color, #dee2e6);
+                    background: var(--custom-button-color, #3b82f6);
+                    color: white;
+                    border: 1px solid var(--custom-button-color, #3b82f6);
                     border-radius: 8px;
                     cursor: pointer;
                     font-size: 13px;
@@ -155,20 +165,20 @@ class SubnetCalculatorElement extends HTMLElement {
                 }
 
                 .example-btn:hover {
-                    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-                    border-color: var(--button-bg, #3b82f6);
+                    filter: brightness(0.9);
                     transform: translateY(-1px);
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
                 }
 
                 .example-btn:active {
                     transform: translateY(0);
-                    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                    filter: brightness(0.8);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
                 .calculate-btn {
                     padding: 0 24px;
-                    background: linear-gradient(135deg, var(--button-bg, #3b82f6) 0%, #2563eb 100%);
+                    background: var(--custom-button-color, #3b82f6);
                     color: white;
                     border: none;
                     border-radius: 6px;
@@ -176,7 +186,7 @@ class SubnetCalculatorElement extends HTMLElement {
                     font-size: 14px;
                     font-weight: 600;
                     transition: all 0.2s ease;
-                    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     width: 100%;
                     height: 44px;
                     box-sizing: border-box;
@@ -186,30 +196,18 @@ class SubnetCalculatorElement extends HTMLElement {
                 }
 
                 .calculate-btn:hover {
-                    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                    filter: brightness(0.9);
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
                 }
 
                 .calculate-btn:active {
                     transform: translateY(0);
-                    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+                    filter: brightness(0.8);
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 }
 
-                /* Dark mode specific styles */
-                :host(.dark-mode) .example-btn {
-                    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-                    border: 1px solid #475569;
-                    color: #f1f5f9;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                }
-
-                :host(.dark-mode) .example-btn:hover {
-                    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
-                    border-color: var(--button-bg, #3b82f6);
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-                }
+                /* Dark mode specific styles - example buttons now use button color consistently */
 
                 :host(.dark-mode) .visualization-section {
                     background: var(--canvas-bg);
@@ -603,6 +601,22 @@ class SubnetCalculatorElement extends HTMLElement {
         this._handleInput();
     }
 
+    _getCustomColors() {
+        // Get computed styles to access CSS custom properties
+        const computedStyle = getComputedStyle(this);
+
+        return {
+            titleColor: computedStyle.getPropertyValue('--custom-title-color').trim() ||
+                       (this.classList.contains('dark-mode') ? '#f1f5f9' : '#2c3e50'),
+            buttonColor: computedStyle.getPropertyValue('--custom-button-color').trim() ||
+                        (this.classList.contains('dark-mode') ? '#3b82f6' : '#3b82f6'),
+            primaryBgColor: computedStyle.getPropertyValue('--custom-primary-bg-color').trim() ||
+                           (this.classList.contains('dark-mode') ? '#1e293b' : '#ffffff'),
+            secondaryBgColor: computedStyle.getPropertyValue('--custom-secondary-bg-color').trim() ||
+                             (this.classList.contains('dark-mode') ? '#0f172a' : '#f8f9fa')
+        };
+    }
+
     _updateCanvas(results) {
         const canvas = this.elements['network-canvas'];
         if (!canvas || !results) return;
@@ -620,8 +634,9 @@ class SubnetCalculatorElement extends HTMLElement {
     _drawNetworkVisualization(ctx, canvas, results) {
         const { width, height } = canvas;
 
-        // Check if we're in dark mode
+        // Check if we're in dark mode and get custom colors
         const isDarkMode = this.classList.contains('dark-mode');
+        const customColors = this._getCustomColors();
 
         // Responsive sizing with better breakpoints
         const isMobile = width < 500;
@@ -640,8 +655,8 @@ class SubnetCalculatorElement extends HTMLElement {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        // Draw title with theme-aware colors
-        ctx.fillStyle = isDarkMode ? '#f1f5f9' : '#2c3e50';
+        // Draw title with custom colors
+        ctx.fillStyle = customColors.titleColor;
         ctx.font = `bold ${titleSize}px Arial`;
         const titleY = isMobile ? 20 : isTablet ? 28 : 35;
         ctx.fillText('Network Address Space Visualization', width / 2, titleY);
@@ -657,19 +672,19 @@ class SubnetCalculatorElement extends HTMLElement {
         const barY = height / 2 - barHeight / 2;
         const netBcastWidth = isMobile ? 15 : isTablet ? 20 : 30;
 
-        // Add background for the entire address space with theme-aware colors
-        ctx.fillStyle = isDarkMode ? '#1e293b' : '#f8f9fa';
+        // Add background for the entire address space with custom colors
+        ctx.fillStyle = customColors.secondaryBgColor;
         ctx.fillRect(padding, barY, availableWidth, barHeight);
         ctx.strokeStyle = isDarkMode ? '#475569' : '#dee2e6';
         ctx.lineWidth = 2;
         ctx.strokeRect(padding, barY, availableWidth, barHeight);
 
-        // Network address (start) - Enhanced with theme-aware colors
+        // Network address (start) - Keep red for reserved addresses
         ctx.fillStyle = isDarkMode ? '#ef4444' : '#dc3545';
         ctx.fillRect(padding, barY, netBcastWidth, barHeight);
 
-        // Network label and address - Better positioning with theme-aware colors
-        ctx.fillStyle = isDarkMode ? '#f1f5f9' : '#2c3e50';
+        // Network label and address - Better positioning with custom colors
+        ctx.fillStyle = customColors.titleColor;
         ctx.font = `bold ${labelSize}px Arial`;
         ctx.textAlign = 'left';
         const networkLabelY = barY - (isMobile ? 30 : isTablet ? 38 : 45);
@@ -716,8 +731,8 @@ class SubnetCalculatorElement extends HTMLElement {
             const hostCountY = barY + (isMobile ? 22 : isTablet ? 32 : 40);
             ctx.fillText(`${usableHosts} hosts`, padding + netBcastWidth + usableBarWidth / 2, hostCountY);
 
-            // Draw first and last usable IPs - Better positioning with theme-aware colors
-            ctx.fillStyle = isDarkMode ? '#f1f5f9' : '#2c3e50';
+            // Draw first and last usable IPs - Better positioning with custom colors
+            ctx.fillStyle = customColors.titleColor;
             const ipTextSize = isMobile ? 8 : isTablet ? 10 : 12;
             ctx.font = `${ipTextSize}px Arial`;
             const firstIpY = barY + barHeight + (isMobile ? 12 : isTablet ? 16 : 20);
@@ -726,12 +741,12 @@ class SubnetCalculatorElement extends HTMLElement {
             ctx.fillText(`Last: ${results['last-usable']}`, padding + netBcastWidth + usableBarWidth / 2, lastIpY);
         }
 
-        // Broadcast address (end) - Enhanced with theme-aware colors
+        // Broadcast address (end) - Keep red for reserved addresses
         ctx.fillStyle = isDarkMode ? '#ef4444' : '#dc3545';
         ctx.fillRect(width - padding - netBcastWidth, barY, netBcastWidth, barHeight);
 
-        // Broadcast label and address - Better positioning with theme-aware colors
-        ctx.fillStyle = isDarkMode ? '#f1f5f9' : '#2c3e50';
+        // Broadcast label and address - Better positioning with custom colors
+        ctx.fillStyle = customColors.titleColor;
         ctx.font = `bold ${labelSize}px Arial`;
         ctx.textAlign = 'right';
         const broadcastLabelY = barY - (isMobile ? 30 : isTablet ? 38 : 45);
@@ -742,34 +757,34 @@ class SubnetCalculatorElement extends HTMLElement {
 
         // Add legend first - Only on larger screens (desktop only)
         if (width >= 800) {
-            this._drawLegend(ctx, width, height, isDarkMode);
+            this._drawLegend(ctx, width, height, isDarkMode, customColors);
         }
 
-        // Draw subnet information with better styling - Better positioning (below legend) with theme-aware colors
+        // Draw subnet information with better styling - Better positioning (below legend) with custom colors
         ctx.textAlign = 'center';
         const totalTextSize = isMobile ? 12 : isTablet ? 16 : 20;
         ctx.font = `bold ${totalTextSize}px Arial`;
-        ctx.fillStyle = isDarkMode ? '#cbd5e1' : '#495057';
+        ctx.fillStyle = customColors.titleColor;
         // Adjust Y position based on whether legend is shown
         const hasLegend = width >= 800;
         const totalY = height - (isMobile ? 50 : isTablet ? 65 : hasLegend ? 50 : 80);
         ctx.fillText(`Total Address Space: ${totalHosts} addresses`, width / 2, totalY);
 
-        // Add CIDR notation if available with theme-aware colors
+        // Add CIDR notation if available with custom colors
         const subnetMask = this.elements['subnet-mask']?.value;
         if (subnetMask && subnetMask.startsWith('/')) {
             const cidrTextSize = isMobile ? 10 : isTablet ? 13 : 16;
             ctx.font = `${cidrTextSize}px Arial`;
-            ctx.fillStyle = isDarkMode ? '#94a3b8' : '#6c757d';
+            ctx.fillStyle = customColors.titleColor;
             const cidrY = height - (isMobile ? 38 : isTablet ? 48 : hasLegend ? 30 : 55);
             ctx.fillText(`CIDR: ${subnetMask} (${32 - parseInt(subnetMask.substring(1))} host bits)`, width / 2, cidrY);
         }
     }
 
-    _drawLegend(ctx, width, height, isDarkMode) {
+    _drawLegend(ctx, width, height, isDarkMode, customColors) {
         const legendY = height - 120;
 
-        // Calculate legend positioning to prevent cutoff with theme-aware colors
+        // Calculate legend positioning to prevent cutoff with appropriate colors
         const legendItems = [
             { color: isDarkMode ? '#ef4444' : '#dc3545', text: 'Reserved (Network)' },
             { color: isDarkMode ? '#22c55e' : '#28a745', text: 'Usable for Hosts' },
@@ -789,8 +804,8 @@ class SubnetCalculatorElement extends HTMLElement {
             ctx.fillStyle = item.color;
             ctx.fillRect(x, legendY, 15, 15);
 
-            // Draw text with theme-aware colors
-            ctx.fillStyle = isDarkMode ? '#cbd5e1' : '#495057';
+            // Draw text with custom colors
+            ctx.fillStyle = customColors.titleColor;
             ctx.font = '14px Arial';
             ctx.textAlign = 'left';
             ctx.fillText(item.text, x + 20, legendY + 12);
@@ -811,6 +826,16 @@ class SubnetCalculatorElement extends HTMLElement {
 
         // Initial theme check
         this._updateTheme();
+    }
+
+    updateTheme(isDarkMode) {
+        // This method can be called by the InteractiveRenderer when theme changes
+        this.classList.toggle('dark-mode', isDarkMode);
+
+        // Trigger canvas redraw if we have data
+        if (this.elements['ip-address']?.value && this.elements['subnet-mask']?.value) {
+            this._handleInput();
+        }
     }
 
     _updateTheme() {

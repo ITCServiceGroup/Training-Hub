@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quizzesService } from '../../services/api/quizzes';
+import { useToast } from '../common/ToastContainer';
 import QuizMetadataForm from './QuizMetadataForm';
 import QuestionManager from './QuestionManager';
 import QuizPreview from './QuizPreview';
@@ -36,6 +37,7 @@ const QuizBuilderPage = () => {
   const isDark = theme === 'dark';
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   // Initialize state using the helper function
   const [quiz, setQuiz] = useState(getInitialQuizState());
   const [initialQuizState, setInitialQuizState] = useState(null); // Store initial state for change detection
@@ -75,16 +77,21 @@ const QuizBuilderPage = () => {
       let savedQuizData;
       if (quizId) {
         savedQuizData = await quizzesService.update(quizId, quiz);
+        // Show success toast for updates
+        showToast('Quiz updated successfully!', 'success');
+        // Update initial state after successful save
+        setInitialQuizState(JSON.parse(JSON.stringify(savedQuizData)));
+        setQuiz(savedQuizData); // Ensure local state matches saved state
       } else {
         savedQuizData = await quizzesService.create(quiz);
-        // Navigate to edit page for the new quiz, but stay on the page for updates
-        navigate(`/admin/quizzes/edit/${savedQuizData.id}`, { replace: true });
+        // Show success toast for new quiz creation
+        showToast('Quiz created successfully!', 'success');
+        // Navigate back to quiz list after creating new quiz
+        navigate('/admin/quizzes');
       }
-      // Update initial state after successful save
-      setInitialQuizState(JSON.parse(JSON.stringify(savedQuizData)));
-      setQuiz(savedQuizData); // Ensure local state matches saved state
     } catch (error) {
       setError('Failed to save quiz');
+      showToast('Failed to save quiz', 'error');
     } finally {
       setIsLoading(false);
     }

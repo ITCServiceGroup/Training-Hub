@@ -30,6 +30,18 @@ const defaultProps = {
     light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
     dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
   },
+  radius: 0,
+  shadow: {
+    enabled: false,
+    x: 0,
+    y: 4,
+    blur: 8,
+    spread: 0,
+    color: {
+      light: { r: 0, g: 0, b: 0, a: 0.15 },
+      dark: { r: 255, g: 255, b: 255, a: 0.15 }
+    }
+  },
   alternateRowColor: {
     light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
     dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
@@ -70,6 +82,8 @@ export const Table = (props) => {
     headerFontSize,
     textAlign,
     headerTextAlign,
+    radius,
+    shadow,
     autoConvertColors
   } = props;
 
@@ -127,6 +141,27 @@ export const Table = (props) => {
         const cellContent = getCellContent(i, j);
         const cellKey = `${i}-${j}`;
 
+        // Determine if this cell is a corner cell for border radius
+        const isTopRow = i === 0;
+        const isBottomRow = i === tableData.rowCount - 1;
+        const isLeftColumn = j === 0;
+        const isRightColumn = j === tableData.columnCount - 1;
+
+        // Calculate border radius for corner cells
+        let cellBorderRadius = '';
+        if (radius > 0) {
+          const radiusValue = `${radius}px`;
+          if (isTopRow && isLeftColumn) {
+            cellBorderRadius = `${radiusValue} 0 0 0`;
+          } else if (isTopRow && isRightColumn) {
+            cellBorderRadius = `0 ${radiusValue} 0 0`;
+          } else if (isBottomRow && isLeftColumn) {
+            cellBorderRadius = `0 0 0 ${radiusValue}`;
+          } else if (isBottomRow && isRightColumn) {
+            cellBorderRadius = `0 0 ${radiusValue} 0`;
+          }
+        }
+
         cells.push(
           <td
             key={cellKey}
@@ -144,7 +179,8 @@ export const Table = (props) => {
                   : 'transparent',
               // Add a subtle outline when borders are none to help distinguish cells
               outline: borderStyle === 'none' ? (theme === 'dark' ? '1px solid rgba(55, 65, 81, 0.2)' : '1px solid rgba(229, 231, 235, 0.5)') : 'none',
-              position: 'relative'
+              position: 'relative',
+              borderRadius: cellBorderRadius
             }}
           >
             <TableText
@@ -303,9 +339,14 @@ export const Table = (props) => {
             borderCollapse: 'separate',
             borderSpacing: 0,
             tableLayout: 'fixed',
-              border: borderStyle !== 'none' ?
+            borderRadius: `${radius}px`,
+            overflow: 'hidden',
+            border: borderStyle !== 'none' ?
               `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${Object.values(getThemeColor(borderColor, isDark, 'table', autoConvertColors))})` :
-              'none'
+              'none',
+            boxShadow: shadow.enabled
+              ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(getThemeColor(shadow.color, isDark, 'shadow', autoConvertColors))})`
+              : 'none',
           }}
         >
           <tbody>
@@ -341,6 +382,15 @@ Table.craft = {
       : {
           light: defaultProps.alternateRowColor,
           dark: convertToThemeColor(defaultProps.alternateRowColor, true)
+        },
+    shadow: defaultProps.shadow && defaultProps.shadow.color && defaultProps.shadow.color.light && defaultProps.shadow.color.dark
+      ? defaultProps.shadow
+      : {
+          ...defaultProps.shadow,
+          color: {
+            light: defaultProps.shadow.color.light || defaultProps.shadow.color,
+            dark: defaultProps.shadow.color.dark || convertToThemeColor(defaultProps.shadow.color.light || defaultProps.shadow.color, true, 'shadow')
+          }
         }
   },
   rules: {

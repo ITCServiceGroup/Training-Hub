@@ -41,7 +41,7 @@ function App() {
   }
 
   return (
-    <div className={`app-container w-full min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className={`w-full ${theme === 'dark' ? 'dark' : ''}`} style={{ minHeight: 'auto' }}>
       <Routes>
         {/* Main app routes */}
         <Route path="/" element={<Layout />}>

@@ -228,9 +228,6 @@ export const Tabs = (props) => {
           width: '100%',
           position: 'relative',
           margin: 0,
-          boxShadow: shadow.enabled
-            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(getThemeColor(shadow.color, isDark, 'shadow', autoConvertColors))})`
-            : 'none',
         }}
         data-id={id}
       >
@@ -307,11 +304,13 @@ export const Tabs = (props) => {
           border: border.style !== 'none'
             ? `${border.width}px ${border.style} rgba(${Object.values(getThemeColor(border.color, isDark, 'tabs', autoConvertColors))})`
             : 'none',
-          borderTopRightRadius: `${radius}px`,
           borderBottomLeftRadius: `${radius}px`,
           borderBottomRightRadius: `${radius}px`,
           padding: '16px',
-          minHeight: '100px'
+          minHeight: '100px',
+          boxShadow: shadow.enabled
+            ? `${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px rgba(${Object.values(getThemeColor(shadow.color, isDark, 'shadow', autoConvertColors))})`
+            : 'none',
         }}
       >
         {Array.from({ length: numberOfTabs }, (_, index) => (

@@ -58,9 +58,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8">
         <div className="fixed inset-0 bg-black opacity-30" onClick={onClose}></div>
-        <div className={`relative rounded-lg max-w-4xl w-full mx-auto p-6 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+        <div className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Create New Study Guide</h2>
             <button
@@ -136,7 +136,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : filteredTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-h-[600px] overflow-y-auto">
               {filteredTemplates.map(template => (
                 <div
                   key={template.id}
@@ -159,7 +159,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                     </div>
                   )}
 
-                  <div className="h-48 overflow-hidden">
+                  <div className="h-80 overflow-hidden">
                     <TemplatePreview
                       content={template.content}
                       className="w-full h-full"

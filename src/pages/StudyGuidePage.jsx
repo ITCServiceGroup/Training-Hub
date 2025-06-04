@@ -342,7 +342,7 @@ const StudyGuidePage = () => {
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
   return (
-    <div className="py-2 w-full h-full flex flex-col">
+    <div className="py-2 w-full flex flex-col">
       <div className={`mb-1 flex flex-col gap-1 ${categoryId ? 'px-8' : 'px-0'}`}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -390,9 +390,9 @@ const StudyGuidePage = () => {
       </div>
 
       {/* Search Results */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col">
         {searchResults && searchQuery ? (
-          <div className="mt-4 px-8 flex-1 overflow-auto">
+          <div className="mt-4 px-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Search Results for "{searchQuery}"
@@ -415,7 +415,7 @@ const StudyGuidePage = () => {
           /* Main content area with conditional rendering based on navigation state */
           !sectionId ? (
             /* Section view (no section selected) */
-            <div className="px-8 flex-1 overflow-auto">
+            <div className="px-8">
               <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
               <SectionGrid
                 sections={sectionsData} // Use context data
@@ -425,7 +425,7 @@ const StudyGuidePage = () => {
             </div>
           ) : !categoryId ? (
             /* Category view (section selected, no category selected) */
-            <div className="px-8 flex-1 overflow-auto">
+            <div className="px-8">
               <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
               <CategoryGrid
                 categories={categories} // Use derived categories state
@@ -436,7 +436,10 @@ const StudyGuidePage = () => {
             </div>
           ) : (
             /* Study guide view (section and category selected) */
-            <div className="flex relative w-full flex-1 max-w-full overflow-hidden">
+            <div
+              className="flex relative w-full max-w-full"
+              style={{ border: '3px solid green', overflow: 'visible !important' }}
+            >
             {/* Mobile menu button - Adjusted top based on scroll */}
             <button
               className={`md:hidden fixed ${isHeaderScrolledAway ? 'top-4' : 'top-16'} right-4 z-[60] p-2 ${isDark ? 'bg-slate-800 text-secondary hover:text-secondary/80' : 'bg-white text-secondary hover:text-secondary/80'} rounded-lg shadow-lg transition-colors`}
@@ -457,11 +460,11 @@ const StudyGuidePage = () => {
             {/* Sidebar with study guide list - sticky on desktop, fixed on mobile */}
             <div className={`
               fixed md:sticky left-0 z-[55] md:z-auto
-              w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out overflow-y-auto
-              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-160px)]'}
+              w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out
+              ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-130px)]'}
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
               ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
-              md:top-0 md:h-full md:self-start
+              md:top-0 md:self-start
             `}>
             <StudyGuideList
               studyGuides={studyGuides}
@@ -475,7 +478,10 @@ const StudyGuidePage = () => {
           </div>
 
           {/* Main content area: Show list or viewer */}
-          <div className="flex-1 w-full md:ml-8 pr-8 mb-4 overflow-y-auto" style={{ height: 'calc(100vh - 160px)' }}>
+          <div
+            className="w-full md:ml-8 pr-8 mb-4"
+            style={{ border: '3px solid blue', overflow: 'visible !important' }}
+          >
             {studyGuideId ? (
               <StudyGuideViewer
                 studyGuide={currentStudyGuide}

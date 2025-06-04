@@ -74,35 +74,42 @@ class QuizzesService extends BaseService {
         return map;
       }, {});
 
-      // 7. Count questions for all relevant categories in one go
-      const { count: totalQuestions, error: countError } = await supabase
-        .from('v2_questions')
-        .select('*', { count: 'exact', head: true })
-        .in('category_id', allCategoryIds);
-        
+      // 7. Get actual question counts for each quiz from the junction table
+      const quizIds = quizzes.map(quiz => quiz.id);
+      const { data: quizQuestionCounts, error: countError } = await supabase
+        .from('v2_quiz_questions')
+        .select('quiz_id')
+        .in('quiz_id', quizIds);
+
       if (countError) {
-          console.warn('Could not count questions for categories:', countError.message);
+          console.warn('Could not count quiz questions:', countError.message);
           // We can proceed but counts might be inaccurate or missing
+      }
+
+      // Create a map of quiz_id to question count
+      const questionCountMap = {};
+      if (quizQuestionCounts) {
+        quizQuestionCounts.forEach(relation => {
+          questionCountMap[relation.quiz_id] = (questionCountMap[relation.quiz_id] || 0) + 1;
+        });
       }
 
       // 8. Combine data for each quiz
       const enhancedQuizzes = quizzes.map(quiz => {
-        const categoryIds = typeof quiz.category_ids === 'string' 
-          ? JSON.parse(quiz.category_ids) 
+        const categoryIds = typeof quiz.category_ids === 'string'
+          ? JSON.parse(quiz.category_ids)
           : quiz.category_ids || [];
-          
+
         const quizCategories = categoryIds
           .map(id => categoriesMap[id])
           .filter(Boolean); // Filter out potential nulls if a category wasn't found
 
-        // Note: The question count here is the total across *all* fetched categories.
-        // If a per-quiz count is strictly needed, another query inside the loop would be required,
-        // but for the public page showing available quizzes, total count might be acceptable or even preferred.
-        // Let's keep the total count for now for efficiency. If specific count per quiz is needed, we can adjust.
-        
+        // Use the actual count of questions assigned to this specific quiz
+        const actualQuestionCount = questionCountMap[quiz.id] || 0;
+
         return {
           ...quiz,
-          questionCount: totalQuestions || 0, // Using the total count for now
+          questionCount: actualQuestionCount, // Using the actual quiz question count
           categories: quizCategories, // Embed full category and section info
         };
       });

@@ -55,14 +55,45 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
     }
   };
 
-  // Reset form when changing question type
+  // Handle question type change while preserving options when possible
   const handleQuestionTypeChange = (type) => {
-    setFormData(prev => ({
-      ...prev,
-      question_type: type,
-      options: type === 'true_false' ? null : ['', '', '', ''],
-      correct_answer: type === 'check_all_that_apply' ? [] : type === 'true_false' ? false : 0
-    }));
+    setFormData(prev => {
+      const prevType = prev.question_type;
+      let newOptions = prev.options;
+      let newCorrectAnswer = prev.correct_answer;
+
+      // Handle options based on question type transitions
+      if (type === 'true_false') {
+        // True/false doesn't use options
+        newOptions = null;
+        newCorrectAnswer = false;
+      } else if (prevType === 'true_false') {
+        // Coming from true/false, initialize with default options
+        newOptions = ['', '', '', ''];
+        newCorrectAnswer = type === 'check_all_that_apply' ? [] : 0;
+      } else {
+        // Switching between multiple_choice and check_all_that_apply
+        // Preserve existing options, only change correct_answer format
+        if (type === 'check_all_that_apply') {
+          // Convert single correct answer to array
+          newCorrectAnswer = Array.isArray(prev.correct_answer)
+            ? prev.correct_answer
+            : (typeof prev.correct_answer === 'number' ? [prev.correct_answer] : []);
+        } else if (type === 'multiple_choice') {
+          // Convert array of correct answers to single answer (take first one)
+          newCorrectAnswer = Array.isArray(prev.correct_answer)
+            ? (prev.correct_answer.length > 0 ? prev.correct_answer[0] : 0)
+            : (typeof prev.correct_answer === 'number' ? prev.correct_answer : 0);
+        }
+      }
+
+      return {
+        ...prev,
+        question_type: type,
+        options: newOptions,
+        correct_answer: newCorrectAnswer
+      };
+    });
   };
 
   return (
