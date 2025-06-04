@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import html2pdf from 'html2pdf.js';
@@ -18,6 +19,7 @@ import { FaSpinner } from 'react-icons/fa';
 
 
 const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
+  const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   // Refs
@@ -393,10 +395,10 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       <div className={`p-6 ${isDark ? 'bg-red-900/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700'} border rounded-lg`}>
         <p className="mb-4">{error}</p>
         <button
-          onClick={() => window.location.hash = '/quiz'}
+          onClick={() => navigate('/study-guide')}
           className={`px-4 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors`}
         >
-          Return to Quiz Page
+          Return to Study Guides
         </button>
       </div>
     );
@@ -415,7 +417,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         score={score}
         timeTaken={timeTaken}
         onRetry={quiz.is_practice ? handleStartQuiz : undefined}
-        onExit={() => window.location.hash = '/admin/quizzes'} // Navigate to quizzes page
+        onExit={() => navigate('/study-guide')} // Navigate back to study guides
         isPractice={quiz.is_practice}
         accessCodeData={accessCodeData}
       />

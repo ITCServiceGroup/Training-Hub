@@ -342,8 +342,8 @@ const StudyGuidePage = () => {
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
   return (
-    <div className="py-2 w-full flex flex-col">
-      <div className={`mb-1 flex flex-col gap-1 ${categoryId ? 'px-8' : 'px-0'}`}>
+    <div className="py-2 w-full flex flex-col flex-1">
+      <div className="mb-1 px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/study" className="no-underline">
@@ -383,7 +383,7 @@ const StudyGuidePage = () => {
       </div>
 
       {/* Error messages */}
-      <div className={`${categoryId ? 'px-8' : 'px-0'}`}>
+      <div className="px-8">
         {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{sectionsError}</div>}
         {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuidesError}</div>}
         {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuideError}</div>}
@@ -468,8 +468,8 @@ const StudyGuidePage = () => {
                 md:top-0 md:self-start
               `}
               style={{
-                height: 'calc(100vh - 160px)',
-                maxHeight: 'calc(100vh - 160px)'
+                height: 'calc(100vh - 170px)',
+                maxHeight: 'calc(100vh - 170px)'
               }}
             >
             <StudyGuideList

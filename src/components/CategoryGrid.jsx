@@ -78,7 +78,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {filteredCategories.map(category => {
         const { icon, color } = getCategoryIcon(category);
         // Only count published study guides

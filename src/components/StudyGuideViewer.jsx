@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useLocation } from 'react-router-dom';
-import { FaSearch } from 'react-icons/fa';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FaSearch, FaClipboardList } from 'react-icons/fa';
 import CraftRenderer from './craft/CraftRenderer';
 import { countSearchTermOccurrences, extractTextFromContent } from '../utils/contentTextExtractor';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -13,6 +13,7 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const location = useLocation();
+  const navigate = useNavigate();
   const craftRendererRef = useRef(null); // Ref for the CraftRenderer component
 
   // State to track if debug mode is enabled
@@ -111,8 +112,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     <div
       className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow w-full flex flex-col`}
       style={{ 
-        height: 'calc(100vh - 160px)', // Account for header (~60px) + footer (~80px)
-        maxHeight: 'calc(100vh - 160px)'}}
+        height: 'calc(100vh - 170px)', // Account for header (~60px) + footer (~80px)
+        maxHeight: 'calc(100vh - 170px)'}}
     >
       {/* Fixed header section */}
       <div className={`flex justify-between items-center px-6 pt-4 flex-shrink-0`}>
@@ -204,12 +205,14 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
               </div>
             )}
           </div>
-          {studyGuide && studyGuide.category_id && (
+          {studyGuide && studyGuide.linked_quiz_id && (
             <button
-              onClick={() => window.location.href = `/practice-quiz/${studyGuide.category_id}`}
+              onClick={() => {
+                navigate(`/quiz/${studyGuide.linked_quiz_id}`);
+              }}
               className={`bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
             >
-              <span>📝</span> Take Practice Quiz
+              <FaClipboardList /> Take Practice Quiz
             </button>
           )}
         </div>

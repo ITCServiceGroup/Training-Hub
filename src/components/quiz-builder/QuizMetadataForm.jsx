@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { sectionsService } from '../../services/api/sections';
 import { categoriesService } from '../../services/api/categories';
+import { studyGuidesService } from '../../services/api/studyGuides';
 
 const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   const { theme } = useTheme();
@@ -9,8 +10,10 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   const [sections, setSections] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedSectionId, setSelectedSectionId] = useState(null);
+  const [studyGuides, setStudyGuides] = useState([]);
+  const [linkedStudyGuides, setLinkedStudyGuides] = useState([]);
 
-  // Fetch sections and categories
+  // Fetch sections, categories, and study guides
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -23,13 +26,34 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         }, []);
 
         setCategories(allCategories);
+
+        // Fetch published study guides for linking
+        const studyGuidesData = await studyGuidesService.getPublishedForQuizLinking();
+        setStudyGuides(studyGuidesData);
       } catch (error) {
-        console.error('Failed to load sections and categories', error);
+        console.error('Failed to load sections, categories, and study guides', error);
       }
     };
 
     fetchData();
   }, []);
+
+  // Load linked study guides when quiz changes
+  useEffect(() => {
+    const loadLinkedStudyGuides = async () => {
+      if (quiz.id) {
+        try {
+          const { quizzesService } = await import('../../services/api/quizzes');
+          const linkedGuides = await quizzesService.getLinkedStudyGuides(quiz.id);
+          setLinkedStudyGuides(linkedGuides.map(guide => guide.id));
+        } catch (error) {
+          console.error('Error loading linked study guides:', error);
+        }
+      }
+    };
+
+    loadLinkedStudyGuides();
+  }, [quiz.id]);
 
   // Handle form field changes
   const handleChange = (field, value) => {
@@ -37,6 +61,27 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       ...quiz,
       [field]: value
     });
+  };
+
+  // Handle study guide linking
+  const handleStudyGuideLink = async (studyGuideId, shouldLink) => {
+    try {
+      console.log('Linking study guide:', studyGuideId, 'to quiz:', quiz.id, 'shouldLink:', shouldLink);
+      if (shouldLink) {
+        // Link the study guide to this quiz
+        await studyGuidesService.updateLinkedQuiz(studyGuideId, quiz.id);
+        setLinkedStudyGuides(prev => [...prev, studyGuideId]);
+        console.log('Successfully linked study guide');
+      } else {
+        // Unlink the study guide from this quiz
+        await studyGuidesService.updateLinkedQuiz(studyGuideId, null);
+        setLinkedStudyGuides(prev => prev.filter(id => id !== studyGuideId));
+        console.log('Successfully unlinked study guide');
+      }
+    } catch (error) {
+      console.error('Error updating study guide link:', error);
+      // You might want to show a toast notification here
+    }
   };
 
   // Handle category selection
@@ -258,6 +303,41 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           )}
         </div>
       </div>
+
+      {/* Study Guide Linking Section */}
+      {quiz.id && (quiz.is_practice || quiz.has_practice_mode) && (
+        <div>
+          <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
+            Link Study Guides
+          </label>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
+            Select study guides that should show a "Take Practice Quiz" button linking to this quiz.
+          </p>
+          <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
+            {studyGuides.map(guide => (
+              <label key={guide.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+                <input
+                  type="checkbox"
+                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
+                  checked={linkedStudyGuides.includes(guide.id)}
+                  onChange={(e) => handleStudyGuideLink(guide.id, e.target.checked)}
+                  disabled={isLoading}
+                />
+                <div className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                  <div className="font-medium">{guide.title}</div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                    {guide.v2_categories?.v2_sections?.name} → {guide.v2_categories?.name}
+                  </div>
+                </div>
+              </label>
+            ))}
+
+            {studyGuides.length === 0 && (
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No published study guides available</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

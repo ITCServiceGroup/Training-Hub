@@ -398,6 +398,42 @@ class QuizzesService extends BaseService {
       throw error;
     }
   }
+
+  /**
+   * Get study guides linked to a specific quiz
+   * @param {string} quizId - Quiz ID
+   * @returns {Promise<Array>} - Study guides linked to the quiz
+   */
+  async getLinkedStudyGuides(quizId) {
+    try {
+      const { data, error } = await supabase
+        .from('v2_study_guides')
+        .select(`
+          id,
+          title,
+          v2_categories(
+            id,
+            name,
+            v2_sections(
+              id,
+              name
+            )
+          )
+        `)
+        .eq('linked_quiz_id', quizId)
+        .eq('is_published', true)
+        .order('title');
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching linked study guides:', error.message);
+      throw error;
+    }
+  }
 }
 
 export const quizzesService = new QuizzesService();

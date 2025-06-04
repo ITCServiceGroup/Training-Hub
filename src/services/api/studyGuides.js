@@ -316,6 +316,66 @@ class StudyGuidesService extends BaseService {
       throw error;
     }
   }
+
+  /**
+   * Update the linked quiz for a study guide
+   * @param {string} id - Study guide ID
+   * @param {string|null} quizId - Quiz ID to link, or null to unlink
+   * @returns {Promise<Object>} - Updated study guide
+   */
+  async updateLinkedQuiz(id, quizId) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update({ linked_quiz_id: quizId })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating study guide linked quiz:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all published study guides for quiz linking dropdown
+   * @returns {Promise<Array>} - Published study guides with basic info
+   */
+  async getPublishedForQuizLinking() {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select(`
+          id,
+          title,
+          v2_categories(
+            id,
+            name,
+            v2_sections(
+              id,
+              name
+            )
+          )
+        `)
+        .eq('is_published', true)
+        .order('title');
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching published study guides for quiz linking:', error.message);
+      throw error;
+    }
+  }
 }
 
 export const studyGuidesService = new StudyGuidesService();
