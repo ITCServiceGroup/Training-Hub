@@ -26,6 +26,12 @@ export default defineConfig({
   },
   // Use relative path since we're using HashRouter
   base: './',
+  define: {
+    '__APP_CONFIG__': {
+      supabaseUrl: process.env.VITE_SUPABASE_URL || '',
+      supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || ''
+    }
+  },
   // Ensure we're using the correct HTML template
   resolve: {
     alias: {

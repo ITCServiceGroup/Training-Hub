@@ -1,20 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '../config/supabase';
-
-// Extract the Supabase URL for localStorage key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-
-if (!supabaseUrl) {
-  logAuth('Missing Supabase URL environment variable');
-  throw new Error('Missing required environment variable: VITE_SUPABASE_URL');
-}
-
-try {
-  new URL(supabaseUrl);
-} catch (error) {
-  logAuth('Invalid Supabase URL format', error);
-  throw new Error('Invalid Supabase URL configuration');
-}
+import { getSupabaseClient, initializeSupabase } from '../config/supabase';
+import { initializeConfig, isSupabaseConfigured } from '../config/config';
 
 // Debug helper function with localStorage persistence
 const logAuth = (message, data = null) => {
@@ -37,30 +23,11 @@ const logAuth = (message, data = null) => {
   try {
     const logs = JSON.parse(localStorage.getItem('authLogs') || '[]');
     logs.push({ timestamp, type: 'AUTH', message, data: dataString });
-    // Keep only last 100 logs
     if (logs.length > 100) logs.shift();
     localStorage.setItem('authLogs', JSON.stringify(logs));
   } catch (e) {
     console.error('Failed to persist log to localStorage', e);
   }
-};
-
-// Function to view all persisted logs
-window.viewAuthLogs = () => {
-  try {
-    const logs = JSON.parse(localStorage.getItem('authLogs') || '[]');
-    console.log('=== PERSISTED AUTH LOGS ===', logs);
-    return logs;
-  } catch (e) {
-    console.error('Failed to retrieve logs', e);
-    return [];
-  }
-};
-
-// Clear logs
-window.clearAuthLogs = () => {
-  localStorage.removeItem('authLogs');
-  console.log('Auth logs cleared');
 };
 
 // Create context
@@ -73,62 +40,51 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Handle environment variable errors
+  // Initialize configuration and Supabase
   useEffect(() => {
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      setError('Missing required environment variables');
+    logAuth('Initializing configuration');
+    initializeConfig();
+    
+    if (!isSupabaseConfigured()) {
+      logAuth('Supabase is not configured - some features will be disabled');
       setLoading(false);
       return;
     }
-  }, []);
 
-  // Initialize auth state
-  useEffect(() => {
-    // Get current session from Supabase
+    const client = initializeSupabase();
+    if (!client) {
+      logAuth('Failed to initialize Supabase client');
+      setError('Authentication service unavailable');
+      setLoading(false);
+      return;
+    }
+
     const initializeAuth = async () => {
-      logAuth('Initializing authentication');
-      setLoading(true);
-      
       try {
-        // Check current session
-        logAuth('Checking for existing session');
-        const { data, error } = await supabase.auth.getSession();
-        
-        logAuth('Session check response', data);
-        
-        if (error) {
-          logAuth('Session check error', error);
-          throw error;
-        }
-        
+        const { data, error: sessionError } = await client.auth.getSession();
+        if (sessionError) throw sessionError;
+
         const session = data.session;
-        
         setSession(session);
         setUser(session?.user || null);
         
-        logAuth('Session state after check', { 
-          hasSession: !!session, 
-          hasUser: !!session?.user,
-          user: session?.user
+        logAuth('Session initialized', {
+          hasSession: !!session,
+          hasUser: !!session?.user
         });
-        
-        // Listen for auth changes
-        logAuth('Setting up auth state change listener');
-        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
+
+        const { data: { subscription } } = await client.auth.onAuthStateChange(
           (_event, session) => {
-            logAuth(`Auth state changed: ${_event}`, {
-              hasSession: !!session,
-              hasUser: !!session?.user
-            });
+            logAuth(`Auth state changed: ${_event}`);
             setSession(session);
             setUser(session?.user || null);
           }
         );
 
-        return () => subscription.unsubscribe();
+        return () => subscription?.unsubscribe();
       } catch (error) {
+        logAuth('Auth initialization error', error);
         setError(error.message);
-        console.error('Error initializing auth:', error.message);
       } finally {
         setLoading(false);
       }
@@ -139,48 +95,28 @@ export const AuthProvider = ({ children }) => {
 
   // Sign in with email
   const signIn = async (email, password) => {
-    logAuth(`Signing in user: ${email}`);
+    const client = getSupabaseClient();
+    if (!client) {
+      setError('Authentication service unavailable');
+      return { error: 'Authentication service unavailable' };
+    }
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      logAuth('Calling supabase.auth.signInWithPassword');
-      const response = await supabase.auth.signInWithPassword({
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       });
-      
-      logAuth('Sign in response received', response);
-      
-      const { data, error } = response;
-      
-      if (error) {
-        logAuth('Sign in error', error);
-        throw error;
-      }
-      
-      logAuth('Sign in successful', {
-        session: data.session,
-        user: data.user
-      });
-      
-      // Manually update state after successful login
-      // This ensures the state is updated immediately
+
+      if (error) throw error;
+
       setSession(data.session);
       setUser(data.user);
-      
-      // Double check that localStorage has the session
-      const supabaseKey = 'sb-' + supabaseUrl.split('//')[1].split('.')[0] + '-auth-token';
-      const localStorageSession = localStorage.getItem(supabaseKey);
-      logAuth('localStorage session after login', { 
-        hasLocalStorage: !!localStorageSession,
-        localStorageLength: localStorageSession?.length
-      });
-      
       return data;
     } catch (error) {
       setError(error.message);
-      console.error('Error signing in:', error.message);
       return { error };
     } finally {
       setLoading(false);
@@ -189,28 +125,27 @@ export const AuthProvider = ({ children }) => {
 
   // Sign out
   const signOut = async () => {
-    logAuth('Signing out');
+    const client = getSupabaseClient();
+    if (!client) {
+      setError('Authentication service unavailable');
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        logAuth('Sign out error', error);
-        throw error;
-      }
-      
-      logAuth('Sign out successful');
+      const { error } = await client.auth.signOut();
+      if (error) throw error;
+      setSession(null);
+      setUser(null);
     } catch (error) {
       setError(error.message);
-      console.error('Error signing out:', error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Context value
   const value = {
     user,
     session,
@@ -219,9 +154,9 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signOut,
     isAuthenticated: !!user,
+    isSupabaseAvailable: !!getSupabaseClient()
   };
 
-  // Provide Auth context value to children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

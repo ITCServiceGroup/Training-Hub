@@ -1,0 +1,49 @@
+// Runtime configuration values
+let config = {
+  supabaseUrl: '',
+  supabaseAnonKey: ''
+};
+
+// Function to load config
+export function initializeConfig() {
+  if (import.meta.env.DEV) {
+    // In development, use Vite's env variables
+    config = {
+      supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
+      supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+    };
+  } else {
+    // In production, use injected config
+    if (window.__APP_CONFIG__) {
+      config = {
+        ...config,
+        ...window.__APP_CONFIG__
+      };
+    }
+  }
+  
+  console.log('Environment:', import.meta.env.DEV ? 'Development' : 'Production');
+  console.log('Config values:', {
+    supabaseUrl: config.supabaseUrl ? 'SET' : 'MISSING',
+    supabaseAnonKey: config.supabaseAnonKey ? 'SET' : 'MISSING',
+    envVars: {
+      VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING',
+      VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
+    }
+  });
+  console.log('Supabase configured:', isSupabaseConfigured());
+}
+
+// Getter functions with dev/prod handling
+export function getSupabaseUrl() {
+  return config.supabaseUrl;
+}
+
+export function getSupabaseAnonKey() {
+  return config.supabaseAnonKey;
+}
+
+// Check if Supabase is configured
+export function isSupabaseConfigured() {
+  return Boolean(config.supabaseUrl && config.supabaseAnonKey);
+}
