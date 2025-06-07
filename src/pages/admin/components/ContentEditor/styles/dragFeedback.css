@@ -29,3 +29,31 @@ body.craftjs-dragging .craft-container.is-canvas {
   box-shadow: 0 0 8px rgba(255, 152, 0, 0.5) !important;
   transition: all 0.1s ease-in-out;
 }
+
+/* Wireframe styles for special components during drag operations */
+.craft-tabs[data-wireframe-visible="true"],
+.craft-collapsible-section[data-wireframe-visible="true"] {
+  outline: 2px dashed color-mix(in srgb, var(--color-primary) 50%, transparent) !important;
+  outline-offset: -2px;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Special wireframe styling for tables during drag operations */
+.craft-table[data-wireframe-visible="true"] {
+  position: relative !important;
+}
+
+/* Create a visible wireframe border that sits on top of table content */
+.craft-table[data-wireframe-visible="true"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 70%, transparent);
+  pointer-events: none;
+  z-index: 1000;
+  border-radius: 4px;
+  transition: all 0.1s ease-in-out;
+}
