@@ -11,7 +11,14 @@ export default defineConfig({
     open: true // Open browser automatically
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Ignore certain warnings
+        if (warning.code === 'EMPTY_BUNDLE') return;
+        warn(warning);
+      }
+    }
   },
   // Use /Training-Hub/ for GitHub Pages deployment
   base: '/Training-Hub/',
