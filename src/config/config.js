@@ -13,12 +13,17 @@ export function initializeConfig() {
       supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     };
   } else {
-    // In production, use injected config
-    if (window.__APP_CONFIG__) {
-      config = {
-        ...config,
-        ...window.__APP_CONFIG__
-      };
+    // In production, use injected config from Vite's define
+    try {
+      // __APP_CONFIG__ is defined by Vite's define option during build
+      if (typeof __APP_CONFIG__ !== 'undefined') {
+        config = {
+          ...config,
+          ...__APP_CONFIG__
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to load production config:', e);
     }
   }
   

@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Load environment variables
+  const env = process.env;
+
+  return {
   plugins: [react()],
   server: {
     port: 3333, // Use a completely different port
@@ -28,8 +32,8 @@ export default defineConfig({
   base: './',
   define: {
     '__APP_CONFIG__': {
-      supabaseUrl: process.env.VITE_SUPABASE_URL || '',
-      supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || ''
+      supabaseUrl: env.VITE_SUPABASE_URL || '',
+      supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || ''
     }
   },
   // Ensure we're using the correct HTML template
@@ -39,4 +43,5 @@ export default defineConfig({
       '@public': resolve(__dirname, 'public')
     }
   }
+  };
 });
