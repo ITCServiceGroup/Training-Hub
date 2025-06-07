@@ -7,10 +7,21 @@ export default defineConfig(({ mode }) => {
   // Load environment variables from .env files
   const env = loadEnv(mode, process.cwd(), '');
 
+  // Debug environment variables during build
+  console.log('Vite Config Debug:');
+  console.log('- Mode:', mode);
+  console.log('- VITE_SUPABASE_URL:', env.VITE_SUPABASE_URL ? `SET (${env.VITE_SUPABASE_URL.length} chars)` : 'MISSING');
+  console.log('- VITE_SUPABASE_ANON_KEY:', env.VITE_SUPABASE_ANON_KEY ? `SET (${env.VITE_SUPABASE_ANON_KEY.length} chars)` : 'MISSING');
+
   const appConfig = {
     supabaseUrl: env.VITE_SUPABASE_URL || '',
     supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || ''
   };
+
+  console.log('- Final appConfig:', {
+    supabaseUrl: appConfig.supabaseUrl ? `SET (${appConfig.supabaseUrl.length} chars)` : 'MISSING',
+    supabaseAnonKey: appConfig.supabaseAnonKey ? `SET (${appConfig.supabaseAnonKey.length} chars)` : 'MISSING'
+  });
 
   return {
   plugins: [react()],
