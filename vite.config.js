@@ -13,8 +13,8 @@ export default defineConfig({
   build: {
     outDir: 'dist'
   },
-  // Use root path for development
-  base: '/',
+  // Use /Training-Hub/ for GitHub Pages deployment
+  base: '/Training-Hub/',
   // Ensure we're using the correct HTML template
   resolve: {
     alias: {
