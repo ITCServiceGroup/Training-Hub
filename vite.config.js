@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
   // Use relative path since we're using HashRouter
   base: './',
   define: {
-    '__APP_CONFIG__': appConfig
+    '__APP_CONFIG__': JSON.stringify(appConfig)
   },
   // Ensure we're using the correct HTML template
   resolve: {
