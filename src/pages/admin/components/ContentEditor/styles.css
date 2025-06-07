@@ -108,7 +108,7 @@
   min-height: 50px;
   width: 100%;
   height: 100%;
-  border: none !important;
+  /* Removed border: none !important; to allow custom borders */
   outline: none !important;
   background-color: transparent;
   transition: background-color 0.2s ease, outline 0.2s ease;
@@ -645,6 +645,44 @@
   width: 100%;
   display: block;
   min-height: 24px;
+}
+
+/* Column resize handle styles */
+.column-resize-handle {
+  transition: border-color 0.2s ease;
+  pointer-events: auto !important;
+}
+
+.column-resize-handle:hover {
+  border-right-color: var(--color-primary) !important;
+}
+
+/* Ensure table content wrapper allows pointer events for resize handles */
+.table-content-wrapper {
+  pointer-events: auto !important;
+}
+
+.table-content-wrapper table {
+  pointer-events: auto !important;
+}
+
+.craft-table td {
+  pointer-events: auto !important;
+}
+
+/* Prevent text selection during column resize */
+.craft-table.resizing {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.craft-table.resizing * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* TableText component styles */

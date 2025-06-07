@@ -84,6 +84,7 @@ export const TextSettings = () => {
   const [showTextStyle, setShowTextStyle] = useState(true);
   const [showTextSpacing, setShowTextSpacing] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
@@ -626,12 +627,32 @@ export const TextSettings = () => {
                     <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                       Select Icon
                     </label>
+                    <div className="mb-2">
+                      <input
+                        type="text"
+                        placeholder="Search icons..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
                     <div className="max-h-48 overflow-y-auto p-1">
-                      {Object.entries(ICON_CATEGORIES).map(([category, icons]) => (
+                      {Object.entries(ICON_CATEGORIES).map(([category, icons]) => {
+                        // Filter icons based on search term
+                        const filteredIcons = Object.entries(icons).filter(([value, label]) => 
+                          label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          value.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          category.toLowerCase().includes(searchTerm.toLowerCase())
+                        );
+
+                        // Skip category if no icons match search
+                        if (filteredIcons.length === 0) return null;
+
+                        return (
                         <div key={category} className="mb-3">
                           <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{category}</h3>
                           <div className="grid grid-cols-3 gap-2">
-                            {Object.entries(icons).map(([value, label]) => {
+                            {filteredIcons.map(([value, label]) => {
                               const Icon = ICONS[value];
                               return (
                                 <button
@@ -650,7 +671,19 @@ export const TextSettings = () => {
                             })}
                           </div>
                         </div>
-                      ))}
+                      )})}
+                      {/* Show "No results" message when no icons match the search */}
+                      {Object.entries(ICON_CATEGORIES).every(([category, icons]) => 
+                        Object.entries(icons).every(([value, label]) => 
+                          !label.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                          !value.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                          !category.toLowerCase().includes(searchTerm.toLowerCase())
+                        )
+                      ) && (
+                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-xs">
+                          No icons match your search
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="mb-3 pl-6">

@@ -62,5 +62,13 @@
     "description": "Interactive tool for subnet calculations and network visualization with real-time binary representation.",
     "thumbnailUrl": "/interactive-elements/router-simulator/icon.png",
     "iconUrl": "/interactive-elements/router-simulator/icon.png"
+  },
+  {
+    "name": "wiring-practice",
+    "path": "wiring-practice/",
+    "title": "Wiring Practice Tool",
+    "description": "Interactive tool for practicing RJ11 and RJ45 wiring connections and color codes.",
+    "thumbnailUrl": "/interactive-elements/router-simulator/icon.png",
+    "iconUrl": "/interactive-elements/router-simulator/icon.png"
   }
 ]

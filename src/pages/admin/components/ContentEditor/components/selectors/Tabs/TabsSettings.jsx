@@ -152,22 +152,24 @@ export const TabsSettings = () => {
 
   const { actions } = useNode();
 
-  const {
-    background,
-    color,
-    padding,
-    margin,
-    radius,
-    shadow,
-    border,
-    width,
-    height,
-    numberOfTabs,
-    tabTitles,
-    tabBackground,
-    activeTabBackground,
-    tabAlignment,
-    autoConvertColors,
+const {
+  background,
+  color,
+  padding,
+  margin,
+  radius,
+  shadow,
+  border,
+  width,
+  height,
+  numberOfTabs,
+  tabTitles,
+  tabBackground,
+  activeTabBackground,
+  tabAlignment,
+  autoConvertColors,
+  titleFontSize,
+  titleFontWeight,
   } = useNode((node) => ({
     ...node.data.props
   }));
@@ -688,7 +690,7 @@ export const TabsSettings = () => {
 
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Text Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                Title Text Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
               </label>
               <div className="flex items-center">
                 <ColorPicker
@@ -761,6 +763,69 @@ export const TabsSettings = () => {
                   </p>
                 </div>
               )}
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Tab Title Font Size</label>
+              <div className="flex items-center">
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    min={12}
+                    max={80}
+                    value={titleFontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      actions.setProp((props) => {
+                        props.titleFontSize = value;
+                      });
+                    }}
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={12}
+                    max={80}
+                    value={titleFontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (!isNaN(value) && value >= 12 && value <= 80) {
+                        actions.setProp((props) => {
+                          props.titleFontSize = value;
+                        });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Font size in pixels"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Tab Title Font Weight</label>
+              <div className="flex space-x-1">
+                {['Regular', 'Medium', 'Bold'].map((weight) => {
+                  const weightValue = weight === 'Regular' ? '400' :
+                                    weight === 'Medium' ? '500' : '700';
+                  return (
+                    <button
+                      key={weight}
+                      className={`px-2 py-1 text-xs rounded capitalize ${
+                        titleFontWeight === weightValue
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
+                      }`}
+                      onClick={() => actions.setProp((props) => { props.titleFontWeight = weightValue; })}
+                      style={{ fontWeight: weightValue }}
+                    >
+                      {weight}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div>

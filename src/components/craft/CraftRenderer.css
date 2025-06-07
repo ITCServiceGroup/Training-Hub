@@ -89,7 +89,7 @@
 }
 
 .craft-renderer .craft-container.is-canvas {
-  border: none !important;
+  /* Removed border: none !important; to allow custom borders */
   outline: none !important;
 }
 

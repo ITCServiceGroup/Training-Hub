@@ -7,6 +7,8 @@ import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 // Default props for the Tabs component
 const defaultProps = {
+  titleFontSize: 14,
+  titleFontWeight: '400',
   background: {
     light: { r: 255, g: 255, b: 255, a: 1 },
     dark: { r: 31, g: 41, b: 55, a: 1 }
@@ -190,6 +192,8 @@ export const Tabs = (props) => {
     activeTabBackground,
     tabAlignment,
     autoConvertColors,
+    titleFontSize,
+    titleFontWeight,
   } = props;
 
   // Extract margin values [Top, Right, Bottom, Left]
@@ -282,6 +286,8 @@ export const Tabs = (props) => {
               marginBottom: activeTab === index && border.style !== 'none' ? `-${border.width}px` : 0,
               position: 'relative',
               color: `rgba(${Object.values(getThemeColor(color, isDark, 'text', autoConvertColors))})`,
+              fontSize: `${titleFontSize}px`,
+              fontWeight: titleFontWeight,
               ...(tabAlignment === 'space-between' && {
                 flex: 1,
                 display: 'flex',

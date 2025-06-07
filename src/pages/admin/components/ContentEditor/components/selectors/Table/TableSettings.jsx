@@ -78,7 +78,7 @@ const ensureThemeColors = (props, isDark) => {
 export const TableSettings = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, radius, shadow, autoConvertColors } = useNode((node) => ({
+  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, columnWidths, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, radius, shadow, autoConvertColors } = useNode((node) => ({
     id: node.id,
     borderStyle: node.data.props.borderStyle,
     borderWidth: node.data.props.borderWidth,
@@ -88,6 +88,7 @@ export const TableSettings = () => {
     cellPadding: node.data.props.cellPadding,
     cellAlignment: node.data.props.cellAlignment,
     tableData: node.data.props.tableData,
+    columnWidths: node.data.props.columnWidths,
     padding: node.data.props.padding,
     margin: node.data.props.margin,
     width: node.data.props.width,
@@ -378,6 +379,11 @@ export const TableSettings = () => {
                     // Add a column
                     setProp((props) => {
                       props.tableData.columnCount += 1;
+
+                      // Update column widths to maintain equal distribution
+                      const newColumnCount = props.tableData.columnCount;
+                      const equalWidth = 100 / newColumnCount;
+                      props.columnWidths = Array(newColumnCount).fill(equalWidth);
                     }, 0); // Use 0 delay for immediate update
 
                     // Select the table node to ensure toolbar stays with it
@@ -400,6 +406,11 @@ export const TableSettings = () => {
                     setProp((props) => {
                       if (props.tableData.columnCount > 1) {
                         props.tableData.columnCount -= 1;
+
+                        // Update column widths to maintain equal distribution
+                        const newColumnCount = props.tableData.columnCount;
+                        const equalWidth = 100 / newColumnCount;
+                        props.columnWidths = Array(newColumnCount).fill(equalWidth);
                       }
                     });
                   }}

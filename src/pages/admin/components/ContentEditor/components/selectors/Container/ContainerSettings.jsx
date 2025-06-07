@@ -29,6 +29,25 @@ const ensureThemeColors = (props, isDark) => {
     }
   }
 
+  // Ensure border color has both themes
+  if (props.borderColor) {
+    // Handle legacy format (single RGBA object)
+    if ('r' in props.borderColor) {
+      const oldColor = { ...props.borderColor };
+      props.borderColor = {
+        light: oldColor,
+        dark: convertToThemeColor(oldColor, true, 'container')
+      };
+    } else {
+      // If one theme is missing, generate it from the other
+      if (props.borderColor[currentTheme] && !props.borderColor[oppositeTheme]) {
+        props.borderColor[oppositeTheme] = convertToThemeColor(props.borderColor[currentTheme], !isDark, 'container');
+      } else if (props.borderColor[oppositeTheme] && !props.borderColor[currentTheme]) {
+        props.borderColor[currentTheme] = convertToThemeColor(props.borderColor[oppositeTheme], isDark, 'container');
+      }
+    }
+  }
+
   // Ensure shadow color has both themes
   if (props.shadow && props.shadow.color) {
     // Handle legacy format (single RGBA object)
@@ -79,6 +98,9 @@ export const ContainerSettings = () => {
     flexDirection,
     alignItems,
     justifyContent,
+    borderStyle,
+    borderWidth,
+    borderColor,
     radius,
     shadow,
     width,
@@ -110,6 +132,12 @@ export const ContainerSettings = () => {
       flexDirection: props.flexDirection || 'column',
       alignItems: props.alignItems || 'flex-start',
       justifyContent: props.justifyContent || 'flex-start',
+      borderStyle: props.borderStyle || 'none',
+      borderWidth: props.borderWidth || 1,
+      borderColor: props.borderColor || {
+        light: { r: 229, g: 231, b: 235, a: 1 },
+        dark: { r: 75, g: 85, b: 99, a: 1 }
+      },
       radius: props.radius || 0,
       shadow: shadowValue || {
         enabled: false,
@@ -310,6 +338,12 @@ export const ContainerSettings = () => {
                           props.background[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'container');
                         }
 
+                        // Update border color
+                        if (props.borderColor && props.borderColor[currentTheme]) {
+                          const currentBorderColor = props.borderColor[currentTheme];
+                          props.borderColor[oppositeTheme] = convertToThemeColor(currentBorderColor, !isDark, 'container');
+                        }
+
                         // Update shadow color
                         if (props.shadow && props.shadow.color && props.shadow.color[currentTheme]) {
                           const currentShadowColor = props.shadow.color[currentTheme];
@@ -481,6 +515,210 @@ export const ContainerSettings = () => {
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Directly edit the {!isDark ? 'dark' : 'light'} mode color without switching themes.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Border Settings */}
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Border Style
+              </label>
+              <div className="flex space-x-1">
+                {['none', 'solid', 'dashed', 'dotted'].map((style) => (
+                  <button
+                    key={style}
+                    className={`px-2 py-1 text-xs rounded capitalize ${
+                      borderStyle === style
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
+                    }`}
+                    onClick={() => {
+                      actions.setProp((props) => {
+                        props.borderStyle = style;
+                      });
+                    }}
+                  >
+                    {style}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Border Width
+              </label>
+              <div className="flex items-center">
+                <div className="w-3/4 flex items-center">
+                  <input
+                    type="range"
+                    value={borderWidth}
+                    min={1}
+                    max={10}
+                    onChange={(e) => {
+                      actions.setProp((props) => {
+                        props.borderWidth = parseInt(e.target.value, 10);
+                      });
+                    }}
+                    className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
+                  />
+                </div>
+                <div className="w-1/4 flex items-center">
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={borderWidth}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 1 && value <= 10) {
+                        actions.setProp((props) => {
+                          props.borderWidth = value;
+                        });
+                      }
+                    }}
+                    className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
+                    aria-label="Border width in pixels"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Border Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+              </label>
+              <div className="flex items-center">
+                <ColorPicker
+                  color={getThemeColor(borderColor, isDark, 'container')}
+                  onChange={(newColor) => {
+                    actions.setProp((props) => {
+                      // Ensure borderColor has the expected structure
+                      if (!props.borderColor) {
+                        props.borderColor = {
+                          light: { r: 229, g: 231, b: 235, a: 1 },
+                          dark: { r: 75, g: 85, b: 99, a: 1 }
+                        };
+                      }
+
+                      // Handle legacy format (single RGBA object)
+                      if ('r' in props.borderColor) {
+                        const oldColor = { ...props.borderColor };
+                        props.borderColor = {
+                          light: oldColor,
+                          dark: convertToThemeColor(oldColor, true, 'container')
+                        };
+                      }
+
+                      // Ensure both light and dark properties exist
+                      if (!props.borderColor.light) {
+                        props.borderColor.light = { r: 229, g: 231, b: 235, a: 1 };
+                      }
+                      if (!props.borderColor.dark) {
+                        props.borderColor.dark = { r: 75, g: 85, b: 99, a: 1 };
+                      }
+
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      const oppositeTheme = isDark ? 'light' : 'dark';
+
+                      if (props.autoConvertColors) {
+                        // Auto-convert the color for the opposite theme
+                        const oppositeColor = convertToThemeColor(newColor, !isDark, 'container');
+
+                        props.borderColor = {
+                          ...props.borderColor,
+                          [currentTheme]: newColor,
+                          [oppositeTheme]: oppositeColor
+                        };
+                      } else {
+                        // Only update the current theme's color
+                        props.borderColor = {
+                          ...props.borderColor,
+                          [currentTheme]: newColor
+                        };
+                      }
+                    });
+                  }}
+                  componentType="container"
+                />
+              </div>
+
+              {!autoConvertColors && (
+                <div className="mt-3">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Border Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          const currentTheme = isDark ? 'dark' : 'light';
+
+                          // Ensure we have a valid color for the opposite theme
+                          if (borderColor && borderColor[oppositeTheme] &&
+                              typeof borderColor[oppositeTheme].r !== 'undefined' &&
+                              typeof borderColor[oppositeTheme].g !== 'undefined' &&
+                              typeof borderColor[oppositeTheme].b !== 'undefined') {
+                            return borderColor[oppositeTheme];
+                          } else if (borderColor && borderColor[currentTheme]) {
+                            // If opposite theme color is missing but current theme exists, convert it
+                            return convertToThemeColor(borderColor[currentTheme], !isDark, 'container');
+                          }
+                          // Default fallback colors
+                          return !isDark ?
+                            { r: 75, g: 85, b: 99, a: 1 } :
+                            { r: 229, g: 231, b: 235, a: 1 };
+                        } catch (error) {
+                          console.warn('Error getting opposite theme border color:', error);
+                          return !isDark ?
+                            { r: 75, g: 85, b: 99, a: 1 } :
+                            { r: 229, g: 231, b: 235, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => {
+                        actions.setProp((props) => {
+                          // Ensure borderColor has the expected structure
+                          if (!props.borderColor) {
+                            props.borderColor = {
+                              light: { r: 229, g: 231, b: 235, a: 1 },
+                              dark: { r: 75, g: 85, b: 99, a: 1 }
+                            };
+                          }
+
+                          // Handle legacy format (single RGBA object)
+                          if ('r' in props.borderColor) {
+                            const oldColor = { ...props.borderColor };
+                            props.borderColor = {
+                              light: oldColor,
+                              dark: convertToThemeColor(oldColor, true, 'container')
+                            };
+                          }
+
+                          // Ensure both light and dark properties exist
+                          if (!props.borderColor.light) {
+                            props.borderColor.light = { r: 229, g: 231, b: 235, a: 1 };
+                          }
+                          if (!props.borderColor.dark) {
+                            props.borderColor.dark = { r: 75, g: 85, b: 99, a: 1 };
+                          }
+
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+
+                          // Only update the opposite theme's color
+                          props.borderColor = {
+                            ...props.borderColor,
+                            [oppositeTheme]: newColor
+                          };
+                        });
+                      }}
+                      componentType="container"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Directly edit the {!isDark ? 'dark' : 'light'} mode border color without switching themes.
                   </p>
                 </div>
               )}

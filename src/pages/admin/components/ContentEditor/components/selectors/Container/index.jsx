@@ -16,6 +16,12 @@ const defaultProps = {
     light: { r: 255, g: 255, b: 255, a: 1 },
     dark: { r: 31, g: 41, b: 55, a: 1 }
   },
+  borderStyle: 'none',
+  borderWidth: 1,
+  borderColor: {
+    light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+    dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+  },
   shadow: {
     enabled: false,
     x: 0,
@@ -85,11 +91,15 @@ export const Container = (props) => {
     background: backgroundProp,
     padding,
     margin,
+    borderStyle,
+    borderWidth,
+    borderColor,
     shadow,
     radius,
     width,
     height, // Use the height from props
     children,
+    autoConvertColors,
   } = props;
 
 
@@ -311,6 +321,9 @@ export const Container = (props) => {
                 return 'none';
               }
             })(),
+            border: borderStyle !== 'none' ?
+              `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${Object.values(getThemeColor(borderColor, isDark, 'container', autoConvertColors))})` :
+              'none',
             borderRadius: `${radius}px`,
             position: 'relative',
             overflow: 'visible'
@@ -446,6 +459,8 @@ Container.craft = {
   displayName: 'Container',
   props: {
     ...defaultProps,
+    // Pre-compute the color values instead of using getters to avoid dynamic prop changes
+    borderColor: defaultProps.borderColor,
     // Handle backward compatibility by converting single color to theme-aware format
     get background() {
       const lightColor = defaultProps.background.light;

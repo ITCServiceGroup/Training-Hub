@@ -8,6 +8,18 @@ import {
   FaStar,
   FaHeart,
 
+  // Communication
+  FaPhone,
+  FaPhoneAlt,
+  FaMobileAlt,
+  FaEnvelope,
+  FaComment,
+  FaComments,
+  FaInbox,
+  FaPaperPlane,
+  FaFax,
+  FaVoicemail,
+
   // Content Types
   FaFile,
   FaFileAlt,
@@ -124,6 +136,18 @@ export const ICON_CATEGORIES = {
     'star': 'Star',
     'heart': 'Heart'
   },
+  'Communication': {
+    'comment': 'Message',
+    'comments': 'Comments',
+    'envelope': 'Email',
+    'fax': 'Fax',
+    'inbox': 'Inbox',
+    'mobile': 'Mobile',
+    'paper-plane': 'Send',
+    'phone': 'Phone',
+    'phone-alt': 'Phone (Alt)',
+    'voicemail': 'Voicemail'
+  },
   'Content': {
     'file': 'File',
     'file-alt': 'Document',
@@ -132,7 +156,7 @@ export const ICON_CATEGORIES = {
     'link': 'Link',
     'expand': 'Expand',
     'compress': 'Compress',
-    'youtube': 'YouTube',
+    'youtube': 'YouTube'
   },
   'Data & Charts': {
     'list': 'List',
@@ -245,6 +269,18 @@ export const ICONS = {
   'external-link': FaExternalLinkAlt,
   'star': FaStar,
   'heart': FaHeart,
+
+  // Communication
+  'comment': FaComment,
+  'comments': FaComments,
+  'envelope': FaEnvelope,
+  'fax': FaFax,
+  'inbox': FaInbox,
+  'mobile': FaMobileAlt,
+  'paper-plane': FaPaperPlane,
+  'phone': FaPhone,
+  'phone-alt': FaPhoneAlt,
+  'voicemail': FaVoicemail,
 
   // Content Types
   'file': FaFile,

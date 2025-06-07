@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { useNode } from '@craftjs/core';
 import { Resizer } from '../Resizer';
 import { TableText } from './TableText';
@@ -20,6 +20,7 @@ const defaultProps = {
     columnCount: 4,
     hasHeader: true
   },
+  columnWidths: [25, 25, 25, 25], // Default equal widths as percentages
   borderStyle: 'solid',
   borderWidth: 1,
   borderColor: {
@@ -71,6 +72,7 @@ export const Table = (props) => {
     margin,
     padding,
     tableData,
+    columnWidths,
     borderStyle,
     borderWidth,
     borderColor,
@@ -94,6 +96,13 @@ export const Table = (props) => {
   // Reference to the table element
   const tableRef = useRef(null);
 
+  // State for column resizing using refs for stable event handlers
+  const isResizingRef = useRef(false);
+  const resizingColumnRef = useRef(null);
+  const startXRef = useRef(0);
+  const startWidthsRef = useRef([]);
+  const [isResizing, setIsResizing] = useState(false);
+
   // Get node information from craft.js
   const {
     connectors: { connect },
@@ -105,7 +114,91 @@ export const Table = (props) => {
     hovered: node.events.hovered
   }));
 
-  // We don't need the editor state for this simplified implementation
+  // Initialize column widths if they don't exist or are mismatched
+  const initializeColumnWidths = useCallback(() => {
+    if (!columnWidths || columnWidths.length !== tableData.columnCount) {
+      const equalWidth = 100 / tableData.columnCount;
+      const newWidths = Array(tableData.columnCount).fill(equalWidth);
+      actions.setProp((props) => {
+        props.columnWidths = newWidths;
+      });
+      return newWidths;
+    }
+    return columnWidths;
+  }, [columnWidths, tableData.columnCount, actions]);
+
+  // Get current column widths (initialize if needed)
+  const currentColumnWidths = initializeColumnWidths();
+
+  // Create stable event handlers using refs
+  const handleColumnResizeMove = useCallback((e) => {
+    console.log('Mouse move during resize');
+    if (!isResizingRef.current || resizingColumnRef.current === null) return;
+
+    const deltaX = e.clientX - startXRef.current;
+    const tableWidth = tableRef.current?.offsetWidth || 0;
+
+    if (tableWidth === 0) return;
+
+    // Calculate the percentage change
+    const deltaPercent = (deltaX / tableWidth) * 100;
+
+    // Create new widths array
+    const newWidths = [...startWidthsRef.current];
+    const minWidth = 5; // Minimum column width percentage
+
+    // Adjust current column and next column
+    if (resizingColumnRef.current < newWidths.length - 1) {
+      const currentWidth = startWidthsRef.current[resizingColumnRef.current];
+      const nextWidth = startWidthsRef.current[resizingColumnRef.current + 1];
+
+      const newCurrentWidth = Math.max(minWidth, currentWidth + deltaPercent);
+      const newNextWidth = Math.max(minWidth, nextWidth - deltaPercent);
+
+      // Only update if both columns can maintain minimum width
+      if (newCurrentWidth >= minWidth && newNextWidth >= minWidth) {
+        newWidths[resizingColumnRef.current] = newCurrentWidth;
+        newWidths[resizingColumnRef.current + 1] = newNextWidth;
+
+        console.log('Updating column widths:', newWidths);
+
+        // Update the component props
+        actions.setProp((props) => {
+          props.columnWidths = newWidths;
+        });
+      }
+    }
+  }, [actions]);
+
+  const handleColumnResizeEnd = useCallback(() => {
+    console.log('Column resize end');
+    isResizingRef.current = false;
+    resizingColumnRef.current = null;
+    startXRef.current = 0;
+    startWidthsRef.current = [];
+    setIsResizing(false);
+
+    // Remove global mouse event listeners
+    document.removeEventListener('mousemove', handleColumnResizeMove);
+    document.removeEventListener('mouseup', handleColumnResizeEnd);
+  }, [handleColumnResizeMove]);
+
+  // Column resize start handler
+  const handleColumnResizeStart = useCallback((columnIndex, e) => {
+    console.log('Column resize start:', columnIndex, e);
+    e.preventDefault();
+    e.stopPropagation();
+
+    isResizingRef.current = true;
+    resizingColumnRef.current = columnIndex;
+    startXRef.current = e.clientX;
+    startWidthsRef.current = [...currentColumnWidths];
+    setIsResizing(true);
+
+    // Add global mouse event listeners
+    document.addEventListener('mousemove', handleColumnResizeMove);
+    document.addEventListener('mouseup', handleColumnResizeEnd);
+  }, [currentColumnWidths, handleColumnResizeMove, handleColumnResizeEnd]);
 
   // Handle cell content change
   const handleCellContentChange = (rowIndex, colIndex, content) => {
@@ -169,6 +262,7 @@ export const Table = (props) => {
             style={{
               padding: `${cellPadding}px`,
               verticalAlign: cellAlignment,
+              width: `${currentColumnWidths[j] || (100 / tableData.columnCount)}%`,
               border: borderStyle !== 'none' ?
                 `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${Object.values(getThemeColor(borderColor, isDark, 'table', autoConvertColors))})` :
                 'none',
@@ -190,6 +284,7 @@ export const Table = (props) => {
               textAlign={isHeader ? headerTextAlign : textAlign}
               onChange={(newContent) => handleCellContentChange(i, j, newContent)}
             />
+
           </td>
         );
       }
@@ -218,7 +313,7 @@ export const Table = (props) => {
       <Resizer
         propKey={{ width: 'width', height: 'height' }}
         ref={connect}
-        className={`craft-table table-fix ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
+        className={`craft-table table-fix ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''} ${isResizing ? 'resizing' : ''}`}
         style={{
           // Convert from internal [Top, Right, Bottom, Left] to CSS order
           // Handle empty or undefined values by defaulting to 0
@@ -353,6 +448,44 @@ export const Table = (props) => {
             {renderCells()}
           </tbody>
         </table>
+
+        {/* Column resize handles positioned over the table */}
+        {selected && tableRef.current && currentColumnWidths.map((_, index) => {
+          if (index >= tableData.columnCount - 1) return null; // Skip last column
+
+          // Calculate the position of the resize handle
+          let leftPosition = 0;
+          for (let i = 0; i <= index; i++) {
+            leftPosition += currentColumnWidths[i] || (100 / tableData.columnCount);
+          }
+
+          return (
+            <div
+              key={`resize-handle-${index}`}
+              className="column-resize-handle"
+              onMouseDown={(e) => handleColumnResizeStart(index, e)}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: `${leftPosition}%`,
+                width: '4px',
+                height: '100%',
+                cursor: 'col-resize',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)', // Slight blue background for visibility
+                zIndex: 1000,
+                borderRight: '2px solid transparent',
+                pointerEvents: 'auto',
+                transform: 'translateX(-2px)' // Center the handle on the border
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.borderRight = '2px solid var(--color-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.borderRight = '2px solid transparent';
+              }}
+            />
+          );
+        })}
       </div>
     </Resizer>
     </div>
