@@ -4,6 +4,9 @@ import { HashRouter } from 'react-router-dom';
 import './index.css'; // Moved CSS import before App
 import './form-overrides.css'; // Import custom form styles after index.css
 import App from './App';
+
+// Configure base URL for GitHub Pages deployment
+const basename = import.meta.env.BASE_URL === '/' ? '/' : '';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './components/common/ToastContainer';
@@ -16,7 +19,7 @@ console.log('Looking for root element:', document.getElementById('root'));
 try {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <HashRouter>
+      <HashRouter basename={basename}>
         <AuthProvider>
           <ThemeProvider>
             <ToastProvider>
@@ -34,7 +37,7 @@ try {
   // Fallback to render without AuthProvider if there's an error
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <HashRouter>
+      <HashRouter basename={basename}>
         <ThemeProvider>
           <ToastProvider>
             <App />

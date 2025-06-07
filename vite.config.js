@@ -18,10 +18,14 @@ export default defineConfig({
         if (warning.code === 'EMPTY_BUNDLE') return;
         warn(warning);
       }
-    }
+    },
+    // Generate static assets with correct paths
+    assetsDir: 'assets',
+    cssCodeSplit: true,
+    sourcemap: true
   },
-  // Use /Training-Hub/ for GitHub Pages deployment
-  base: '/Training-Hub/',
+  // Use relative path since we're using HashRouter
+  base: './',
   // Ensure we're using the correct HTML template
   resolve: {
     alias: {
