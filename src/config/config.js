@@ -28,14 +28,6 @@ export function initializeConfig() {
   }
   
   console.log('Environment:', import.meta.env.DEV ? 'Development' : 'Production');
-  console.log('Config values:', {
-    supabaseUrl: config.supabaseUrl ? 'SET' : 'MISSING',
-    supabaseAnonKey: config.supabaseAnonKey ? 'SET' : 'MISSING',
-    envVars: {
-      VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING',
-      VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
-    }
-  });
   console.log('Supabase configured:', isSupabaseConfigured());
 }
 

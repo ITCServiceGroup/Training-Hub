@@ -1,11 +1,16 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load environment variables
-  const env = process.env;
+  // Load environment variables from .env files
+  const env = loadEnv(mode, process.cwd(), '');
+
+  const appConfig = {
+    supabaseUrl: env.VITE_SUPABASE_URL || '',
+    supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || ''
+  };
 
   return {
   plugins: [react()],
@@ -31,10 +36,7 @@ export default defineConfig(({ mode }) => {
   // Use relative path since we're using HashRouter
   base: './',
   define: {
-    '__APP_CONFIG__': {
-      supabaseUrl: env.VITE_SUPABASE_URL || '',
-      supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || ''
-    }
+    '__APP_CONFIG__': appConfig
   },
   // Ensure we're using the correct HTML template
   resolve: {

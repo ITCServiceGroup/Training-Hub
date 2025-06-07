@@ -45,10 +45,8 @@ export function initializeSupabase() {
 // Export a function to get the Supabase client
 export function getSupabaseClient() {
   if (!supabaseClient) {
-    console.log('[Supabase] Client not initialized, initializing now...');
     return initializeSupabase();
   }
-  console.log('[Supabase] Returning existing client');
   return supabaseClient;
 }
 
@@ -56,13 +54,11 @@ export function getSupabaseClient() {
 // This ensures the client is properly initialized when accessed
 export const supabase = new Proxy({}, {
   get(_target, prop) {
-    console.log(`[Supabase Proxy] Accessing property: ${String(prop)}`);
     const client = getSupabaseClient();
     if (!client) {
       console.warn('Supabase client not available - configuration may be missing');
       return null;
     }
-    console.log(`[Supabase Proxy] Returning property ${String(prop)} from client`);
     return client[prop];
   }
 });
