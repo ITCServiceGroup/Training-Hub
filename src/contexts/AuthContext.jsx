@@ -2,8 +2,19 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../config/supabase';
 
 // Extract the Supabase URL for localStorage key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
-                   'https://scmwpoowjhzawvmiyohz.supabase.co';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+if (!supabaseUrl) {
+  logAuth('Missing Supabase URL environment variable');
+  throw new Error('Missing required environment variable: VITE_SUPABASE_URL');
+}
+
+try {
+  new URL(supabaseUrl);
+} catch (error) {
+  logAuth('Invalid Supabase URL format', error);
+  throw new Error('Invalid Supabase URL configuration');
+}
 
 // Debug helper function with localStorage persistence
 const logAuth = (message, data = null) => {
@@ -61,6 +72,15 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Handle environment variable errors
+  useEffect(() => {
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      setError('Missing required environment variables');
+      setLoading(false);
+      return;
+    }
+  }, []);
 
   // Initialize auth state
   useEffect(() => {
