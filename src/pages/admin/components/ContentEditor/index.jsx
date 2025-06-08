@@ -314,7 +314,7 @@ const clearDraft = (studyGuideId) => {
   localStorage.removeItem(getStorageKey(studyGuideId));
 };
 
-const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide }) => {
+const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide, isRestoringSelectionRef, lastSelectionChangeRef }) => {
   const { actions, query } = useEditor();
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -331,9 +331,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     title: ''
   });
 
-  // Add refs to track selection restoration state
-  const isRestoringSelectionRef = useRef(false);
-  const lastSelectionChangeRef = useRef(0);
+
 
   // Template creation state
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -427,7 +425,9 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 
       const success = await retryWithBackoff(() => {
         try {
-          if (query.node(nodeId).exists()) {
+          // Check if node exists by looking in the nodes collection
+          const nodes = query.getNodes();
+          if (nodes[nodeId]) {
             console.log('ContentEditor: Node exists, selecting:', nodeId);
             actions.selectNode(nodeId);
             lastSelectionChangeRef.current = Date.now();
@@ -1020,6 +1020,10 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 };
 
 const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, onCancel, onDelete, isNew = false, selectedStudyGuide = null }) => {
+  // Add refs to track selection restoration state at the outer component level
+  const isRestoringSelectionRef = useRef(false);
+  const lastSelectionChangeRef = useRef(0);
+
   useEffect(() => {
     window.isCancelingContentEditor = false;
   }, []);
@@ -1089,6 +1093,8 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
             onDelete={onDelete}
             isNew={isNew}
             selectedStudyGuide={selectedStudyGuide}
+            isRestoringSelectionRef={isRestoringSelectionRef}
+            lastSelectionChangeRef={lastSelectionChangeRef}
           />
         </Editor>
       </ToolbarZIndexProvider>
