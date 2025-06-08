@@ -18,7 +18,9 @@ export const shortcodeToInteractiveNode = (shortcode) => {
   const name = nameMatch[1];
   
   // Fetch element data from elements.json
-  return fetch('/interactive-elements/elements.json')
+  // Use absolute path in dev, relative in production
+  const elementsPath = import.meta.env.DEV ? '/interactive-elements/elements.json' : './interactive-elements/elements.json';
+  return fetch(elementsPath)
     .then(response => response.json())
     .then(elements => {
       const element = elements.find(el => el.name === name);

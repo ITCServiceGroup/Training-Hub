@@ -52,7 +52,9 @@ export const InteractiveSettings = () => {
   // Fetch available interactive elements
   useEffect(() => {
     setLoading(true);
-    fetch('/interactive-elements/elements.json')
+    // Use absolute path in dev, relative in production
+    const elementsPath = import.meta.env.DEV ? '/interactive-elements/elements.json' : './interactive-elements/elements.json';
+    fetch(elementsPath)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -60,7 +62,14 @@ export const InteractiveSettings = () => {
         return response.json();
       })
       .then(elements => {
-        setInteractiveElements(elements);
+        // Convert absolute paths to work with current environment
+        const basePath = import.meta.env.DEV ? '' : '.';
+        const processedElements = elements.map(element => ({
+          ...element,
+          iconUrl: element.iconUrl?.startsWith('/') ? `${basePath}${element.iconUrl}` : element.iconUrl,
+          thumbnailUrl: element.thumbnailUrl?.startsWith('/') ? `${basePath}${element.thumbnailUrl}` : element.thumbnailUrl
+        }));
+        setInteractiveElements(processedElements);
         setLoading(false);
       })
       .catch(error => {

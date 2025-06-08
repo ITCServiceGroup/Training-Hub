@@ -16,24 +16,15 @@ export function initializeConfig() {
     // In production, use injected config from Vite's define
     try {
       // __APP_CONFIG__ is defined by Vite's define option during build
-      console.log('Checking for __APP_CONFIG__...');
-      console.log('typeof __APP_CONFIG__:', typeof __APP_CONFIG__);
-
       if (typeof __APP_CONFIG__ !== 'undefined') {
-        console.log('__APP_CONFIG__ found (raw):', __APP_CONFIG__);
         const parsedConfig = typeof __APP_CONFIG__ === 'string' ? JSON.parse(__APP_CONFIG__) : __APP_CONFIG__;
-        console.log('__APP_CONFIG__ parsed:', parsedConfig);
         config = {
           ...config,
           ...parsedConfig
         };
-        console.log('Config after merge:', config);
-      } else {
-        console.warn('__APP_CONFIG__ is undefined');
       }
     } catch (e) {
       console.warn('Failed to load production config:', e);
-      console.log('Error details:', e.message);
     }
   }
   

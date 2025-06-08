@@ -42,12 +42,21 @@ export const Interactive = ({
   // Fetch element data when component mounts or name changes
   useEffect(() => {
     if (name) {
-      fetch('/interactive-elements/elements.json')
+      // Use absolute path in dev, relative in production
+      const elementsPath = import.meta.env.DEV ? '/interactive-elements/elements.json' : './interactive-elements/elements.json';
+      fetch(elementsPath)
         .then(response => response.json())
         .then(elements => {
           const element = elements.find(el => el.name === name);
           if (element) {
-            setElementData(element);
+            // Convert absolute paths to work with current environment
+            const basePath = import.meta.env.DEV ? '' : '.';
+            const processedElement = {
+              ...element,
+              iconUrl: element.iconUrl?.startsWith('/') ? `${basePath}${element.iconUrl}` : element.iconUrl,
+              thumbnailUrl: element.thumbnailUrl?.startsWith('/') ? `${basePath}${element.thumbnailUrl}` : element.thumbnailUrl
+            };
+            setElementData(processedElement);
           } else {
             console.error(`Interactive element "${name}" not found in elements.json`);
           }
