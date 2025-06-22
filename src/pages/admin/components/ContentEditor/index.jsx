@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Editor, Frame as CraftFrame, Element as CraftElement, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useToast } from '../../../../components/common/ToastContainer';
@@ -314,7 +314,7 @@ const clearDraft = (studyGuideId) => {
   localStorage.removeItem(getStorageKey(studyGuideId));
 };
 
-const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide, isRestoringSelectionRef, lastSelectionChangeRef }) => {
+const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isNew, selectedStudyGuide, onNodesChangeCallback }) => {
   const { actions, query } = useEditor();
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -331,7 +331,45 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     title: ''
   });
 
+  // Add refs to track selection restoration state
+  const isRestoringSelectionRef = useRef(false);
+  const lastSelectionChangeRef = useRef(0);
 
+  // Create a callback function that handles the restoration logic
+  const handleNodesChange = useCallback((query) => {
+    const studyGuideId = selectedStudyGuide?.id || 'new';
+    const selectedNodes = query.getState().events.selected;
+    const currentTime = Date.now();
+
+    if (selectedNodes.size > 0) {
+      const selectedNodeId = Array.from(selectedNodes)[0];
+      console.log('ContentEditor: onNodesChange - saving selection:', selectedNodeId);
+      saveSelectedNode(studyGuideId, selectedNodeId);
+      lastSelectionChangeRef.current = currentTime;
+    } else {
+      // Only clear selection if we're not currently restoring and enough time has passed
+      // since the last selection change to avoid clearing during restoration
+      const timeSinceLastChange = currentTime - lastSelectionChangeRef.current;
+      const shouldClear = !isRestoringSelectionRef.current && timeSinceLastChange > 1000;
+
+      if (shouldClear) {
+        console.log('ContentEditor: onNodesChange - clearing selection (no nodes selected)');
+        clearSelectedNode(studyGuideId);
+      } else {
+        console.log('ContentEditor: onNodesChange - skipping clear (restoring or recent change)', {
+          isRestoring: isRestoringSelectionRef.current,
+          timeSinceLastChange
+        });
+      }
+    }
+  }, [selectedStudyGuide, isRestoringSelectionRef, lastSelectionChangeRef]);
+
+  // Pass the callback to the parent component
+  useEffect(() => {
+    if (onNodesChangeCallback) {
+      onNodesChangeCallback(handleNodesChange);
+    }
+  }, [handleNodesChange, onNodesChangeCallback]);
 
   // Template creation state
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -1020,9 +1058,12 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 };
 
 const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, onCancel, onDelete, isNew = false, selectedStudyGuide = null }) => {
-  // Add refs to track selection restoration state at the outer component level
-  const isRestoringSelectionRef = useRef(false);
-  const lastSelectionChangeRef = useRef(0);
+  // Store the callback function from EditorInner
+  const nodesChangeHandlerRef = useRef(null);
+
+  const setNodesChangeHandler = useCallback((handler) => {
+    nodesChangeHandlerRef.current = handler;
+  }, []);
 
   useEffect(() => {
     window.isCancelingContentEditor = false;
@@ -1040,30 +1081,9 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
           options={{ studyGuideId: selectedStudyGuide?.id || 'new' }}
           indicator={{ success: '#006aff', error: '#ef4444' }}
           onNodesChange={(query) => {
-            const studyGuideId = selectedStudyGuide?.id || 'new';
-            const selectedNodes = query.getState().events.selected;
-            const currentTime = Date.now();
-
-            if (selectedNodes.size > 0) {
-              const selectedNodeId = Array.from(selectedNodes)[0];
-              console.log('ContentEditor: onNodesChange - saving selection:', selectedNodeId);
-              saveSelectedNode(studyGuideId, selectedNodeId);
-              lastSelectionChangeRef.current = currentTime;
-            } else {
-              // Only clear selection if we're not currently restoring and enough time has passed
-              // since the last selection change to avoid clearing during restoration
-              const timeSinceLastChange = currentTime - lastSelectionChangeRef.current;
-              const shouldClear = !isRestoringSelectionRef.current && timeSinceLastChange > 1000;
-
-              if (shouldClear) {
-                console.log('ContentEditor: onNodesChange - clearing selection (no nodes selected)');
-                clearSelectedNode(studyGuideId);
-              } else {
-                console.log('ContentEditor: onNodesChange - skipping clear (restoring or recent change)', {
-                  isRestoring: isRestoringSelectionRef.current,
-                  timeSinceLastChange
-                });
-              }
+            // Use the handler from EditorInner if available
+            if (nodesChangeHandlerRef.current) {
+              nodesChangeHandlerRef.current(query);
             }
 
             if (!onJsonChange || !query) return;
@@ -1093,8 +1113,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
             onDelete={onDelete}
             isNew={isNew}
             selectedStudyGuide={selectedStudyGuide}
-            isRestoringSelectionRef={isRestoringSelectionRef}
-            lastSelectionChangeRef={lastSelectionChangeRef}
+            onNodesChangeCallback={setNodesChangeHandler}
           />
         </Editor>
       </ToolbarZIndexProvider>

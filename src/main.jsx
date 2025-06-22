@@ -12,19 +12,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './components/common/ToastContainer';
 import './utils/debugHelper';
 
-// Suppress browser extension runtime errors that don't affect the application
-const originalError = console.error;
-console.error = (...args) => {
-  // Filter out browser extension runtime errors
-  const message = args[0];
-  if (typeof message === 'string' &&
-      (message.includes('Could not establish connection. Receiving end does not exist') ||
-       message.includes('Unchecked runtime.lastError'))) {
-    return; // Suppress these extension-related errors
-  }
-  originalError.apply(console, args);
-};
-
 console.log('Main.jsx is executing...');
 console.log('Looking for root element:', document.getElementById('root'));
 
