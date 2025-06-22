@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { CategoryContext } from '../../../../components/layout/AdminLayout'; // Import context
 import CategoryCard from './CategoryCard';
-import CategoryForm from '../CategoryTree/CategoryForm';
+import CategoryFormModal from '../common/CategoryFormModal';
 import '../styles/grid.css';
 
 const CategoryAdminGrid = ({
@@ -169,13 +169,6 @@ const CategoryAdminGrid = ({
         <div className="p-8">
           <LoadingSpinner size="lg" text="Loading categories..." />
         </div>
-      ) : isCreating ? (
-        <CategoryForm
-          section={section}
-          onSubmit={onAdd}
-          onCancel={() => setIsCreating(false)}
-          darkMode={isDark}
-        />
       ) : displayCategories.length === 0 ? (
         <div className="text-center p-12 text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-lg">
           <p>No categories available. Click "Add Category" to create one.</p>
@@ -198,6 +191,15 @@ const CategoryAdminGrid = ({
           </SortableContext>
         </DndContext>
       )}
+
+      {/* Category Form Modal */}
+      <CategoryFormModal
+        isOpen={isCreating}
+        onClose={() => setIsCreating(false)}
+        onSubmit={onAdd}
+        section={section}
+        isEditing={false}
+      />
     </div>
   );
 };
