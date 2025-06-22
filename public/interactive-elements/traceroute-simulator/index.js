@@ -36,6 +36,10 @@ class TracerouteSimulatorElement extends HTMLElement {
   connectedCallback() {
     console.log('[TracerouteSimulator] Element connected to DOM');
 
+    // Initialize theme state tracking
+    this.currentTheme = null;
+    this.themeUpdatePending = false;
+
     // Setup event listeners
     this.uiHandlers.setupEventListeners();
 
@@ -45,11 +49,11 @@ class TracerouteSimulatorElement extends HTMLElement {
     // Set up observer for theme changes
     this.setupThemeObserver();
 
-    // Set up interval to check theme periodically, but with a shorter interval
-    // This helps catch theme changes that might be missed by the observer
+    // Set up interval to check theme periodically with longer interval
+    // This is a fallback for cases where the observer might miss changes
     this.themeInterval = setInterval(() => {
       this.applyTheme();
-    }, 300); // 300ms for more responsive updates
+    }, 2000); // Increased to 2 seconds to reduce frequency
 
     console.log('[TracerouteSimulator] Component initialized');
   }
@@ -124,9 +128,22 @@ class TracerouteSimulatorElement extends HTMLElement {
   }
 
   setupThemeObserver() {
-    // Create a MutationObserver to watch for class changes
-    this.observer = new MutationObserver(() => {
-      this.applyTheme();
+    // Create a MutationObserver to watch for class changes with debouncing
+    this.observer = new MutationObserver((mutations) => {
+      // Check if any mutations are relevant (not caused by our own theme updates)
+      const relevantMutation = mutations.some(mutation => {
+        return mutation.target !== this && !this.themeUpdatePending;
+      });
+
+      if (relevantMutation) {
+        // Debounce theme updates to prevent rapid successive calls
+        if (this.themeDebounceTimeout) {
+          clearTimeout(this.themeDebounceTimeout);
+        }
+        this.themeDebounceTimeout = setTimeout(() => {
+          this.applyTheme();
+        }, 100); // 100ms debounce
+      }
     });
 
     // Observe the document body and html element for class changes
@@ -151,6 +168,11 @@ class TracerouteSimulatorElement extends HTMLElement {
   }
 
   applyTheme() {
+    // Prevent multiple simultaneous theme checks
+    if (this.themeUpdatePending) {
+      return;
+    }
+
     // Try multiple methods to detect dark mode
     let isDarkMode = false;
 
@@ -195,10 +217,13 @@ class TracerouteSimulatorElement extends HTMLElement {
       }
     }
 
-    console.log('[TracerouteSimulator] Theme detection result:', isDarkMode ? 'dark' : 'light');
-
-    // Apply the theme
-    this.updateTheme(isDarkMode);
+    // Only update if theme has actually changed
+    const themeChanged = this.currentTheme !== isDarkMode;
+    if (themeChanged) {
+      console.log('[TracerouteSimulator] Theme detection result:', isDarkMode ? 'dark' : 'light');
+      this.currentTheme = isDarkMode;
+      this.updateTheme(isDarkMode);
+    }
   }
 
   // Method to directly update theme without polling
@@ -212,6 +237,7 @@ class TracerouteSimulatorElement extends HTMLElement {
     }
 
     this.isTransitioning = true;
+    this.themeUpdatePending = true;
 
     // Apply theme class
     if (isDarkMode) {
@@ -222,9 +248,10 @@ class TracerouteSimulatorElement extends HTMLElement {
       console.log('[TracerouteSimulator] Applied light mode');
     }
 
-    // Reset transition flag after a short delay
+    // Reset transition flags after a short delay
     setTimeout(() => {
       this.isTransitioning = false;
+      this.themeUpdatePending = false;
     }, 100);
   }
 }

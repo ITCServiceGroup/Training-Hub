@@ -271,6 +271,10 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
   }
 
   connectedCallback() {
+    // Initialize theme state tracking
+    this.currentTheme = null;
+    this.themeUpdatePending = false;
+
     this.bandSelectorButtons.forEach(button => {
       button.addEventListener('click', (e) => this.switchBand(e.target.id.split('-')[1]));
     });
@@ -282,11 +286,11 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
     // Set up observer for theme changes
     this.setupThemeObserver();
 
-    // Set up interval to check theme periodically, but with a shorter interval
-    // This helps catch theme changes that might be missed by the observer
+    // Set up interval to check theme periodically with longer interval
+    // This is a fallback for cases where the observer might miss changes
     this.themeInterval = setInterval(() => {
       this.applyTheme();
-    }, 300); // 300ms for more responsive updates
+    }, 2000); // Increased to 2 seconds to reduce frequency
 
     console.log('[ChannelVisualizer] Component initialized');
   }
@@ -462,9 +466,22 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
   }
 
   setupThemeObserver() {
-    // Create a MutationObserver to watch for class changes
-    this.observer = new MutationObserver(() => {
-      this.applyTheme();
+    // Create a MutationObserver to watch for class changes with debouncing
+    this.observer = new MutationObserver((mutations) => {
+      // Check if any mutations are relevant (not caused by our own theme updates)
+      const relevantMutation = mutations.some(mutation => {
+        return mutation.target !== this && !this.themeUpdatePending;
+      });
+
+      if (relevantMutation) {
+        // Debounce theme updates to prevent rapid successive calls
+        if (this.themeDebounceTimeout) {
+          clearTimeout(this.themeDebounceTimeout);
+        }
+        this.themeDebounceTimeout = setTimeout(() => {
+          this.applyTheme();
+        }, 100); // 100ms debounce
+      }
     });
 
     // Observe the document body and html element for class changes
@@ -489,6 +506,11 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
   }
 
   applyTheme() {
+    // Prevent multiple simultaneous theme checks
+    if (this.themeUpdatePending) {
+      return;
+    }
+
     // Try multiple methods to detect dark mode
     let isDarkMode = false;
 
@@ -533,10 +555,13 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
       }
     }
 
-    console.log('[ChannelVisualizer] Theme detection result:', isDarkMode ? 'dark' : 'light');
-
-    // Apply the theme
-    this.updateTheme(isDarkMode);
+    // Only update if theme has actually changed
+    const themeChanged = this.currentTheme !== isDarkMode;
+    if (themeChanged) {
+      console.log('[ChannelVisualizer] Theme detection result:', isDarkMode ? 'dark' : 'light');
+      this.currentTheme = isDarkMode;
+      this.updateTheme(isDarkMode);
+    }
   }
 
   // Method to directly update theme without polling
@@ -550,6 +575,7 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
     }
 
     this.isTransitioning = true;
+    this.themeUpdatePending = true;
 
     // Apply theme class
     if (isDarkMode) {
@@ -560,9 +586,10 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
       console.log('[ChannelVisualizer] Applied light mode');
     }
 
-    // Reset transition flag after a short delay
+    // Reset transition flags after a short delay
     setTimeout(() => {
       this.isTransitioning = false;
+      this.themeUpdatePending = false;
     }, 100);
   }
 }

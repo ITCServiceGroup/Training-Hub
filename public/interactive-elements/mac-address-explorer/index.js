@@ -243,6 +243,10 @@ class MacAddressExplorerElement extends HTMLElement {
   }
 
   connectedCallback() {
+    // Initialize theme state tracking
+    this.currentTheme = null;
+    this.themeUpdatePending = false;
+
     // Check initial theme and apply it
     this.applyTheme();
 
@@ -252,11 +256,11 @@ class MacAddressExplorerElement extends HTMLElement {
     // Set up observer for theme changes
     this.setupThemeObserver();
 
-    // Set up interval to check theme periodically, but with a shorter interval
-    // This helps catch theme changes that might be missed by the observer
+    // Set up interval to check theme periodically with longer interval
+    // This is a fallback for cases where the observer might miss changes
     this.themeInterval = setInterval(() => {
       this.applyTheme();
-    }, 300); // Reduced from 1000ms to 300ms for more responsive updates
+    }, 2000); // Increased to 2 seconds to reduce frequency
 
     // Log that we're initialized
     console.log('[MAC Explorer] Component initialized');
@@ -279,6 +283,11 @@ class MacAddressExplorerElement extends HTMLElement {
   }
 
   applyTheme() {
+    // Prevent multiple simultaneous theme checks
+    if (this.themeUpdatePending) {
+      return;
+    }
+
     // Try multiple methods to detect dark mode
     let isDarkMode = false;
 
@@ -335,7 +344,14 @@ class MacAddressExplorerElement extends HTMLElement {
     // DO NOT force dark mode
     // isDarkMode = true;
 
+    // Only update if theme has actually changed
+    const themeChanged = this.currentTheme !== isDarkMode;
+    if (!themeChanged) {
+      return; // No change needed
+    }
+
     console.log('Final dark mode detection result:', isDarkMode);
+    this.currentTheme = isDarkMode;
 
     // Apply CSS variables directly to the host element
     if (isDarkMode) {
@@ -421,9 +437,22 @@ class MacAddressExplorerElement extends HTMLElement {
   }
 
   setupThemeObserver() {
-    // Create a MutationObserver to watch for class changes
-    this.observer = new MutationObserver(() => {
-      this.applyTheme();
+    // Create a MutationObserver to watch for class changes with debouncing
+    this.observer = new MutationObserver((mutations) => {
+      // Check if any mutations are relevant (not caused by our own theme updates)
+      const relevantMutation = mutations.some(mutation => {
+        return mutation.target !== this && !this.themeUpdatePending;
+      });
+
+      if (relevantMutation) {
+        // Debounce theme updates to prevent rapid successive calls
+        if (this.themeDebounceTimeout) {
+          clearTimeout(this.themeDebounceTimeout);
+        }
+        this.themeDebounceTimeout = setTimeout(() => {
+          this.applyTheme();
+        }, 100); // 100ms debounce
+      }
     });
 
     // Observe the document body and html element for class changes
@@ -458,6 +487,7 @@ class MacAddressExplorerElement extends HTMLElement {
     }
 
     this.isTransitioning = true;
+    this.themeUpdatePending = true;
 
     // Apply theme immediately with transition
     if (isDarkMode) {
@@ -541,9 +571,10 @@ class MacAddressExplorerElement extends HTMLElement {
     // Re-render with current theme
     this.renderMacAddress();
 
-    // Reset transition flag after a short delay
+    // Reset transition flags after a short delay
     setTimeout(() => {
       this.isTransitioning = false;
+      this.themeUpdatePending = false;
     }, 100);
   }
 
