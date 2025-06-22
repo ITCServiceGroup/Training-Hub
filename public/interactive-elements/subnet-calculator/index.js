@@ -397,7 +397,33 @@ class SubnetCalculatorElement extends HTMLElement {
 
     _initializeWorker() {
         try {
-            this.worker = new Worker('/interactive-elements/subnet-calculator/worker.js');
+            // Get the base path from the current page URL
+            // This handles both local development and GitHub Pages deployment
+            const currentPath = window.location.pathname;
+
+            // Determine the base path for assets
+            let basePath = '';
+
+            // Check if we're running locally (localhost) or on GitHub Pages
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // Local development - use root path
+                basePath = '';
+            } else {
+                // Production deployment (GitHub Pages)
+                // Extract the repository name from the path
+                const pathSegments = currentPath.split('/').filter(segment => segment);
+                if (pathSegments.length > 0) {
+                    // For GitHub Pages, the first segment is typically the repository name
+                    // e.g., /Training-Hub/ -> basePath = '/Training-Hub'
+                    basePath = '/' + pathSegments[0];
+                }
+            }
+
+            const workerPath = `${basePath}/interactive-elements/subnet-calculator/worker.js`;
+            console.log(`[SubnetCalculator] Current path: ${currentPath}, Base path: ${basePath}`);
+            console.log(`[SubnetCalculator] Initializing worker at path: ${workerPath}`);
+
+            this.worker = new Worker(workerPath);
             this.worker.addEventListener('message', this._handleWorkerMessage);
             this.worker.onerror = (error) => {
                 console.error('[SubnetCalculator] Worker Error:', error);
