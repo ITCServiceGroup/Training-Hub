@@ -27,6 +27,9 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
         case 'markets':
           data = await quizResultsService.getDistinctValues('market');
           break;
+        case 'quizTypes':
+          data = await quizResultsService.getDistinctValues('quiz_type');
+          break;
         default:
           data = [];
       }
@@ -50,7 +53,8 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
   const labels = {
     supervisors: 'Supervisor',
     ldaps: 'LDAP',
-    markets: 'Market'
+    markets: 'Market',
+    quizTypes: 'Quiz Type'
   };
 
   const customStyles = {

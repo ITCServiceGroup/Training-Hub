@@ -159,14 +159,14 @@ const QuizPage = () => {
             <input
               type="text"
               placeholder="Enter access code"
-              className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
+              className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm h-10 ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
               value={localAccessCode}
               onChange={(e) => setLocalAccessCode(e.target.value.toUpperCase())}
               maxLength={8}
             />
             <button
               type="submit"
-              className={`px-5 py-2 ${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary-dark hover:bg-primary'} text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
+              className={`px-5 py-2 ${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary-dark hover:bg-primary'} text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm h-10`}
               disabled={!localAccessCode}
             >
               Submit

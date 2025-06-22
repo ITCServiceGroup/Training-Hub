@@ -3,7 +3,7 @@ import { supabase } from '../../config/supabase';
 
 class QuizResultsService extends BaseService {
   constructor() {
-    super('v2_quiz_results');
+    super('Quiz Results');
   }
 
   /**
@@ -17,6 +17,7 @@ class QuizResultsService extends BaseService {
     supervisors,
     ldaps,
     markets,
+    quizTypes,
     minScore,
     maxScore,
     minTime,
@@ -48,6 +49,9 @@ class QuizResultsService extends BaseService {
       if (markets?.length) {
         query = query.in('market', markets);
       }
+      if (quizTypes?.length) {
+        query = query.in('quiz_type', quizTypes);
+      }
       if (minScore !== null && minScore !== undefined) {
         query = query.gte('score_value', minScore); // Revert: Expect 0-1
       }
@@ -73,6 +77,7 @@ class QuizResultsService extends BaseService {
           supervisors,
           ldaps,
           markets,
+          quizTypes,
           minScore,
           maxScore,
           minTime,

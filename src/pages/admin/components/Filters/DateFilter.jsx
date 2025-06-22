@@ -3,7 +3,6 @@ import Flatpickr from 'react-flatpickr';
 import PropTypes from 'prop-types';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import 'flatpickr/dist/themes/light.css';
-import 'flatpickr/dist/themes/dark.css';
 
 const DateFilter = ({ value, onChange }) => {
   const { theme } = useTheme(); // Get current theme

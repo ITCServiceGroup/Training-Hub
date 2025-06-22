@@ -33,6 +33,7 @@ const Results = () => {
   const [selectedSupervisors, setSelectedSupervisors] = useState([]);
   const [selectedLdaps, setSelectedLdaps] = useState([]);
   const [selectedMarkets, setSelectedMarkets] = useState([]);
+  const [selectedQuizTypes, setSelectedQuizTypes] = useState([]);
   const [scoreRange, setScoreRange] = useState({ min: 0, max: 100 });
   const [timeRange, setTimeRange] = useState({ min: 0, max: 3600 });
 
@@ -52,6 +53,7 @@ const Results = () => {
           supervisors: selectedSupervisors,
           ldaps: selectedLdaps,
           markets: selectedMarkets,
+          quizTypes: selectedQuizTypes,
           minScore: scoreRange.min / 100, // Revert: Divide by 100
           maxScore: scoreRange.max / 100, // Revert: Divide by 100
           minTime: timeRange.min,
@@ -77,6 +79,7 @@ const Results = () => {
     selectedSupervisors,
     selectedLdaps,
     selectedMarkets,
+    selectedQuizTypes,
     scoreRange,
     timeRange,
     sortField,
@@ -142,7 +145,7 @@ const Results = () => {
           {/* Divider */}
           <div className="border-t-2 border-gray-200 dark:border-slate-500 my-2" />
           {/* Row 2: Selection Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Supervisors */}
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Supervisors</label>
@@ -173,6 +176,16 @@ const Results = () => {
                 hideLabel={true}
               />
             </div>
+            {/* Quiz Types */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Quiz Types</label>
+              <MultiSelect
+                type="quizTypes"
+                value={selectedQuizTypes}
+                onChange={setSelectedQuizTypes}
+                hideLabel={true}
+              />
+            </div>
           </div>
           {/* Action Buttons */}
           <div className="flex flex-col md:flex-row justify-end items-center gap-3 pt-4">
@@ -184,6 +197,7 @@ const Results = () => {
                 setSelectedSupervisors([]);
                 setSelectedLdaps([]);
                 setSelectedMarkets([]);
+                setSelectedQuizTypes([]);
                 setScoreRange({ min: 0, max: 100 });
                 setTimeRange({ min: 0, max: 3600 });
               }}
