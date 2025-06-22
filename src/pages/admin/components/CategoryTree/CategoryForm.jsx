@@ -57,88 +57,96 @@ const CategoryForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`p-6 ${isDark ? 'bg-slate-700' : 'bg-white'} rounded-lg border ${isDark ? 'border-slate-600' : 'border-gray-200'} shadow-sm`}>
-      <div className="mb-4">
-        <label htmlFor="name" className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
-          placeholder="Enter category name"
-          required
-        />
-      </div>
+    <div className={`${isDark ? 'bg-slate-700' : 'bg-white'} rounded-lg border ${isDark ? 'border-slate-600' : 'border-gray-200'} shadow-sm max-h-[80vh] sm:max-h-none flex flex-col`}>
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div>
+            <label htmlFor="name" className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+              placeholder="Enter category name"
+              required
+            />
+          </div>
 
-      <div className="mb-4">
-        <label htmlFor="description" className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
-          Description
-        </label>
-        <textarea
-          id="description"
-          value={formData.description || ''}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          rows={3}
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary min-h-[80px] resize-y`}
-          placeholder="Enter category description"
-        />
-      </div>
+          <div>
+            <label htmlFor="description" className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
+              Description
+            </label>
+            <textarea
+              id="description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              rows={3}
+              className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary min-h-[80px] resize-y`}
+              placeholder="Enter category description"
+            />
+          </div>
 
-      <div className="mb-4">
-        <IconSelector
-          selectedIcon={formData.icon}
-          onSelectIcon={(iconName) => setFormData(prev => ({ ...prev, icon: iconName }))}
-          isDark={isDark}
-        />
-      </div>
+          <div>
+            <IconSelector
+              selectedIcon={formData.icon}
+              onSelectIcon={(iconName) => setFormData(prev => ({ ...prev, icon: iconName }))}
+              isDark={isDark}
+            />
+          </div>
 
-      {!section && (
-        <div className="mb-4">
-          <label htmlFor="section_id" className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
-            Section
-          </label>
-          <select
-            id="section_id"
-            value={formData.section_id}
-            onChange={(e) => setFormData(prev => ({ ...prev, section_id: e.target.value }))}
-            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
-            required
-          >
-            <option value="">Select a section</option>
-            {sections.map(section => (
-              <option key={section.id} value={section.id}>
-                {section.name}
-              </option>
-            ))}
-          </select>
+          {!section && (
+            <div>
+              <label htmlFor="section_id" className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
+                Section
+              </label>
+              <select
+                id="section_id"
+                value={formData.section_id}
+                onChange={(e) => setFormData(prev => ({ ...prev, section_id: e.target.value }))}
+                className={`w-full py-2 px-3 border ${isDark ? 'border-slate-500 bg-slate-600 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                required
+              >
+                <option value="">Select a section</option>
+                {sections.map(section => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {section && (
+            <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+              Section: {section.name}
+            </div>
+          )}
         </div>
-      )}
 
-      {section && (
-        <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'} mb-4`}>
-          Section: {section.name}
+        {/* Fixed button area */}
+        <div className={`border-t ${isDark ? 'border-slate-600' : 'border-gray-200'} p-6 bg-inherit rounded-b-lg`}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              className={`py-2 px-4 text-sm font-medium ${isDark ? 'text-gray-200 bg-slate-600 border-slate-500 hover:bg-slate-500' : 'text-gray-600 bg-white border-gray-300 hover:bg-gray-100 hover:border-gray-400'} border rounded-md transition-colors flex items-center justify-center`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="py-2 px-4 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center"
+            >
+              {isEditing ? 'Update' : 'Create'}
+            </button>
+          </div>
         </div>
-      )}
-
-      <div className="flex justify-end gap-3 mt-6">
-        <button
-          type="button"
-          onClick={onCancel}
-          className={`py-2 px-4 text-sm font-medium ${isDark ? 'text-gray-200 bg-slate-600 border-slate-500 hover:bg-slate-500' : 'text-gray-600 bg-white border-gray-300 hover:bg-gray-100 hover:border-gray-400'} border rounded-md transition-colors flex items-center justify-center`}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="py-2 px-4 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center"
-        >
-          {isEditing ? 'Update' : 'Create'}
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 
