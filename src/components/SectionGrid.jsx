@@ -8,7 +8,7 @@ import LoadingSpinner from './common/LoadingSpinner';
 /**
  * Component for displaying a grid of sections
  */
-const SectionGrid = ({ sections, isLoading, searchQuery }) => {
+const SectionGrid = ({ sections, isLoading, searchQuery, navigationPath = 'study' }) => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
@@ -17,7 +17,11 @@ const SectionGrid = ({ sections, isLoading, searchQuery }) => {
   const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
   const handleSectionClick = (sectionId) => {
-    navigate(`/study/${sectionId}`);
+    if (navigationPath === 'quiz') {
+      navigate(`/quiz/practice/${sectionId}`);
+    } else {
+      navigate(`/study/${sectionId}`);
+    }
   };
 
   // Get icon and color based on section data or fallback to name-based detection

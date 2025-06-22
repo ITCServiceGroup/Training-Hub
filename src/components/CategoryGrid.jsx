@@ -8,7 +8,7 @@ import LoadingSpinner from './common/LoadingSpinner';
 /**
  * Component for displaying a grid of categories
  */
-const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
+const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId, navigationPath = 'study', quizCounts = {} }) => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
@@ -17,7 +17,11 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
   const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
   const handleCategoryClick = (categoryId, sectionId) => {
-    navigate(`/study/${sectionId}/${categoryId}`);
+    if (navigationPath === 'quiz') {
+      navigate(`/quiz/practice/${sectionId}/${categoryId}`);
+    } else {
+      navigate(`/study/${sectionId}/${categoryId}`);
+    }
   };
 
   // Get icon and color based on category data or fallback to name-based detection
@@ -81,8 +85,20 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {filteredCategories.map(category => {
         const { icon, color } = getCategoryIcon(category);
-        // Only count published study guides
-        const studyGuideCount = category.v2_study_guides?.filter(guide => guide.is_published)?.length || 0;
+
+        // Count based on navigation context
+        let itemCount, itemLabel, buttonText;
+        if (navigationPath === 'quiz') {
+          // For quiz context, use the passed quiz counts
+          itemCount = quizCounts[category.id] || 0;
+          itemLabel = itemCount === 1 ? 'Quiz' : 'Quizzes';
+          buttonText = 'View Quizzes';
+        } else {
+          // Only count published study guides
+          itemCount = category.v2_study_guides?.filter(guide => guide.is_published)?.length || 0;
+          itemLabel = itemCount === 1 ? 'Study Guide' : 'Study Guides';
+          buttonText = 'View Guides';
+        }
 
         return (
           <div
@@ -99,12 +115,12 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId }) => {
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{category.description || 'No description available'}</p>
             <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto w-full`}>
-              <span>{studyGuideCount} {studyGuideCount === 1 ? 'Study Guide' : 'Study Guides'}</span>
+              <span>{itemCount} {itemLabel}</span>
             </div>
             <button
               className={`${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary-dark hover:bg-primary'} text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors mt-4 w-full`}
             >
-              View Guides
+              {buttonText}
             </button>
           </div>
         );

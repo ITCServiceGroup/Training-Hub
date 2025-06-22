@@ -271,6 +271,39 @@ class QuizzesService extends BaseService {
   }
 
   /**
+   * Count practice quizzes by category
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<number>} - Count of practice quizzes in the specified category
+   */
+  async countPracticeQuizzesByCategory(categoryId) {
+    try {
+      // Get all practice quizzes and filter in JavaScript since JSONB array contains is tricky
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('category_ids')
+        .or('is_practice.eq.true,has_practice_mode.eq.true')
+        .is('archived_at', null);
+
+      if (error) {
+        throw error;
+      }
+
+      // Filter by category ID in JavaScript
+      const count = data.filter(quiz => {
+        const categoryIds = typeof quiz.category_ids === 'string'
+          ? JSON.parse(quiz.category_ids)
+          : quiz.category_ids || [];
+        return categoryIds.includes(categoryId);
+      }).length;
+
+      return count;
+    } catch (error) {
+      console.error('Error counting practice quizzes by category:', error.message);
+      return 0;
+    }
+  }
+
+  /**
    * Get all archived quizzes.
    * @returns {Promise<Array>} - Archived quizzes.
    */

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,9 +10,15 @@ const Footer = () => {
         <div className="flex justify-between items-center flex-wrap">
           <p className="m-0 text-slate-500 dark:text-slate-400">&copy; {currentYear} Training Hub. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-primary no-underline hover:text-primary-dark">Privacy Policy</a>
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-primary no-underline hover:text-primary-dark">Terms of Service</a>
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-primary no-underline hover:text-primary-dark">Contact Us</a>
+            <Link to="/privacy-policy" className="text-primary no-underline hover:text-primary-dark transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms-of-service" className="text-primary no-underline hover:text-primary-dark transition-colors">
+              Terms of Service
+            </Link>
+            <Link to="/contact-us" className="text-primary no-underline hover:text-primary-dark transition-colors">
+              Contact Us
+            </Link>
           </div>
         </div>
       </div>

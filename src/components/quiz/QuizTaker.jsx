@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import html2pdf from 'html2pdf.js';
@@ -8,6 +8,7 @@ import { shuffleArray, shuffleQuestionOptions } from '../../utils/shuffleUtils';
 import { quizzesService } from '../../services/api/quizzes';
 import { quizResultsService } from '../../services/api/quizResults';
 import { accessCodesService } from '../../services/api/accessCodes';
+import { categoriesService } from '../../services/api/categories';
 import QuizTimer from './QuizTimer';
 import QuestionDisplay from './QuestionDisplay';
 import QuizReview from './QuizReview';
@@ -20,6 +21,7 @@ import { FaSpinner } from 'react-icons/fa';
 
 const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   // Refs
@@ -44,6 +46,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Navigation context
+  const [categoryInfo, setCategoryInfo] = useState(null);
 
   // Load quiz data
   useEffect(() => {
@@ -115,6 +120,27 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
     loadQuiz();
   }, [quizId, accessCode]);
+
+  // Load category information for back navigation
+  useEffect(() => {
+    const loadCategoryInfo = async () => {
+      const urlParams = new URLSearchParams(location.search);
+      const fromParam = urlParams.get('from');
+      const sectionId = urlParams.get('sectionId');
+      const categoryId = urlParams.get('categoryId');
+
+      if (fromParam === 'practice' && categoryId) {
+        try {
+          const category = await categoriesService.getById(categoryId);
+          setCategoryInfo({ ...category, sectionId });
+        } catch (error) {
+          console.error('Failed to load category info:', error);
+        }
+      }
+    };
+
+    loadCategoryInfo();
+  }, [location.search]);
 
   // Submit quiz handler - defined before timer effect
   const handleSubmitQuiz = useCallback(async (isTimeout = false) => {
@@ -464,6 +490,18 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   if (!quizStarted) {
     return (
       <div className={`max-w-2xl mx-auto p-6 ${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow`}>
+        {/* Back navigation */}
+        {categoryInfo && (
+          <div className="mb-4">
+            <button
+              onClick={() => navigate(`/quiz/practice/${categoryInfo.sectionId}/${categoryInfo.id}`)}
+              className={`text-sm ${isDark ? 'text-primary-light hover:text-primary' : 'text-primary-dark hover:text-primary'} hover:underline`}
+            >
+              ← Back to {categoryInfo.name}
+            </button>
+          </div>
+        )}
+
         <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>{quiz.title}</h2>
         {quiz.description && (
           <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-6`}>{quiz.description}</p>

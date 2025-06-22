@@ -25,6 +25,11 @@ const QuizPage = lazy(() => import('./pages/QuizPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const PracticeQuizPage = lazy(() => import('./components/practice-quiz/PracticeQuizPage'));
 
+// Legal pages
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
+const ContactUsPage = lazy(() => import('./pages/ContactUsPage'));
+
 // Loading fallback
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -69,6 +74,16 @@ function App() {
               <QuizPage />
             </Suspense>
           } />
+          <Route path="quiz/practice/:sectionId/:categoryId" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <QuizPage />
+            </Suspense>
+          } />
+          <Route path="quiz/practice/:sectionId" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <QuizPage />
+            </Suspense>
+          } />
           <Route path="quiz/:quizId" element={
             <Suspense fallback={<LoadingFallback />}>
               <QuizPage />
@@ -82,6 +97,23 @@ function App() {
           <Route path="quiz" element={
             <Suspense fallback={<LoadingFallback />}>
               <QuizPage />
+            </Suspense>
+          } />
+
+          {/* Legal Pages */}
+          <Route path="privacy-policy" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <PrivacyPolicyPage />
+            </Suspense>
+          } />
+          <Route path="terms-of-service" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <TermsOfServicePage />
+            </Suspense>
+          } />
+          <Route path="contact-us" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ContactUsPage />
             </Suspense>
           } />
 
