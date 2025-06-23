@@ -33,7 +33,7 @@ const HomePage = () => {
               </Link>
               <Link
                 to="/quiz"
-                className={`${isDark ? 'bg-secondary hover:bg-secondary-light border-secondary' : 'bg-white hover:bg-secondary text-secondary hover:text-white border-secondary'} border-2 py-4 px-8 rounded-lg font-semibold no-underline transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2`}
+                className={`${isDark ? 'bg-transparent hover:bg-secondary text-secondary hover:text-white border-secondary' : 'bg-white hover:bg-secondary text-secondary hover:text-white border-secondary'} border-2 py-4 px-8 rounded-lg font-semibold no-underline transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2`}
               >
                 <MdQuiz className="text-xl" />
                 Take a Quiz
