@@ -361,6 +361,7 @@ const StudyGuidePage = () => {
               type="text"
               placeholder="Search sections, categories, guides, and content..."
               className={`py-2 px-3 border rounded text-sm w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
+              style={{ padding: '8px 12px', marginBottom: '0' }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -374,7 +375,7 @@ const StudyGuidePage = () => {
               </button>
             )}
             {isSearching && (
-              <div className={`absolute right-3 ${searchQuery ? 'right-8' : 'right-3'}`}>
+              <div className={`absolute ${searchQuery ? 'right-8' : 'right-3'} top-1/2 -translate-y-1/2`}>
                 <div className={`w-4 h-4 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-primary' : 'border-gray-200 border-t-primary'} animate-spin`}></div>
               </div>
             )}
