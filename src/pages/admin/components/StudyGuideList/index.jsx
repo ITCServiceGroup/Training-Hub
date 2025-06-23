@@ -494,14 +494,23 @@ const SortableStudyGuideItem = ({
                 <textarea
                   value={description}
                   onChange={handleDescriptionChange}
-                  className={`w-full px-3 py-2 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+                  className={`w-full px-3 py-2 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 text-gray-700 bg-white'} rounded-md text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary`}
                   placeholder="Enter a custom description (will override auto-generated description)"
                   rows={2}
                   onClick={(e) => e.stopPropagation()}
                 />
                 <div className="flex justify-end mt-1">
                   <button
-                    className="px-2 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700"
+                    className="px-2 py-1 text-xs text-white rounded transition-colors"
+                    style={{
+                      backgroundColor: currentSecondaryColor
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.opacity = '0.8';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.opacity = '1';
+                    }}
                     onClick={handleDescriptionSave}
                   >
                     Save

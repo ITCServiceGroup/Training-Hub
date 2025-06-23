@@ -194,8 +194,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
                   }}
                   className={`ml-2 flex items-center justify-center w-4 h-4 rounded-full ${
                     isDark
-                      ? 'bg-teal-700 text-teal-200 hover:bg-teal-600'
-                      : 'bg-teal-200 text-teal-800 hover:bg-teal-300'
+                      ? 'bg-secondary text-white hover:bg-secondary/80'
+                      : 'bg-secondary/20 text-secondary hover:bg-secondary/30'
                   } transition-colors`}
                   aria-label="Clear search"
                   title="Clear search"

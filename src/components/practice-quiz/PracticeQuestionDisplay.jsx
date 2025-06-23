@@ -100,14 +100,14 @@ const PracticeQuestionDisplay = ({ question, onAnswered }) => {
                 <label
                   key={index}
                   className={`flex items-center p-4 border rounded cursor-pointer transition-all
-                    ${showFeedback ? 'pointer-events-none' : 'hover:border-teal-700 hover:bg-teal-50'}
-                    ${isSelected ? 'border-teal-700 bg-teal-50' : 'border-slate-200 bg-white'}
+                    ${showFeedback ? 'pointer-events-none' : 'hover:border-primary hover:bg-primary/10'}
+                    ${isSelected ? 'border-primary bg-primary/10' : 'border-slate-200 bg-white'}
                     ${isCorrectAnswer ? 'border-green-500 bg-green-50' : ''}
                     ${isIncorrectSelection ? 'border-red-500 bg-red-50' : ''}`}
                 >
                   <input
                     type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                    className="h-4 w-4 text-primary border-slate-300 rounded"
                     checked={isSelected}
                     onChange={() => {
                       if (showFeedback) return;

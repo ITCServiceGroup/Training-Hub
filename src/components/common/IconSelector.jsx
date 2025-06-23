@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { availableIcons } from '../../utils/iconMappings';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -27,33 +28,40 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
   // Update dropdown position when it opens
   useEffect(() => {
     if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      // Use the exact width of the trigger element to match it perfectly
-      const dropdownWidth = rect.width;
-      const dropdownHeight = 400; // Increased height to show 3 rows of icons
+      // Small delay to ensure modal is fully rendered
+      const updatePosition = () => {
+        const rect = triggerRef.current.getBoundingClientRect();
+        // Use the exact width of the trigger element to match it perfectly
+        const dropdownWidth = rect.width;
+        const dropdownHeight = 400; // Increased height to show 3 rows of icons
 
-      // Calculate left position, ensuring it doesn't go off-screen
-      let left = rect.left + window.scrollX;
-      if (left + dropdownWidth > window.innerWidth) {
-        left = window.innerWidth - dropdownWidth - 10; // 10px padding from edge
-      }
-
-      // Calculate top position, ensuring it doesn't go off-screen
-      let top = rect.bottom + window.scrollY;
-      if (rect.bottom + dropdownHeight > window.innerHeight) {
-        // Position above the trigger if there's not enough space below
-        top = rect.top + window.scrollY - dropdownHeight;
-        // If there's not enough space above either, just position at the top of the viewport
-        if (top < window.scrollY) {
-          top = window.scrollY + 10; // 10px padding from top
+        // Calculate left position, ensuring it doesn't go off-screen
+        let left = rect.left + window.scrollX;
+        if (left + dropdownWidth > window.innerWidth) {
+          left = window.innerWidth - dropdownWidth - 10; // 10px padding from edge
         }
-      }
 
-      setDropdownPosition({
-        top: top,
-        left: left,
-        width: dropdownWidth
-      });
+        // Calculate top position, ensuring it doesn't go off-screen
+        let top = rect.bottom + window.scrollY;
+        if (rect.bottom + dropdownHeight > window.innerHeight) {
+          // Position above the trigger if there's not enough space below
+          top = rect.top + window.scrollY - dropdownHeight;
+          // If there's not enough space above either, just position at the top of the viewport
+          if (top < window.scrollY) {
+            top = window.scrollY + 10; // 10px padding from top
+          }
+        }
+
+        setDropdownPosition({
+          top: top,
+          left: left,
+          width: dropdownWidth
+        });
+      };
+
+      // Update position immediately and after a small delay
+      updatePosition();
+      const timeoutId = setTimeout(updatePosition, 10);
 
       // Add click outside handler
       const handleClickOutside = (e) => {
@@ -78,6 +86,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
 
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
+        clearTimeout(timeoutId);
       };
     }
   }, [isOpen]);
@@ -104,10 +113,10 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
         <span className="text-xs">{isOpen ? '▲' : '▼'}</span>
       </div>
 
-      {/* Icon selector dropdown - positioned in the document body to avoid container clipping */}
-      {isOpen && (
+      {/* Icon selector dropdown - rendered in document body to avoid container clipping */}
+      {isOpen && createPortal(
         <div
-          className={`fixed z-[9999] border ${isDark ? 'border-slate-500 bg-slate-700 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md shadow-lg max-h-96 overflow-auto icon-dropdown`}
+          className={`fixed z-[99999] border ${isDark ? 'border-slate-500 bg-slate-700 text-white' : 'border-gray-300 bg-white text-gray-700'} rounded-md shadow-lg max-h-96 overflow-auto icon-dropdown`}
           style={{
             width: `${dropdownPosition.width}px`,
             top: `${dropdownPosition.top}px`,
@@ -145,7 +154,8 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
               </div>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

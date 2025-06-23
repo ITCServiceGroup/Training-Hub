@@ -366,7 +366,7 @@ const StudyGuidePage = () => {
             />
             {searchQuery && (
               <button
-                className={`absolute right-3 text-secondary hover:text-secondary/80 transition-colors`}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary/80 transition-colors`}
                 onClick={handleClearSearch}
                 aria-label="Clear search"
               >

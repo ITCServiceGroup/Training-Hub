@@ -62,7 +62,7 @@ const MultipleChoiceForm = ({ options, correctAnswer, onChange, disabled, isDark
                   isDark
                     ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
                     : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
-                } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
+                } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
                 placeholder={`Option ${index + 1}`}
                 required
                 disabled={disabled}

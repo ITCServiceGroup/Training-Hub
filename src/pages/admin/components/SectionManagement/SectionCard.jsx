@@ -106,7 +106,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
         className="p-4 px-6 flex-1 flex flex-col min-h-0"
         onClick={handleCardClick}
       >
-        <p className="text-gray-500 dark:text-gray-300 text-sm mb-4 flex-grow">
+        <p className="text-gray-500 dark:text-gray-300 text-sm mb-4 flex-grow whitespace-pre-wrap">
           {section.description || 'No description available'}
         </p>
         <div className="flex items-center text-gray-500 dark:text-gray-300 text-sm mt-2 flex-shrink-0">

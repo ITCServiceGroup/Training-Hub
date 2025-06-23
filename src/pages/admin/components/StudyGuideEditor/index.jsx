@@ -672,7 +672,7 @@ const StudyGuideEditor = ({
           type="button"
           onClick={() => handleSave(true)}
           disabled={isSaving}
-          className={`py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`py-2 px-4 bg-secondary hover:bg-secondary/80 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isSaving ? 'Saving...' : (isNew ? 'Create' : 'Save and Exit')}
         </button>

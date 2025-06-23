@@ -101,7 +101,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery, navigationPath = 'study
               {icon}
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.name}</h3>
-            <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1`}>{section.description || 'No description available'}</p>
+            <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1 whitespace-pre-wrap`}>{section.description || 'No description available'}</p>
             <div className={`flex justify-between ${isDark ? 'text-gray-500' : 'text-slate-400'} text-sm mt-auto w-full`}>
               <span>{categoryCount} {categoryCount === 1 ? 'Category' : 'Categories'}</span>
             </div>

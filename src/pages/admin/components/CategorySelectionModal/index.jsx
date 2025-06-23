@@ -96,8 +96,8 @@ const CategorySelectionModal = ({
                           <li 
                             key={category.id}
                             className={`p-2 rounded cursor-pointer ${
-                              selectedCategoryId === category.id 
-                                ? isDark ? 'bg-teal-900/30 border border-teal-600' : 'bg-teal-50 border border-teal-600' 
+                              selectedCategoryId === category.id
+                                ? isDark ? 'bg-primary/30 border border-primary' : 'bg-primary/10 border border-primary'
                                 : ''
                             } ${
                               currentCategoryId === category.id
