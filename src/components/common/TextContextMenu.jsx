@@ -252,17 +252,6 @@ const TextContextMenu = ({
           <FaTimes size={12} />
         </button>
       </div>
-
-      {/* Selected text preview */}
-      {selectedText.length > 30 && (
-        <div className={`absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded ${
-          isDark 
-            ? 'bg-slate-700 text-gray-300 border border-slate-600' 
-            : 'bg-gray-100 text-gray-600 border border-gray-200'
-        }`}>
-          "{selectedText.substring(0, 30)}..."
-        </div>
-      )}
     </div>,
     document.body // Render at document root to avoid stacking context issues
   );

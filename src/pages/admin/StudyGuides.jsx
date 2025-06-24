@@ -441,10 +441,11 @@ const StudyGuides = () => {
 
       // Construct data payload for API
       // Use the is_published value and description from ContentEditor if available
+      // Preserve existing description if not provided in save data
       const dataToSaveApi = {
         title,
         content: contentToSave,
-        description, // Include the description field
+        description: description !== undefined ? description : selectedStudyGuide?.description, // Preserve existing description if not provided
         is_published: typeof is_published !== 'undefined' ? is_published : (selectedStudyGuide?.is_published || false)
       };
 

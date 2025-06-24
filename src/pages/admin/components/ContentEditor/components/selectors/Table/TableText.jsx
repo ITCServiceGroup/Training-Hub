@@ -1,5 +1,5 @@
 import { useNode, useEditor } from '@craftjs/core';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 import useTableTextFormatting from '../../../../../../../hooks/useTableTextFormatting';
@@ -38,6 +38,8 @@ export const TableText = ({
 
   // Use a ref to store the HTML content
   const htmlContent = useRef(text || '');
+  // Track if we're updating content to prevent cursor issues
+  const isUpdatingContent = useRef(false);
 
   const {
     connectors: { connect },
@@ -56,6 +58,53 @@ export const TableText = ({
 
   // Create a ref for the ContentEditable element to use with text formatting
   const contentEditableRef = useRef(null);
+
+  // Cursor position preservation utilities
+  const saveCursorPosition = useCallback(() => {
+    const element = contentEditableRef.current;
+    if (!element) return null;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return null;
+
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+
+    return preCaretRange.toString().length;
+  }, []);
+
+  const restoreCursorPosition = useCallback((position) => {
+    const element = contentEditableRef.current;
+    if (!element || position === null) return;
+
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+
+    let currentPosition = 0;
+    let node;
+
+    while (node = walker.nextNode()) {
+      const nodeLength = node.textContent.length;
+      if (currentPosition + nodeLength >= position) {
+        const range = document.createRange();
+        const selection = window.getSelection();
+
+        range.setStart(node, position - currentPosition);
+        range.collapse(true);
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+        break;
+      }
+      currentPosition += nodeLength;
+    }
+  }, []);
 
   // Text formatting functionality
   const {
@@ -158,30 +207,58 @@ export const TableText = ({
     };
   }, []);
 
+  // Initialize content when component mounts
+  useEffect(() => {
+    const element = contentEditableRef.current;
+    if (element && !element.innerHTML) {
+      const initialContent = text || (isPlaceholder ? 'Click to edit' : '');
+      element.innerHTML = initialContent;
+      htmlContent.current = initialContent;
+    }
+  }, [text, isPlaceholder]);
+
   // Update the HTML content when text changes from props
   useEffect(() => {
+    // Skip updates if we're currently updating content to prevent cursor issues
+    if (isUpdatingContent.current) {
+      return;
+    }
+
     // Check if this is a placeholder text
     const newIsPlaceholder = text === '' || text === 'Click to edit';
     setIsPlaceholder(newIsPlaceholder);
 
-    // Only set the content if not focused or if it's not a placeholder
-    if (!isFocused || !newIsPlaceholder) {
-      htmlContent.current = newIsPlaceholder ? (isFocused ? '' : 'Click to edit') : text;
+    // Only update content if not focused or if the content is significantly different
+    if (!isFocused || htmlContent.current !== text) {
+      const newContent = newIsPlaceholder ? (isFocused ? '' : 'Click to edit') : text;
+
+      // Only update if the content has actually changed
+      if (htmlContent.current !== newContent) {
+        htmlContent.current = newContent;
+
+        // Update the DOM content if the element exists and is not focused
+        if (contentEditableRef.current && !isFocused) {
+          contentEditableRef.current.innerHTML = newContent;
+        }
+      }
     }
   }, [text, isFocused]);
 
   // Handle focus event
-  const handleFocus = () => {
+  const handleFocus = useCallback(() => {
     setIsFocused(true);
 
     // If this is a placeholder, clear the content when focused
     if (isPlaceholder) {
       htmlContent.current = '';
+      if (contentEditableRef.current) {
+        contentEditableRef.current.innerHTML = '';
+      }
     }
-  };
+  }, [isPlaceholder]);
 
   // Handle blur event
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     setIsFocused(false);
 
     // If the content is empty, restore the placeholder
@@ -189,12 +266,17 @@ export const TableText = ({
       htmlContent.current = 'Click to edit';
       setIsPlaceholder(true);
 
+      // Update the DOM
+      if (contentEditableRef.current) {
+        contentEditableRef.current.innerHTML = 'Click to edit';
+      }
+
       // Update the component props with empty string
       // This ensures the actual stored value is empty, not "Click to edit"
       setProp((prop) => (prop.text = ''));
       if (onChange) onChange('');
     }
-  };
+  }, [setProp, onChange]);
 
   return (
     <div
@@ -207,13 +289,19 @@ export const TableText = ({
       <div
         ref={(el) => {
           contentEditableRef.current = el;
+          // Set initial content when ref is first set
+          if (el && !el.innerHTML) {
+            el.innerHTML = htmlContent.current;
+          }
         }}
         contentEditable={enabled}
         suppressContentEditableWarning={true}
-        dangerouslySetInnerHTML={{ __html: htmlContent.current }}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onInput={(e) => {
+          // Set flag to prevent external updates during user input
+          isUpdatingContent.current = true;
+
           const newValue = e.target.innerHTML;
           htmlContent.current = newValue;
 
@@ -225,6 +313,11 @@ export const TableText = ({
 
           // If custom onChange handler is provided, call it
           if (onChange) onChange(newValue);
+
+          // Clear the flag after a short delay to allow for external updates
+          setTimeout(() => {
+            isUpdatingContent.current = false;
+          }, 100);
         }}
         onClick={(e) => {
           // Prevent event propagation to allow selecting the text without selecting the table

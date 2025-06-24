@@ -463,7 +463,6 @@ const SortableStudyGuideItem = ({
           <div
             className="mb-2 relative"
             ref={descriptionRef}
-            onClick={guide.description ? handleDescriptionClick : undefined}
           >
             <div className="flex items-center mb-1">
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -518,19 +517,21 @@ const SortableStudyGuideItem = ({
                 </div>
               </div>
             ) : guide.description ? (
-              <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 min-h-[3em] border border-transparent px-3 py-2 rounded-md hover:border-gray-200 dark:hover:border-slate-600 cursor-text">
+              <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 min-h-[3em] border border-transparent px-3 py-2 rounded-md">
                 {guide.description}
               </div>
             ) : null}
           </div>
 
-          {/* Content preview */}
-          <div className={`text-sm text-gray-600 dark:text-gray-300 line-clamp-2 ${!guide.description && !isEditingDescription ? 'mt-0' : 'mt-2'}`}>
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
-              Content Preview:
-            </span>
-            {extractPreview(guide.content)}
-          </div>
+          {/* Content preview - only show if no custom description */}
+          {!guide.description && (
+            <div className={`text-sm text-gray-600 dark:text-gray-300 line-clamp-2 ${!isEditingDescription ? 'mt-0' : 'mt-2'}`}>
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                Content Preview:
+              </span>
+              {extractPreview(guide.content)}
+            </div>
+          )}
         </div>
         <div className="bg-gray-50 dark:bg-slate-800 px-4 py-2 border-t border-gray-100 dark:border-slate-600 flex justify-between items-center">
           <div className="flex items-center gap-2">
