@@ -142,6 +142,22 @@ export const TableText = ({
     autoConvertColors
   ]);
 
+  // Handle selectstart event to allow text selection within the cell
+  useEffect(() => {
+    const element = contentEditableRef.current;
+    if (!element) return;
+
+    const handleSelectStart = (e) => {
+      // Allow text selection within the cell
+      e.stopPropagation();
+    };
+
+    element.addEventListener('selectstart', handleSelectStart);
+    return () => {
+      element.removeEventListener('selectstart', handleSelectStart);
+    };
+  }, []);
+
   // Update the HTML content when text changes from props
   useEffect(() => {
     // Check if this is a placeholder text
@@ -222,10 +238,7 @@ export const TableText = ({
           // Prevent table event handlers from interfering with text selection
           e.stopPropagation();
         }}
-        onSelectStart={(e) => {
-          // Allow text selection within the cell
-          e.stopPropagation();
-        }}
+
         onDragStart={(e) => {
           // Prevent dragging of text content from interfering with table drag
           e.stopPropagation();

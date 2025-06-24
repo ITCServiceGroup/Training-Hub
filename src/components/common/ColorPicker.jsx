@@ -580,21 +580,31 @@ const ColorPicker = ({
   // Handle click outside to close the picker
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        pickerRef.current &&
-        !pickerRef.current.contains(event.target) &&
-        colorPickerRef.current &&
-        !colorPickerRef.current.contains(event.target)
-      ) {
-        setIsOpen(false);
+      if (isOpen) {
+        console.log('ColorPicker click outside check:', {
+          target: event.target,
+          colorPickerRef: colorPickerRef.current,
+          contains: colorPickerRef.current?.contains(event.target)
+        });
+
+        // Check if the click is outside the color picker dropdown
+        const isOutsidePicker = colorPickerRef.current && !colorPickerRef.current.contains(event.target);
+
+        if (isOutsidePicker) {
+          console.log('Closing color picker - click outside detected');
+          setIsOpen(false);
+        }
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside, true); // Use capture phase
+    }
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, []);
+  }, [isOpen]);
 
   return (
     <div className="relative" ref={pickerRef}>
@@ -609,7 +619,10 @@ const ColorPicker = ({
             backgroundImage: color.a < 1 ? 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg==")' : 'none',
             backgroundPosition: 'left center'
           }}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
           aria-label="Open color picker"
         />
 

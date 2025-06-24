@@ -292,10 +292,6 @@ export const Table = (props) => {
               // Allow text selection within cells, but prevent table selection
               e.stopPropagation();
             }}
-            onSelectStart={(e) => {
-              // Allow text selection to start within cells
-              e.stopPropagation();
-            }}
           >
             <TableText
               text={cellContent}
