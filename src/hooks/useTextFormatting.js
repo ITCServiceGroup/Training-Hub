@@ -148,8 +148,22 @@ export const useTextFormatting = (containerRef, onTextChange) => {
         }
       } else {
         // Handle other formatting (bold, italic, underline)
-        // Save the selected text content before applying formatting
-        const selectedTextContent = selectedText;
+        // Save the current selection range before applying formatting
+        const currentSelection = window.getSelection();
+        let savedRange = null;
+        let selectionStartOffset = 0;
+        let selectionEndOffset = 0;
+
+        if (currentSelection && currentSelection.rangeCount > 0) {
+          savedRange = currentSelection.getRangeAt(0).cloneRange();
+
+          // Calculate the absolute position of the selection within the container
+          const containerRange = document.createRange();
+          containerRange.selectNodeContents(containerRef.current);
+          containerRange.setEnd(savedRange.startContainer, savedRange.startOffset);
+          selectionStartOffset = containerRange.toString().length;
+          selectionEndOffset = selectionStartOffset + selectedText.length;
+        }
 
         // Set flag to prevent selection change loops during formatting
         isUpdatingContentRef.current = true;
@@ -157,16 +171,16 @@ export const useTextFormatting = (containerRef, onTextChange) => {
         success = TextFormatter.toggleFormat(formatType, options, containerRef.current);
 
         if (success) {
-          // Update the text content
+          // Update the text content - pass flag to indicate this is a formatting operation
           if (onTextChange) {
-            onTextChange(containerRef.current.innerHTML);
+            onTextChange(containerRef.current.innerHTML, true);
           }
 
-          // Find and select the formatted text after DOM update
+          // Restore selection using the absolute position after DOM update
           setTimeout(() => {
             try {
-              if (selectedTextContent && containerRef.current) {
-                // Find the text in the updated DOM and select it
+              if (containerRef.current && selectionStartOffset >= 0) {
+                // Create a range to find the text at the original position
                 const walker = document.createTreeWalker(
                   containerRef.current,
                   NodeFilter.SHOW_TEXT,
@@ -174,36 +188,68 @@ export const useTextFormatting = (containerRef, onTextChange) => {
                   false
                 );
 
-                let textNode;
-                let foundNode = null;
-                let foundOffset = -1;
+                let currentOffset = 0;
+                let startNode = null;
+                let startOffset = 0;
+                let endNode = null;
+                let endOffset = 0;
 
-                // Look for the text content in text nodes
+                // Find the start position
+                let textNode;
                 while (textNode = walker.nextNode()) {
-                  const nodeText = textNode.textContent;
-                  const index = nodeText.indexOf(selectedTextContent);
-                  if (index !== -1) {
-                    foundNode = textNode;
-                    foundOffset = index;
+                  const nodeLength = textNode.textContent.length;
+
+                  if (currentOffset + nodeLength > selectionStartOffset && !startNode) {
+                    startNode = textNode;
+                    startOffset = selectionStartOffset - currentOffset;
+                  }
+
+                  if (currentOffset + nodeLength >= selectionEndOffset && !endNode) {
+                    endNode = textNode;
+                    endOffset = selectionEndOffset - currentOffset;
                     break;
                   }
+
+                  currentOffset += nodeLength;
                 }
 
-                // If we found the text, select it
-                if (foundNode && foundOffset !== -1) {
+                // Ensure we have valid nodes and offsets
+                if (startNode && !endNode) {
+                  endNode = startNode;
+                  endOffset = startOffset + selectedText.length;
+                }
+
+                // Clamp offsets to valid ranges
+                if (startNode) {
+                  startOffset = Math.max(0, Math.min(startOffset, startNode.textContent.length));
+                }
+                if (endNode) {
+                  endOffset = Math.max(0, Math.min(endOffset, endNode.textContent.length));
+                }
+
+                // Create and apply the selection if we found the positions
+                if (startNode && endNode) {
                   const range = document.createRange();
-                  range.setStart(foundNode, foundOffset);
-                  range.setEnd(foundNode, foundOffset + selectedTextContent.length);
+                  range.setStart(startNode, Math.max(0, startOffset));
+                  range.setEnd(endNode, Math.min(endNode.textContent.length, endOffset));
 
                   const selection = window.getSelection();
                   selection.removeAllRanges();
                   selection.addRange(range);
 
                   // Update the selected text state to keep context menu visible
-                  setSelectedText(selectedTextContent);
+                  setSelectedText(selectedText);
 
-                  // Update active formats
-                  updateActiveFormats();
+                  // Update active formats with a small delay to ensure DOM is stable
+                  // and the selection is properly established
+                  setTimeout(() => {
+                    console.log('Updating active formats after selection restoration');
+                    updateActiveFormats();
+
+                    // Debug: Check what formats are detected
+                    const formats = TextFormatter.getActiveFormats(containerRef.current);
+                    console.log('Active formats detected:', formats);
+                  }, 50); // Increased delay to ensure everything is stable
                 } else {
                   // Fallback: clear selection state
                   setSelectedText('');

@@ -206,7 +206,7 @@ export const Text = ({
     selected: node.events.selected
   }));
 
-  const { enabled } = useEditor((state) => ({
+  const { enabled, actions: editorActions } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
 
@@ -225,18 +225,40 @@ export const Text = ({
     handleLinkSave,
     closeContextMenu,
     closeLinkDialog
-  } = useTextFormatting(contentEditableRef, (newHtml) => {
+  } = useTextFormatting(contentEditableRef, (newHtml, isFormattingOperation = false) => {
     // Update the component when formatting changes
     if (enabled) {
       // Update our refs immediately to prevent conflicts with handleChange
       textValue.current = newHtml;
       formattedHtml.current = newHtml;
 
-      // Update props without triggering a re-render that would lose selection
-      setProp((props) => {
-        props.text = newHtml;
-        props._lastUpdate = Date.now();
-      }, 0); // No debounce for formatting changes
+      if (isFormattingOperation && selected) {
+        // For formatting operations, defer the prop update to maintain selection
+        const nodeId = dom?.id;
+        setTimeout(() => {
+          setProp((props) => {
+            props.text = newHtml;
+            props._lastUpdate = Date.now();
+          }, 0);
+
+          // Re-select the component after prop update
+          if (nodeId) {
+            setTimeout(() => {
+              try {
+                editorActions.selectNode(nodeId);
+              } catch (error) {
+                console.warn('Failed to re-select node:', error);
+              }
+            }, 10);
+          }
+        }, 150); // Wait for text selection to complete
+      } else {
+        // For non-formatting operations, update immediately
+        setProp((props) => {
+          props.text = newHtml;
+          props._lastUpdate = Date.now();
+        }, 0);
+      }
     }
   });
 
