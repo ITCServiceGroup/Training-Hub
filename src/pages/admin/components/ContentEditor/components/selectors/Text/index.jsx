@@ -6,6 +6,9 @@ import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
 
 import { TextSettings } from './TextSettings';
 import { ICONS, ICON_NAME_MAP } from '@/components/icons';
+import useTextFormatting from '../../../../../../../hooks/useTextFormatting';
+import TextContextMenu from '../../../../../../../components/common/TextContextMenu';
+import LinkDialog from '../../../../../../../components/common/LinkDialog';
 
 // Add global CSS for proper list rendering
 const listStyles = `
@@ -68,6 +71,17 @@ const listStyles = `
   list-style-position: inside !important;
   padding-left: 0 !important;
 }
+
+/* Link styles */
+.craft-text-component a {
+  text-decoration: underline !important;
+  transition: color 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.craft-text-component a:hover {
+  text-decoration: underline !important;
+}
 `;
 
 // Add the styles to the document head
@@ -95,25 +109,38 @@ const formatTextWithListType = (text, listType) => {
       .trim();
   }
 
-  // Split content by newlines to create list items
-  const lines = content.split('\n');
-  if (lines.length === 0 || (lines.length === 1 && !lines[0].trim())) {
-    lines[0] = 'Click to edit';
-  }
-
   if (listType === 'bullet') {
+    // Split content by newlines to create list items
+    const lines = content.split('\n');
+    if (lines.length === 0 || (lines.length === 1 && !lines[0].trim())) {
+      lines[0] = 'Click to edit';
+    }
+
     // Use style attribute to ensure bullets are visible
     return '<ul style="list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);">' +
            lines.map(line => `<li style="display: list-item; padding-left: 4px;">${line}</li>`).join('') +
            '</ul>';
   } else if (listType === 'number') {
+    // Split content by newlines to create list items
+    const lines = content.split('\n');
+    if (lines.length === 0 || (lines.length === 1 && !lines[0].trim())) {
+      lines[0] = 'Click to edit';
+    }
+
     // Use style attribute to ensure numbers are visible
     return '<ol style="list-style-type: decimal; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);">' +
            lines.map(line => `<li style="display: list-item; padding-left: 4px;">${line}</li>`).join('') +
            '</ol>';
   } else {
-    // No list formatting - preserve line breaks
-    return lines.join('<br>');
+    // No list formatting - preserve HTML content including links and formatting
+    // Only convert newlines to <br> if the content doesn't already have HTML formatting
+    if (content.includes('<') && content.includes('>')) {
+      // Content has HTML tags, preserve as-is
+      return content;
+    } else {
+      // Plain text content, convert newlines to <br>
+      return content.split('\n').join('<br>');
+    }
   }
 };
 
@@ -150,12 +177,24 @@ export const Text = ({
     dark: { r: 229, g: 231, b: 235, a: 1 }
   },
   autoConvertColors = true,
+  enableFormatting = true,
+  linkColor = {
+    light: { r: 59, g: 130, b: 246, a: 1 },
+    dark: { r: 96, g: 165, b: 250, a: 1 }
+  },
+  linkHoverColor = {
+    light: { r: 37, g: 99, b: 235, a: 1 },
+    dark: { r: 147, g: 197, b: 253, a: 1 }
+  },
 }) => {
   // Store the current text value in a ref to avoid re-renders
   const textValue = useRef(text || 'Click to edit');
 
   // Store the formatted HTML in a separate ref
   const formattedHtml = useRef(formatTextWithListType(textValue.current, listType));
+
+  // Ref for the ContentEditable element
+  const contentEditableRef = useRef(null);
 
   const {
     connectors: { connect },
@@ -173,6 +212,33 @@ export const Text = ({
 
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // Text formatting functionality
+  const {
+    activeFormats,
+    selectedText,
+    showContextMenu,
+    contextMenuPosition,
+    showLinkDialog,
+    linkDialogData,
+    applyFormat,
+    handleLinkSave,
+    closeContextMenu,
+    closeLinkDialog
+  } = useTextFormatting(contentEditableRef, (newHtml) => {
+    // Update the component when formatting changes
+    if (enabled) {
+      // Update our refs immediately to prevent conflicts with handleChange
+      textValue.current = newHtml;
+      formattedHtml.current = newHtml;
+
+      // Update props without triggering a re-render that would lose selection
+      setProp((props) => {
+        props.text = newHtml;
+        props._lastUpdate = Date.now();
+      }, 0); // No debounce for formatting changes
+    }
+  });
 
   // Check if this Text component is inside a table cell
   const isInTableCell = React.useMemo(() => {
@@ -221,12 +287,18 @@ export const Text = ({
   // Handle changes to the content
   const handleChange = (e) => {
     let newHtml = e.target.value;
-    let plainText = newHtml;
+    let contentToSave = newHtml;
 
-    // Extract plain text from HTML
+    // Skip processing if this change is from formatting operations
+    // to prevent interference with selection preservation
+    if (newHtml === formattedHtml.current) {
+      return;
+    }
+
+    // For lists, extract plain text, but for regular text with formatting, preserve HTML
     if (listType !== 'none') {
       // Extract content from list structure
-      plainText = newHtml
+      contentToSave = newHtml
         .replace(/<ul[^>]*>/g, '')
         .replace(/<\/ul>/g, '')
         .replace(/<ol[^>]*>/g, '')
@@ -234,29 +306,106 @@ export const Text = ({
         .replace(/<li[^>]*>/g, '')
         .replace(/<\/li>/g, '\n')
         .trim();
+    } else if (enableFormatting) {
+      // For formatted text, preserve HTML including links, bold, italic, underline
+      // Only clean up line breaks for display consistency
+      contentToSave = newHtml.replace(/<br\s*\/?>/g, '\n');
     } else {
-      // For regular text, preserve line breaks
-      plainText = newHtml.replace(/<br\s*\/?>/g, '\n');
+      // For non-formatted text, extract plain text
+      contentToSave = newHtml.replace(/<br\s*\/?>/g, '\n');
     }
 
     // Update our refs
-    textValue.current = plainText;
+    textValue.current = contentToSave;
     formattedHtml.current = newHtml;
 
     // Update the component props
     if (isInTableCell) {
       // Immediate update for table cells
-      setProp((prop) => (prop.text = plainText));
+      setProp((prop) => (prop.text = contentToSave));
       // If custom onChange handler is provided (for table cells), call it
-      if (onChange) onChange(plainText);
+      if (onChange) onChange(contentToSave);
     } else {
       // Keep the debounce for regular text editing
-      setProp((prop) => (prop.text = plainText), 500);
+      setProp((prop) => (prop.text = contentToSave), 500);
     }
   };
 
+  // Create a wrapper for handleLinkSave that includes current link colors
+  const handleLinkSaveWithColors = React.useCallback((linkData) => {
+    try {
+      const currentLinkColor = getThemeColor(linkColor, isDark, 'link', autoConvertColors);
+      const linkColors = {
+        color: currentLinkColor
+      };
+      return handleLinkSave(linkData, linkColors);
+    } catch (error) {
+      console.warn('Error getting link colors, using default:', error);
+      return handleLinkSave(linkData);
+    }
+  }, [handleLinkSave, linkColor, isDark, autoConvertColors]);
+
   // Get the icon component if one is selected
   const IconComponent = hasIcon ? ICONS[iconName] : null;
+
+  // Generate dynamic link styles with a stable ID based on component
+  const componentId = React.useMemo(() => {
+    return `text-component-${Math.random().toString(36).substring(2, 11)}`;
+  }, []);
+
+  const linkStyles = React.useMemo(() => {
+    try {
+      const currentLinkColor = getThemeColor(linkColor, isDark, 'link', autoConvertColors);
+      const currentLinkHoverColor = getThemeColor(linkHoverColor, isDark, 'link', autoConvertColors);
+
+      return `
+        .${componentId} a,
+        .${componentId} a:link,
+        .${componentId} a:visited {
+          color: rgba(${currentLinkColor.r}, ${currentLinkColor.g}, ${currentLinkColor.b}, ${currentLinkColor.a}) !important;
+          text-decoration: underline !important;
+        }
+        .${componentId} a:hover,
+        .${componentId} a:focus {
+          color: rgba(${currentLinkHoverColor.r}, ${currentLinkHoverColor.g}, ${currentLinkHoverColor.b}, ${currentLinkHoverColor.a}) !important;
+          text-decoration: underline !important;
+        }
+      `;
+    } catch (error) {
+      console.warn('Error generating link styles:', error);
+      return `
+        .${componentId} a,
+        .${componentId} a:link,
+        .${componentId} a:visited {
+          color: ${isDark ? 'rgba(96, 165, 250, 1)' : 'rgba(59, 130, 246, 1)'} !important;
+          text-decoration: underline !important;
+        }
+        .${componentId} a:hover,
+        .${componentId} a:focus {
+          color: ${isDark ? 'rgba(147, 197, 253, 1)' : 'rgba(37, 99, 235, 1)'} !important;
+          text-decoration: underline !important;
+        }
+      `;
+    }
+  }, [linkColor, linkHoverColor, isDark, autoConvertColors, componentId]);
+
+  // Add dynamic link styles to document head
+  React.useEffect(() => {
+    if (!enableFormatting) return;
+
+    const styleId = `text-link-styles-${componentId}`;
+    const styleElement = document.createElement('style');
+    styleElement.id = styleId;
+    styleElement.textContent = linkStyles;
+    document.head.appendChild(styleElement);
+
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, [linkStyles, enableFormatting, componentId]);
 
   return (
     <div
@@ -293,69 +442,97 @@ export const Text = ({
           />
         </div>
       )}
-      <ContentEditable
-        html={formattedHtml.current}
-        disabled={!enabled}
-        onClick={handleClick}
-        onChange={handleChange}
-        className="craft-text-component"
-        tagName="div"
-        style={{
-          width: '100%',
-          margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-          padding: padding.every(p => p === '0' || p === 0)
-            ? '4px 0' // Default padding if none is set
-            : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
-          color: (() => {
-            try {
-              const textColor = getThemeColor(color, isDark, 'text');
-              return `rgba(${textColor.r}, ${textColor.g}, ${textColor.b}, ${textColor.a})`;
-            } catch (error) {
-              console.warn('Error generating text color:', error);
-              return isDark ? 'rgba(229, 231, 235, 1)' : 'rgba(92, 90, 90, 1)';
-            }
-          })(),
-          textShadow: shadow.enabled
-            ? (() => {
-                try {
-                  // Get the appropriate shadow color for the current theme
-                  let shadowColor;
-                  if (shadow.color && shadow.color.light && shadow.color.dark) {
-                    // Theme-aware color
-                    shadowColor = isDark ? shadow.color.dark : shadow.color.light;
-                  } else if (shadow.color && 'r' in shadow.color) {
-                    // Legacy format (single RGBA object)
-                    if (isDark && autoConvertColors) {
-                      // Auto-convert to dark mode
-                      shadowColor = convertToThemeColor(shadow.color, true, 'shadow');
+      <div style={{ position: 'relative', width: '100%' }}>
+        <ContentEditable
+          innerRef={contentEditableRef}
+          html={formattedHtml.current}
+          disabled={!enabled}
+          onClick={handleClick}
+          onChange={handleChange}
+          className={`craft-text-component ${componentId}`}
+          tagName="div"
+          style={{
+            width: '100%',
+            margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
+            padding: padding.every(p => p === '0' || p === 0)
+              ? '4px 0' // Default padding if none is set
+              : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
+            color: (() => {
+              try {
+                const textColor = getThemeColor(color, isDark, 'text');
+                return `rgba(${textColor.r}, ${textColor.g}, ${textColor.b}, ${textColor.a})`;
+              } catch (error) {
+                console.warn('Error generating text color:', error);
+                return isDark ? 'rgba(229, 231, 235, 1)' : 'rgba(92, 90, 90, 1)';
+              }
+            })(),
+            textShadow: shadow.enabled
+              ? (() => {
+                  try {
+                    // Get the appropriate shadow color for the current theme
+                    let shadowColor;
+                    if (shadow.color && shadow.color.light && shadow.color.dark) {
+                      // Theme-aware color
+                      shadowColor = isDark ? shadow.color.dark : shadow.color.light;
+                    } else if (shadow.color && 'r' in shadow.color) {
+                      // Legacy format (single RGBA object)
+                      if (isDark && autoConvertColors) {
+                        // Auto-convert to dark mode
+                        shadowColor = convertToThemeColor(shadow.color, true, 'shadow');
+                      } else {
+                        shadowColor = shadow.color;
+                      }
                     } else {
-                      shadowColor = shadow.color;
+                      // Fallback
+                      shadowColor = { r: 0, g: 0, b: 0, a: isDark ? 0.25 : 0.15 };
                     }
-                  } else {
-                    // Fallback
-                    shadowColor = { r: 0, g: 0, b: 0, a: isDark ? 0.25 : 0.15 };
-                  }
 
-                  return `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${shadowColor.r || 0}, ${shadowColor.g || 0}, ${shadowColor.b || 0}, ${shadowColor.a || 0.15})`;
-                } catch (error) {
-                  console.warn('Error generating text shadow:', error);
-                  return 'none';
-                }
-              })()
-            : 'none',
-          fontSize: `${fontSize}px`,
-          fontWeight,
-          textAlign,
-          lineHeight: lineHeight,
-          minHeight: '24px',
-          cursor: 'text',
-          whiteSpace: 'pre-wrap',
-          wordWrap: 'break-word',
-          overflowWrap: 'break-word',
-          // Add a subtle indicator for table cells to help with selection
-          outline: isInTableCell && selected ? '1px solid rgba(13, 148, 136, 0.5)' : 'none'
-        }}
-      />
+                    return `${shadow.x}px ${shadow.y}px ${shadow.blur}px rgba(${shadowColor.r || 0}, ${shadowColor.g || 0}, ${shadowColor.b || 0}, ${shadowColor.a || 0.15})`;
+                  } catch (error) {
+                    console.warn('Error generating text shadow:', error);
+                    return 'none';
+                  }
+                })()
+              : 'none',
+            fontSize: `${fontSize}px`,
+            fontWeight,
+            textAlign,
+            lineHeight: lineHeight,
+            minHeight: '24px',
+            cursor: 'text',
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            // Add a subtle indicator for table cells to help with selection
+            outline: isInTableCell && selected ? '1px solid rgba(13, 148, 136, 0.5)' : 'none'
+          }}
+        />
+
+        {/* Context Menu for text formatting */}
+        {enableFormatting && enabled && (
+          <TextContextMenu
+            isVisible={showContextMenu}
+            position={contextMenuPosition}
+            selectedText={selectedText}
+            activeFormats={activeFormats}
+            onFormat={applyFormat}
+            onClose={closeContextMenu}
+            containerRef={contentEditableRef}
+          />
+        )}
+
+        {/* Link Dialog */}
+        {enableFormatting && (
+          <LinkDialog
+            isOpen={showLinkDialog}
+            onClose={closeLinkDialog}
+            onSave={handleLinkSaveWithColors}
+            initialUrl={linkDialogData.url}
+            selectedText={linkDialogData.text}
+            isEditing={linkDialogData.isEditing}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -395,6 +572,15 @@ Text.craft = {
     },
     _lastUpdate: 0,
     autoConvertColors: true,
+    enableFormatting: true,
+    linkColor: {
+      light: { r: 59, g: 130, b: 246, a: 1 },
+      dark: { r: 96, g: 165, b: 250, a: 1 }
+    },
+    linkHoverColor: {
+      light: { r: 37, g: 99, b: 235, a: 1 },
+      dark: { r: 147, g: 197, b: 253, a: 1 }
+    },
   },
   related: {
     toolbar: TextSettings,

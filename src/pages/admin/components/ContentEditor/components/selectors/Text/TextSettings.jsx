@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNode } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
@@ -71,6 +71,14 @@ const ensureThemeColors = (props, isDark) => {
   return props;
 };
 
+// Helper function to check if text contains links
+const hasLinksInText = (text) => {
+  if (!text) return false;
+  // Check for HTML anchor tags
+  const linkRegex = /<a\s+[^>]*href\s*=\s*["'][^"']*["'][^>]*>.*?<\/a>/i;
+  return linkRegex.test(text);
+};
+
 export const TextSettings = () => {
   const { actions } = useNode((node) => ({
     selected: node.id,
@@ -81,6 +89,7 @@ export const TextSettings = () => {
 
   // Toggle sections
   const [showTextStructure, setShowTextStructure] = useState(true);
+  const [showTextFormatting, setShowTextFormatting] = useState(true);
   const [showTextStyle, setShowTextStyle] = useState(true);
   const [showTextSpacing, setShowTextSpacing] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -108,6 +117,9 @@ export const TextSettings = () => {
       iconName,
       iconColor: iconColorProp,
       autoConvertColors,
+      enableFormatting,
+      linkColor: linkColorProp,
+      linkHoverColor: linkHoverColorProp,
     } = useNode((node) => {
     const props = node.data.props || {};
 
@@ -155,6 +167,15 @@ export const TextSettings = () => {
         dark: { r: 229, g: 231, b: 235, a: 1 }
       },
       autoConvertColors: props.autoConvertColors !== undefined ? props.autoConvertColors : true,
+      enableFormatting: props.enableFormatting !== undefined ? props.enableFormatting : true,
+      linkColor: props.linkColor || {
+        light: { r: 59, g: 130, b: 246, a: 1 },
+        dark: { r: 96, g: 165, b: 250, a: 1 }
+      },
+      linkHoverColor: props.linkHoverColor || {
+        light: { r: 37, g: 99, b: 235, a: 1 },
+        dark: { r: 147, g: 197, b: 253, a: 1 }
+      },
     };
   });
 
@@ -311,6 +332,136 @@ export const TextSettings = () => {
           </div>
         )}
       </div>
+
+      {/* Link Colors Section - Only show if formatting is enabled and text contains links */}
+      {enableFormatting && hasLinksInText(text) && (
+        <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">
+          <div
+            className={`flex justify-between items-center cursor-pointer px-2 py-3 ${showTextFormatting ? 'bg-gray-50 dark:bg-slate-800' : 'bg-white dark:bg-slate-700'}`}
+            onClick={() => setShowTextFormatting(!showTextFormatting)}
+          >
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0">
+              Link Colors
+            </label>
+            <FaChevronDown
+              className={`transition-transform ${showTextFormatting ? 'rotate-180' : ''}`}
+              size={12}
+            />
+          </div>
+
+          {showTextFormatting && (
+            <div className="space-y-3 px-1 py-3 bg-white dark:bg-slate-700 border-t border-gray-200 dark:border-slate-600">
+              {/* Link Colors */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Link Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(linkColorProp, isDark, 'link', autoConvertColors)}
+                    onChange={(newColor) => {
+                      actions.setProp((props) => {
+                        // Ensure linkColor has the expected structure
+                        if (!props.linkColor) {
+                          props.linkColor = {
+                            light: { r: 59, g: 130, b: 246, a: 1 },
+                            dark: { r: 96, g: 165, b: 250, a: 1 }
+                          };
+                        }
+
+                        // Handle legacy format (single RGBA object)
+                        if ('r' in props.linkColor) {
+                          const oldColor = { ...props.linkColor };
+                          props.linkColor = {
+                            light: oldColor,
+                            dark: convertToThemeColor(oldColor, true, 'link')
+                          };
+                        }
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        if (props.autoConvertColors) {
+                          // Auto-convert the color for the opposite theme
+                          const oppositeColor = convertToThemeColor(newColor, !isDark, 'link');
+
+                          props.linkColor = {
+                            ...props.linkColor,
+                            [currentTheme]: newColor,
+                            [oppositeTheme]: oppositeColor
+                          };
+                        } else {
+                          // Only update the current theme's color
+                          props.linkColor = {
+                            ...props.linkColor,
+                            [currentTheme]: newColor
+                          };
+                        }
+                      });
+                    }}
+                    componentType="link"
+                  />
+                </div>
+              </div>
+
+              {/* Link Hover Colors */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Link Hover Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(linkHoverColorProp, isDark, 'link', autoConvertColors)}
+                    onChange={(newColor) => {
+                      actions.setProp((props) => {
+                        // Ensure linkHoverColor has the expected structure
+                        if (!props.linkHoverColor) {
+                          props.linkHoverColor = {
+                            light: { r: 37, g: 99, b: 235, a: 1 },
+                            dark: { r: 147, g: 197, b: 253, a: 1 }
+                          };
+                        }
+
+                        // Handle legacy format (single RGBA object)
+                        if ('r' in props.linkHoverColor) {
+                          const oldColor = { ...props.linkHoverColor };
+                          props.linkHoverColor = {
+                            light: oldColor,
+                            dark: convertToThemeColor(oldColor, true, 'link')
+                          };
+                        }
+
+                        const currentTheme = isDark ? 'dark' : 'light';
+                        const oppositeTheme = isDark ? 'light' : 'dark';
+
+                        if (props.autoConvertColors) {
+                          // Auto-convert the color for the opposite theme
+                          const oppositeColor = convertToThemeColor(newColor, !isDark, 'link');
+
+                          props.linkHoverColor = {
+                            ...props.linkHoverColor,
+                            [currentTheme]: newColor,
+                            [oppositeTheme]: oppositeColor
+                          };
+                        } else {
+                          // Only update the current theme's color
+                          props.linkHoverColor = {
+                            ...props.linkHoverColor,
+                            [currentTheme]: newColor
+                          };
+                        }
+                      });
+                    }}
+                    componentType="link"
+                  />
+                </div>
+              </div>
+
+
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Text Style Section */}
       <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">
