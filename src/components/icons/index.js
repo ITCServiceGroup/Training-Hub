@@ -99,6 +99,16 @@ import {
   FaLock,
   FaUnlock,
 
+  // Senses & Perception
+  FaMicrophone,
+  FaVolumeUp,
+  FaHeadphones,
+  FaGlasses,
+  FaHandPaper,
+  FaCommentDots,
+  FaHandHoldingHeart,
+  FaHandshake,
+
   // Time
   FaHourglassHalf,
   FaClock,
@@ -124,6 +134,9 @@ import {
   FaThermometerHalf,
   FaSun
 } from 'react-icons/fa';
+
+// Material Design Icons for specific icons not available in FontAwesome
+import { MdHearing } from 'react-icons/md';
 
 // Map of icon names to display names (for UI), organized by category
 export const ICON_CATEGORIES = {
@@ -226,6 +239,19 @@ export const ICON_CATEGORIES = {
     'id-badge': 'ID Badge',
     'lock': 'Lock',
     'unlock': 'Unlock'
+  },
+  'Senses & Perception': {
+    'ear': 'Ear',
+    'eye': 'Eye',
+    'microphone': 'Microphone',
+    'volume-up': 'Volume',
+    'headphones': 'Headphones',
+    'glasses': 'Glasses',
+    'hand': 'Hand',
+    'comment-dots': 'Speaking',
+    'comments': 'Conversation',
+    'hand-holding-heart': 'Take Responsibility',
+    'handshake': 'Agreement'
   },
   'Time': {
     'hourglass': 'Hourglass',
@@ -360,6 +386,19 @@ export const ICONS = {
   'id-badge': FaIdBadge,
   'lock': FaLock,
   'unlock': FaUnlock,
+
+  // Senses & Perception
+  'ear': MdHearing,
+  'eye': FaEye,
+  'microphone': FaMicrophone,
+  'volume-up': FaVolumeUp,
+  'headphones': FaHeadphones,
+  'glasses': FaGlasses,
+  'hand': FaHandPaper,
+  'comment-dots': FaCommentDots,
+  'comments': FaComments,
+  'hand-holding-heart': FaHandHoldingHeart,
+  'handshake': FaHandshake,
 
   // Time
   'hourglass': FaHourglassHalf,
