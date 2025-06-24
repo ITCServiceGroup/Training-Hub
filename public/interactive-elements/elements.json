@@ -70,5 +70,13 @@
     "description": "Interactive tool for practicing RJ11 and RJ45 wiring connections and color codes.",
     "thumbnailUrl": "/interactive-elements/router-simulator/icon.png",
     "iconUrl": "/interactive-elements/router-simulator/icon.png"
+  },
+  {
+    "name": "service-visit-decision-tree",
+    "path": "service-visit-decision-tree/",
+    "title": "Service Visit Decision Tree",
+    "description": "Interactive decision tree for the life of a service visit workflow.",
+    "thumbnailUrl": "/interactive-elements/service-visit-decision-tree/thumbnail.png",
+    "iconUrl": "/interactive-elements/service-visit-decision-tree/icon.png"
   }
 ]
