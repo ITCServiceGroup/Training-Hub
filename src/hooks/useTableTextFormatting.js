@@ -1,13 +1,14 @@
 /**
- * Text Formatting Hook
- * Manages text formatting state and operations for ContentEditable components
+ * Table Text Formatting Hook
+ * A specialized version of useTextFormatting for table cells that handles
+ * the unique challenges of text selection within table components
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { TextFormatter } from '../utils/textFormatting';
 import TextSelectionManager from '../utils/textSelection';
-import TextFormatter from '../utils/textFormatting';
 
-export const useTextFormatting = (containerRef, onTextChange) => {
+export const useTableTextFormatting = (containerRef, onTextChange) => {
   const [activeFormats, setActiveFormats] = useState({});
   const [selectedText, setSelectedText] = useState('');
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -32,7 +33,7 @@ export const useTextFormatting = (containerRef, onTextChange) => {
   }, [containerRef]);
 
   /**
-   * Handle text selection changes
+   * Handle text selection changes - modified for table cells
    */
   const handleSelectionChange = useCallback(() => {
     // Skip if we're currently updating content to prevent loops
@@ -77,7 +78,6 @@ export const useTextFormatting = (containerRef, onTextChange) => {
           // Calculate position for context menu
           const range = selectionData.range;
           const rect = range.getBoundingClientRect();
-          const containerRect = containerRef.current.getBoundingClientRect();
 
           setContextMenuPosition({
             x: rect.left + (rect.width / 2), // Center horizontally on selection
@@ -96,8 +96,8 @@ export const useTextFormatting = (containerRef, onTextChange) => {
           lastSelectionRef.current = null;
         }
       }
-    }, 150);
-  }, [containerRef, updateActiveFormats]);
+    }, 50); // Even faster response for table cells
+  }, [containerRef, updateActiveFormats, selectedText, showContextMenu]);
 
   /**
    * Apply formatting to selected text
@@ -112,38 +112,8 @@ export const useTextFormatting = (containerRef, onTextChange) => {
         // Handle link formatting specially
         const existingLink = TextFormatter.getLinkAtSelection(containerRef.current);
 
-        if (formatType === 'removeLink' && existingLink) {
-          // Remove existing link - replace the link element with its text content
-          try {
-            const linkElement = existingLink.element;
-            const textContent = linkElement.textContent;
-            const textNode = document.createTextNode(textContent);
-
-            // Replace the link element with just its text
-            linkElement.parentNode.replaceChild(textNode, linkElement);
-
-            // Select the text that was previously linked
-            const range = document.createRange();
-            range.selectNodeContents(textNode);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            // Update the component content
-            if (onTextChange) {
-              onTextChange(containerRef.current.innerHTML);
-            }
-
-            // Update active formats to reflect the link removal
-            updateActiveFormats();
-
-            return true;
-          } catch (error) {
-            console.warn('Failed to remove link:', error);
-            return false;
-          }
-        } else if ((formatType === 'editLink' || formatType === 'link') && existingLink) {
-          // Edit existing link
+        if (formatType === 'editLink' && existingLink) {
+          // Open link dialog for editing
           setLinkDialogData({
             url: existingLink.url,
             text: existingLink.text,
@@ -151,13 +121,23 @@ export const useTextFormatting = (containerRef, onTextChange) => {
           });
           setShowLinkDialog(true);
           return true;
-        } else if ((formatType === 'link') && selectedText) {
-          // Create new link - save the current selection range
+        } else if (formatType === 'removeLink' && existingLink) {
+          // Remove the link directly
+          success = TextFormatter.removeFormat('link', containerRef.current);
+          
+          if (success && onTextChange) {
+            onTextChange(containerRef.current.innerHTML, true);
+          }
+          
+          return success;
+        } else if (formatType === 'link') {
+          // Save current selection for link creation
           const selection = window.getSelection();
-          if (selection && selection.rangeCount > 0) {
+          if (selection.rangeCount > 0) {
             savedRangeRef.current = selection.getRangeAt(0).cloneRange();
           }
 
+          // Open link dialog for new link
           setLinkDialogData({
             url: '',
             text: selectedText,
@@ -167,22 +147,34 @@ export const useTextFormatting = (containerRef, onTextChange) => {
           return true;
         }
       } else {
-        // Handle other formatting (bold, italic, underline)
-        // Save the current selection range before applying formatting
-        const currentSelection = window.getSelection();
-        let savedRange = null;
-        let selectionStartOffset = 0;
-        let selectionEndOffset = 0;
+        // For other formats (bold, italic, underline), apply directly
+        // Store selection position before formatting
+        const selection = window.getSelection();
+        let selectionStartOffset = -1;
+        let selectionEndOffset = -1;
 
-        if (currentSelection && currentSelection.rangeCount > 0) {
-          savedRange = currentSelection.getRangeAt(0).cloneRange();
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          // Calculate absolute text position within the container
+          const walker = document.createTreeWalker(
+            containerRef.current,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+          );
 
-          // Calculate the absolute position of the selection within the container
-          const containerRange = document.createRange();
-          containerRange.selectNodeContents(containerRef.current);
-          containerRange.setEnd(savedRange.startContainer, savedRange.startOffset);
-          selectionStartOffset = containerRange.toString().length;
-          selectionEndOffset = selectionStartOffset + selectedText.length;
+          let currentOffset = 0;
+          let node;
+          while (node = walker.nextNode()) {
+            if (node === range.startContainer) {
+              selectionStartOffset = currentOffset + range.startOffset;
+            }
+            if (node === range.endContainer) {
+              selectionEndOffset = currentOffset + range.endOffset;
+              break;
+            }
+            currentOffset += node.textContent.length;
+          }
         }
 
         // Set flag to prevent selection change loops during formatting
@@ -210,41 +202,26 @@ export const useTextFormatting = (containerRef, onTextChange) => {
 
                 let currentOffset = 0;
                 let startNode = null;
-                let startOffset = 0;
                 let endNode = null;
+                let startOffset = 0;
                 let endOffset = 0;
+                let node;
 
-                // Find the start position
-                let textNode;
-                while (textNode = walker.nextNode()) {
-                  const nodeLength = textNode.textContent.length;
-
-                  if (currentOffset + nodeLength > selectionStartOffset && !startNode) {
-                    startNode = textNode;
+                while (node = walker.nextNode()) {
+                  const nodeLength = node.textContent.length;
+                  
+                  if (!startNode && currentOffset + nodeLength >= selectionStartOffset) {
+                    startNode = node;
                     startOffset = selectionStartOffset - currentOffset;
                   }
-
-                  if (currentOffset + nodeLength >= selectionEndOffset && !endNode) {
-                    endNode = textNode;
+                  
+                  if (!endNode && currentOffset + nodeLength >= selectionEndOffset) {
+                    endNode = node;
                     endOffset = selectionEndOffset - currentOffset;
                     break;
                   }
-
+                  
                   currentOffset += nodeLength;
-                }
-
-                // Ensure we have valid nodes and offsets
-                if (startNode && !endNode) {
-                  endNode = startNode;
-                  endOffset = startOffset + selectedText.length;
-                }
-
-                // Clamp offsets to valid ranges
-                if (startNode) {
-                  startOffset = Math.max(0, Math.min(startOffset, startNode.textContent.length));
-                }
-                if (endNode) {
-                  endOffset = Math.max(0, Math.min(endOffset, endNode.textContent.length));
                 }
 
                 // Create and apply the selection if we found the positions
@@ -261,10 +238,9 @@ export const useTextFormatting = (containerRef, onTextChange) => {
                   setSelectedText(selectedText);
 
                   // Update active formats with a small delay to ensure DOM is stable
-                  // and the selection is properly established
                   setTimeout(() => {
                     updateActiveFormats();
-                  }, 50); // Increased delay to ensure everything is stable
+                  }, 50);
                 } else {
                   // Fallback: clear selection state
                   setSelectedText('');
@@ -322,13 +298,10 @@ export const useTextFormatting = (containerRef, onTextChange) => {
   }, [containerRef, onTextChange, updateActiveFormats]);
 
   /**
-   * Handle link creation/editing
+   * Handle link save from dialog
    */
   const handleLinkSave = useCallback((linkData, linkColors = {}) => {
-    console.log('handleLinkSave called with:', linkData);
-
     if (!containerRef.current) {
-      console.warn('No container ref available');
       setShowLinkDialog(false);
       return;
     }
@@ -336,7 +309,6 @@ export const useTextFormatting = (containerRef, onTextChange) => {
     // Use text from linkData if selectedText is not available
     const textToUse = linkData.text || selectedText;
     if (!textToUse || !textToUse.trim()) {
-      console.warn('No text available for link');
       setShowLinkDialog(false);
       return;
     }
@@ -349,24 +321,16 @@ export const useTextFormatting = (containerRef, onTextChange) => {
         return;
       }
 
-      console.log('URL validation passed:', validation);
-
-      // Create link HTML with the text from the dialog or selected text
-      const linkText = textToUse;
-
-      // Build inline styles for the link if colors are provided
+      // Create link HTML with proper styling
       let styleAttr = '';
       if (linkColors.color) {
         const { r, g, b, a } = linkColors.color;
         styleAttr = ` style="color: rgba(${r}, ${g}, ${b}, ${a}); text-decoration: underline;"`;
+      } else if (linkData.style) {
+        styleAttr = ` style="${linkData.style}"`;
       }
 
-      const linkHtml = `<a href="${validation.normalizedUrl}" target="_blank" rel="noopener noreferrer"${styleAttr}>${linkText}</a>`;
-
-      console.log('Created link HTML:', linkHtml);
-
-      // Set flag to prevent selection change loops
-      isUpdatingContentRef.current = true;
+      const linkHtml = `<a href="${validation.normalizedUrl}" target="_blank" rel="noopener noreferrer"${styleAttr}>${textToUse}</a>`;
 
       // Restore the saved selection range if we have one
       if (savedRangeRef.current) {
@@ -374,83 +338,42 @@ export const useTextFormatting = (containerRef, onTextChange) => {
         selection.removeAllRanges();
         selection.addRange(savedRangeRef.current);
 
+        // Set flag to prevent ContentEditor interference during link insertion
+        isUpdatingContentRef.current = true;
+
         // Use the proper TextSelectionManager method to replace selection
         const success = TextSelectionManager.replaceSelection(linkHtml, false);
 
         if (success) {
-          console.log('Link added successfully using TextSelectionManager');
-
-          // Notify of change
+          // Notify of change with formatting flag to prevent interference
           if (onTextChange) {
-            onTextChange(containerRef.current.innerHTML);
+            onTextChange(containerRef.current.innerHTML, true);
           }
-        } else {
-          console.warn('Failed to replace selection with link');
         }
 
         // Clear the saved range
         savedRangeRef.current = null;
-      } else {
-        console.warn('No saved selection range available');
+
+        // Clear the flag after a short delay to allow DOM to stabilize
+        setTimeout(() => {
+          isUpdatingContentRef.current = false;
+        }, 100);
       }
 
-      // Clear the flag after a short delay
+      // Delay closing the dialog and clearing state to allow DOM changes to take effect
       setTimeout(() => {
-        isUpdatingContentRef.current = false;
-      }, 100);
+        // Close the dialog
+        setShowLinkDialog(false);
+        setLinkDialogData({ url: '', text: '', isEditing: false });
 
-      // Close dialogs and clear state
-      setShowLinkDialog(false);
-      setShowContextMenu(false);
-      setSelectedText('');
-      setActiveFormats({});
-
+        // Clear selection state
+        setSelectedText('');
+        setShowContextMenu(false);
+      }, 150);
     } catch (error) {
-      console.error('Failed to save link:', error);
-      setShowLinkDialog(false);
+      console.warn('Failed to save link:', error);
     }
-  }, [containerRef, onTextChange]);
-
-  /**
-   * Handle keyboard shortcuts
-   */
-  const handleKeyDown = useCallback((event) => {
-    if (!containerRef.current) return;
-
-    const isCtrlOrCmd = event.ctrlKey || event.metaKey;
-    
-    if (!isCtrlOrCmd) return;
-
-    let formatType = null;
-    let preventDefault = true;
-
-    switch (event.key.toLowerCase()) {
-      case 'b':
-        formatType = 'bold';
-        break;
-      case 'i':
-        formatType = 'italic';
-        break;
-      case 'u':
-        formatType = 'underline';
-        break;
-      case 'k':
-        formatType = 'link';
-        break;
-      default:
-        preventDefault = false;
-    }
-
-    if (formatType && preventDefault) {
-      event.preventDefault();
-      
-      // Ensure we have a selection for formatting
-      const selectionData = TextSelectionManager.getSelectionInElement(containerRef.current);
-      if (selectionData && selectionData.text.trim()) {
-        applyFormat(formatType);
-      }
-    }
-  }, [containerRef, applyFormat]);
+  }, [containerRef, onTextChange, selectedText]);
 
   /**
    * Close context menu
@@ -459,6 +382,7 @@ export const useTextFormatting = (containerRef, onTextChange) => {
     setShowContextMenu(false);
     setSelectedText('');
     setActiveFormats({});
+    lastSelectionRef.current = null;
   }, []);
 
   /**
@@ -466,45 +390,75 @@ export const useTextFormatting = (containerRef, onTextChange) => {
    */
   const closeLinkDialog = useCallback(() => {
     setShowLinkDialog(false);
+    setLinkDialogData({ url: '', text: '', isEditing: false });
+    savedRangeRef.current = null;
   }, []);
 
   /**
-   * Set up event listeners
+   * Handle keyboard shortcuts
+   */
+  const handleKeyDown = useCallback((e) => {
+    if (!containerRef.current) return;
+
+    // Check for formatting shortcuts
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key.toLowerCase()) {
+        case 'b':
+          e.preventDefault();
+          applyFormat('bold');
+          break;
+        case 'i':
+          e.preventDefault();
+          applyFormat('italic');
+          break;
+        case 'u':
+          e.preventDefault();
+          applyFormat('underline');
+          break;
+        case 'k':
+          e.preventDefault();
+          applyFormat('link');
+          break;
+      }
+    }
+  }, [applyFormat]);
+
+  /**
+   * Set up event listeners - modified for table cells
    */
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    // Prevent Craft.js from interfering with text selection
+    const preventCraftJsInterference = (e) => {
+      // If we're selecting text, stop Craft.js from handling the event
+      if (e.target === container || container.contains(e.target)) {
+        e.stopImmediatePropagation();
+      }
+    };
+
     // Add event listeners
     document.addEventListener('selectionchange', handleSelectionChange);
     container.addEventListener('keydown', handleKeyDown);
 
-    // Add interval to force check if context menu should be hidden
-    const checkInterval = setInterval(() => {
-      if (showContextMenu) {
-        const globalSelection = window.getSelection();
-        const hasSelection = globalSelection && globalSelection.rangeCount > 0 && !globalSelection.isCollapsed;
-
-        if (!hasSelection) {
-          // No selection anywhere, force hide context menu
-          setShowContextMenu(false);
-          setSelectedText('');
-          setActiveFormats({});
-          lastSelectionRef.current = null;
-        }
-      }
-    }, 100); // Check every 100ms
+    // Add high-priority event listeners to prevent Craft.js interference
+    container.addEventListener('mousedown', preventCraftJsInterference, true);
+    container.addEventListener('mouseup', preventCraftJsInterference, true);
+    container.addEventListener('click', preventCraftJsInterference, true);
 
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       container.removeEventListener('keydown', handleKeyDown);
-      clearInterval(checkInterval);
+      container.removeEventListener('mousedown', preventCraftJsInterference, true);
+      container.removeEventListener('mouseup', preventCraftJsInterference, true);
+      container.removeEventListener('click', preventCraftJsInterference, true);
 
       if (selectionTimeoutRef.current) {
         clearTimeout(selectionTimeoutRef.current);
       }
     };
-  }, [handleSelectionChange, handleKeyDown, showContextMenu]);
+  }, [handleSelectionChange, handleKeyDown]);
 
   /**
    * Clean up on unmount
@@ -541,4 +495,4 @@ export const useTextFormatting = (containerRef, onTextChange) => {
   };
 };
 
-export default useTextFormatting;
+export default useTableTextFormatting;

@@ -6,11 +6,28 @@ import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
+// Helper function to check if table contains links
+const hasLinksInTable = (tableData) => {
+  if (!tableData || !tableData.cells) return false;
+
+  // Check all cells for HTML anchor tags
+  const linkRegex = /<a\s+[^>]*href\s*=\s*["'][^"']*["'][^>]*>.*?<\/a>/i;
+
+  for (const cellKey in tableData.cells) {
+    const cellContent = tableData.cells[cellKey];
+    if (cellContent && linkRegex.test(cellContent)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 // Helper function to ensure both theme colors exist
 const ensureThemeColors = (props, isDark) => {
   const currentTheme = isDark ? 'dark' : 'light';
   const oppositeTheme = isDark ? 'light' : 'dark';
-  const colorKeys = ['borderColor', 'headerBackgroundColor', 'alternateRowColor'];
+  const colorKeys = ['borderColor', 'headerBackgroundColor', 'alternateRowColor', 'linkColor', 'linkHoverColor'];
 
   colorKeys.forEach(colorKey => {
     // Ensure the color property has the expected structure
@@ -30,6 +47,16 @@ const ensureThemeColors = (props, isDark) => {
         props[colorKey] = {
           light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
           dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+        };
+      } else if (colorKey === 'linkColor') {
+        props[colorKey] = {
+          light: { r: 59, g: 130, b: 246, a: 1 }, // Blue-500
+          dark: { r: 96, g: 165, b: 250, a: 1 }   // Blue-400
+        };
+      } else if (colorKey === 'linkHoverColor') {
+        props[colorKey] = {
+          light: { r: 37, g: 99, b: 235, a: 1 },  // Blue-600
+          dark: { r: 59, g: 130, b: 246, a: 1 }   // Blue-500
         };
       }
     }
@@ -51,6 +78,10 @@ const ensureThemeColors = (props, isDark) => {
         props[colorKey].light = { r: 243, g: 244, b: 246, a: 1 }; // #f3f4f6
       } else if (colorKey === 'alternateRowColor') {
         props[colorKey].light = { r: 249, g: 250, b: 251, a: 1 }; // #f9fafb
+      } else if (colorKey === 'linkColor') {
+        props[colorKey].light = { r: 59, g: 130, b: 246, a: 1 }; // Blue-500
+      } else if (colorKey === 'linkHoverColor') {
+        props[colorKey].light = { r: 37, g: 99, b: 235, a: 1 }; // Blue-600
       }
     }
 
@@ -61,6 +92,10 @@ const ensureThemeColors = (props, isDark) => {
         props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 }; // #1f2937
       } else if (colorKey === 'alternateRowColor') {
         props[colorKey].dark = { r: 17, g: 24, b: 39, a: 0.5 }; // #111827
+      } else if (colorKey === 'linkColor') {
+        props[colorKey].dark = { r: 96, g: 165, b: 250, a: 1 }; // Blue-400
+      } else if (colorKey === 'linkHoverColor') {
+        props[colorKey].dark = { r: 59, g: 130, b: 246, a: 1 }; // Blue-500
       }
     }
 
@@ -78,7 +113,7 @@ const ensureThemeColors = (props, isDark) => {
 export const TableSettings = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, columnWidths, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, radius, shadow, autoConvertColors } = useNode((node) => ({
+  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, columnWidths, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, linkColor, linkHoverColor, radius, shadow, autoConvertColors } = useNode((node) => ({
     id: node.id,
     borderStyle: node.data.props.borderStyle,
     borderWidth: node.data.props.borderWidth,
@@ -97,6 +132,14 @@ export const TableSettings = () => {
     headerFontSize: node.data.props.headerFontSize,
     textAlign: node.data.props.textAlign,
     headerTextAlign: node.data.props.headerTextAlign,
+    linkColor: node.data.props.linkColor || {
+      light: { r: 59, g: 130, b: 246, a: 1 }, // Blue-500
+      dark: { r: 96, g: 165, b: 250, a: 1 }   // Blue-400
+    },
+    linkHoverColor: node.data.props.linkHoverColor || {
+      light: { r: 37, g: 99, b: 235, a: 1 },  // Blue-600
+      dark: { r: 59, g: 130, b: 246, a: 1 }   // Blue-500
+    },
     radius: node.data.props.radius,
     shadow: node.data.props.shadow,
     autoConvertColors: node.data.props.autoConvertColors
@@ -299,6 +342,7 @@ export const TableSettings = () => {
   const [showTableStructure, setShowTableStructure] = React.useState(true);
   const [showTableStyle, setShowTableStyle] = React.useState(true);
   const [showTableSpacing, setShowTableSpacing] = React.useState(true);
+  const [showLinkColors, setShowLinkColors] = React.useState(true);
   const [showTooltip, setShowTooltip] = React.useState(false);
 
   return (
@@ -1390,7 +1434,113 @@ export const TableSettings = () => {
         )}
       </div>
 
+      {/* Link Colors Section - Only show if table contains links */}
+      {hasLinksInTable(tableData) && (
+        <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">
+          <div
+            className={`flex justify-between items-center cursor-pointer px-2 py-3 ${showLinkColors ? 'bg-gray-50 dark:bg-slate-800' : 'bg-white dark:bg-slate-700'}`}
+            onClick={() => setShowLinkColors(!showLinkColors)}
+          >
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0">
+              Link Colors
+            </label>
+            <FaChevronDown
+              className={`transition-transform ${showLinkColors ? 'rotate-180' : ''}`}
+              size={12}
+            />
+          </div>
 
+          {showLinkColors && (
+            <div className="space-y-3 px-1 py-3 bg-white dark:bg-slate-700 border-t border-gray-200 dark:border-slate-600">
+              {/* Link Color */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Link Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(linkColor, isDark, 'link', autoConvertColors)}
+                    onChange={(newColor) => {
+                      setProp((props) => {
+                        // Ensure linkColor has the expected structure
+                        if (!props.linkColor) {
+                          props.linkColor = {
+                            light: { r: 59, g: 130, b: 246, a: 1 },
+                            dark: { r: 96, g: 165, b: 250, a: 1 }
+                          };
+                        }
+
+                        if (autoConvertColors) {
+                          // Auto-convert mode: update both light and dark
+                          const lightColor = isDark ? convertToThemeColor(newColor, false, 'link') : newColor;
+                          const darkColor = isDark ? newColor : convertToThemeColor(newColor, true, 'link');
+                          props.linkColor = {
+                            light: lightColor,
+                            dark: darkColor
+                          };
+                        } else {
+                          // Manual mode: update only current theme
+                          if (isDark) {
+                            props.linkColor.dark = newColor;
+                          } else {
+                            props.linkColor.light = newColor;
+                          }
+                        }
+                      });
+                    }}
+                    autoConvertColors={autoConvertColors}
+                    isDark={isDark}
+                    componentType="link"
+                  />
+                </div>
+              </div>
+
+              {/* Link Hover Color */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Link Hover Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
+                </label>
+                <div className="flex items-center">
+                  <ColorPicker
+                    color={getThemeColor(linkHoverColor, isDark, 'link', autoConvertColors)}
+                    onChange={(newColor) => {
+                      setProp((props) => {
+                        // Ensure linkHoverColor has the expected structure
+                        if (!props.linkHoverColor) {
+                          props.linkHoverColor = {
+                            light: { r: 37, g: 99, b: 235, a: 1 },
+                            dark: { r: 59, g: 130, b: 246, a: 1 }
+                          };
+                        }
+
+                        if (autoConvertColors) {
+                          // Auto-convert mode: update both light and dark
+                          const lightColor = isDark ? convertToThemeColor(newColor, false, 'link') : newColor;
+                          const darkColor = isDark ? newColor : convertToThemeColor(newColor, true, 'link');
+                          props.linkHoverColor = {
+                            light: lightColor,
+                            dark: darkColor
+                          };
+                        } else {
+                          // Manual mode: update only current theme
+                          if (isDark) {
+                            props.linkHoverColor.dark = newColor;
+                          } else {
+                            props.linkHoverColor.light = newColor;
+                          }
+                        }
+                      });
+                    }}
+                    autoConvertColors={autoConvertColors}
+                    isDark={isDark}
+                    componentType="link"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Table Spacing Section */}
       <div className="mb-4 border border-gray-200 dark:border-slate-600 rounded-md overflow-hidden">

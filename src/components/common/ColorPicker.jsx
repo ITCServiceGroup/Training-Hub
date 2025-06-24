@@ -183,11 +183,15 @@ const ColorPicker = ({
       x: s * 100,
       y: (1 - v) * 100
     });
+  }, [color.r, color.g, color.b]);
 
-    // Update the HEX input value when the color changes externally
-    // Only update if the user is not currently editing the input
-    // This prevents the input from changing while the user is typing
-    if (document.activeElement !== document.querySelector('input[placeholder="#RRGGBB"]')) {
+  // Separate effect for updating hex input value
+  useEffect(() => {
+    // Always update the hex input value when color changes, unless the user is actively typing in it
+    const hexInput = document.querySelector('input[placeholder="#RRGGBB"]');
+    const isUserTyping = hexInput && document.activeElement === hexInput;
+
+    if (!isUserTyping) {
       setHexInputValue(rgbToHex(color));
     }
   }, [color.r, color.g, color.b]);

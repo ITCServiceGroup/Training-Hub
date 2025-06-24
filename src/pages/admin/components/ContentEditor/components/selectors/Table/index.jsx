@@ -53,6 +53,14 @@ const defaultProps = {
   headerFontSize: 14,
   textAlign: 'left',
   headerTextAlign: 'left',
+  linkColor: {
+    light: { r: 59, g: 130, b: 246, a: 1 }, // Blue-500
+    dark: { r: 96, g: 165, b: 250, a: 1 }   // Blue-400
+  },
+  linkHoverColor: {
+    light: { r: 37, g: 99, b: 235, a: 1 },  // Blue-600
+    dark: { r: 59, g: 130, b: 246, a: 1 }   // Blue-500
+  },
   autoConvertColors: true // Add auto color conversion property
 };
 
@@ -84,6 +92,8 @@ export const Table = (props) => {
     headerFontSize,
     textAlign,
     headerTextAlign,
+    linkColor,
+    linkHoverColor,
     radius,
     shadow,
     autoConvertColors
@@ -274,7 +284,17 @@ export const Table = (props) => {
               // Add a subtle outline when borders are none to help distinguish cells
               outline: borderStyle === 'none' ? (theme === 'dark' ? '1px solid rgba(55, 65, 81, 0.2)' : '1px solid rgba(229, 231, 235, 0.5)') : 'none',
               position: 'relative',
-              borderRadius: cellBorderRadius
+              borderRadius: cellBorderRadius,
+              // Ensure pointer events work for text selection
+              pointerEvents: 'auto'
+            }}
+            onMouseDown={(e) => {
+              // Allow text selection within cells, but prevent table selection
+              e.stopPropagation();
+            }}
+            onSelectStart={(e) => {
+              // Allow text selection to start within cells
+              e.stopPropagation();
             }}
           >
             <TableText
@@ -282,6 +302,9 @@ export const Table = (props) => {
               fontSize={isHeader ? headerFontSize.toString() : fontSize.toString()}
               fontWeight={isHeader ? '600' : '400'}
               textAlign={isHeader ? headerTextAlign : textAlign}
+              linkColor={linkColor}
+              linkHoverColor={linkHoverColor}
+              autoConvertColors={autoConvertColors}
               onChange={(newContent) => handleCellContentChange(i, j, newContent)}
             />
 

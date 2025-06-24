@@ -85,13 +85,13 @@ export class TextFormatter {
    */
   static getActiveFormats(container) {
     const selectionData = TextSelectionManager.getSelectionInElement(container);
-    
+
     if (!selectionData) {
       return {};
     }
 
     const formats = {};
-    
+
     // Check each format type
     Object.values(this.FORMATS).forEach(format => {
       formats[format] = this.isFormatActive(format, selectionData);
@@ -112,20 +112,55 @@ export class TextFormatter {
     const tagName = this.TAG_MAP[format];
     if (!tagName) return false;
 
-    // Check if selection is within the specified tag
-    const startElement = selectionData.startContainer.nodeType === Node.ELEMENT_NODE 
-      ? selectionData.startContainer 
-      : selectionData.startContainer.parentElement;
+    // Get the actual selection from the browser
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return false;
 
-    const endElement = selectionData.endContainer.nodeType === Node.ELEMENT_NODE 
-      ? selectionData.endContainer 
-      : selectionData.endContainer.parentElement;
+    const range = selection.getRangeAt(0);
 
-    // Check if both start and end are within the same format tag
+    // For collapsed selections (cursor position), check if cursor is within the format
+    if (range.collapsed) {
+      const element = range.startContainer.nodeType === Node.ELEMENT_NODE
+        ? range.startContainer
+        : range.startContainer.parentElement;
+      return !!element?.closest(tagName);
+    }
+
+    // For text selections, use document.queryCommandState for better detection
+    try {
+      const execCommand = this.getExecCommandForTag(tagName);
+      if (execCommand) {
+        return document.queryCommandState(execCommand);
+      }
+    } catch (error) {
+      console.warn('queryCommandState failed:', error);
+    }
+
+    // Fallback: check if selection is within format tags
+    const startElement = range.startContainer.nodeType === Node.ELEMENT_NODE
+      ? range.startContainer
+      : range.startContainer.parentElement;
+
+    const endElement = range.endContainer.nodeType === Node.ELEMENT_NODE
+      ? range.endContainer
+      : range.endContainer.parentElement;
+
+    // Check if both start and end are within format tags
     const startFormatElement = startElement?.closest(tagName);
     const endFormatElement = endElement?.closest(tagName);
 
-    return startFormatElement && endFormatElement && startFormatElement === endFormatElement;
+    // If either start or end is not in the format, then the format is not fully active
+    if (!startFormatElement || !endFormatElement) {
+      return false;
+    }
+
+    // For single-element selections, they must be in the same format element
+    if (startElement === endElement) {
+      return startFormatElement === endFormatElement;
+    }
+
+    // For multi-element selections, if both start and end are in format elements, consider it active
+    return true;
   }
 
   /**
@@ -241,15 +276,50 @@ export class TextFormatter {
    */
   static wrapSelectionWithTag(selectionData, tagName, options = {}) {
     const { style = '', className = '' } = options;
-    
-    const attributes = [
-      style ? `style="${style}"` : '',
-      className ? `class="${className}"` : ''
-    ].filter(Boolean).join(' ');
 
-    const wrappedHtml = `<${tagName}${attributes ? ' ' + attributes : ''}>${selectionData.text}</${tagName}>`;
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return false;
 
-    return TextSelectionManager.replaceSelection(wrappedHtml, true);
+      const range = selection.getRangeAt(0);
+
+      // Use document.execCommand for better format preservation
+      // This approach maintains existing formatting while adding new formatting
+      const success = document.execCommand(this.getExecCommandForTag(tagName), false, null);
+
+      if (success) {
+        return true;
+      }
+
+      // Fallback to manual wrapping if execCommand fails
+      const attributes = [
+        style ? `style="${style}"` : '',
+        className ? `class="${className}"` : ''
+      ].filter(Boolean).join(' ');
+
+      const wrappedHtml = `<${tagName}${attributes ? ' ' + attributes : ''}>${selectionData.text}</${tagName}>`;
+
+      return TextSelectionManager.replaceSelection(wrappedHtml, true);
+    } catch (error) {
+      console.warn('Failed to wrap selection:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the execCommand equivalent for a tag
+   * @param {string} tagName - The tag name
+   * @returns {string} The execCommand name
+   */
+  static getExecCommandForTag(tagName) {
+    const commandMap = {
+      'strong': 'bold',
+      'b': 'bold',
+      'em': 'italic',
+      'i': 'italic',
+      'u': 'underline'
+    };
+    return commandMap[tagName.toLowerCase()] || null;
   }
 
   /**
@@ -259,18 +329,30 @@ export class TextFormatter {
    * @returns {boolean} Success status
    */
   static unwrapSelectionFromTag(selectionData, tagName) {
-    // Find the closest tag element
-    const startElement = selectionData.startContainer.nodeType === Node.ELEMENT_NODE
-      ? selectionData.startContainer
-      : selectionData.startContainer.parentElement;
-
-    const formatElement = startElement?.closest(tagName);
-
-    if (!formatElement) {
-      return false;
-    }
-
     try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return false;
+
+      // Try using execCommand first for better format preservation
+      const execCommand = this.getExecCommandForTag(tagName);
+      if (execCommand) {
+        const success = document.execCommand(execCommand, false, null);
+        if (success) {
+          return true;
+        }
+      }
+
+      // Fallback to manual unwrapping
+      const startElement = selectionData.startContainer.nodeType === Node.ELEMENT_NODE
+        ? selectionData.startContainer
+        : selectionData.startContainer.parentElement;
+
+      const formatElement = startElement?.closest(tagName);
+
+      if (!formatElement) {
+        return false;
+      }
+
       // Preserve inner HTML content (including other formatting tags)
       const innerContent = formatElement.innerHTML;
 
@@ -287,13 +369,6 @@ export class TextFormatter {
       // Replace the format element with its inner content
       formatElement.parentNode.insertBefore(fragment, formatElement);
       formatElement.parentNode.removeChild(formatElement);
-
-      // Try to maintain selection on the unwrapped content
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0) {
-        // Keep the existing selection if possible
-        return true;
-      }
 
       return true;
     } catch (error) {
