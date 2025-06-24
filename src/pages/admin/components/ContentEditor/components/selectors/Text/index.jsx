@@ -200,13 +200,15 @@ export const Text = ({
     connectors: { connect },
     actions: { setProp },
     dom,
-    selected
+    selected,
+    id: nodeId
   } = useNode((node) => ({
     dom: node.dom,
-    selected: node.events.selected
+    selected: node.events.selected,
+    id: node.id
   }));
 
-  const { enabled, actions: editorActions } = useEditor((state) => ({
+  const { enabled, actions: editorActions, query } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
 
@@ -232,32 +234,39 @@ export const Text = ({
       textValue.current = newHtml;
       formattedHtml.current = newHtml;
 
-      if (isFormattingOperation && selected) {
-        // For formatting operations, defer the prop update to maintain selection
-        const nodeId = dom?.id;
-        setTimeout(() => {
-          setProp((props) => {
-            props.text = newHtml;
-            props._lastUpdate = Date.now();
-          }, 0);
+      // Store current selection state
+      const wasSelected = selected;
+      const currentNodeId = nodeId; // Use the node ID from useNode
 
-          // Re-select the component after prop update
-          if (nodeId) {
+      // Debug: Log formatting operations
+      // console.log('Text formatting callback:', { isFormattingOperation, wasSelected, nodeId: currentNodeId });
+
+      // Update props immediately
+      setProp((props) => {
+        props.text = newHtml;
+        props._lastUpdate = Date.now();
+      }, 0);
+
+      // If this was a formatting operation and component was selected, re-select it
+      if (isFormattingOperation && wasSelected && currentNodeId) {
+        // Re-select the component after formatting
+        setTimeout(() => {
+          try {
+            // Use editorActions.selectNode to maintain component selection
+            editorActions.selectNode(currentNodeId);
+
+            // Fallback: If that doesn't work, try clicking on the element
             setTimeout(() => {
-              try {
-                editorActions.selectNode(nodeId);
-              } catch (error) {
-                console.warn('Failed to re-select node:', error);
+              const element = document.querySelector(`[data-node-id="${currentNodeId}"]`);
+              if (element && !query.getEvent('selected').contains(currentNodeId)) {
+                element.click();
               }
-            }, 10);
+            }, 50);
+
+          } catch (error) {
+            console.warn('Failed to re-select node after formatting:', error);
           }
-        }, 150); // Wait for text selection to complete
-      } else {
-        // For non-formatting operations, update immediately
-        setProp((props) => {
-          props.text = newHtml;
-          props._lastUpdate = Date.now();
-        }, 0);
+        }, 200);
       }
     }
   });

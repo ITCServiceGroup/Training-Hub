@@ -1096,7 +1096,10 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
               window.jsonChangeTimeout = setTimeout(() => {
                 const latestJson = JSON.stringify(query.serialize());
                 if (latestJson !== editorJson && !window.isCancelingContentEditor) {
-                  saveDraft(studyGuideId, { title: document.getElementById('title')?.value || '', content: latestJson });
+                  const currentStudyGuideId = selectedStudyGuide?.id;
+                  if (currentStudyGuideId) {
+                    saveDraft(currentStudyGuideId, { title: document.getElementById('title')?.value || '', content: latestJson });
+                  }
                   onJsonChange(latestJson);
                 }
               }, 1000);

@@ -162,6 +162,7 @@ const TextContextMenu = ({
   return ReactDOM.createPortal(
     <div
       ref={menuRef}
+      data-context-menu="text-formatting"
       className={`fixed flex items-center rounded-lg shadow-lg border ${
         isDark
           ? 'bg-slate-800 border-slate-600'

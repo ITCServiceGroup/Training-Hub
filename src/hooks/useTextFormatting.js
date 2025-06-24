@@ -36,7 +36,6 @@ export const useTextFormatting = (containerRef, onTextChange) => {
   const handleSelectionChange = useCallback(() => {
     // Skip if we're currently updating content to prevent loops
     if (isUpdatingContentRef.current) {
-      console.log('Skipping selection change - content update in progress');
       return;
     }
 
@@ -49,32 +48,52 @@ export const useTextFormatting = (containerRef, onTextChange) => {
     selectionTimeoutRef.current = setTimeout(() => {
       if (!containerRef.current) return;
 
-      console.log('Processing selection change');
+      // Check for any text selection first
+      const globalSelection = window.getSelection();
+      const hasAnySelection = globalSelection && globalSelection.rangeCount > 0 && !globalSelection.isCollapsed;
+
+      if (!hasAnySelection) {
+        // No selection anywhere, hide context menu
+        if (selectedText || showContextMenu) {
+          setSelectedText('');
+          setShowContextMenu(false);
+          setActiveFormats({});
+          lastSelectionRef.current = null;
+        }
+        return;
+      }
+
+      // Check if the selection is within our container
       const selectionData = TextSelectionManager.getSelectionInElement(containerRef.current);
 
       if (selectionData && selectionData.text.trim()) {
-        console.log('Selection found:', selectionData.text);
-        setSelectedText(selectionData.text);
-        updateActiveFormats();
+        // Only update if the selection has actually changed
+        const currentText = selectionData.text;
+        if (currentText !== selectedText) {
+          setSelectedText(currentText);
+          updateActiveFormats();
 
-        // Calculate position for context menu
-        const range = selectionData.range;
-        const rect = range.getBoundingClientRect();
-        const containerRect = containerRef.current.getBoundingClientRect();
+          // Calculate position for context menu
+          const range = selectionData.range;
+          const rect = range.getBoundingClientRect();
+          const containerRect = containerRef.current.getBoundingClientRect();
 
-        setContextMenuPosition({
-          x: rect.left + (rect.width / 2), // Center horizontally on selection
-          y: rect.top + window.scrollY - 8 // Position above selection with small gap, accounting for scroll
-        });
+          setContextMenuPosition({
+            x: rect.left + (rect.width / 2), // Center horizontally on selection
+            y: rect.top + window.scrollY - 8 // Position above selection with small gap, accounting for scroll
+          });
 
-        setShowContextMenu(true);
-        lastSelectionRef.current = selectionData;
+          setShowContextMenu(true);
+          lastSelectionRef.current = selectionData;
+        }
       } else {
-        console.log('No selection found, clearing state');
-        setSelectedText('');
-        setShowContextMenu(false);
-        setActiveFormats({});
-        lastSelectionRef.current = null;
+        // Selection exists but not in our container, hide context menu
+        if (selectedText || showContextMenu) {
+          setSelectedText('');
+          setShowContextMenu(false);
+          setActiveFormats({});
+          lastSelectionRef.current = null;
+        }
       }
     }, 150);
   }, [containerRef, updateActiveFormats]);
@@ -243,12 +262,7 @@ export const useTextFormatting = (containerRef, onTextChange) => {
                   // Update active formats with a small delay to ensure DOM is stable
                   // and the selection is properly established
                   setTimeout(() => {
-                    console.log('Updating active formats after selection restoration');
                     updateActiveFormats();
-
-                    // Debug: Check what formats are detected
-                    const formats = TextFormatter.getActiveFormats(containerRef.current);
-                    console.log('Active formats detected:', formats);
                   }, 50); // Increased delay to ensure everything is stable
                 } else {
                   // Fallback: clear selection state
@@ -464,15 +478,32 @@ export const useTextFormatting = (containerRef, onTextChange) => {
     document.addEventListener('selectionchange', handleSelectionChange);
     container.addEventListener('keydown', handleKeyDown);
 
+    // Add interval to force check if context menu should be hidden
+    const checkInterval = setInterval(() => {
+      if (showContextMenu) {
+        const globalSelection = window.getSelection();
+        const hasSelection = globalSelection && globalSelection.rangeCount > 0 && !globalSelection.isCollapsed;
+
+        if (!hasSelection) {
+          // No selection anywhere, force hide context menu
+          setShowContextMenu(false);
+          setSelectedText('');
+          setActiveFormats({});
+          lastSelectionRef.current = null;
+        }
+      }
+    }, 100); // Check every 100ms
+
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       container.removeEventListener('keydown', handleKeyDown);
-      
+      clearInterval(checkInterval);
+
       if (selectionTimeoutRef.current) {
         clearTimeout(selectionTimeoutRef.current);
       }
     };
-  }, [handleSelectionChange, handleKeyDown]);
+  }, [handleSelectionChange, handleKeyDown, showContextMenu]);
 
   /**
    * Clean up on unmount

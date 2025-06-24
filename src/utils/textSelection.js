@@ -158,7 +158,20 @@ export class TextSelectionManager {
       // Apply selection
       const selection = window.getSelection();
       selection.removeAllRanges();
-      selection.addRange(range);
+
+      // Validate range is in document before adding
+      try {
+        if (range.startContainer &&
+            range.endContainer &&
+            range.startContainer.ownerDocument === document &&
+            range.endContainer.ownerDocument === document &&
+            document.contains(range.startContainer) &&
+            document.contains(range.endContainer)) {
+          selection.addRange(range);
+        }
+      } catch (error) {
+        console.warn('Failed to add range to selection:', error);
+      }
 
       return true;
     } catch (error) {
@@ -203,12 +216,38 @@ export class TextSelectionManager {
       if (selectNew) {
         range.selectNodeContents(fragment);
         selection.removeAllRanges();
-        selection.addRange(range);
+
+        // Validate range is in document before adding
+        try {
+          if (range.startContainer &&
+              range.endContainer &&
+              range.startContainer.ownerDocument === document &&
+              range.endContainer.ownerDocument === document &&
+              document.contains(range.startContainer) &&
+              document.contains(range.endContainer)) {
+            selection.addRange(range);
+          }
+        } catch (error) {
+          console.warn('Failed to add range to selection:', error);
+        }
       } else {
         // Move cursor to end of inserted content
         range.collapse(false);
         selection.removeAllRanges();
-        selection.addRange(range);
+
+        // Validate range is in document before adding
+        try {
+          if (range.startContainer &&
+              range.endContainer &&
+              range.startContainer.ownerDocument === document &&
+              range.endContainer.ownerDocument === document &&
+              document.contains(range.startContainer) &&
+              document.contains(range.endContainer)) {
+            selection.addRange(range);
+          }
+        } catch (error) {
+          console.warn('Failed to add range to selection:', error);
+        }
       }
 
       return true;
@@ -241,7 +280,20 @@ export class TextSelectionManager {
       
       const selection = window.getSelection();
       selection.removeAllRanges();
-      selection.addRange(range);
+
+      // Validate range is in document before adding
+      try {
+        if (range.startContainer &&
+            range.endContainer &&
+            range.startContainer.ownerDocument === document &&
+            range.endContainer.ownerDocument === document &&
+            document.contains(range.startContainer) &&
+            document.contains(range.endContainer)) {
+          selection.addRange(range);
+        }
+      } catch (error) {
+        console.warn('Failed to add range to selection:', error);
+      }
     } catch (error) {
       console.warn('Failed to select all in element:', error);
     }
