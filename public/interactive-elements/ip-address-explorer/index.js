@@ -1,9 +1,9 @@
-const macAddressTemplate = document.createElement('template');
-macAddressTemplate.innerHTML = `
+const ipAddressTemplate = document.createElement('template');
+ipAddressTemplate.innerHTML = `
   <style>
     :host {
-      display: block; /* Ensure the component takes up space */
-      font-family: sans-serif; /* Basic font stack */
+      display: block;
+      font-family: sans-serif;
 
       /* Light mode variables */
       --primary-color-light: #2196F3;
@@ -18,17 +18,17 @@ macAddressTemplate.innerHTML = `
       --explanation-bg-light: var(--custom-secondary-bg-color, #e3f2fd);
       --explanation-border-light: rgba(0, 0, 0, 0.1);
 
-      /* Dark mode variables - with enhanced contrast */
-      --primary-color-dark: #90CAF9; /* Lighter blue */
-      --primary-dark-dark: #BBDEFB; /* Very light blue for better contrast */
-      --success-color-dark: #A5D6A7; /* Lighter green */
-      --warning-color-dark: #FFCC80; /* Lighter orange */
-      --error-color-dark: #EF9A9A; /* Lighter red */
-      --bg-color-dark: var(--custom-primary-bg-color, #0F172A); /* Slate 900 - very dark blue */
-      --text-color-dark: #F8FAFC; /* Slate 50 - almost white */
-      --border-color-dark: #475569; /* Slate 600 */
-      --element-bg-dark: var(--custom-primary-bg-color, #0F172A); /* Slate 900 - very dark blue */
-      --explanation-bg-dark: var(--custom-secondary-bg-color, #1E40AF); /* Blue 800 */
+      /* Dark mode variables */
+      --primary-color-dark: #90CAF9;
+      --primary-dark-dark: #BBDEFB;
+      --success-color-dark: #A5D6A7;
+      --warning-color-dark: #FFCC80;
+      --error-color-dark: #EF9A9A;
+      --bg-color-dark: var(--custom-primary-bg-color, #0F172A);
+      --text-color-dark: #F8FAFC;
+      --border-color-dark: #475569;
+      --element-bg-dark: var(--custom-primary-bg-color, #0F172A);
+      --explanation-bg-dark: var(--custom-secondary-bg-color, #1E40AF);
       --explanation-border-dark: rgba(255, 255, 255, 0.2);
 
       /* Default to light mode */
@@ -51,7 +51,6 @@ macAddressTemplate.innerHTML = `
     }
 
     :host(.dark-mode) {
-      /* Apply dark mode variables when .dark-mode class is present */
       --primary-color: var(--primary-color-dark);
       --primary-dark: var(--primary-dark-dark);
       --success-color: var(--success-color-dark);
@@ -68,7 +67,7 @@ macAddressTemplate.innerHTML = `
     .interactive-element {
       background-color: var(--element-bg);
       padding: 25px;
-      margin: 0; /* Remove margin from container, host handles spacing */
+      margin: 0;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
@@ -94,15 +93,43 @@ macAddressTemplate.innerHTML = `
       line-height: 1.6;
     }
 
-    .mac-address-container {
+    .ip-version-tabs {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .tab-button {
+      padding: 10px 20px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .tab-button:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .tab-button.active {
+      background-color: var(--primary-dark);
+      color: white;
+      border-color: var(--primary-dark);
+    }
+
+    .ip-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 0px; /* Gap handled by byte margin */
+      gap: 0px;
       margin: 20px 0;
       align-items: center;
     }
 
-    .mac-byte {
+    .ip-segment {
       padding: 10px 12px;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
@@ -112,22 +139,27 @@ macAddressTemplate.innerHTML = `
       font-weight: 500;
       background-color: var(--bg-color);
       color: var(--text-color);
-      margin-right: 5px; /* Spacing between bytes */
-      min-width: 30px; /* Ensure consistent width */
+      margin-right: 5px;
+      min-width: 30px;
       text-align: center;
     }
 
-    .mac-byte:last-child {
-        margin-right: 0;
+    .ip-segment:last-child {
+      margin-right: 0;
     }
 
-    /* We'll apply hover styles dynamically via JS to set specific colors */
-    .mac-byte:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: var(--shadow-sm);
+    .ip-segment:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: var(--shadow-sm);
     }
 
-    #macExplanation {
+    .separator {
+      margin: 0 2px;
+      font-weight: bold;
+      color: var(--text-color);
+    }
+
+    #ipExplanation {
       margin-top: 15px;
       padding: 12px 15px;
       background-color: var(--explanation-bg);
@@ -141,78 +173,193 @@ macAddressTemplate.innerHTML = `
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    /* Dark mode specific styles for explanation box */
-    :host(.dark-mode) #macExplanation {
-      color: white; /* Force white text for better contrast in dark mode */
-      text-shadow: 0 1px 1px rgba(0,0,0,0.2); /* Add text shadow for better readability */
+    :host(.dark-mode) #ipExplanation {
+      color: white;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.2);
     }
 
-    #macExplanation strong {
-        color: var(--primary-dark);
-        font-weight: 600;
+    #ipExplanation strong {
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .ipv6-group {
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      font-family: monospace;
+      font-weight: 500;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin-right: 3px;
+      min-width: 50px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .ipv6-group:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: var(--shadow-sm);
     }
   </style>
 
   <div class="interactive-element">
-    <h3>Interactive MAC Address Explorer</h3>
-    <p>Hover over each byte of the example MAC address below to learn its purpose:</p>
-    <div id="macAddressContainer" class="mac-address-container">
-      <!-- MAC bytes will be added by JavaScript -->
+    <h3>Interactive IP Address Explorer</h3>
+    <p>Explore the structure and components of IPv4 and IPv6 addresses:</p>
+    
+    <div class="ip-version-tabs">
+      <button class="tab-button active" id="ipv4Tab">IPv4</button>
+      <button class="tab-button" id="ipv6Tab">IPv6</button>
     </div>
-    <p id="macExplanation">Hover over each byte to learn more about its purpose.</p>
+
+    <div id="ipv4Container">
+      <p>Hover over each octet of the IPv4 address below to learn its purpose:</p>
+      <div id="ipv4AddressContainer" class="ip-container">
+        <!-- IPv4 octets will be added by JavaScript -->
+      </div>
+    </div>
+
+    <div id="ipv6Container" class="hidden">
+      <p>Hover over each group of the IPv6 address below to learn its purpose:</p>
+      <div id="ipv6AddressContainer" class="ip-container">
+        <!-- IPv6 groups will be added by JavaScript -->
+      </div>
+    </div>
+
+    <p id="ipExplanation">Select IPv4 or IPv6 above, then hover over address segments to learn more.</p>
   </div>
 `;
 
-class MacAddressExplorerElement extends HTMLElement {
+class IpAddressExplorerElement extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this.shadowRoot.appendChild(macAddressTemplate.content.cloneNode(true));
+    this.shadowRoot.appendChild(ipAddressTemplate.content.cloneNode(true));
 
-    this.macContainer = this.shadowRoot.getElementById('macAddressContainer');
-    this.explanationElement = this.shadowRoot.getElementById('macExplanation');
-    this.interactiveElement = this.shadowRoot.querySelector('.interactive-element');
+    // Get DOM elements
+    this.ipv4Tab = this.shadowRoot.getElementById('ipv4Tab');
+    this.ipv6Tab = this.shadowRoot.getElementById('ipv6Tab');
+    this.ipv4Container = this.shadowRoot.getElementById('ipv4Container');
+    this.ipv6Container = this.shadowRoot.getElementById('ipv6Container');
+    this.ipv4AddressContainer = this.shadowRoot.getElementById('ipv4AddressContainer');
+    this.ipv6AddressContainer = this.shadowRoot.getElementById('ipv6AddressContainer');
+    this.explanationElement = this.shadowRoot.getElementById('ipExplanation');
 
     // Bind methods
     this.isColorDark = this.isColorDark.bind(this);
     this.updateTheme = this.updateTheme.bind(this);
     this.applyTheme = this.applyTheme.bind(this);
 
-    // Flag to track if we're in the middle of a theme transition
     this.isTransitioning = false;
+    this.currentVersion = 'ipv4';
 
-    // Define byte colors for light and dark modes
+    // Define color schemes for light and dark modes
     this.colorSchemes = {
       light: {
-        oui1: "#4CAF50", // Green
-        oui2: "#2196F3", // Blue
-        oui3: "#2196F3", // Blue
-        nic1: "#FF9800", // Orange
-        nic2: "#FF9800", // Orange
-        nic3: "#FF9800"  // Orange
+        network: "#4CAF50",    // Green for network portion
+        host: "#2196F3",       // Blue for host portion
+        subnet: "#FF9800",     // Orange for subnet
+        prefix: "#9C27B0",     // Purple for IPv6 prefix
+        interface: "#FF5722"   // Red for interface ID
       },
       dark: {
-        oui1: "#A5D6A7", // Lighter Green with better contrast
-        oui2: "#90CAF9", // Lighter Blue with better contrast
-        oui3: "#90CAF9", // Lighter Blue with better contrast
-        nic1: "#FFCC80", // Lighter Orange with better contrast
-        nic2: "#FFCC80", // Lighter Orange with better contrast
-        nic3: "#FFCC80"  // Lighter Orange with better contrast
+        network: "#A5D6A7",    // Lighter Green
+        host: "#90CAF9",       // Lighter Blue
+        subnet: "#FFCC80",     // Lighter Orange
+        prefix: "#CE93D8",     // Lighter Purple
+        interface: "#FFAB91"   // Lighter Red
       }
     };
 
-    this.macBytesData = [
-        { value: "00", colorKey: "oui1", description: "OUI Byte 1", info: "Indicates Unicast (even LSB) vs Multicast (odd LSB). Part of the Organizationally Unique Identifier assigned by IEEE." },
-        { value: "1A", colorKey: "oui2", description: "OUI Byte 2", info: "Part of the OUI (00:1A:2B) identifying the manufacturer (e.g., Cisco Systems)." },
-        { value: "2B", colorKey: "oui3", description: "OUI Byte 3", info: "Completes the OUI, uniquely identifying the hardware vendor." },
-        { value: "3C", colorKey: "nic1", description: "NIC Byte 1", info: "Start of the Network Interface Controller specific part, assigned by the manufacturer." },
-        { value: "4D", colorKey: "nic2", description: "NIC Byte 2", info: "Part of the unique serial number for this specific network interface." },
-        { value: "5E", colorKey: "nic3", description: "NIC Byte 3", info: "Completes the unique identifier for this network interface card." }
+    // IPv4 example: 192.168.1.100/24 (Class C private network)
+    this.ipv4Data = [
+      {
+        value: "192",
+        colorKey: "network",
+        description: "Network Octet 1",
+        info: "First octet of Class C private network (192.168.x.x). Identifies this as a private IPv4 address range commonly used in home and office networks."
+      },
+      {
+        value: "168",
+        colorKey: "network",
+        description: "Network Octet 2",
+        info: "Second octet of the private network identifier. Together with 192, this defines the 192.168.0.0/16 private address space reserved by RFC 1918."
+      },
+      {
+        value: "1",
+        colorKey: "subnet",
+        description: "Subnet Identifier",
+        info: "Third octet acting as subnet identifier within the 192.168.0.0/16 network. This creates the 192.168.1.0/24 subnet with 254 usable host addresses."
+      },
+      {
+        value: "100",
+        colorKey: "host",
+        description: "Host Identifier",
+        info: "Fourth octet identifying the specific host within the 192.168.1.0/24 subnet. Valid host addresses range from 1-254 (0 is network, 255 is broadcast)."
+      }
     ];
 
-    this.defaultExplanation = 'Hover over each byte to learn more about its purpose.';
+    // IPv6 example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334 (Documentation prefix)
+    this.ipv6Data = [
+      {
+        value: "2001",
+        colorKey: "prefix",
+        description: "Global Routing Prefix",
+        info: "First 16 bits of the global unicast address. 2001:db8::/32 is reserved for documentation and examples (RFC 3849)."
+      },
+      {
+        value: "0db8",
+        colorKey: "prefix",
+        description: "Global Routing Prefix",
+        info: "Continuation of the global routing prefix. This specific prefix (2001:db8::/32) is reserved for documentation purposes only."
+      },
+      {
+        value: "85a3",
+        colorKey: "subnet",
+        description: "Subnet ID",
+        info: "Subnet identifier within the organization's network. Allows for 65,536 different subnets within the /32 prefix allocation."
+      },
+      {
+        value: "0000",
+        colorKey: "subnet",
+        description: "Subnet ID Extension",
+        info: "Additional subnet bits, often zero-padded. The full subnet ID is 32 bits (4 groups), providing extensive subnetting capabilities."
+      },
+      {
+        value: "0000",
+        colorKey: "interface",
+        description: "Interface ID",
+        info: "Start of the 64-bit interface identifier. Can be manually assigned, auto-configured via SLAAC, or derived from MAC address (EUI-64)."
+      },
+      {
+        value: "8a2e",
+        colorKey: "interface",
+        description: "Interface ID",
+        info: "Continuation of the interface identifier. This portion uniquely identifies the specific interface within the subnet."
+      },
+      {
+        value: "0370",
+        colorKey: "interface",
+        description: "Interface ID",
+        info: "Third group of the interface identifier. The full 64-bit interface ID ensures uniqueness within the subnet scope."
+      },
+      {
+        value: "7334",
+        colorKey: "interface",
+        description: "Interface ID",
+        info: "Final group completing the 64-bit interface identifier. Together, these 4 groups provide 2^64 possible interface addresses per subnet."
+      }
+    ];
 
-    // Define CSS variables for light and dark modes
+    this.defaultExplanation = 'Select IPv4 or IPv6 above, then hover over address segments to learn more.';
+
+    // Theme variables (similar to MAC explorer)
     this.lightModeVars = {
       '--primary-color': 'var(--primary-color-light)',
       '--primary-dark': 'var(--primary-dark-light)',
@@ -250,20 +397,22 @@ class MacAddressExplorerElement extends HTMLElement {
     // Check initial theme and apply it
     this.applyTheme();
 
-    // Render the MAC address
-    this.renderMacAddress();
+    // Set up tab event listeners
+    this.ipv4Tab.addEventListener('click', () => this.switchToIPv4());
+    this.ipv6Tab.addEventListener('click', () => this.switchToIPv6());
+
+    // Render the initial IP address (IPv4)
+    this.renderIPAddress();
 
     // Set up observer for theme changes
     this.setupThemeObserver();
 
-    // Set up interval to check theme periodically with longer interval
-    // This is a fallback for cases where the observer might miss changes
+    // Set up interval to check theme periodically
     this.themeInterval = setInterval(() => {
       this.applyTheme();
-    }, 2000); // Increased to 2 seconds to reduce frequency
+    }, 2000);
 
-    // Log that we're initialized
-    console.log('[MAC Explorer] Component initialized');
+    console.log('[IP Explorer] Component initialized');
   }
 
   disconnectedCallback() {
@@ -279,7 +428,148 @@ class MacAddressExplorerElement extends HTMLElement {
     // Remove message event listener
     window.removeEventListener('message', this.messageHandler);
 
-    console.log('[MAC Explorer] Component disconnected and cleaned up');
+    console.log('[IP Explorer] Component disconnected and cleaned up');
+  }
+
+  switchToIPv4() {
+    this.currentVersion = 'ipv4';
+    this.ipv4Tab.classList.add('active');
+    this.ipv6Tab.classList.remove('active');
+    this.ipv4Container.classList.remove('hidden');
+    this.ipv6Container.classList.add('hidden');
+    this.renderIPAddress();
+  }
+
+  switchToIPv6() {
+    this.currentVersion = 'ipv6';
+    this.ipv6Tab.classList.add('active');
+    this.ipv4Tab.classList.remove('active');
+    this.ipv6Container.classList.remove('hidden');
+    this.ipv4Container.classList.add('hidden');
+    this.renderIPAddress();
+  }
+
+  renderIPAddress() {
+    if (this.currentVersion === 'ipv4') {
+      this.renderIPv4();
+    } else {
+      this.renderIPv6();
+    }
+  }
+
+  renderIPv4() {
+    this.ipv4AddressContainer.innerHTML = '';
+
+    // Determine theme
+    const isDarkMode = this.classList.contains('dark-mode');
+    const theme = isDarkMode ? 'dark' : 'light';
+    const colorScheme = this.colorSchemes[theme];
+
+    this.ipv4Data.forEach((octetData, index) => {
+      const octetElement = document.createElement('div');
+      octetElement.className = 'ip-segment';
+      octetElement.textContent = octetData.value;
+
+      const octetColor = colorScheme[octetData.colorKey];
+
+      // Set initial color styling
+      octetElement.style.backgroundColor = octetColor;
+      octetElement.style.color = 'white';
+      octetElement.style.borderColor = octetColor;
+      octetElement.style.fontWeight = 'bold';
+      octetElement.style.textShadow = '0 1px 1px rgba(0,0,0,0.2)';
+
+      octetElement.addEventListener('mouseover', () => {
+        this.explanationElement.innerHTML = `<strong>${octetData.description}:</strong> ${octetData.info}`;
+        // Darken the color on hover
+        const darkerColor = this.darkenColor(octetColor, 0.2);
+        octetElement.style.backgroundColor = darkerColor;
+        octetElement.style.borderColor = darkerColor;
+        octetElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+      });
+
+      octetElement.addEventListener('mouseout', () => {
+        this.explanationElement.innerHTML = this.defaultExplanation;
+        // Revert to original color
+        octetElement.style.backgroundColor = octetColor;
+        octetElement.style.borderColor = octetColor;
+        octetElement.style.boxShadow = '';
+      });
+
+      this.ipv4AddressContainer.appendChild(octetElement);
+
+      // Add dot separator except after last octet
+      if (index < this.ipv4Data.length - 1) {
+        const separator = document.createElement('span');
+        separator.className = 'separator';
+        separator.textContent = '.';
+        this.ipv4AddressContainer.appendChild(separator);
+      }
+    });
+
+    // Add /24 CIDR notation
+    const cidrElement = document.createElement('span');
+    cidrElement.className = 'separator';
+    cidrElement.textContent = '/24';
+    cidrElement.style.marginLeft = '5px';
+    cidrElement.style.color = 'var(--text-color)';
+    cidrElement.style.fontWeight = 'bold';
+    this.ipv4AddressContainer.appendChild(cidrElement);
+
+    this.explanationElement.innerHTML = 'Hover over each octet to learn about IPv4 address structure.';
+  }
+
+  renderIPv6() {
+    this.ipv6AddressContainer.innerHTML = '';
+
+    // Determine theme
+    const isDarkMode = this.classList.contains('dark-mode');
+    const theme = isDarkMode ? 'dark' : 'light';
+    const colorScheme = this.colorSchemes[theme];
+
+    this.ipv6Data.forEach((groupData, index) => {
+      const groupElement = document.createElement('div');
+      groupElement.className = 'ipv6-group';
+      groupElement.textContent = groupData.value;
+
+      const groupColor = colorScheme[groupData.colorKey];
+
+      // Set initial color styling
+      groupElement.style.backgroundColor = groupColor;
+      groupElement.style.color = 'white';
+      groupElement.style.borderColor = groupColor;
+      groupElement.style.fontWeight = 'bold';
+      groupElement.style.textShadow = '0 1px 1px rgba(0,0,0,0.2)';
+
+      groupElement.addEventListener('mouseover', () => {
+        this.explanationElement.innerHTML = `<strong>${groupData.description}:</strong> ${groupData.info}`;
+        // Darken the color on hover
+        const darkerColor = this.darkenColor(groupColor, 0.2);
+        groupElement.style.backgroundColor = darkerColor;
+        groupElement.style.borderColor = darkerColor;
+        groupElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+      });
+
+      groupElement.addEventListener('mouseout', () => {
+        this.explanationElement.innerHTML = this.defaultExplanation;
+        // Revert to original color
+        groupElement.style.backgroundColor = groupColor;
+        groupElement.style.borderColor = groupColor;
+        groupElement.style.boxShadow = '';
+      });
+
+      this.ipv6AddressContainer.appendChild(groupElement);
+
+      // Add colon separator except after last group
+      if (index < this.ipv6Data.length - 1) {
+        const separator = document.createElement('span');
+        separator.className = 'separator';
+        separator.textContent = ':';
+        this.ipv6AddressContainer.appendChild(separator);
+      }
+    });
+
+    this.explanationElement.innerHTML = 'Hover over each group to learn about IPv6 address structure.';
   }
 
   applyTheme() {
@@ -303,13 +593,7 @@ class MacAddressExplorerElement extends HTMLElement {
         const bodyBgColor = getComputedStyle(document.body).backgroundColor;
         const htmlBgColor = getComputedStyle(document.documentElement).backgroundColor;
 
-        // Use the class method to check if a color is dark
-        const isColorDark = this.isColorDark;
-
-        console.log('Body background color:', bodyBgColor);
-        console.log('HTML background color:', htmlBgColor);
-
-        if (isColorDark(bodyBgColor) || isColorDark(htmlBgColor)) {
+        if (this.isColorDark(bodyBgColor) || this.isColorDark(htmlBgColor)) {
           isDarkMode = true;
         }
       } catch (e) {
@@ -320,17 +604,12 @@ class MacAddressExplorerElement extends HTMLElement {
     // Method 3: Check parent document if in iframe
     if (!isDarkMode && window !== window.parent) {
       try {
-        // Try to access parent document (may fail due to same-origin policy)
         if (window.parent.document.documentElement.classList.contains('dark') ||
             window.parent.document.body.classList.contains('dark')) {
           isDarkMode = true;
         } else {
-          // Check parent document background color
           const parentBodyBgColor = getComputedStyle(window.parent.document.body).backgroundColor;
           const parentHtmlBgColor = getComputedStyle(window.parent.document.documentElement).backgroundColor;
-
-          console.log('Parent body background color:', parentBodyBgColor);
-          console.log('Parent HTML background color:', parentHtmlBgColor);
 
           if (this.isColorDark(parentBodyBgColor) || this.isColorDark(parentHtmlBgColor)) {
             isDarkMode = true;
@@ -341,29 +620,23 @@ class MacAddressExplorerElement extends HTMLElement {
       }
     }
 
-    // DO NOT force dark mode
-    // isDarkMode = true;
-
     // Only update if theme has actually changed
     const themeChanged = this.currentTheme !== isDarkMode;
     if (!themeChanged) {
-      return; // No change needed
+      return;
     }
 
-    console.log('Final dark mode detection result:', isDarkMode);
+    console.log('IP Explorer - Final dark mode detection result:', isDarkMode);
     this.currentTheme = isDarkMode;
 
     // Apply CSS variables directly to the host element
     if (isDarkMode) {
-      // Apply dark mode variables
       Object.entries(this.darkModeVars).forEach(([prop, value]) => {
         this.style.setProperty(prop, value);
       });
 
-      // Add dark-mode class for any class-specific styles
       this.classList.add('dark-mode');
 
-      // Also apply to the shadow root elements directly
       const style = document.createElement('style');
       style.textContent = `
         :host {
@@ -381,27 +654,22 @@ class MacAddressExplorerElement extends HTMLElement {
         }
       `;
 
-      // Remove any existing theme style
       const existingStyle = this.shadowRoot.querySelector('#theme-style');
       if (existingStyle) {
         existingStyle.remove();
       }
 
-      // Add the new style
       style.id = 'theme-style';
       this.shadowRoot.appendChild(style);
 
       console.log('Applied dark mode');
     } else {
-      // Apply light mode variables
       Object.entries(this.lightModeVars).forEach(([prop, value]) => {
         this.style.setProperty(prop, value);
       });
 
-      // Remove dark-mode class
       this.classList.remove('dark-mode');
 
-      // Also apply to the shadow root elements directly
       const style = document.createElement('style');
       style.textContent = `
         :host {
@@ -419,13 +687,11 @@ class MacAddressExplorerElement extends HTMLElement {
         }
       `;
 
-      // Remove any existing theme style
       const existingStyle = this.shadowRoot.querySelector('#theme-style');
       if (existingStyle) {
         existingStyle.remove();
       }
 
-      // Add the new style
       style.id = 'theme-style';
       this.shadowRoot.appendChild(style);
 
@@ -433,25 +699,23 @@ class MacAddressExplorerElement extends HTMLElement {
     }
 
     // Re-render with current theme
-    this.renderMacAddress();
+    this.renderIPAddress();
   }
 
   setupThemeObserver() {
     // Create a MutationObserver to watch for class changes with debouncing
     this.observer = new MutationObserver((mutations) => {
-      // Check if any mutations are relevant (not caused by our own theme updates)
       const relevantMutation = mutations.some(mutation => {
         return mutation.target !== this && !this.themeUpdatePending;
       });
 
       if (relevantMutation) {
-        // Debounce theme updates to prevent rapid successive calls
         if (this.themeDebounceTimeout) {
           clearTimeout(this.themeDebounceTimeout);
         }
         this.themeDebounceTimeout = setTimeout(() => {
           this.applyTheme();
-        }, 100); // 100ms debounce
+        }, 100);
       }
     });
 
@@ -469,37 +733,32 @@ class MacAddressExplorerElement extends HTMLElement {
     // Listen for direct theme change messages from parent
     this.messageHandler = (event) => {
       if (event.data && event.data.type === 'theme-change') {
-        console.log('[MAC Explorer] Received theme change message:', event.data.theme);
+        console.log('[IP Explorer] Received theme change message:', event.data.theme);
         this.updateTheme(event.data.theme === 'dark');
       }
     };
     window.addEventListener('message', this.messageHandler);
   }
 
-  // Method to directly update theme without polling
   updateTheme(isDarkMode) {
-    console.log('[MAC Explorer] updateTheme called with isDarkMode:', isDarkMode);
+    console.log('[IP Explorer] updateTheme called with isDarkMode:', isDarkMode);
 
-    // Prevent multiple rapid transitions
     if (this.isTransitioning) {
-      console.log('[MAC Explorer] Theme transition already in progress, skipping');
+      console.log('[IP Explorer] Theme transition already in progress, skipping');
       return;
     }
 
     this.isTransitioning = true;
     this.themeUpdatePending = true;
 
-    // Apply theme immediately with transition
+    // Apply theme immediately
     if (isDarkMode) {
-      // Apply dark mode variables
       Object.entries(this.darkModeVars).forEach(([prop, value]) => {
         this.style.setProperty(prop, value);
       });
 
-      // Add dark-mode class for any class-specific styles
       this.classList.add('dark-mode');
 
-      // Also apply to the shadow root elements directly
       const style = document.createElement('style');
       style.textContent = `
         :host {
@@ -517,27 +776,22 @@ class MacAddressExplorerElement extends HTMLElement {
         }
       `;
 
-      // Remove any existing theme style
       const existingStyle = this.shadowRoot.querySelector('#theme-style');
       if (existingStyle) {
         existingStyle.remove();
       }
 
-      // Add the new style
       style.id = 'theme-style';
       this.shadowRoot.appendChild(style);
 
-      console.log('[MAC Explorer] Applied dark mode via direct update');
+      console.log('[IP Explorer] Applied dark mode via direct update');
     } else {
-      // Apply light mode variables
       Object.entries(this.lightModeVars).forEach(([prop, value]) => {
         this.style.setProperty(prop, value);
       });
 
-      // Remove dark-mode class
       this.classList.remove('dark-mode');
 
-      // Also apply to the shadow root elements directly
       const style = document.createElement('style');
       style.textContent = `
         :host {
@@ -555,21 +809,19 @@ class MacAddressExplorerElement extends HTMLElement {
         }
       `;
 
-      // Remove any existing theme style
       const existingStyle = this.shadowRoot.querySelector('#theme-style');
       if (existingStyle) {
         existingStyle.remove();
       }
 
-      // Add the new style
       style.id = 'theme-style';
       this.shadowRoot.appendChild(style);
 
-      console.log('[MAC Explorer] Applied light mode via direct update');
+      console.log('[IP Explorer] Applied light mode via direct update');
     }
 
     // Re-render with current theme
-    this.renderMacAddress();
+    this.renderIPAddress();
 
     // Reset transition flags after a short delay
     setTimeout(() => {
@@ -629,57 +881,6 @@ class MacAddressExplorerElement extends HTMLElement {
     }
   }
 
-  renderMacAddress() {
-    this.macContainer.innerHTML = ''; // Clear previous content if any
-
-    // Determine theme based on class
-    const isDarkMode = this.classList.contains('dark-mode');
-    const theme = isDarkMode ? 'dark' : 'light';
-
-    console.log('Rendering MAC address with theme:', theme);
-
-    // Get the current color scheme based on theme
-    const colorScheme = this.colorSchemes[theme];
-
-    this.macBytesData.forEach((byteData, index) => {
-      const byteElement = document.createElement('div');
-      byteElement.className = 'mac-byte';
-      byteElement.textContent = byteData.value;
-
-      // Get the appropriate color for the current theme
-      const byteColor = colorScheme[byteData.colorKey];
-
-      // Set initial color styling
-      byteElement.style.backgroundColor = byteColor;
-      byteElement.style.color = 'white';
-      byteElement.style.borderColor = byteColor;
-      byteElement.style.fontWeight = 'bold';
-      byteElement.style.textShadow = '0 1px 1px rgba(0,0,0,0.2)';
-
-      byteElement.addEventListener('mouseover', () => {
-        this.explanationElement.innerHTML = `<strong>${byteData.description}:</strong> ${byteData.info}`;
-        // Darken the color on hover by reducing opacity or using a darker shade
-        const darkerColor = this.darkenColor(byteColor, 0.2);
-        byteElement.style.backgroundColor = darkerColor;
-        byteElement.style.borderColor = darkerColor;
-        byteElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-      });
-
-      byteElement.addEventListener('mouseout', () => {
-        this.explanationElement.innerHTML = this.defaultExplanation;
-        // Revert to original color
-        byteElement.style.backgroundColor = byteColor;
-        byteElement.style.borderColor = byteColor;
-        byteElement.style.boxShadow = '';
-      });
-
-      this.macContainer.appendChild(byteElement);
-    });
-
-    // Set initial explanation
-    this.explanationElement.innerHTML = this.defaultExplanation;
-  }
-
   // Helper method to darken a color for hover effect
   darkenColor(color, amount) {
     // Convert hex to RGB if needed
@@ -706,4 +907,6 @@ class MacAddressExplorerElement extends HTMLElement {
 }
 
 // Define the custom element using the standard "-simulator" suffix
-customElements.define('mac-address-explorer-simulator', MacAddressExplorerElement);
+customElements.define('ip-address-explorer-simulator', IpAddressExplorerElement);
+
+console.log('[WebComponent] Custom element "ip-address-explorer-simulator" defined.');

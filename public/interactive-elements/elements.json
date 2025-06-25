@@ -78,5 +78,13 @@
     "description": "Interactive decision tree for the life of a service visit workflow.",
     "thumbnailUrl": "/interactive-elements/service-visit-decision-tree/thumbnail.png",
     "iconUrl": "/interactive-elements/service-visit-decision-tree/icon.png"
+  },
+  {
+    "name": "ip-address-explorer",
+    "path": "ip-address-explorer/",
+    "title": "IP Address Explorer",
+    "description": "Explore the structure and components of IPv4 and IPv6 addresses.",
+    "thumbnailUrl": "/interactive-elements/ip-address-explorer/thumbnail.png",
+    "iconUrl": "/interactive-elements/ip-address-explorer/icon.png"
   }
 ]
