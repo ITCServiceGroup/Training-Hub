@@ -568,7 +568,7 @@ export const TUTORIALS = {
                     title: "Chrome Browser DNS Management",
                     steps: [
                         { // No targetElement, no instruction change needed
-                            instruction: "Chrome OS manages DNS through the browser. To clear DNS cache:\n1. Open Chrome browser\n2. Type chrome://net-internals/#dns in the address bar\n3. Click the 'Clear host cache' button\n\nAlternatively:\n1. Open Chrome Settings\n2. Go to Privacy and security\n3. Click 'Clear browsing data'\n4. Select 'Cached images and files'\n5. Click 'Clear data'",
+                            instruction: "Chrome OS manages DNS through the browser. To clear DNS cache:<br><br><strong>Method 1: Direct DNS Cache Clear</strong><br>1. Open Chrome browser<br>2. Type chrome://net-internals/#dns in the address bar<br>3. Click the 'Clear host cache' button<br><br><strong>Method 2: Clear Browsing Data</strong><br>1. Open Chrome Settings<br>2. Go to Privacy and security<br>3. Click 'Clear browsing data'<br>4. Select 'Cached images and files'<br>5. Click 'Clear data'",
                             requiredComponents: [],
                             hint: "Chrome OS uses the browser's DNS cache system instead of system commands.",
                             isFinal: true

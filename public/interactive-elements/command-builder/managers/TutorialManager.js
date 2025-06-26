@@ -330,7 +330,7 @@ export class TutorialManager {
         
         // Update content with validation
         this.tutorialTitle.textContent = this.currentLesson.title || '';
-        this.tutorialContent.textContent = currentStep.instruction || '';
+        this.tutorialContent.innerHTML = currentStep.instruction || '';
         this.tutorialHint.textContent = currentStep.hint || '';
         
         // Update progress indicators
@@ -438,7 +438,7 @@ export class TutorialManager {
                 }
                 
                 this.tutorialTitle.textContent = this.currentLesson.title;
-                this.tutorialContent.textContent = currentStep.instruction;
+                this.tutorialContent.innerHTML = currentStep.instruction;
                 this.tutorialHint.textContent = currentStep.hint;
                 
                 // Update progress indicators
