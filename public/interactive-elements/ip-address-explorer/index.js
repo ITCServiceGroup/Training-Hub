@@ -103,7 +103,7 @@ ipAddressTemplate.innerHTML = `
       padding: 10px 20px;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      background-color: var(--bg-color);
+      background-color: var(--custom-secondary-bg-color, var(--explanation-bg));
       color: var(--text-color);
       cursor: pointer;
       transition: all 0.2s ease;

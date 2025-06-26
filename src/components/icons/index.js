@@ -132,7 +132,23 @@ import {
   FaTint,
   FaCloud,
   FaThermometerHalf,
-  FaSun
+  FaSun,
+
+  // Internet & Network
+  FaWifi,
+  FaGlobe,
+  FaGlobeAmericas,
+  FaServer,
+  FaNetworkWired,
+  FaEthernet,
+  FaRss,
+  FaCloud as FaCloudNetwork,
+  FaDesktop,
+  FaLaptop,
+  FaMobile,
+  FaTabletAlt,
+  FaPlug,
+  FaBroadcastTower
 } from 'react-icons/fa';
 
 // Material Design Icons for specific icons not available in FontAwesome
@@ -200,6 +216,22 @@ export const ICON_CATEGORIES = {
     'search': 'Search',
     'copy': 'Copy',
     'paste': 'Paste',
+  },
+  'Internet & Network': {
+    'wifi': 'WiFi',
+    'globe': 'Globe',
+    'globe-americas': 'Globe Americas',
+    'server': 'Server',
+    'network-wired': 'Network Wired',
+    'ethernet': 'Ethernet',
+    'rss': 'RSS Feed',
+    'cloud-network': 'Cloud Network',
+    'desktop': 'Desktop Computer',
+    'laptop': 'Laptop',
+    'mobile-device': 'Mobile Device',
+    'tablet': 'Tablet',
+    'plug': 'Power Plug',
+    'broadcast-tower': 'Broadcast Tower'
   },
   'Learning': {
     'lightbulb': 'Idea',
@@ -423,5 +455,21 @@ export const ICONS = {
   'water-drop': FaTint,
   'rain-cloud': FaCloud,
   'thermometer': FaThermometerHalf,
-  'sun': FaSun
+  'sun': FaSun,
+
+  // Internet & Network
+  'wifi': FaWifi,
+  'globe': FaGlobe,
+  'globe-americas': FaGlobeAmericas,
+  'server': FaServer,
+  'network-wired': FaNetworkWired,
+  'ethernet': FaEthernet,
+  'rss': FaRss,
+  'cloud-network': FaCloudNetwork,
+  'desktop': FaDesktop,
+  'laptop': FaLaptop,
+  'mobile-device': FaMobile,
+  'tablet': FaTabletAlt,
+  'plug': FaPlug,
+  'broadcast-tower': FaBroadcastTower
 };
