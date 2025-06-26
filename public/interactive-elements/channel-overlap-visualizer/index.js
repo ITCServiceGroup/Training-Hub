@@ -658,12 +658,12 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
         }
       },
       '5': {
-        // Simplified list for visualization clarity
-        channels: [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 132, 136, 140, 144, 149, 153, 157, 161, 165],
+        // US 5GHz channels - accurate regulatory implementation
+        channels: [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165],
         baseFreq: 5180, // Base for channel 36
         spacing: 20, // Typical spacing
         width: 20,
-        dfsChannels: [52, 56, 60, 64, 100, 104, 108, 112, 116, 132, 136, 140, 144], // Example DFS channels
+        dfsChannels: [52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144], // Accurate DFS channels (UNII-2 and UNII-2e)
         // Channel bonding support for 5GHz (802.11n/ac/ax)
         bonding: {
           supportedWidths: [20, 40, 80, 160],
@@ -675,6 +675,8 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
               { primary: 60, secondary: 64, channels: [60, 64] },
               { primary: 100, secondary: 104, channels: [100, 104] },
               { primary: 108, secondary: 112, channels: [108, 112] },
+              { primary: 116, secondary: 120, channels: [116, 120] },
+              { primary: 124, secondary: 128, channels: [124, 128] },
               { primary: 132, secondary: 136, channels: [132, 136] },
               { primary: 140, secondary: 144, channels: [140, 144] },
               { primary: 149, secondary: 153, channels: [149, 153] },
@@ -684,12 +686,15 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
               { primary: 36, secondary: [40, 44, 48], channels: [36, 40, 44, 48] },
               { primary: 52, secondary: [56, 60, 64], channels: [52, 56, 60, 64] },
               { primary: 100, secondary: [104, 108, 112], channels: [100, 104, 108, 112] },
+              { primary: 116, secondary: [120, 124, 128], channels: [116, 120, 124, 128] },
               { primary: 132, secondary: [136, 140, 144], channels: [132, 136, 140, 144] },
               { primary: 149, secondary: [153, 157, 161], channels: [149, 153, 157, 161] }
             ],
             160: [
-              { primary: 36, secondary: [40, 44, 48, 52, 56, 60, 64], channels: [36, 40, 44, 48, 52, 56, 60, 64] },
-              { primary: 100, secondary: [104, 108, 112, 116], channels: [100, 104, 108, 112, 116] }
+              { primary: 36, secondary: [40, 44, 48, 52, 56, 60, 64], channels: [36, 40, 44, 48, 52, 56, 60, 64] }
+              // Note: Channel 100 removed - insufficient spectrum for 160MHz in UNII-2e
+              // Channel 149 cannot support 160MHz - only 5 channels available (149-165)
+              // Most routers only offer channel 36 for 160MHz, requiring DFS acceptance
             ]
           },
           recommendations: {
@@ -701,10 +706,11 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
               { primary: 36, note: "UNII-1 band, no DFS required" },
               { primary: 52, note: "UNII-2 band, DFS required (radar detection)" },
               { primary: 100, note: "UNII-2e band, DFS required (radar detection)" },
+              { primary: 116, note: "UNII-2e band, DFS required (radar detection)" },
               { primary: 149, note: "UNII-3 band, no DFS required" }
             ],
             160: [
-              { primary: 36, note: "Spans UNII-1 and UNII-2, DFS required for channels 52-64" }
+              { primary: 36, note: "Only viable 160MHz option - spans UNII-1 and UNII-2, DFS required for channels 52-64. Channel 149 cannot support 160MHz due to insufficient spectrum." }
             ]
           }
         }
@@ -750,13 +756,14 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
               { primary: 97, secondary: [105, 113, 121], channels: [97, 105, 113, 121] },
               { primary: 129, secondary: [137, 145, 153], channels: [129, 137, 145, 153] },
               { primary: 161, secondary: [169, 177, 185], channels: [161, 169, 177, 185] },
-              { primary: 193, secondary: [201, 209, 217], channels: [193, 201, 209, 217] }
+              { primary: 193, secondary: [201, 209, 217], channels: [193, 201, 209, 217] },
+              // Note: Channel 225 cannot support 80MHz - only 2 channels available (225, 233)
             ],
             160: [
               { primary: 1, secondary: [9, 17, 25, 33, 41, 49, 57], channels: [1, 9, 17, 25, 33, 41, 49, 57] },
               { primary: 65, secondary: [73, 81, 89, 97, 105, 113, 121], channels: [65, 73, 81, 89, 97, 105, 113, 121] },
-              { primary: 129, secondary: [137, 145, 153, 161, 169, 177, 185], channels: [129, 137, 145, 153, 161, 169, 177, 185] },
-              { primary: 193, secondary: [201, 209, 217, 225, 233], channels: [193, 201, 209, 217, 225, 233] }
+              { primary: 129, secondary: [137, 145, 153, 161, 169, 177, 185], channels: [129, 137, 145, 153, 161, 169, 177, 185] }
+              // Note: Channel 193 removed - insufficient channels for 160MHz (only 6 channels: 193-233)
             ],
             320: [
               { primary: 1, secondary: [9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121], channels: [1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121] },
@@ -970,10 +977,11 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
             <strong>💡 Reality Check:</strong> Performance gains often negated by interference.<br>
             <strong>🎯 Recommendation:</strong> Stick to 20MHz for 2.4GHz networks.<br><br>`;
         } else if (this.currentChannelWidth === 160 && this.currentBand === '5') {
-          message += `160MHz in 5GHz uses "80+80" mode - two separate 80MHz channels due to DFS gaps.<br>
-            First group: 8 channels (36-64), Second group: 5 channels (100-116).<br><br>
-            <strong>💡 Reality:</strong> Not truly contiguous due to regulatory restrictions.<br>
-            <strong>🎯 Note:</strong> Requires DFS support and may switch channels automatically.<br><br>`;
+          message += `160MHz in 5GHz has limited options due to regulatory restrictions.<br>
+            <strong>Only viable option:</strong> Channel 36 (spans channels 36-64).<br><br>
+            <strong>💡 Reality:</strong> Most routers only offer channel 36 for 160MHz.<br>
+            <strong>🎯 Note:</strong> Requires DFS support and may switch channels automatically.<br>
+            <strong>⚠️ Important:</strong> Channel 149 cannot support 160MHz - insufficient spectrum (only 5 channels: 149-165).<br><br>`;
         } else if (this.currentBand === '5' && (this.currentChannelWidth === 40 || this.currentChannelWidth === 80)) {
           // Check if any channels in current combinations require DFS
           const bandData = this.channelData[this.currentBand];
@@ -1135,7 +1143,7 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
     const bondingGroup = document.createElement('div');
     bondingGroup.className = `bonding-group width-${this.currentChannelWidth}`;
 
-    // SPECIAL HANDLING FOR 5GHz 160MHz: Adjust width and positioning to prevent overlap
+    // SPECIAL HANDLING FOR 5GHz AND 6GHz 160MHz: Adjust width and positioning to prevent overlap
     let extraWidth = 0;
     let widthAdjustment = 0;
 
@@ -1144,14 +1152,27 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
     const rightEdge = lastElement.offsetLeft + lastElement.offsetWidth;
 
     if (this.currentChannelWidth === 160) {
-      // For the first group (36-64), make it wider but stop before the gap
-      if (channels.includes(36)) {
-        extraWidth = 13; // Extend right edge but not too far
-      }
-      // For the second group (100-116), make it wider and move it further right
-      else if (channels.includes(100)) {
-        extraWidth = 3; // Extend right edge slightly
-        widthAdjustment = 15; // Move the left edge further right to avoid overlap
+      if (this.currentBand === '5') {
+        // For the first group (36-64), make it wider but stop before the gap
+        if (channels.includes(36)) {
+          extraWidth = 13; // Extend right edge but not too far
+        }
+        // For the second group (100-116), make it wider and move it further right
+        else if (channels.includes(100)) {
+          extraWidth = 3; // Extend right edge slightly
+          widthAdjustment = 15; // Move the left edge further right to avoid overlap
+        }
+      } else if (this.currentBand === '6') {
+        // 6GHz 160MHz groups - apply similar adjustments for proper alignment
+        if (channels.includes(1)) {
+          extraWidth = 4; // First group: extend right edge
+        } else if (channels.includes(65)) {
+          extraWidth = 5; // Second group: moderate extension
+          widthAdjustment = 5; // Slight left adjustment
+        } else if (channels.includes(129)) {
+          extraWidth = 4; // Third group: minimal extension
+          widthAdjustment = 11; // More left adjustment
+        }
       }
     }
 
@@ -1393,7 +1414,7 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
     // Get the leftmost position of the first element
     const left = firstElement.offsetLeft - padding;
 
-    // SPECIAL HANDLING FOR 5GHz 160MHz: Make boxes wider to align properly
+    // SPECIAL HANDLING FOR 5GHz AND 6GHz 160MHz: Make boxes wider to align properly
     const rightEdge = lastElement.offsetLeft + lastElement.offsetWidth;
 
     // Debug the band and width values
@@ -1402,12 +1423,14 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
       currentChannelWidth: this.currentChannelWidth,
       bandType: typeof this.currentBand,
       widthType: typeof this.currentChannelWidth,
-      bandEquals5GHz: this.currentBand === '5GHz',
+      bandEquals5GHz: this.currentBand === '5',
+      bandEquals6GHz: this.currentBand === '6',
       widthEquals160: this.currentChannelWidth === 160,
-      bothMatch: (this.currentBand === '5GHz' && this.currentChannelWidth === 160)
+      bothMatch5GHz: (this.currentBand === '5' && this.currentChannelWidth === 160),
+      bothMatch6GHz: (this.currentBand === '6' && this.currentChannelWidth === 160)
     });
 
-    const extraWidth = (this.currentBand === '5GHz' && this.currentChannelWidth === 160) ? 20 : 0;
+    const extraWidth = ((this.currentBand === '5' || this.currentBand === '6') && this.currentChannelWidth === 160) ? 20 : 0;
     const width = rightEdge - firstElement.offsetLeft + (padding * 2) + extraWidth;
 
     const top = -10;
@@ -1961,7 +1984,7 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
         <strong>📚 ${this.currentChannelWidth}MHz Channel Bonding</strong><br>`;
 
     if (this.currentChannelWidth === 160 && this.currentBand === '5') {
-      content += `160MHz in 5GHz uses "80+80" mode - two separate 80MHz segments due to DFS regulatory gaps.
+      content += `160MHz in 5GHz has only one viable option (channel 36) due to regulatory spectrum limitations. Channel 149 cannot support 160MHz.
       </div>
     `;
     } else if (this.currentChannelWidth === 320 && this.currentBand === '6') {
