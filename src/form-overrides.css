@@ -34,6 +34,40 @@
   border-color: #4b5563 !important; /* gray-600 */
 }
 
+/* Radio button styles */
+[type='radio'] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  background-origin: border-box !important;
+  user-select: none !important;
+  flex-shrink: 0 !important;
+  height: 1rem !important;
+  width: 1rem !important;
+  color: var(--color-primary) !important; /* Dynamic primary color */
+  background-color: #fff !important;
+  border-color: #d1d5db !important; /* gray-300 */
+  border-width: 1px !important;
+  border-radius: 50% !important; /* Round for radio buttons */
+}
+
+[type='radio']:checked {
+  border-color: transparent !important;
+  background-color: currentColor !important;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e") !important;
+  background-size: 100% 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.dark [type='radio'] {
+  color: var(--color-primary) !important; /* Dynamic primary color */
+  background-color: #1e293b !important; /* slate-800 */
+  border-color: #4b5563 !important; /* gray-600 */
+}
+
 /* Light mode focus styles */
 input:focus,
 select:focus,

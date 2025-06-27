@@ -173,10 +173,10 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Quiz Mode Options</h3>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="flex items-center">
+              <label className="flex items-start">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 text-primary border-slate-300 rounded"
+                  className="h-4 w-4 text-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
                   checked={quiz.is_practice || false}
                   onChange={(e) => {
                     const isPracticeChecked = e.target.checked;
@@ -195,10 +195,10 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                 </span>
               </label>
 
-              <label className="flex items-center">
+              <label className="flex items-start">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                  className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
                   checked={quiz.has_practice_mode || false}
                   onChange={(e) => {
                     const hasPracticeModeChecked = e.target.checked;
@@ -221,10 +221,10 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
             <div className={`border-t ${isDark ? 'border-slate-600' : 'border-slate-200'} pt-4`}>
               <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Randomization Options</h4>
               <div className="space-y-2">
-                <label className="flex items-center">
+                <label className="flex items-start">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                    className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
                     checked={quiz.randomize_questions || false}
                     onChange={(e) => handleChange('randomize_questions', e.target.checked)}
                     disabled={isLoading}
@@ -234,10 +234,10 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                   </span>
                 </label>
 
-                <label className="flex items-center">
+                <label className="flex items-start">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded"
+                    className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
                     checked={quiz.randomize_answers || false}
                     onChange={(e) => handleChange('randomize_answers', e.target.checked)}
                     disabled={isLoading}
@@ -284,10 +284,10 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         </label>
         <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
           {filteredCategories.map(category => (
-            <label key={category.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+            <label key={category.id} className={`flex items-start p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
               <input
                 type="checkbox"
-                className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
+                className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded flex-shrink-0 mt-0.5`}
                 checked={quiz.category_ids.includes(category.id)}
                 onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
                 disabled={isLoading}

@@ -196,35 +196,37 @@ const AdminQuizzes = () => {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-4 text-right space-x-4"> {/* Reverted spacing */}
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
-                    onClick={() => handleEditQuiz(quiz)}
-                  >
-                    Edit
-                  </button>
-                  {!quiz.is_practice && (
+                <td className="px-4 py-4 text-right">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <button
                       type="button"
                       className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
-                      onClick={() => handleManageCodes(quiz)}
+                      onClick={() => handleEditQuiz(quiz)}
                     >
-                      Access Codes
+                      Edit
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className={`px-4 py-2 ${
-                      isDark
-                        ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
-                        : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
-                    } border font-medium rounded-lg transition-colors`}
-                    onClick={() => openArchiveConfirmation(quiz.id)}
-                    title="Archive quiz"
-                  >
-                    Archive
-                  </button>
+                    {!quiz.is_practice && (
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+                        onClick={() => handleManageCodes(quiz)}
+                      >
+                        Access Codes
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`px-4 py-2 ${
+                        isDark
+                          ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
+                          : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
+                      } border font-medium rounded-lg transition-colors`}
+                      onClick={() => openArchiveConfirmation(quiz.id)}
+                      title="Archive quiz"
+                    >
+                      Archive
+                    </button>
+                  </div>
                 </td>
               </tr>
               ))}

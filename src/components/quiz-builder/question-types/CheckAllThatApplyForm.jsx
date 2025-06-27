@@ -33,7 +33,7 @@ const CheckAllThatApplyForm = ({ options, correctAnswers, onChange, disabled, is
         <h3 className={`text-lg font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Answer Options (Select all correct answers)</h3>
         <button
           type="button"
-          className="bg-teal-700 text-white px-3 py-1 rounded text-sm hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-primary-dark text-white px-3 py-1 rounded text-sm hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddOption}
           disabled={disabled || options.length >= 6}
         >
