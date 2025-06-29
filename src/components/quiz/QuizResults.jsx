@@ -2,8 +2,7 @@ import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import html2pdf from 'html2pdf.js';
-import { buildPdfContentHtml } from '../../utils/pdfGenerator';
+import { pdfService } from '../../services/pdfService';
 
 const QuizResults = ({
   quiz,
@@ -18,183 +17,34 @@ const QuizResults = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Generate and download PDF manually
-  const handleDownloadPdf = () => {
+  // Generate and download PDF using React-PDF
+  const handleDownloadPdf = async () => {
     if (!accessCodeData) {
       console.warn('No access code data available for PDF generation');
       return;
     }
 
-    console.log('Generating PDF with data:', {
-      quiz: quiz.title,
-      questionsCount: quiz.questions.length,
-      selectedAnswers: Object.keys(selectedAnswers).length,
-      score: score,
-      ldap: accessCodeData.ldap
-    });
+    console.log('Starting professional PDF download with React-PDF...');
 
-    const pdfContent = buildPdfContentHtml(quiz, selectedAnswers, score, timeTaken, accessCodeData.ldap, isPractice);
-
-    console.log('Generated PDF content length:', pdfContent.length);
-    console.log('PDF content preview:', pdfContent.substring(0, 500));
-
-    const timestamp = new Date().toISOString().split('.')[0].replace(/[:]/g, '-');
-    const filename = `${accessCodeData.ldap}-quiz-results-${timestamp}.pdf`;
-
-    // Try direct HTML to PDF conversion without DOM manipulation
-    console.log('Attempting direct HTML to PDF conversion...');
-
-    html2pdf().set({
-      margin: [15, 15, 15, 15],
-      filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 1,
-        useCORS: true,
-        logging: true,
-        backgroundColor: '#ffffff',
-        letterRendering: true,
-        allowTaint: false,
-        removeContainer: true
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait',
-        compress: true
-      },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    }).from(pdfContent).save().then(() => {
-      console.log('PDF generated successfully via direct conversion');
-    }).catch((error) => {
-      console.error('Direct PDF generation failed:', error);
-      console.error('Error details:', error.message, error.stack);
-
-      // Fallback: try with DOM element approach
-      console.log('Trying DOM element approach...');
-      tryDomElementPdf(pdfContent, filename, accessCodeData.ldap);
-    });
-  };
-
-  // Try DOM element approach as fallback
-  const tryDomElementPdf = (pdfContent, filename, ldap) => {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = pdfContent;
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    tempDiv.style.top = '0';
-    tempDiv.style.background = 'white';
-    tempDiv.style.color = 'black';
-    tempDiv.style.fontFamily = 'Arial, sans-serif';
-    tempDiv.style.width = '800px'; // Fixed width instead of mm
-    tempDiv.style.padding = '20px';
-    tempDiv.style.boxSizing = 'border-box';
-    document.body.appendChild(tempDiv);
-
-    // Wait for DOM to be ready
-    setTimeout(() => {
-      console.log('DOM element dimensions:', {
-        scrollWidth: tempDiv.scrollWidth,
-        scrollHeight: tempDiv.scrollHeight,
-        offsetWidth: tempDiv.offsetWidth,
-        offsetHeight: tempDiv.offsetHeight
+    try {
+      await pdfService.downloadQuizReportPDF({
+        quiz,
+        selectedAnswers,
+        score,
+        timeTaken,
+        ldap: accessCodeData.ldap,
+        isPractice,
+        accessCodeData
       });
 
-      html2pdf().set({
-        margin: [10, 10, 10, 10],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-          scale: 1,
-          useCORS: true,
-          logging: true,
-          backgroundColor: '#ffffff',
-          width: tempDiv.scrollWidth,
-          height: tempDiv.scrollHeight,
-          scrollX: 0,
-          scrollY: 0
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(tempDiv).save().then(() => {
-        console.log('PDF generated successfully via DOM element');
-        document.body.removeChild(tempDiv);
-      }).catch((error) => {
-        console.error('DOM element PDF generation failed:', error);
-        document.body.removeChild(tempDiv);
-
-        // Final fallback: simple PDF
-        console.log('Trying final simple PDF fallback...');
-        generateSimplePdf(quiz, selectedAnswers, score, timeTaken, ldap);
-      });
-    }, 100); // Small delay to ensure DOM is ready
+      console.log('PDF downloaded successfully');
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
-  // Fallback simple PDF generation
-  const generateSimplePdf = (quiz, selectedAnswers, score, timeTaken, ldap) => {
-    console.log('Generating simple PDF...');
 
-    const simpleContent = `
-      <div style="padding: 20px; font-family: Arial, sans-serif; background: white; color: black; width: 100%; max-width: 800px;">
-        <h1 style="color: black; margin-bottom: 20px;">Quiz Results: ${quiz.title}</h1>
-        <h2 style="color: black; margin-bottom: 15px;">Score: ${score.correct}/${score.total} (${score.percentage}%)</h2>
-        <p style="color: black; margin: 10px 0;"><strong>LDAP:</strong> ${ldap}</p>
-        <p style="color: black; margin: 10px 0;"><strong>Time Taken:</strong> ${Math.floor(timeTaken / 60)} minutes ${timeTaken % 60} seconds</p>
-        <p style="color: black; margin: 10px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        <hr style="margin: 20px 0; border: 1px solid #ccc;">
-        <h3 style="color: black; margin-bottom: 15px;">Questions:</h3>
-        ${quiz.questions.map((q, i) => `
-          <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd;">
-            <p style="color: black; margin: 0; font-weight: bold;">Q${i + 1}: ${q.question_text}</p>
-          </div>
-        `).join('')}
-      </div>
-    `;
-
-    console.log('Simple content length:', simpleContent.length);
-
-    // Try direct conversion first
-    const timestamp = new Date().toISOString().split('.')[0].replace(/[:]/g, '-');
-    const filename = `${ldap}-quiz-results-simple-${timestamp}.pdf`;
-
-    html2pdf().set({
-      margin: [15, 15, 15, 15],
-      filename: filename,
-      image: { type: 'jpeg', quality: 0.9 },
-      html2canvas: {
-        scale: 1,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    }).from(simpleContent).save().then(() => {
-      console.log('Simple PDF generated successfully via direct conversion');
-    }).catch((error) => {
-      console.error('Simple PDF direct conversion failed:', error);
-
-      // Try with DOM element as last resort
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = simpleContent;
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.background = 'white';
-      tempDiv.style.color = 'black';
-      tempDiv.style.width = '800px';
-      tempDiv.style.padding = '20px';
-      document.body.appendChild(tempDiv);
-
-      setTimeout(() => {
-        html2pdf().from(tempDiv).save().then(() => {
-          console.log('Simple PDF generated via DOM element');
-          document.body.removeChild(tempDiv);
-        }).catch((finalError) => {
-          console.error('All PDF generation methods failed:', finalError);
-          document.body.removeChild(tempDiv);
-          alert('PDF generation failed. Please try again or contact support.');
-        });
-      }, 100);
-    });
-  };
 
 
   // Get result message based on score
@@ -212,7 +62,7 @@ const QuizResults = ({
 
   // Format time taken
   const formatTimeTaken = () => {
-    if (!timeTaken) return 'N/A';
+    if (!timeTaken || timeTaken <= 0) return 'Not recorded';
     const minutes = Math.floor(timeTaken / 60);
     const seconds = timeTaken % 60;
     return `${minutes}m ${seconds}s`;

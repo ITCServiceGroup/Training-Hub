@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
-import html2pdf from 'html2pdf.js';
 import { supabase } from '../../config/supabase';
 import { shuffleArray, shuffleQuestionOptions } from '../../utils/shuffleUtils';
 import { quizzesService } from '../../services/api/quizzes';
@@ -13,7 +12,7 @@ import QuizTimer from './QuizTimer';
 import QuestionDisplay from './QuestionDisplay';
 import QuizReview from './QuizReview';
 import QuizResults from './QuizResults';
-import { buildPdfContentHtml } from '../../utils/pdfGenerator';
+import { pdfService } from '../../services/pdfService';
 import { FaSpinner } from 'react-icons/fa';
 
 
@@ -200,8 +199,15 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       if (!quiz.is_practice && accessCodeData) {
         let pdfUrl = null;
         try {
-          const pdfHtml = buildPdfContentHtml(quiz, selectedAnswers, finalScore, timeTaken, accessCodeData.ldap, quiz.is_practice);
-          pdfUrl = await generateAndUploadPdf(accessCodeData.ldap, pdfHtml, accessCodeData, quiz);
+          pdfUrl = await pdfService.uploadQuizResultsPDF({
+            quiz,
+            selectedAnswers,
+            score: finalScore,
+            timeTaken,
+            ldap: accessCodeData.ldap,
+            isPractice: quiz.is_practice,
+            accessCodeData
+          }, accessCodeData);
 
           if (!pdfUrl) {
             console.warn('PDF generation/upload failed. Saving result without PDF URL.');
@@ -623,80 +629,7 @@ QuizTaker.propTypes = {
   })
 };
 
-// --- PDF Generation Functions (adapted from quiz.js) ---
-
-// Generates and uploads the PDF, returns the public URL or path
-const generateAndUploadPdf = async (ldap, htmlContent, accessCodeData, quiz) => {
-  try {
-    console.log('Starting PDF generation...');
-
-    // Generate PDF blob
-    const pdfBlob = await html2pdf().set({
-      margin: [10, 10, 10, 10],
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'avoid-all'] }
-    }).from(htmlContent).output('blob');
-
-    console.log('PDF Blob created, size:', pdfBlob.size);
-
-    // Convert blob to base64
-    const reader = new FileReader();
-    const base64Promise = new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-    });
-    reader.readAsDataURL(pdfBlob);
-    const base64Data = await base64Promise;
-
-    // Call the Edge Function to handle the upload
-    const requestBody = {
-      pdfData: base64Data,
-      accessCode: accessCodeData.code,
-      ldap: ldap,
-      quizId: quiz.id
-    };
-
-    console.log('Sending request to Edge Function:', {
-      url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-quiz-pdf`,
-      accessCode: accessCodeData.code,
-      ldap: ldap,
-      quizId: quiz.id,
-      pdfDataLength: base64Data.length
-    });
-
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-quiz-pdf`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Edge Function error response:', errorText);
-      console.error('Response status:', response.status);
-      console.error('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      try {
-        const error = JSON.parse(errorText);
-        throw new Error(error.error || error.message || 'Failed to upload PDF');
-      } catch (parseError) {
-        throw new Error(`Failed to upload PDF. Status: ${response.status}, Response: ${errorText}`);
-      }
-    }
-
-    const { pdf_url } = await response.json();
-    return pdf_url;
-
-  } catch (err) {
-    console.error('Error during PDF generation or upload:', err);
-    return null;
-  }
-};
+// PDF generation is now handled by the pdfService using React-PDF
 
 
 export default QuizTaker;
