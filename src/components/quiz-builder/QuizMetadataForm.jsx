@@ -312,29 +312,64 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           </label>
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
             Select study guides that should show a "Take Practice Quiz" button linking to this quiz.
+            {quiz.category_ids && quiz.category_ids.length > 0 && (
+              <span className="block mt-1 text-xs">
+                Only showing study guides from the selected categories.
+              </span>
+            )}
           </p>
           <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
-            {studyGuides.map(guide => (
-              <label key={guide.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
-                <input
-                  type="checkbox"
-                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
-                  checked={linkedStudyGuides.includes(guide.id)}
-                  onChange={(e) => handleStudyGuideLink(guide.id, e.target.checked)}
-                  disabled={isLoading}
-                />
-                <div className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                  <div className="font-medium">{guide.title}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    {guide.v2_categories?.v2_sections?.name} → {guide.v2_categories?.name}
-                  </div>
-                </div>
-              </label>
-            ))}
+            {(() => {
+              // Filter study guides to only show those from selected categories
+              const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
+                ? studyGuides.filter(guide =>
+                    guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
+                  )
+                : studyGuides;
 
-            {studyGuides.length === 0 && (
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No published study guides available</p>
-            )}
+              return filteredStudyGuides.map(guide => (
+                <label key={guide.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+                  <input
+                    type="checkbox"
+                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
+                    checked={linkedStudyGuides.includes(guide.id)}
+                    onChange={(e) => handleStudyGuideLink(guide.id, e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  <div className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                    <div className="font-medium">{guide.title}</div>
+                    <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                      {guide.v2_categories?.v2_sections?.name} → {guide.v2_categories?.name}
+                    </div>
+                  </div>
+                </label>
+              ));
+            })()}
+
+            {(() => {
+              const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
+                ? studyGuides.filter(guide =>
+                    guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
+                  )
+                : studyGuides;
+
+              if (filteredStudyGuides.length === 0) {
+                if (quiz.category_ids && quiz.category_ids.length > 0) {
+                  return (
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
+                      No published study guides available in the selected categories
+                    </p>
+                  );
+                } else {
+                  return (
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
+                      No published study guides available. Please select categories for this quiz first.
+                    </p>
+                  );
+                }
+              }
+              return null;
+            })()}
           </div>
         </div>
       )}

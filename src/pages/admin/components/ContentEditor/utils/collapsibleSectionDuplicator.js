@@ -10,10 +10,10 @@ import { CollapsibleSection } from '../components/selectors/CollapsibleSection';
  * @param {Object} query - The craft.js query object
  * @param {Object} actions - The craft.js actions object
  * @param {string} currentParent - The ID of the parent node
- * @param {number} nodeIndex - The index of the node in its parent
+ * @param {number} nodeIndex - The index of the node in its parent (optional, if not provided, adds to end)
  * @returns {Object} The new node
  */
-export const duplicateCollapsibleSection = (node, query, actions, currentParent, nodeIndex) => {
+export const duplicateCollapsibleSection = (node, query, actions, currentParent, nodeIndex = null) => {
   console.log('[CollapsibleSectionDuplicator] Duplicating CollapsibleSection with special handler');
 
   // Start a batch of actions that will be treated as a single undo step
@@ -38,9 +38,16 @@ export const duplicateCollapsibleSection = (node, query, actions, currentParent,
   const newNode = query.parseFreshNode(freshNode).toNode();
   console.log('[CollapsibleSectionDuplicator] New CollapsibleSection node created:', newNode.id);
 
-  // Add the new node to the same parent as the original, right after it
-  console.log('[CollapsibleSectionDuplicator] Adding new CollapsibleSection to parent:', currentParent, 'at index:', nodeIndex + 1);
-  throttledActions.add(newNode, currentParent, nodeIndex + 1);
+  // Add the new node to the parent
+  if (nodeIndex !== null) {
+    // When duplicating directly, add right after the original
+    console.log('[CollapsibleSectionDuplicator] Adding new CollapsibleSection to parent:', currentParent, 'at index:', nodeIndex + 1);
+    throttledActions.add(newNode, currentParent, nodeIndex + 1);
+  } else {
+    // When duplicating within a larger section, add to end to maintain relative position
+    console.log('[CollapsibleSectionDuplicator] Adding new CollapsibleSection to parent:', currentParent, 'at end');
+    throttledActions.add(newNode, currentParent);
+  }
 
   /**
    * Helper function to recursively duplicate a node and all its descendants

@@ -15,8 +15,12 @@ const CategorySelectionModal = ({
   actionButtonText = 'Select',
   currentCategoryId = null
 }) => {
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
+
+  // Get current theme colors
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
+  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
   const { sectionsData } = useContext(CategoryContext);
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -83,9 +87,9 @@ const CategorySelectionModal = ({
                       onClick={() => toggleSection(section.id)}
                     >
                       {expandedSections[section.id] ? (
-                        <FaFolderOpen className={`${isDark ? 'text-teal-400' : 'text-teal-600'}`} />
+                        <FaFolderOpen style={{ color: currentPrimaryColor }} />
                       ) : (
-                        <FaFolder className={`${isDark ? 'text-teal-400' : 'text-teal-600'}`} />
+                        <FaFolder style={{ color: currentPrimaryColor }} />
                       )}
                       <span className="font-medium">{section.name}</span>
                     </div>
@@ -136,11 +140,12 @@ const CategorySelectionModal = ({
             </button>
             <button
               type="button"
-              className={`px-4 py-2 rounded-md ${
-                selectedCategoryId 
-                  ? 'bg-teal-600 hover:bg-teal-700 text-white' 
+              className={`px-4 py-2 rounded-md text-white ${
+                selectedCategoryId
+                  ? 'hover:opacity-90'
                   : isDark ? 'bg-slate-600 text-gray-400 cursor-not-allowed' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
+              style={selectedCategoryId ? { backgroundColor: currentPrimaryColor } : {}}
               onClick={handleConfirm}
               disabled={!selectedCategoryId}
             >

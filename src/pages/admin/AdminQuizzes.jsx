@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import QuizBuilderPage from '../../components/quiz-builder/QuizBuilderPage';
 import AccessCodeManager from '../../components/quiz/access-codes/AccessCodeManager';
@@ -16,12 +16,123 @@ const AdminQuizzes = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [archiveConfirmation, setArchiveConfirmation] = useState({ isOpen: false, quizId: null });
+
+  // Filter states
+  const [selectedSections, setSelectedSections] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Dropdown states
+  const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+
+  // Refs for dropdown management
+  const sectionDropdownRef = useRef(null);
+  const categoryDropdownRef = useRef(null);
+
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   // Determine current section from the URL path
   const currentSection = location.pathname.includes('/builder') ? 'builder' :
                         location.pathname.includes('/codes') ? 'codes' : null;
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sectionDropdownRef.current && !sectionDropdownRef.current.contains(event.target)) {
+        setSectionDropdownOpen(false);
+      }
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target)) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Helper functions for dropdown management
+  const toggleSectionSelection = (sectionId) => {
+    setSelectedSections(prev =>
+      prev.includes(sectionId)
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+
+  const toggleCategorySelection = (categoryId) => {
+    setSelectedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  // Extract unique sections and categories from quizzes for filter options
+  const availableFilters = useMemo(() => {
+    const sectionsMap = new Map();
+    const categoriesMap = new Map();
+
+    quizzes.forEach(quiz => {
+      quiz.categories?.forEach(category => {
+        // Add category
+        if (!categoriesMap.has(category.id)) {
+          categoriesMap.set(category.id, category);
+        }
+
+        // Add section if it exists
+        if (category.section && !sectionsMap.has(category.section.id)) {
+          sectionsMap.set(category.section.id, category.section);
+        }
+      });
+    });
+
+    return {
+      sections: Array.from(sectionsMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+      categories: Array.from(categoriesMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+    };
+  }, [quizzes]);
+
+  // Filter quizzes based on selected filters
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter(quiz => {
+      // Search term filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesTitle = quiz.title?.toLowerCase().includes(searchLower);
+        const matchesDescription = quiz.description?.toLowerCase().includes(searchLower);
+        const matchesCategory = quiz.categories?.some(cat =>
+          cat.name?.toLowerCase().includes(searchLower)
+        );
+        const matchesSection = quiz.categories?.some(cat =>
+          cat.section?.name?.toLowerCase().includes(searchLower)
+        );
+
+        if (!matchesTitle && !matchesDescription && !matchesCategory && !matchesSection) {
+          return false;
+        }
+      }
+
+      // Section filter
+      if (selectedSections.length > 0) {
+        const hasMatchingSection = quiz.categories?.some(category =>
+          category.section && selectedSections.includes(category.section.id)
+        );
+        if (!hasMatchingSection) return false;
+      }
+
+      // Category filter
+      if (selectedCategories.length > 0) {
+        const hasMatchingCategory = quiz.categories?.some(category =>
+          selectedCategories.includes(category.id)
+        );
+        if (!hasMatchingCategory) return false;
+      }
+
+      return true;
+    });
+  }, [quizzes, searchTerm, selectedSections, selectedCategories]);
 
   // Load quiz data when quizId changes
   useEffect(() => {
@@ -139,14 +250,213 @@ const AdminQuizzes = () => {
         </div>
       )}
 
+      {/* Filter Controls */}
+      <div className={`mb-6 p-4 ${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow`}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+              Search Quizzes
+            </label>
+            <input
+              type="text"
+              placeholder="Search by title, description, section, or category..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+                isDark
+                  ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
+              }`}
+            />
+          </div>
+
+          {/* Section Filter */}
+          <div className="relative" ref={sectionDropdownRef}>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+              Filter by Sections
+            </label>
+            <button
+              type="button"
+              onClick={() => setSectionDropdownOpen(!sectionDropdownOpen)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-left flex items-center justify-between ${
+                isDark
+                  ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
+                  : 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <span>
+                {selectedSections.length === 0
+                  ? 'Select sections...'
+                  : `${selectedSections.length} section${selectedSections.length !== 1 ? 's' : ''} selected`
+                }
+              </span>
+              <svg className={`w-4 h-4 transition-transform ${sectionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {sectionDropdownOpen && (
+              <div className={`absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
+                isDark
+                  ? 'bg-slate-700 border-slate-600'
+                  : 'bg-white border-slate-300'
+              }`}>
+                {availableFilters.sections.length === 0 ? (
+                  <div className={`px-3 py-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    No sections available
+                  </div>
+                ) : (
+                  availableFilters.sections.map(section => (
+                    <div
+                      key={section.id}
+                      className={`px-3 py-2 cursor-pointer hover:${isDark ? 'bg-slate-600' : 'bg-slate-50'}`}
+                      onClick={() => toggleSectionSelection(section.id)}
+                    >
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={selectedSections.includes(section.id)}
+                          onChange={() => toggleSectionSelection(section.id)}
+                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0"
+                          style={{ marginTop: '4px' }}
+                        />
+                        <div className="ml-3">
+                          <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                            {section.name}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Category Filter */}
+          <div className="relative" ref={categoryDropdownRef}>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+              Filter by Categories
+            </label>
+            <button
+              type="button"
+              onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-left flex items-center justify-between ${
+                isDark
+                  ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
+                  : 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <span>
+                {selectedCategories.length === 0
+                  ? 'Select categories...'
+                  : `${selectedCategories.length} categor${selectedCategories.length !== 1 ? 'ies' : 'y'} selected`
+                }
+              </span>
+              <svg className={`w-4 h-4 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {categoryDropdownOpen && (
+              <div className={`absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
+                isDark
+                  ? 'bg-slate-700 border-slate-600'
+                  : 'bg-white border-slate-300'
+              }`}>
+                {availableFilters.categories.length === 0 ? (
+                  <div className={`px-3 py-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    No categories available
+                  </div>
+                ) : (
+                  availableFilters.categories.map(category => (
+                    <div
+                      key={category.id}
+                      className={`px-3 py-2 cursor-pointer hover:${isDark ? 'bg-slate-600' : 'bg-slate-50'}`}
+                      onClick={() => toggleCategorySelection(category.id)}
+                    >
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategories.includes(category.id)}
+                          onChange={() => toggleCategorySelection(category.id)}
+                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0"
+                          style={{ marginTop: '5px' }}
+                        />
+                        <div className="ml-3">
+                          <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                            {category.name}
+                            {category.section && (
+                              <span className={`ml-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                ({category.section.name})
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Filter Summary and Clear */}
+        {(searchTerm || selectedSections.length > 0 || selectedCategories.length > 0) && (
+          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-wrap gap-2">
+                {searchTerm && (
+                  <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
+                    Search: "{searchTerm}"
+                  </span>
+                )}
+                {selectedSections.length > 0 && (
+                  <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'}`}>
+                    {selectedSections.length} Section{selectedSections.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {selectedCategories.length > 0 && (
+                  <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'}`}>
+                    {selectedCategories.length} Categor{selectedCategories.length !== 1 ? 'ies' : 'y'}
+                  </span>
+                )}
+                <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                  {filteredQuizzes.length} of {quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedSections([]);
+                  setSelectedCategories([]);
+                }}
+                className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                  isDark
+                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                }`}
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow overflow-hidden`}>
         {isLoading ? (
           <div className="p-8">
             <LoadingSpinner size="lg" text="Loading quizzes..." />
           </div>
-        ) : quizzes.length === 0 ? (
+        ) : filteredQuizzes.length === 0 ? (
           <div className={`p-8 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
-            No quizzes found. Create your first quiz to get started.
+            {quizzes.length === 0
+              ? "No quizzes found. Create your first quiz to get started."
+              : "No quizzes match your current filters. Try adjusting your search criteria."
+            }
           </div>
         ) : (
           <table className="w-full">
@@ -159,7 +469,7 @@ const AdminQuizzes = () => {
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-slate-600' : 'divide-slate-200'}`}>
-              {quizzes.map(quiz => (
+              {filteredQuizzes.map(quiz => (
               <tr key={quiz.id} className={isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}>
                 <td className="px-4 py-4">
                   <div className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{quiz.title}</div>
@@ -197,30 +507,33 @@ const AdminQuizzes = () => {
                   </div>
                 </td>
                 <td className="px-4 py-4 text-right">
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className="flex justify-end gap-2 min-w-[320px]">
                     <button
                       type="button"
-                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+                      className={`px-4 py-2 font-medium rounded-lg transition-colors w-32 whitespace-nowrap flex items-center justify-center ${
+                        !quiz.is_practice
+                          ? 'bg-primary hover:bg-primary-dark text-white cursor-pointer'
+                          : 'bg-transparent text-transparent cursor-default'
+                      }`}
+                      onClick={!quiz.is_practice ? () => handleManageCodes(quiz) : undefined}
+                      disabled={quiz.is_practice}
+                    >
+                      {!quiz.is_practice ? 'Access Codes' : ''}
+                    </button>
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors w-16 flex items-center justify-center"
                       onClick={() => handleEditQuiz(quiz)}
                     >
                       Edit
                     </button>
-                    {!quiz.is_practice && (
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
-                        onClick={() => handleManageCodes(quiz)}
-                      >
-                        Access Codes
-                      </button>
-                    )}
                     <button
                       type="button"
                       className={`px-4 py-2 ${
                         isDark
                           ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
                           : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
-                      } border font-medium rounded-lg transition-colors`}
+                      } border font-medium rounded-lg transition-colors w-20 flex items-center justify-center`}
                       onClick={() => openArchiveConfirmation(quiz.id)}
                       title="Archive quiz"
                     >

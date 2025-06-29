@@ -188,7 +188,7 @@ const QuizHeader = ({ quiz, ldap, timeTaken, companyLogo }) => {
       <View style={styles.infoGrid}>
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Participant ID</Text>
+            <Text style={styles.infoLabel}>LDAP</Text>
             <Text style={styles.infoValue}>{ldap}</Text>
           </View>
           <View style={styles.divider} />

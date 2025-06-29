@@ -10,10 +10,10 @@ import { Tabs } from '../components/selectors/Tabs';
  * @param {Object} query - The craft.js query object
  * @param {Object} actions - The craft.js actions object
  * @param {string} currentParent - The ID of the parent node
- * @param {number} nodeIndex - The index of the node in its parent
+ * @param {number} nodeIndex - The index of the node in its parent (optional, if not provided, adds to end)
  * @returns {Object} The new node
  */
-export const duplicateTabs = (node, query, actions, currentParent, nodeIndex) => {
+export const duplicateTabs = (node, query, actions, currentParent, nodeIndex = null) => {
   console.log('[TabsDuplicator] Duplicating Tabs with special handler');
 
   // Start a batch of actions that will be treated as a single undo step
@@ -40,9 +40,16 @@ export const duplicateTabs = (node, query, actions, currentParent, nodeIndex) =>
   const newNode = query.parseFreshNode(freshNode).toNode();
   console.log('[TabsDuplicator] New Tabs node created:', newNode);
 
-  // Add the new node to the same parent as the original, right after it
-  console.log('[TabsDuplicator] Adding new Tabs to parent:', currentParent, 'at index:', nodeIndex + 1);
-  throttledActions.add(newNode, currentParent, nodeIndex + 1);
+  // Add the new node to the parent
+  if (nodeIndex !== null) {
+    // When duplicating directly, add right after the original
+    console.log('[TabsDuplicator] Adding new Tabs to parent:', currentParent, 'at index:', nodeIndex + 1);
+    throttledActions.add(newNode, currentParent, nodeIndex + 1);
+  } else {
+    // When duplicating within a larger section, add to end to maintain relative position
+    console.log('[TabsDuplicator] Adding new Tabs to parent:', currentParent, 'at end');
+    throttledActions.add(newNode, currentParent);
+  }
 
   /**
    * Helper function to recursively duplicate a node and all its descendants

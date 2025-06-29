@@ -404,6 +404,32 @@ export const RenderNode = ({ render }) => {
                             const nodeToDuplicate = query.node(nodeId).get();
                             console.log(`Duplicating node ${nodeId}:`, nodeToDuplicate);
 
+                            // Special handling for Tabs components within larger sections
+                            if (nodeToDuplicate.data.displayName === 'Tabs') {
+                              console.log('Found Tabs component within larger section, using specialized duplicator');
+                              try {
+                                // Use the specialized Tabs duplicator but add to the specified parent without index
+                                const tabsNode = duplicateTabs(nodeToDuplicate, query, actions, newParentId, null);
+                                return tabsNode;
+                              } catch (error) {
+                                console.error('Error using specialized Tabs duplicator within section:', error);
+                                // Fall through to general duplication
+                              }
+                            }
+
+                            // Special handling for CollapsibleSection components within larger sections
+                            if (nodeToDuplicate.data.displayName === 'CollapsibleSection') {
+                              console.log('Found CollapsibleSection component within larger section, using specialized duplicator');
+                              try {
+                                // Use the specialized CollapsibleSection duplicator but add to the specified parent without index
+                                const sectionNode = duplicateCollapsibleSection(nodeToDuplicate, query, actions, newParentId, null);
+                                return sectionNode;
+                              } catch (error) {
+                                console.error('Error using specialized CollapsibleSection duplicator within section:', error);
+                                // Fall through to general duplication
+                              }
+                            }
+
                             // Create a fresh node with the same properties
                             // Get the actual component type from the resolver
                             const nodeType = query.getOptions().resolver[nodeToDuplicate.data.displayName];
@@ -501,6 +527,32 @@ export const RenderNode = ({ render }) => {
                             try {
                               // Get the node to duplicate
                               const nodeToDuplicate = query.node(nodeId).get();
+
+                              // Special handling for Tabs components even in simplified mode
+                              if (nodeToDuplicate.data.displayName === 'Tabs') {
+                                console.log('Found Tabs component in simplified mode, using specialized duplicator');
+                                try {
+                                  // Use the specialized Tabs duplicator but add to the specified parent without index
+                                  const tabsNode = duplicateTabs(nodeToDuplicate, query, actions, newParentId, null);
+                                  return tabsNode;
+                                } catch (error) {
+                                  console.error('Error using specialized Tabs duplicator in simplified mode:', error);
+                                  // Fall through to general duplication
+                                }
+                              }
+
+                              // Special handling for CollapsibleSection components even in simplified mode
+                              if (nodeToDuplicate.data.displayName === 'CollapsibleSection') {
+                                console.log('Found CollapsibleSection component in simplified mode, using specialized duplicator');
+                                try {
+                                  // Use the specialized CollapsibleSection duplicator but add to the specified parent without index
+                                  const sectionNode = duplicateCollapsibleSection(nodeToDuplicate, query, actions, newParentId, null);
+                                  return sectionNode;
+                                } catch (error) {
+                                  console.error('Error using specialized CollapsibleSection duplicator in simplified mode:', error);
+                                  // Fall through to general duplication
+                                }
+                              }
 
                               // Create a fresh node with the same properties
                               // Get the actual component type from the resolver
@@ -650,8 +702,45 @@ export const RenderNode = ({ render }) => {
                     // Get the node being deleted
                     const node = query.node(id).get();
 
-                    // Special handling for components with linked nodes
-                    if (node.data.displayName === 'CollapsibleSection' || node.data.displayName === 'Tabs') {
+                    // Helper function to recursively find all Tabs and CollapsibleSection components
+                    const findComponentsWithLinkedNodes = (nodeId, componentsFound = []) => {
+                      try {
+                        const currentNode = query.node(nodeId).get();
+
+                        // Check if this node is a Tabs or CollapsibleSection
+                        if (currentNode.data.displayName === 'Tabs' || currentNode.data.displayName === 'CollapsibleSection') {
+                          componentsFound.push({
+                            id: nodeId,
+                            node: currentNode,
+                            linkedNodes: Object.values(currentNode.data.linkedNodes || {})
+                          });
+                        }
+
+                        // Recursively check children
+                        if (currentNode.data.nodes && currentNode.data.nodes.length > 0) {
+                          currentNode.data.nodes.forEach(childId => {
+                            findComponentsWithLinkedNodes(childId, componentsFound);
+                          });
+                        }
+
+                        // Recursively check linkedNodes
+                        if (currentNode.data.linkedNodes) {
+                          Object.values(currentNode.data.linkedNodes).forEach(linkedNodeId => {
+                            findComponentsWithLinkedNodes(linkedNodeId, componentsFound);
+                          });
+                        }
+                      } catch (error) {
+                        console.log(`[RenderNode] Error checking node ${nodeId}:`, error);
+                      }
+
+                      return componentsFound;
+                    };
+
+                    // Find all components with linked nodes in the subtree
+                    const componentsWithLinkedNodes = findComponentsWithLinkedNodes(id);
+
+                    // Special handling for components with linked nodes (direct or nested)
+                    if (node.data.displayName === 'CollapsibleSection' || node.data.displayName === 'Tabs' || componentsWithLinkedNodes.length > 0) {
                       try {
                         // Get the node's parent
                         const parentId = node.data.parent;
@@ -660,9 +749,14 @@ export const RenderNode = ({ render }) => {
                           return;
                         }
 
-                        // Get all linkedNodes
-                        const linkedNodeIds = Object.values(node.data.linkedNodes || {});
-                        console.log('[RenderNode] Found linked nodes:', linkedNodeIds);
+                        // Collect all linkedNodes from all components with linked nodes
+                        const allLinkedNodeIds = [];
+                        componentsWithLinkedNodes.forEach(component => {
+                          allLinkedNodeIds.push(...component.linkedNodes);
+                        });
+
+                        console.log('[RenderNode] Found components with linked nodes:', componentsWithLinkedNodes.length);
+                        console.log('[RenderNode] Total linked nodes to clean up:', allLinkedNodeIds);
 
                         // Get parent's current nodes array
                         const parent = query.node(parentId).get();
@@ -674,16 +768,18 @@ export const RenderNode = ({ render }) => {
                           parentNodes.splice(nodeIndex, 1);
                         }
 
-                        // First, clear any localStorage items related to this component
-                        if (node.data.displayName === 'Tabs') {
-                          try {
-                            const tabStorageKey = `tabs-active-tab-${id}`;
-                            localStorage.removeItem(tabStorageKey);
-                            console.log(`[RenderNode] Removed localStorage item: ${tabStorageKey}`);
-                          } catch (e) {
-                            console.log('[RenderNode] Error clearing localStorage:', e);
+                        // First, clear any localStorage items related to all Tabs components
+                        componentsWithLinkedNodes.forEach(component => {
+                          if (component.node.data.displayName === 'Tabs') {
+                            try {
+                              const tabStorageKey = `tabs-active-tab-${component.id}`;
+                              localStorage.removeItem(tabStorageKey);
+                              console.log(`[RenderNode] Removed localStorage item: ${tabStorageKey}`);
+                            } catch (e) {
+                              console.log('[RenderNode] Error clearing localStorage:', e);
+                            }
                           }
-                        }
+                        });
 
                         // Start a batch of actions that will be treated as a single undo step
                         const throttledActions = actions.history.throttle(100);
@@ -695,11 +791,13 @@ export const RenderNode = ({ render }) => {
                           }
                         });
 
-                        // Remove the linkedNodes references
+                        // Remove the linkedNodes references for all components
                         throttledActions.setState(state => {
-                          if (state.nodes[id]) {
-                            state.nodes[id].data.linkedNodes = {};
-                          }
+                          componentsWithLinkedNodes.forEach(component => {
+                            if (state.nodes[component.id]) {
+                              state.nodes[component.id].data.linkedNodes = {};
+                            }
+                          });
                         });
 
                         // First, mark all nodes for deletion in the state
@@ -710,19 +808,24 @@ export const RenderNode = ({ render }) => {
                             state.nodes[id].data._pendingDeletion = true;
                           }
 
-                          // Mark all linked nodes for deletion
-                          linkedNodeIds.forEach(linkedNodeId => {
-                            if (state.nodes[linkedNodeId]) {
-                              state.nodes[linkedNodeId].data._pendingDeletion = true;
+                          // Mark all components with linked nodes and their linked nodes for deletion
+                          componentsWithLinkedNodes.forEach(component => {
+                            if (state.nodes[component.id]) {
+                              state.nodes[component.id].data._pendingDeletion = true;
                             }
+                            component.linkedNodes.forEach(linkedNodeId => {
+                              if (state.nodes[linkedNodeId]) {
+                                state.nodes[linkedNodeId].data._pendingDeletion = true;
+                              }
+                            });
                           });
                         });
 
                         // Wait a tick to let React process the state update
                         await new Promise(resolve => setTimeout(resolve, 0));
 
-                        // Delete linked nodes first
-                        const linkedNodePromises = linkedNodeIds.map(linkedNodeId => {
+                        // Delete all linked nodes first
+                        const linkedNodePromises = allLinkedNodeIds.map(linkedNodeId => {
                           return new Promise(resolve => {
                             try {
                               // Check if the node exists before trying to delete it

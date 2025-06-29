@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Helvetica-Bold',
     color: '#1a202c',
-    marginBottom: 5,
+    marginBottom: 8,
     textAlign: 'center',
   },
   sectionSubtitle: {

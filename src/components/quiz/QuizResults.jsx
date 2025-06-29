@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -16,6 +16,11 @@ const QuizResults = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Generate and download PDF using React-PDF
   const handleDownloadPdf = async () => {
