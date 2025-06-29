@@ -38,6 +38,23 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
     fetchData();
   }, []);
 
+  // Clean up invalid category IDs when categories are loaded
+  useEffect(() => {
+    if (categories.length > 0 && quiz.category_ids.length > 0) {
+      const validCategoryIds = quiz.category_ids.filter(id =>
+        categories.some(cat => cat.id === id)
+      );
+
+      // Only update if there are invalid categories to remove
+      if (validCategoryIds.length !== quiz.category_ids.length) {
+        onChange({
+          ...quiz,
+          category_ids: validCategoryIds
+        });
+      }
+    }
+  }, [categories, quiz.category_ids, onChange]);
+
   // Load linked study guides when quiz changes
   useEffect(() => {
     const loadLinkedStudyGuides = async () => {
@@ -86,13 +103,22 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
   // Handle category selection
   const handleCategoryChange = (categoryId, isSelected) => {
-    const updatedCategoryIds = isSelected
-      ? [...quiz.category_ids, categoryId]
-      : quiz.category_ids.filter(id => id !== categoryId);
+    let updatedCategoryIds;
+
+    if (isSelected) {
+      updatedCategoryIds = [...quiz.category_ids, categoryId];
+    } else {
+      updatedCategoryIds = quiz.category_ids.filter(id => id !== categoryId);
+    }
+
+    // Clean up any invalid category IDs by checking against available categories
+    const validCategoryIds = updatedCategoryIds.filter(id =>
+      categories.some(cat => cat.id === id)
+    );
 
     onChange({
       ...quiz,
-      category_ids: updatedCategoryIds
+      category_ids: validCategoryIds
     });
   };
 

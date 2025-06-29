@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
+import { categoriesService } from '../../services/api/categories';
 import QuestionForm from './QuestionForm';
-import { supabase } from '../../config/supabase';
 import ConfirmationDialog from '../common/ConfirmationDialog';
 
 // Helper function to convert hex to rgba
@@ -50,30 +50,40 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
     fetchQuestions();
   }, [quiz.category_ids]);
 
-  // Fetch single category name
+  // Fetch valid categories and find the first valid one
   useEffect(() => {
-    const fetchCategory = async () => {
-      if (!quiz.category_ids[0]) {
+    const fetchValidCategories = async () => {
+      if (quiz.category_ids.length === 0) {
         setCategories([]);
         return;
       }
 
       try {
-        const { data: category, error } = await supabase
-          .from('v2_categories')
-          .select('id, name')
-          .eq('id', quiz.category_ids[0])
-          .single();
+        // Try to find the first valid category from the list
+        let validCategory = null;
+        for (const categoryId of quiz.category_ids) {
+          const category = await categoriesService.getById(categoryId);
+          if (category) {
+            validCategory = category;
+            break;
+          }
+        }
 
-        if (error) throw error;
-        setCategories(category ? [category] : []);
+        setCategories(validCategory ? [validCategory] : []);
+
+        // Clear any previous errors if a valid category is found
+        if (validCategory) {
+          setError(null);
+        } else {
+          setError(`No valid categories found. All associated categories may have been deleted. Please select a valid category in the Quiz Details tab.`);
+        }
       } catch (error) {
-        console.error('Failed to load category:', error);
-        setError('Failed to load category');
+        console.error('Failed to load categories:', error);
+        setError('Failed to load categories');
       }
     };
 
-    fetchCategory();
+    fetchValidCategories();
   }, [quiz.category_ids]);
 
   // Get question IDs from quiz questions array
@@ -110,10 +120,11 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
   // Handle successful question save
   const handleQuestionSave = async (questionData) => {
     try {
-      // Always set the category to the quiz's category
+      // Use the first valid category (from the categories state which contains the valid category)
+      const validCategoryId = categories.length > 0 ? categories[0].id : quiz.category_ids[0];
       const dataWithCategory = {
         ...questionData,
-        category_id: quiz.category_ids[0]
+        category_id: validCategoryId
       };
 
       let savedQuestion;
@@ -194,6 +205,16 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
       {!quiz.category_ids[0] ? (
         <div className={`text-center p-8 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'} rounded-lg border`}>
           <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>Please select a category to manage questions.</p>
+        </div>
+      ) : categories.length === 0 && quiz.category_ids[0] ? (
+        <div className={`text-center p-8 ${isDark ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} rounded-lg border`}>
+          <div className={`${isDark ? 'text-yellow-400' : 'text-yellow-600'} mb-4`}>
+            <h3 className="font-medium mb-2">Category Not Found</h3>
+            <p className="text-sm">
+              This quiz is associated with a category that no longer exists.
+              Please go back to the Quiz Details tab and select a valid category.
+            </p>
+          </div>
         </div>
       ) : isAddingQuestion ? (
         <QuestionForm

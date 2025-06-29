@@ -53,6 +53,34 @@ class CategoriesService extends BaseService {
   }
 
   /**
+   * Get a single category by ID
+   * @param {string} id - Category ID
+   * @returns {Promise<Object|null>} - Category or null if not found
+   */
+  async getById(id) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No rows returned
+          return null;
+        }
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching category by ID:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Get categories by section ID
    * @param {string} sectionId - Section ID
    * @returns {Promise<Array>} - Categories in the specified section
@@ -223,12 +251,42 @@ class CategoriesService extends BaseService {
   }
 
   /**
+   * Check if category has associated quiz questions
+   * @param {string} id - Category ID
+   * @returns {Promise<number>} - Number of associated quiz questions
+   */
+  async getQuestionCount(id) {
+    try {
+      const { count, error } = await supabase
+        .from('v2_questions')
+        .select('*', { count: 'exact', head: true })
+        .eq('category_id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting question count:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Delete a category
    * @param {string} id - Category ID
    * @returns {Promise<void>}
    */
   async delete(id) {
     try {
+      // First check if there are any quiz questions associated with this category
+      const questionCount = await this.getQuestionCount(id);
+
+      if (questionCount > 0) {
+        throw new Error(`Cannot delete category: ${questionCount} quiz question(s) are associated with this category. Please reassign or delete the questions first.`);
+      }
+
       const { error } = await supabase
         .from(this.tableName)
         .delete()

@@ -6,7 +6,9 @@ const DeleteConfirmationDialog = ({
   onClose,
   onConfirm,
   title,
-  description
+  description,
+  canDelete = true, // New prop to control if deletion is allowed
+  onMigrate = null // Optional callback for migration action
 }) => {
   return (
     <Dialog
@@ -30,12 +32,26 @@ const DeleteConfirmationDialog = ({
             >
               Cancel
             </button>
+            {!canDelete && onMigrate && (
+              <button
+                type="button"
+                onClick={onMigrate}
+                className="py-2 px-4 bg-blue-600 border border-transparent rounded-md text-sm text-white cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
+              >
+                Migrate Questions
+              </button>
+            )}
             <button
               type="button"
-              onClick={onConfirm}
-              className="py-2 px-4 bg-red-600 border border-transparent rounded-md text-sm text-white cursor-pointer hover:bg-red-700 hover:-translate-y-0.5 transition-all"
+              onClick={canDelete ? onConfirm : onClose}
+              disabled={!canDelete}
+              className={`py-2 px-4 border border-transparent rounded-md text-sm transition-all ${
+                canDelete
+                  ? 'bg-red-600 text-white cursor-pointer hover:bg-red-700 hover:-translate-y-0.5'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
             >
-              Delete
+              {canDelete ? 'Delete' : 'OK'}
             </button>
           </div>
         </Dialog.Panel>

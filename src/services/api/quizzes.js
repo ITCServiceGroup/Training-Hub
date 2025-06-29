@@ -378,6 +378,62 @@ class QuizzesService extends BaseService {
   }
 
   /**
+   * Validate and clean up invalid category references in a quiz
+   * @param {string} quizId - Quiz ID
+   * @returns {Promise<Object>} - Updated quiz with valid category IDs
+   */
+  async validateAndCleanupCategories(quizId) {
+    try {
+      // Get the quiz
+      const { data: quiz, error: quizError } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('id', quizId)
+        .single();
+
+      if (quizError) throw quizError;
+      if (!quiz) throw new Error('Quiz not found');
+
+      const categoryIds = typeof quiz.category_ids === 'string'
+        ? JSON.parse(quiz.category_ids)
+        : quiz.category_ids || [];
+
+      if (categoryIds.length === 0) {
+        return quiz; // No categories to validate
+      }
+
+      // Check which categories actually exist
+      const { data: existingCategories, error: categoriesError } = await supabase
+        .from('v2_categories')
+        .select('id')
+        .in('id', categoryIds);
+
+      if (categoriesError) throw categoriesError;
+
+      const existingCategoryIds = existingCategories.map(cat => cat.id);
+      const validCategoryIds = categoryIds.filter(id => existingCategoryIds.includes(id));
+
+      // If some categories were invalid, update the quiz
+      if (validCategoryIds.length !== categoryIds.length) {
+        const { data: updatedQuiz, error: updateError } = await supabase
+          .from(this.tableName)
+          .update({ category_ids: validCategoryIds })
+          .eq('id', quizId)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        return updatedQuiz;
+      }
+
+      return quiz;
+    } catch (error) {
+      console.error('Error validating quiz categories:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Get a quiz with its associated questions
    * @param {string} id - Quiz ID
    * @returns {Promise<Object>} - Quiz with questions

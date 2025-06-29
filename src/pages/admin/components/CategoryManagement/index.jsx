@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import CategoryAdminGrid from './CategoryAdminGrid';
 import { categoriesService } from '../../../../services/api/categories';
+import { questionsService } from '../../../../services/api/questions';
 import BreadcrumbNav from '../BreadcrumbNav';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
+import QuestionMigrationDialog from '../QuestionMigrationDialog';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
@@ -18,7 +20,14 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   const [deleteModalState, setDeleteModalState] = useState({
     isOpen: false,
     categoryId: null,
-    description: ""
+    description: "",
+    canDelete: true
+  });
+  const [migrationModalState, setMigrationModalState] = useState({
+    isOpen: false,
+    categoryId: null,
+    categoryName: "",
+    questions: []
   });
 
   useEffect(() => {
@@ -150,11 +159,35 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
     }
   };
 
-  const getDeleteMessage = (category) => {
+  const getDeleteMessage = async (category) => {
     const studyGuideCount = category.v2_study_guides?.length || 0;
 
-    if (studyGuideCount === 0) {
+    // Get quiz question count for this category
+    let questionCount = 0;
+    try {
+      questionCount = await categoriesService.getQuestionCount(category.id);
+    } catch (error) {
+      console.error('Error getting question count:', error);
+    }
+
+    if (studyGuideCount === 0 && questionCount === 0) {
       return "Are you sure you want to delete this empty category? This action cannot be reversed!";
+    }
+
+    if (questionCount > 0) {
+      return (
+        <>
+          Cannot delete this category! It contains{' '}
+          <RedBoldNum>{questionCount} quiz question(s)</RedBoldNum>
+          {studyGuideCount > 0 && (
+            <>
+              {' '}and{' '}
+              <RedBoldNum>{studyGuideCount} study guide(s)</RedBoldNum>
+            </>
+          )}
+          . Please use the "Migrate Questions" button to move the questions to another category first.
+        </>
+      );
     }
 
     return (
@@ -166,19 +199,51 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
     );
   };
 
-  const initiateDelete = (id) => {
+  const initiateMigration = async (id) => {
     const category = categories.find(c => c.id === id);
     if (category) {
+      try {
+        const questions = await questionsService.getByCategory(id);
+        setMigrationModalState({
+          isOpen: true,
+          categoryId: id,
+          categoryName: category.name,
+          questions: questions
+        });
+      } catch (error) {
+        console.error('Error loading questions for migration:', error);
+      }
+    }
+  };
+
+  const initiateDelete = async (id) => {
+    const category = categories.find(c => c.id === id);
+    if (category) {
+      const description = await getDeleteMessage(category);
+      const questionCount = await categoriesService.getQuestionCount(id);
       setDeleteModalState({
         isOpen: true,
         categoryId: id,
-        description: getDeleteMessage(category)
+        description: description,
+        canDelete: questionCount === 0
       });
     }
   };
 
   const handleDeleteCategory = async (id) => {
     try {
+      // Check if category has quiz questions before attempting deletion
+      const category = categories.find(c => c.id === id);
+      if (category) {
+        const questionCount = await categoriesService.getQuestionCount(id);
+        if (questionCount > 0) {
+          // Don't proceed with deletion, just close the modal
+          // The error message was already shown in the modal
+          setDeleteModalState({ isOpen: false, categoryId: null, description: "" });
+          return;
+        }
+      }
+
       // Optimistically update the UI before API call
       const newSectionsData = sectionsData.map(s => {
         if (s.id === section.id) {
@@ -203,7 +268,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       await loadCategories();
       throw err;
     } finally {
-      setDeleteModalState({ isOpen: false, categoryId: null, description: "" });
+      setDeleteModalState({ isOpen: false, categoryId: null, description: "", canDelete: true });
     }
   };
 
@@ -235,10 +300,28 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       />
       <DeleteConfirmationDialog
         isOpen={deleteModalState.isOpen}
-        onClose={() => setDeleteModalState({ isOpen: false, categoryId: null, description: "" })}
+        onClose={() => setDeleteModalState({ isOpen: false, categoryId: null, description: "", canDelete: true })}
         onConfirm={() => deleteModalState.categoryId && handleDeleteCategory(deleteModalState.categoryId)}
+        onMigrate={() => {
+          setDeleteModalState({ isOpen: false, categoryId: null, description: "", canDelete: true });
+          initiateMigration(deleteModalState.categoryId);
+        }}
         title="Delete Category"
         description={deleteModalState.description}
+        canDelete={deleteModalState.canDelete}
+      />
+
+      <QuestionMigrationDialog
+        isOpen={migrationModalState.isOpen}
+        onClose={() => setMigrationModalState({ isOpen: false, categoryId: null, categoryName: "", questions: [] })}
+        onComplete={() => {
+          setMigrationModalState({ isOpen: false, categoryId: null, categoryName: "", questions: [] });
+          // Reload categories to refresh the data
+          loadCategories();
+        }}
+        categoryId={migrationModalState.categoryId}
+        categoryName={migrationModalState.categoryName}
+        questions={migrationModalState.questions}
       />
     </div>
   );

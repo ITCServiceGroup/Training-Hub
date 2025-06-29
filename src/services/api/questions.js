@@ -107,6 +107,57 @@ class QuestionsService extends BaseService {
   }
 
   /**
+   * Get orphaned questions (questions with null category_id)
+   * @returns {Promise<Array>} - Orphaned questions
+   */
+  async getOrphaned() {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .is('category_id', null)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching orphaned questions:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get question count for categories in a section
+   * @param {string} sectionId - Section ID
+   * @returns {Promise<number>} - Total number of questions in the section
+   */
+  async getCountBySection(sectionId) {
+    try {
+      const { count, error } = await supabase
+        .from(this.tableName)
+        .select('*', { count: 'exact', head: true })
+        .in('category_id',
+          supabase
+            .from('v2_categories')
+            .select('id')
+            .eq('section_id', sectionId)
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting question count by section:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Create a new question
    * @param {Object} question - Question data
    * @returns {Promise<Object>} - Created question
@@ -152,6 +203,52 @@ class QuestionsService extends BaseService {
       return data;
     } catch (error) {
       console.error('Error updating question:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Move questions from one category to another
+   * @param {Array<string>} questionIds - Array of question IDs to move
+   * @param {string} newCategoryId - Target category ID
+   * @returns {Promise<Array>} - Updated questions
+   */
+  async moveToCategory(questionIds, newCategoryId) {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update({ category_id: newCategoryId })
+        .in('id', questionIds)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error moving questions to category:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a question
+   * @param {string} id - Question ID
+   * @returns {Promise<void>}
+   */
+  async delete(id) {
+    try {
+      const { error } = await supabase
+        .from(this.tableName)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error.message);
       throw error;
     }
   }

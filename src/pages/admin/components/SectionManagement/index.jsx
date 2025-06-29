@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import SectionAdminGrid from './SectionAdminGrid';
 import { sectionsService } from '../../../../services/api/sections';
+import { questionsService } from '../../../../services/api/questions';
 import BreadcrumbNav from '../BreadcrumbNav';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
@@ -18,7 +19,8 @@ const SectionManagement = ({ onViewCategories }) => {
   const [deleteModalState, setDeleteModalState] = useState({
     isOpen: false,
     sectionId: null,
-    description: ""
+    description: "",
+    canDelete: true
   });
 
   useEffect(() => {
@@ -95,14 +97,40 @@ const SectionManagement = ({ onViewCategories }) => {
     }
   };
 
-  const getDeleteMessage = (section) => {
+  const getDeleteMessage = async (section) => {
     const categoryCount = section.v2_categories?.length || 0;
     const studyGuideCount = section.v2_categories?.reduce(
       (sum, cat) => sum + (cat.study_guides?.length || 0), 0
     ) || 0;
 
+    // Get quiz question count for this section
+    let questionCount = 0;
+    try {
+      questionCount = await questionsService.getCountBySection(section.id);
+    } catch (error) {
+      console.error('Error getting question count for section:', error);
+    }
+
     if (categoryCount === 0) {
       return "Are you sure you want to delete this empty section? This action cannot be reversed!";
+    }
+
+    if (questionCount > 0) {
+      return (
+        <>
+          Cannot delete this section! It contains{' '}
+          <RedBoldNum>{categoryCount} categories</RedBoldNum>
+          {' '}with{' '}
+          <RedBoldNum>{questionCount} quiz question(s)</RedBoldNum>
+          {studyGuideCount > 0 && (
+            <>
+              {' '}and{' '}
+              <RedBoldNum>{studyGuideCount} study guide(s)</RedBoldNum>
+            </>
+          )}
+          . Please reassign or delete the quiz questions first.
+        </>
+      );
     }
 
     if (studyGuideCount === 0) {
@@ -110,7 +138,7 @@ const SectionManagement = ({ onViewCategories }) => {
         <>
           Are you sure you want to delete this section? This will delete all{' '}
           <RedBoldNum>{categoryCount} categories</RedBoldNum>
-          {' '}in this section. This section currently has no study guides. This action cannot be reversed!
+          {' '}in this section. This section currently has no study guides or quiz questions. This action cannot be reversed!
         </>
       );
     }
@@ -126,19 +154,30 @@ const SectionManagement = ({ onViewCategories }) => {
     );
   };
 
-  const initiateDelete = (id) => {
+  const initiateDelete = async (id) => {
     const section = sectionsData.find(s => s.id === id);
     if (section) {
+      const description = await getDeleteMessage(section);
+      const questionCount = await questionsService.getCountBySection(id);
       setDeleteModalState({
         isOpen: true,
         sectionId: id,
-        description: getDeleteMessage(section)
+        description: description,
+        canDelete: questionCount === 0
       });
     }
   };
 
   const handleDeleteSection = async (id) => {
     try {
+      // Check if section has quiz questions before attempting deletion
+      const questionCount = await questionsService.getCountBySection(id);
+      if (questionCount > 0) {
+        // Don't proceed with deletion, just close the modal
+        setDeleteModalState({ isOpen: false, sectionId: null, description: "", canDelete: true });
+        return;
+      }
+
       // Optimistically update local state
       setSections(prev => prev.filter(s => s.id !== id));
 
@@ -153,7 +192,7 @@ const SectionManagement = ({ onViewCategories }) => {
       await loadSections();
       throw err;
     } finally {
-      setDeleteModalState({ isOpen: false, sectionId: null, description: "" });
+      setDeleteModalState({ isOpen: false, sectionId: null, description: "", canDelete: true });
     }
   };
 
@@ -178,10 +217,11 @@ const SectionManagement = ({ onViewCategories }) => {
       />
       <DeleteConfirmationDialog
         isOpen={deleteModalState.isOpen}
-        onClose={() => setDeleteModalState({ isOpen: false, sectionId: null, description: "" })}
+        onClose={() => setDeleteModalState({ isOpen: false, sectionId: null, description: "", canDelete: true })}
         onConfirm={() => deleteModalState.sectionId && handleDeleteSection(deleteModalState.sectionId)}
         title="Delete Section"
         description={deleteModalState.description}
+        canDelete={deleteModalState.canDelete}
       />
     </div>
   );
