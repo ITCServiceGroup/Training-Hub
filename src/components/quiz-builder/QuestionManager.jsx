@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
 import { categoriesService } from '../../services/api/categories';
@@ -346,12 +346,55 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
     }
   };
 
-  // Get selected and available questions
-  const selectedQuestionIds = getQuestionIdsFromQuiz();
-  // Maintain the order of selected questions based on the quiz.questions array
-  const selectedQuestions = selectedQuestionIds
-    .map(id => questions.find(q => q.id === id))
-    .filter(Boolean); // Remove any undefined questions
+  // Get selected and available questions - memoized to prevent unnecessary re-renders
+  const selectedQuestionIds = useMemo(() => {
+    if (!Array.isArray(quiz.questions)) return [];
+    return quiz.questions.map(q => q.id || q);
+  }, [quiz.questions]);
+
+  // For selected questions, we need to fetch them individually to ensure we get ALL questions
+  // that are part of the quiz, even if they're from categories not currently selected
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [isLoadingSelectedQuestions, setIsLoadingSelectedQuestions] = useState(false);
+
+  // Track previous question IDs to prevent unnecessary fetches
+  const prevQuestionIdsRef = useRef('');
+
+  // Fetch selected questions separately to ensure we get all quiz questions
+  useEffect(() => {
+    const fetchSelectedQuestions = async () => {
+      const currentQuestionIdsString = selectedQuestionIds.join(',');
+
+      if (selectedQuestionIds.length === 0) {
+        setSelectedQuestions([]);
+        prevQuestionIdsRef.current = '';
+        return;
+      }
+
+      // Check if the question IDs have actually changed
+      if (prevQuestionIdsRef.current === currentQuestionIdsString) {
+        return; // No change, skip fetch
+      }
+
+      setIsLoadingSelectedQuestions(true);
+      try {
+        const fetchedQuestions = await Promise.all(
+          selectedQuestionIds.map(id => questionsService.get(id))
+        );
+        const validQuestions = fetchedQuestions.filter(q => q); // Filter out any null values
+        setSelectedQuestions(validQuestions);
+        prevQuestionIdsRef.current = currentQuestionIdsString;
+      } catch (error) {
+        console.error('Error fetching selected questions:', error);
+        setSelectedQuestions([]);
+      } finally {
+        setIsLoadingSelectedQuestions(false);
+      }
+    };
+
+    fetchSelectedQuestions();
+  }, [selectedQuestionIds.join(',')]); // Use join to create a stable string dependency
+
   const availableQuestions = questions.filter(q => !selectedQuestionIds.includes(q.id));
 
   // Sortable question item component for drag and drop
@@ -645,7 +688,13 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
               </span>
             </div>
             <div ref={selectedQuestionsRef} className="space-y-4 flex-1 overflow-y-auto">
-              {selectedQuestions.length === 0 ? (
+              {isLoadingSelectedQuestions ? (
+                <div className={`text-center p-8 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-50'}`}>
+                  <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
+                    Loading selected questions...
+                  </p>
+                </div>
+              ) : selectedQuestions.length === 0 ? (
                 <div className={`text-center p-8 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-50'}`}>
                   <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
                     No questions selected for this quiz.

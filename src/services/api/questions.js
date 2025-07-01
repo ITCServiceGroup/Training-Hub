@@ -57,18 +57,24 @@ class QuestionsService extends BaseService {
   /**
    * Get questions by multiple categories
    * @param {Array<string>} categoryIds - Array of category IDs
-   * @param {number} limit - Maximum number of questions to return
+   * @param {number} limit - Maximum number of questions to return (null for no limit)
    * @returns {Promise<Array>} - Questions from the specified categories
    */
-  async getByCategoryIds(categoryIds, limit = 100) {
+  async getByCategoryIds(categoryIds, limit = null) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from(this.tableName)
         .select('*')
         .in('category_id', categoryIds)
         .order('updated_at', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        .order('created_at', { ascending: false });
+
+      // Only apply limit if specified
+      if (limit !== null && limit > 0) {
+        query = query.limit(limit);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
