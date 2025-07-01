@@ -82,6 +82,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
   // Handle study guide linking
   const handleStudyGuideLink = async (studyGuideId, shouldLink) => {
+    // Don't allow linking if quiz hasn't been saved yet
+    if (!quiz.id) {
+      console.warn('Cannot link study guides to unsaved quiz');
+      return;
+    }
+
     try {
       console.log('Linking study guide:', studyGuideId, 'to quiz:', quiz.id, 'shouldLink:', shouldLink);
       if (shouldLink) {
@@ -194,95 +200,100 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         </div>
       </div>
 
-      <div className="space-y-4">
+      {/* Quiz Mode Options and Randomization Options - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Quiz Mode Options */}
         <div>
           <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Quiz Mode Options</h3>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 text-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
-                  checked={quiz.is_practice || false}
-                  onChange={(e) => {
-                    const isPracticeChecked = e.target.checked;
-                    // Update both flags in a single state update
-                    onChange({
-                      ...quiz,
-                      is_practice: isPracticeChecked,
-                      // If checking practice-only, ensure has_practice_mode is false
-                      has_practice_mode: isPracticeChecked ? false : quiz.has_practice_mode
-                    });
-                  }}
-                  disabled={isLoading}
-                />
-                <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                  Practice Quiz Only (no access code required, immediate feedback)
-                </span>
-              </label>
+          <div className="space-y-2">
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+                checked={quiz.is_practice || false}
+                onChange={(e) => {
+                  const isPracticeChecked = e.target.checked;
+                  // Update both flags in a single state update
+                  onChange({
+                    ...quiz,
+                    is_practice: isPracticeChecked,
+                    // If checking practice-only, ensure has_practice_mode is false
+                    has_practice_mode: isPracticeChecked ? false : quiz.has_practice_mode
+                  });
+                }}
+                disabled={isLoading}
+              />
+              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                Practice Quiz Only (no access code required, immediate feedback)
+              </span>
+            </label>
 
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
-                  checked={quiz.has_practice_mode || false}
-                  onChange={(e) => {
-                    const hasPracticeModeChecked = e.target.checked;
-                    // Update both flags in a single state update
-                    onChange({
-                      ...quiz,
-                      has_practice_mode: hasPracticeModeChecked,
-                      // If checking has_practice_mode, ensure is_practice is false
-                      is_practice: hasPracticeModeChecked ? false : quiz.is_practice
-                    });
-                  }}
-                  disabled={isLoading}
-                />
-                <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                  Enable Practice Mode (allows practice attempts alongside regular quiz)
-                </span>
-              </label>
-            </div>
-
-            <div className={`border-t ${isDark ? 'border-slate-600' : 'border-slate-200'} pt-4`}>
-              <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Randomization Options</h4>
-              <div className="space-y-2">
-                <label className="flex items-start">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
-                    checked={quiz.randomize_questions || false}
-                    onChange={(e) => handleChange('randomize_questions', e.target.checked)}
-                    disabled={isLoading}
-                  />
-                  <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Randomize question order for all attempts
-                  </span>
-                </label>
-
-                <label className="flex items-start">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
-                    checked={quiz.randomize_answers || false}
-                    onChange={(e) => handleChange('randomize_answers', e.target.checked)}
-                    disabled={isLoading}
-                  />
-                  <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Randomize answer options for all attempts
-                  </span>
-                </label>
-              </div>
-            </div>
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
+                checked={quiz.has_practice_mode || false}
+                onChange={(e) => {
+                  const hasPracticeModeChecked = e.target.checked;
+                  // Update both flags in a single state update
+                  onChange({
+                    ...quiz,
+                    has_practice_mode: hasPracticeModeChecked,
+                    // If checking has_practice_mode, ensure is_practice is false
+                    is_practice: hasPracticeModeChecked ? false : quiz.is_practice
+                  });
+                }}
+                disabled={isLoading}
+              />
+              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                Enable Practice Mode (allows practice attempts alongside regular quiz)
+              </span>
+            </label>
           </div>
-          <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-            {quiz.is_practice
-              ? "Practice-only quizzes are always accessible without access codes and provide immediate feedback."
-              : quiz.has_practice_mode
-                ? "This quiz will be available as both a regular quiz (requires access code) and a practice quiz."
-                : "This is a regular quiz that requires an access code to attempt."}
-          </p>
         </div>
+
+        {/* Right Column - Randomization Options */}
+        <div>
+          <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Randomization Options</h3>
+          <div className="space-y-2">
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
+                checked={quiz.randomize_questions || false}
+                onChange={(e) => handleChange('randomize_questions', e.target.checked)}
+                disabled={isLoading}
+              />
+              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                Randomize question order
+              </span>
+            </label>
+
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
+                checked={quiz.randomize_answers || false}
+                onChange={(e) => handleChange('randomize_answers', e.target.checked)}
+                disabled={isLoading}
+              />
+              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                Randomize answer options
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Description text below both sections */}
+      <div>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+          {quiz.is_practice
+            ? "Practice-only quizzes are always accessible without access codes and provide immediate feedback."
+            : quiz.has_practice_mode
+              ? "This quiz will be available as both a regular quiz (requires access code) and a practice quiz."
+              : "This is a regular quiz that requires an access code to attempt."}
+        </p>
       </div>
 
       <div>
@@ -304,101 +315,108 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         </select>
       </div>
 
-      <div>
-        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
-          Select Categories
-        </label>
-        <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
-          {filteredCategories.map(category => (
-            <label key={category.id} className={`flex items-start p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
-              <input
-                type="checkbox"
-                className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded flex-shrink-0 mt-0.5`}
-                checked={quiz.category_ids.includes(category.id)}
-                onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
-                disabled={isLoading}
-              />
-              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                {category.name}
-              </span>
-            </label>
-          ))}
-
-          {filteredCategories.length === 0 && (
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No categories found</p>
-          )}
-        </div>
-      </div>
-
-      {/* Study Guide Linking Section */}
-      {quiz.id && (quiz.is_practice || quiz.has_practice_mode) && (
+      {/* Categories and Study Guides Section - Side by side layout */}
+      <div className={`grid gap-6 ${quiz.id && (quiz.is_practice || quiz.has_practice_mode) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+        {/* Select Categories */}
         <div>
           <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
-            Link Study Guides
+            Select Categories
           </label>
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
-            Select study guides that should show a "Take Practice Quiz" button linking to this quiz.
-            {quiz.category_ids && quiz.category_ids.length > 0 && (
-              <span className="block mt-1 text-xs">
-                Only showing study guides from the selected categories.
-              </span>
-            )}
+            Choose which categories this quiz will include questions from.
           </p>
           <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
-            {(() => {
-              // Filter study guides to only show those from selected categories
-              const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
-                ? studyGuides.filter(guide =>
-                    guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
-                  )
-                : studyGuides;
+            {filteredCategories.map(category => (
+              <label key={category.id} className={`flex items-start p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+                <input
+                  type="checkbox"
+                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded flex-shrink-0 mt-0.5`}
+                  checked={quiz.category_ids.includes(category.id)}
+                  onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
+                  disabled={isLoading}
+                />
+                <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                  {category.name}
+                </span>
+              </label>
+            ))}
 
-              return filteredStudyGuides.map(guide => (
-                <label key={guide.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
-                  <input
-                    type="checkbox"
-                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
-                    checked={linkedStudyGuides.includes(guide.id)}
-                    onChange={(e) => handleStudyGuideLink(guide.id, e.target.checked)}
-                    disabled={isLoading}
-                  />
-                  <div className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    <div className="font-medium">{guide.title}</div>
-                    <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                      {guide.v2_categories?.v2_sections?.name} → {guide.v2_categories?.name}
-                    </div>
-                  </div>
-                </label>
-              ));
-            })()}
-
-            {(() => {
-              const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
-                ? studyGuides.filter(guide =>
-                    guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
-                  )
-                : studyGuides;
-
-              if (filteredStudyGuides.length === 0) {
-                if (quiz.category_ids && quiz.category_ids.length > 0) {
-                  return (
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
-                      No published study guides available in the selected categories
-                    </p>
-                  );
-                } else {
-                  return (
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
-                      No published study guides available. Please select categories for this quiz first.
-                    </p>
-                  );
-                }
-              }
-              return null;
-            })()}
+            {filteredCategories.length === 0 && (
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No categories found</p>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Study Guide Linking Section */}
+        {(quiz.is_practice || quiz.has_practice_mode) && (
+          <div>
+            <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
+              Link Study Guides
+            </label>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
+              Select study guides that should show a "Take Practice Quiz" button linking to this quiz.
+              {!quiz.id && (
+                <span className={`block mt-1 text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-600'} font-medium`}>
+                  Note: Save the quiz first to enable study guide linking.
+                </span>
+              )}
+            </p>
+            <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
+              {(() => {
+                // Filter study guides to only show those from selected categories
+                const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
+                  ? studyGuides.filter(guide =>
+                      guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
+                    )
+                  : studyGuides;
+
+                return filteredStudyGuides.map(guide => (
+                  <label key={guide.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${!quiz.id ? 'opacity-50' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
+                      checked={linkedStudyGuides.includes(guide.id)}
+                      onChange={(e) => handleStudyGuideLink(guide.id, e.target.checked)}
+                      disabled={isLoading || !quiz.id}
+                    />
+                    <div className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                      <div className="font-medium">{guide.title}</div>
+                      <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                        {guide.v2_categories?.v2_sections?.name} → {guide.v2_categories?.name}
+                      </div>
+                    </div>
+                  </label>
+                ));
+              })()}
+
+              {(() => {
+                const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
+                  ? studyGuides.filter(guide =>
+                      guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
+                    )
+                  : studyGuides;
+
+                if (filteredStudyGuides.length === 0) {
+                  if (quiz.category_ids && quiz.category_ids.length > 0) {
+                    return (
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
+                        No published study guides available in the selected categories
+                      </p>
+                    );
+                  } else {
+                    return (
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
+                        No published study guides available. Please select categories for this quiz first.
+                      </p>
+                    );
+                  }
+                }
+                return null;
+              })()}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

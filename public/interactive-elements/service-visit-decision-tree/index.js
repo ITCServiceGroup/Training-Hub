@@ -347,7 +347,7 @@ serviceVisitDecisionTreeTemplate.innerHTML = `
 <div class="container">
     <div class="main-panel">
         <div class="header">
-            <h1 class="title">Life of a Service Visit</h1>
+            <h1 class="title">Service Visit Navigator</h1>
             <span id="step-indicator" class="step-indicator">Step 1</span>
         </div>
 

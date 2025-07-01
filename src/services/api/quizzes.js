@@ -350,6 +350,53 @@ class QuizzesService extends BaseService {
 
 
   /**
+   * Get quizzes that contain specific questions
+   * @param {Array<string>} questionIds - Array of question IDs
+   * @returns {Promise<Object>} - Object mapping question IDs to arrays of quiz titles
+   */
+  async getQuizzesForQuestions(questionIds) {
+    try {
+      if (!questionIds || questionIds.length === 0) {
+        return {};
+      }
+
+      // Get quiz-question relationships for the specified questions
+      const { data: relations, error: relationsError } = await supabase
+        .from('v2_quiz_questions')
+        .select(`
+          question_id,
+          quiz_id,
+          v2_quizzes!inner(id, title, archived_at)
+        `)
+        .in('question_id', questionIds);
+
+      if (relationsError) throw relationsError;
+
+      // Filter out archived quizzes and group by question ID
+      const questionQuizMap = {};
+
+      relations.forEach(relation => {
+        // Skip archived quizzes
+        if (relation.v2_quizzes.archived_at) return;
+
+        const questionId = relation.question_id;
+        const quizTitle = relation.v2_quizzes.title;
+
+        if (!questionQuizMap[questionId]) {
+          questionQuizMap[questionId] = [];
+        }
+
+        questionQuizMap[questionId].push(quizTitle);
+      });
+
+      return questionQuizMap;
+    } catch (error) {
+      console.error('Error fetching quizzes for questions:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Archive a quiz (soft delete) by setting the archived_at timestamp.
    * Overrides the BaseService delete method.
    * @param {string} id - Quiz ID to archive

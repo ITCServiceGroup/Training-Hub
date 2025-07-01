@@ -48,6 +48,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
   // Navigation context
   const [categoryInfo, setCategoryInfo] = useState(null);
+  const [studyGuideInfo, setStudyGuideInfo] = useState(null);
 
   // Load quiz data
   useEffect(() => {
@@ -120,15 +121,27 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     loadQuiz();
   }, [quizId, accessCode]);
 
-  // Load category information for back navigation
+  // Load navigation information for back navigation
   useEffect(() => {
-    const loadCategoryInfo = async () => {
+    const loadNavigationInfo = async () => {
       const urlParams = new URLSearchParams(location.search);
       const fromParam = urlParams.get('from');
       const sectionId = urlParams.get('sectionId');
       const categoryId = urlParams.get('categoryId');
+      const studyGuideId = urlParams.get('studyGuideId');
+      const studyGuideName = urlParams.get('studyGuideName');
 
-      if (fromParam === 'practice' && categoryId) {
+      // Handle study guide navigation context
+      if (fromParam === 'study-guide' && studyGuideId && studyGuideName) {
+        setStudyGuideInfo({
+          id: studyGuideId,
+          name: studyGuideName,
+          sectionId,
+          categoryId
+        });
+      }
+      // Handle category navigation context (existing functionality)
+      else if (fromParam === 'practice' && categoryId) {
         try {
           const category = await categoriesService.getById(categoryId);
           setCategoryInfo({ ...category, sectionId });
@@ -138,7 +151,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       }
     };
 
-    loadCategoryInfo();
+    loadNavigationInfo();
   }, [location.search]);
 
   // Submit quiz handler - defined before timer effect
@@ -449,7 +462,15 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         score={score}
         timeTaken={timeTaken}
         onRetry={quiz.is_practice ? handleStartQuiz : undefined}
-        onExit={() => navigate('/study-guide')} // Navigate back to study guides
+        onExit={() => {
+          // Navigate back to study guide if available, otherwise to study guides list
+          if (studyGuideInfo) {
+            const studyGuideUrl = `/study/${studyGuideInfo.sectionId}/${studyGuideInfo.categoryId}/${studyGuideInfo.id}`;
+            navigate(studyGuideUrl);
+          } else {
+            navigate('/study-guide');
+          }
+        }}
         isPractice={quiz.is_practice}
         accessCodeData={accessCodeData}
       />
@@ -497,7 +518,21 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     return (
       <div className={`max-w-2xl mx-auto p-6 ${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow`}>
         {/* Back navigation */}
-        {categoryInfo && (
+        {studyGuideInfo && (
+          <div className="mb-4">
+            <button
+              onClick={() => {
+                // Navigate back to the study guide
+                const studyGuideUrl = `/study/${studyGuideInfo.sectionId}/${studyGuideInfo.categoryId}/${studyGuideInfo.id}`;
+                navigate(studyGuideUrl);
+              }}
+              className={`text-sm ${isDark ? 'text-primary-light hover:text-primary' : 'text-primary-dark hover:text-primary'} hover:underline`}
+            >
+              ← Back to '{studyGuideInfo.name}'
+            </button>
+          </div>
+        )}
+        {!studyGuideInfo && categoryInfo && (
           <div className="mb-4">
             <button
               onClick={() => navigate(`/quiz/practice/${categoryInfo.sectionId}/${categoryInfo.id}`)}

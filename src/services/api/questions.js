@@ -66,6 +66,8 @@ class QuestionsService extends BaseService {
         .from(this.tableName)
         .select('*')
         .in('category_id', categoryIds)
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) {
@@ -189,9 +191,15 @@ class QuestionsService extends BaseService {
    */
   async update(id, updates) {
     try {
+      // Ensure updated_at is set to current timestamp
+      const updatesWithTimestamp = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from(this.tableName)
-        .update(updates)
+        .update(updatesWithTimestamp)
         .eq('id', id)
         .select()
         .single();

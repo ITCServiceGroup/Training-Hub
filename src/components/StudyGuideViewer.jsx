@@ -208,7 +208,26 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
           {studyGuide && studyGuide.linked_quiz_id && (
             <button
               onClick={() => {
-                navigate(`/quiz/${studyGuide.linked_quiz_id}`);
+                // Extract current URL parameters to get section and category context
+                const urlParams = new URLSearchParams(location.search);
+                const currentPath = location.pathname;
+                const pathParts = currentPath.split('/');
+
+                // Build navigation URL with study guide context
+                const quizUrl = new URL(`/quiz/${studyGuide.linked_quiz_id}`, window.location.origin);
+                quizUrl.searchParams.set('from', 'study-guide');
+                quizUrl.searchParams.set('studyGuideId', studyGuide.id);
+                quizUrl.searchParams.set('studyGuideName', studyGuide.title);
+
+                // Add section and category context if available from URL path
+                if (pathParts.length >= 3 && pathParts[2]) {
+                  quizUrl.searchParams.set('sectionId', pathParts[2]);
+                }
+                if (pathParts.length >= 4 && pathParts[3]) {
+                  quizUrl.searchParams.set('categoryId', pathParts[3]);
+                }
+
+                navigate(quizUrl.pathname + quizUrl.search);
               }}
               className={`bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
             >

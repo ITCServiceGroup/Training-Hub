@@ -134,7 +134,7 @@ const QuizBuilderPage = () => {
   }
 
   return (
-    <div className="py-4 max-w-full">
+    <div className="py-4 max-w-full min-h-screen flex flex-col">
       {/* Back Button */}
       <div className="mb-6">
         <button
@@ -169,7 +169,7 @@ const QuizBuilderPage = () => {
         <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{error}</div>
       )}
 
-      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6`}>
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 flex-1 flex flex-col`}>
         <div className="flex mb-6 relative">
           {/* Add bottom border that spans the full width */}
           <div className={`absolute bottom-0 left-0 right-0 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
@@ -219,25 +219,27 @@ const QuizBuilderPage = () => {
           </div>
         </div>
 
-        {activeTab === 'metadata' && (
-          <QuizMetadataForm
-            quiz={quiz}
-            onChange={handleQuizChange}
-            isLoading={isLoading}
-          />
-        )}
+        <div className="flex-1 flex flex-col">
+          {activeTab === 'metadata' && (
+            <QuizMetadataForm
+              quiz={quiz}
+              onChange={handleQuizChange}
+              isLoading={isLoading}
+            />
+          )}
 
-        {activeTab === 'questions' && (
-          <QuestionManager
-            quiz={quiz}
-            onChange={handleQuizChange}
-            isLoading={isLoading}
-          />
-        )}
+          {activeTab === 'questions' && (
+            <QuestionManager
+              quiz={quiz}
+              onChange={handleQuizChange}
+              isLoading={isLoading}
+            />
+          )}
 
-        {activeTab === 'preview' && (
-          <QuizPreview quiz={quiz} />
-        )}
+          {activeTab === 'preview' && (
+            <QuizPreview quiz={quiz} />
+          )}
+        </div>
       </div>
 
       {/* Confirmation Modal */}

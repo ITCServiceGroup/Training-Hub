@@ -311,14 +311,22 @@ const AdminQuizzes = () => {
                     <div
                       key={section.id}
                       className={`px-3 py-2 cursor-pointer hover:${isDark ? 'bg-slate-600' : 'bg-slate-50'}`}
-                      onClick={() => toggleSectionSelection(section.id)}
+                      onClick={(e) => {
+                        // Only toggle if clicking on the div itself, not the checkbox
+                        if (e.target.type !== 'checkbox') {
+                          toggleSectionSelection(section.id);
+                        }
+                      }}
                     >
                       <div className="flex items-start">
                         <input
                           type="checkbox"
                           checked={selectedSections.includes(section.id)}
-                          onChange={() => toggleSectionSelection(section.id)}
-                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0"
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent event bubbling
+                            toggleSectionSelection(section.id);
+                          }}
+                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 cursor-pointer"
                           style={{ marginTop: '4px' }}
                         />
                         <div className="ml-3">
@@ -374,14 +382,22 @@ const AdminQuizzes = () => {
                     <div
                       key={category.id}
                       className={`px-3 py-2 cursor-pointer hover:${isDark ? 'bg-slate-600' : 'bg-slate-50'}`}
-                      onClick={() => toggleCategorySelection(category.id)}
+                      onClick={(e) => {
+                        // Only toggle if clicking on the div itself, not the checkbox
+                        if (e.target.type !== 'checkbox') {
+                          toggleCategorySelection(category.id);
+                        }
+                      }}
                     >
                       <div className="flex items-start">
                         <input
                           type="checkbox"
                           checked={selectedCategories.includes(category.id)}
-                          onChange={() => toggleCategorySelection(category.id)}
-                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0"
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent event bubbling
+                            toggleCategorySelection(category.id);
+                          }}
+                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 cursor-pointer"
                           style={{ marginTop: '5px' }}
                         />
                         <div className="ml-3">
