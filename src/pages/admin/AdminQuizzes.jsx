@@ -22,6 +22,10 @@ const AdminQuizzes = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Sorting states
+  const [sortField, setSortField] = useState('title'); // 'title', 'questionCount', 'type', 'created_at'
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
+
   // Dropdown states
   const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
@@ -94,9 +98,19 @@ const AdminQuizzes = () => {
     };
   }, [quizzes]);
 
-  // Filter quizzes based on selected filters
+  // Handle sorting
+  const handleSort = (field) => {
+    if (field === sortField) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  // Filter and sort quizzes based on selected filters and sorting
   const filteredQuizzes = useMemo(() => {
-    return quizzes.filter(quiz => {
+    let filtered = quizzes.filter(quiz => {
       // Search term filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
@@ -132,7 +146,51 @@ const AdminQuizzes = () => {
 
       return true;
     });
-  }, [quizzes, searchTerm, selectedSections, selectedCategories]);
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortField) {
+        case 'title':
+          aValue = a.title?.toLowerCase() || '';
+          bValue = b.title?.toLowerCase() || '';
+          break;
+        case 'questionCount':
+          aValue = a.questionCount || 0;
+          bValue = b.questionCount || 0;
+          break;
+        case 'type':
+          // Sort by type: Practice Only, Assessment, Assessment+Practice
+          aValue = a.is_practice ? 'Practice Only' :
+                   a.has_practice_mode ? 'Assessment+Practice' : 'Assessment';
+          bValue = b.is_practice ? 'Practice Only' :
+                   b.has_practice_mode ? 'Assessment+Practice' : 'Assessment';
+          break;
+        case 'created_at':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortField === 'questionCount') {
+        // Numeric sorting
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      } else if (sortField === 'created_at') {
+        // Date sorting
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      } else {
+        // String sorting
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      }
+    });
+
+    return filtered;
+  }, [quizzes, searchTerm, selectedSections, selectedCategories, sortField, sortOrder]);
 
   // Load quiz data when quizId changes
   useEffect(() => {
@@ -476,12 +534,65 @@ const AdminQuizzes = () => {
           </div>
         ) : (
           <table className="w-full">
-            <thead className={isDark ? 'bg-slate-700' : 'bg-slate-50'}>
+            <thead className="bg-primary">
               <tr>
-                <th className={`px-4 py-3 text-left text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Quiz Name</th>
-                <th className={`px-4 py-3 text-left text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Questions</th>
-                <th className={`px-4 py-3 text-left text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Type</th>
-                <th className={`px-4 py-3 text-right text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Actions</th>
+                <th className="text-left text-sm font-medium text-white p-0">
+                  <button
+                    onClick={() => handleSort('title')}
+                    className="flex items-center gap-1 hover:text-gray-200 transition-colors w-full h-full px-4 py-3"
+                  >
+                    Quiz Name
+                    {sortField === 'title' && (
+                      <span className="text-xs">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th className="text-center text-sm font-medium text-white w-32 p-0">
+                  <button
+                    onClick={() => handleSort('questionCount')}
+                    className="flex items-center gap-1 hover:text-gray-200 transition-colors justify-center w-full h-full px-4 py-3"
+                  >
+                    Questions
+                    {sortField === 'questionCount' && (
+                      <span className="text-xs">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th className="text-center text-sm font-medium text-white w-40 p-0">
+                  <button
+                    onClick={() => handleSort('type')}
+                    className="flex items-center gap-1 hover:text-gray-200 transition-colors justify-center w-full h-full px-4 py-3"
+                  >
+                    Type
+                    {sortField === 'type' && (
+                      <span className="text-xs">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th className="text-center text-sm font-medium text-white w-48 p-0">
+                  <button
+                    onClick={() => handleSort('created_at')}
+                    className="flex items-center gap-1 hover:text-gray-200 transition-colors justify-center w-full h-full px-4 py-3"
+                  >
+                    Date Created
+                    {sortField === 'created_at' && (
+                      <span className="text-xs">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-white">
+                  <button className="flex items-center gap-1 justify-center w-full cursor-default">
+                    Actions
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-slate-600' : 'divide-slate-200'}`}>
@@ -493,11 +604,11 @@ const AdminQuizzes = () => {
                     <div className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{quiz.description}</div>
                   )}
                 </td>
-                <td className={`px-4 py-4 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+                <td className={`px-4 py-4 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
                   {quiz.questionCount} questions
                 </td>
-                <td className="px-4 py-4">
-                  <div className="space-y-1">
+                <td className="px-4 py-4 text-center">
+                  <div className="space-y-1 flex flex-col items-center">
                     {quiz.is_practice ? (
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'
@@ -505,7 +616,7 @@ const AdminQuizzes = () => {
                         Practice Only
                       </span>
                     ) : (
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex flex-col items-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'
                         }`}>
@@ -522,8 +633,15 @@ const AdminQuizzes = () => {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-4 text-right">
-                  <div className="flex justify-end gap-2 min-w-[320px]">
+                <td className={`px-4 py-4 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {new Date(quiz.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </td>
+                <td className="px-4 py-4 text-center">
+                  <div className="flex justify-center gap-2 min-w-[320px]">
                     <button
                       type="button"
                       className={`px-4 py-2 font-medium rounded-lg transition-colors w-32 whitespace-nowrap flex items-center justify-center ${
