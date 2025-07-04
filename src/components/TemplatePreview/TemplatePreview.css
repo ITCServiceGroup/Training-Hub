@@ -1,0 +1,122 @@
+/* TemplatePreview.css */
+/* Force desktop mode for template previews regardless of container size */
+
+.template-preview-desktop-mode {
+  /* Override the responsive media query behavior */
+  /* Force horizontal containers to remain horizontal even in small containers */
+}
+
+/* Override the media query from CraftRenderer.css and ContentEditor styles for template previews */
+/* Use extremely high specificity to override media queries */
+.template-preview-desktop-mode .craft-container-horizontal,
+.template-preview-desktop-mode .craft-renderer .craft-container-horizontal,
+.template-preview .template-preview-desktop-mode .craft-container-horizontal,
+.template-preview .template-preview-desktop-mode .craft-renderer .craft-container-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+/* Force desktop layout behavior - override responsive CSS that makes boxes too narrow */
+.template-preview-desktop-mode .craft-container-horizontal > .react-resizable,
+.template-preview-desktop-mode .craft-renderer .craft-container-horizontal > .react-resizable {
+  margin-bottom: 0 !important;
+  /* Don't override width - let the original template properties control sizing */
+  max-width: none !important;
+  /* Reset flex properties that might interfere with width percentages */
+  flex: none !important;
+  flex-basis: auto !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Override children of resizable components - preserve original widths */
+.template-preview-desktop-mode .craft-container-horizontal > .react-resizable > div,
+.template-preview-desktop-mode .craft-renderer .craft-container-horizontal > .react-resizable > div {
+  /* Don't override width - preserve the original template sizing */
+  max-width: none !important;
+}
+
+/* Override media query specific overrides that force stacking */
+@media (max-width: 768px) {
+  .template-preview-desktop-mode .craft-container-horizontal,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+
+  /* Override the responsive CSS that forces 100% width - preserve original widths */
+  .template-preview-desktop-mode .craft-container-horizontal > .react-resizable,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal > .react-resizable {
+    /* Don't override width - preserve original template widths like 30% */
+    max-width: none !important;
+    margin-bottom: 0 !important;
+    /* Reset flex to not interfere with width percentages */
+    flex: none !important;
+    flex-basis: auto !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Override the direct children of the Resizer component */
+  .template-preview-desktop-mode .craft-container-horizontal > .react-resizable > div,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal > .react-resizable > div {
+    /* Don't override width - preserve original template widths */
+    max-width: none !important;
+  }
+
+  /* Override nested Resizer components */
+  .template-preview-desktop-mode .craft-container-horizontal .react-resizable .react-resizable,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal .react-resizable .react-resizable {
+    /* Don't override width - preserve original template widths */
+    max-width: none !important;
+    margin-bottom: 0 !important;
+    flex: none !important;
+  }
+
+  /* Override flex properties to not interfere with width percentages */
+  .template-preview-desktop-mode .craft-container-horizontal .react-resizable,
+  .template-preview-desktop-mode .craft-container-horizontal .react-resizable > div,
+  .template-preview-desktop-mode .craft-container-horizontal .craft-container,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal .react-resizable,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal .react-resizable > div,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal .craft-container {
+    flex: none !important;
+    flex-basis: auto !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Target the specific DOM structure of nested containers */
+  .template-preview-desktop-mode .craft-container-horizontal > .react-resizable > div > .react-resizable,
+  .template-preview-desktop-mode .craft-container-horizontal > .react-resizable > div > div > .react-resizable,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal > .react-resizable > div > .react-resizable,
+  .template-preview-desktop-mode .craft-renderer .craft-container-horizontal > .react-resizable > div > div > .react-resizable {
+    /* Don't override width - preserve original template widths */
+    max-width: none !important;
+    margin-bottom: 0 !important;
+    flex: none !important;
+  }
+}
+
+/* Force the template preview to behave like a desktop viewport using scaling */
+.template-preview-desktop-mode {
+  /* Use transform scale to fit desktop content in the preview window */
+  transform-origin: top left;
+  transform: scale(0.25);
+  width: 400%; /* 100% / 0.6 to compensate for the scale */
+  height: 400%; /* 100% / 0.6 to compensate for the scale */
+  /* Set a minimum width to ensure desktop layout behavior */
+  min-width: 800px;
+}
+
+/* Ensure the parent container handles the scaled content properly */
+.template-preview {
+  overflow: hidden;
+  position: relative;
+}
+
+/* Ensure the CraftRenderer respects the minimum width and displays as desktop */
+.template-preview-desktop-mode .craft-renderer {
+  min-width: 800px;
+  width: 100%;
+}

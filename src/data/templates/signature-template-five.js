@@ -5207,10 +5207,10 @@ export const signatureTemplateFive = {
     },
     "isCanvas": false,
     "props": {
-      "name": "subnet-calculator",
-      "title": "Lorem Ipsum Calculator",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "iconUrl": "/interactive-elements/router-simulator/icon.png",
+      "name": "",
+      "title": "Interactive Element",
+      "description": "Select an interactive element from the settings panel",
+      "iconUrl": "",
       "margin": [
         "0",
         "0",

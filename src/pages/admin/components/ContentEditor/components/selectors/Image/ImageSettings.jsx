@@ -197,6 +197,14 @@ export const ImageSettings = () => {
                     type="text"
                     value={width}
                     onChange={(e) => actions.setProp((props) => { props.width = e.target.value; })}
+                    onBlur={(e) => {
+                      let value = e.target.value;
+                      // If the value is a number without units, automatically add 'px'
+                      if (value && !isNaN(value) && !value.includes('px') && !value.includes('%') && value !== 'auto') {
+                        value = value + 'px';
+                        actions.setProp((props) => { props.width = value; });
+                      }
+                    }}
                     className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100"
                     style={{ WebkitAppearance: 'inner-spin-button' }}
                     placeholder="100%, 300px"
@@ -208,6 +216,14 @@ export const ImageSettings = () => {
                     type="text"
                     value={height}
                     onChange={(e) => actions.setProp((props) => { props.height = e.target.value; })}
+                    onBlur={(e) => {
+                      let value = e.target.value;
+                      // If the value is a number without units, automatically add 'px'
+                      if (value && !isNaN(value) && !value.includes('px') && !value.includes('%') && value !== 'auto') {
+                        value = value + 'px';
+                        actions.setProp((props) => { props.height = value; });
+                      }
+                    }}
                     className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100"
                     style={{ WebkitAppearance: 'inner-spin-button' }}
                     placeholder="auto, 200px"
