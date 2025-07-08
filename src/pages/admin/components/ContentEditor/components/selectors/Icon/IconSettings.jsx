@@ -86,7 +86,7 @@ export const IconSettings = () => {
         light: { r: 92, g: 90, b: 90, a: 1 },
         dark: { r: 229, g: 231, b: 235, a: 1 }
       },
-      iconSize: props.iconSize || 24,
+      iconSize: props.iconSize || 60,
       iconAlign: props.iconAlign || 'center',
       margin: props.margin || ['0', '0', '0', '0'],
       padding: props.padding || ['0', '0', '0', '0'],

@@ -11,7 +11,7 @@ export const Icon = ({
     light: { r: 92, g: 90, b: 90, a: 1 },
     dark: { r: 229, g: 231, b: 235, a: 1 }
   },
-  iconSize = 24, // Size in pixels
+  iconSize = 60, // Size in pixels
   iconAlign = 'center', // left, center, right
   margin = ['0', '0', '0', '0'],
   padding = ['0', '0', '0', '0'],
@@ -91,7 +91,7 @@ Icon.craft = {
       light: { r: 92, g: 90, b: 90, a: 1 },
       dark: { r: 229, g: 231, b: 235, a: 1 }
     },
-    iconSize: 24,
+    iconSize: 60,
     iconAlign: 'center',
     margin: ['0', '0', '0', '0'],
     padding: ['0', '0', '0', '0'],

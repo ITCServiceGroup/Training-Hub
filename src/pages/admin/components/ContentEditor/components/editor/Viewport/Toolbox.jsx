@@ -81,7 +81,7 @@ export const Toolbox = () => {
           ref={(ref) => {
             create(
               ref,
-              <CraftElement is={Icon} iconName="star" iconSize={24} />
+              <CraftElement is={Icon} iconName="star" iconSize={60} />
             );
           }}
         >
