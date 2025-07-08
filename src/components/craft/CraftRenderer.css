@@ -66,12 +66,7 @@
   height: auto;
 }
 
-/* Card styling */
-.craft-renderer .card-component {
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 15px;
-}
+
 
 /* CollapsibleSection styling in StudyGuideViewer - respect component's own margin settings */
 .craft-renderer .craft-collapsible-section {

@@ -23,7 +23,7 @@ import { Container } from './components/selectors/Container';
 import { Text } from './components/selectors/Text';
 import { Button } from './components/selectors/Button';
 import { Image } from './components/selectors/Image';
-import { Card } from './components/selectors/Card';
+import { Icon } from './components/selectors/Icon';
 import { Interactive } from './components/selectors/Interactive';
 import { Table } from './components/selectors/Table';
 import { TableText } from './components/selectors/Table/TableText';
@@ -180,7 +180,6 @@ const sanitizeEditorJson = (jsonData) => {
     'Text': Text,
     'Button': Button,
     'Image': Image,
-    'Card': Card,
     'Interactive': Interactive,
     'Table': Table,
     'Table Text': TableText,
@@ -1074,7 +1073,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
       <ToolbarZIndexProvider>
         <Editor
           resolver={{
-            Container, Text, Button, Image, Card, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs
+            Container, Text, Button, Image, Icon, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs
           }}
           enabled={true}
           onRender={RenderNode}

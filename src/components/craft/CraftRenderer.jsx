@@ -10,7 +10,6 @@ import { Text } from '../../pages/admin/components/ContentEditor/components/sele
 import { CollapsibleSection } from '../../pages/admin/components/ContentEditor/components/selectors/CollapsibleSection';
 import { Button } from '../../pages/admin/components/ContentEditor/components/selectors/Button';
 import { Image } from '../../pages/admin/components/ContentEditor/components/selectors/Image';
-import { Card } from '../../pages/admin/components/ContentEditor/components/selectors/Card';
 import { Interactive } from '../../pages/admin/components/ContentEditor/components/selectors/Interactive';
 import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
 import { TableText } from '../../pages/admin/components/ContentEditor/components/selectors/Table/TableText';
@@ -284,7 +283,6 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
             Text,
             Button,
             Image,
-            Card,
             Interactive,
             Table,
             TableText,

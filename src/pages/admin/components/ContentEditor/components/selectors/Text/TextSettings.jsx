@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNode } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
@@ -94,6 +94,24 @@ export const TextSettings = () => {
   const [showTextSpacing, setShowTextSpacing] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showIconSelector, setShowIconSelector] = useState(false);
+
+  // Get all icons organized by category for the selector
+  const iconsByCategory = Object.entries(ICON_CATEGORIES).map(([category, icons]) => ({
+    category,
+    icons: Object.entries(icons).map(([key, name]) => ({ key, name }))
+  }));
+
+  // Filter icons based on search term
+  const filteredIconsByCategory = searchTerm.trim() === ''
+    ? iconsByCategory
+    : iconsByCategory.map(({ category, icons }) => ({
+        category,
+        icons: icons.filter(({ key, name }) =>
+          name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          key.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      })).filter(({ icons }) => icons.length > 0);
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
@@ -774,68 +792,90 @@ export const TextSettings = () => {
 
               {hasIcon && (
                 <>
-                  <div className="mt-3 mb-3 pl-6">
+                  {/* Icon Selector */}
+                  <div className="mb-3">
                     <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Select Icon
+                      Icon
                     </label>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder="Search icons..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-y-auto p-1">
-                      {Object.entries(ICON_CATEGORIES).map(([category, icons]) => {
-                        // Filter icons based on search term
-                        const filteredIcons = Object.entries(icons).filter(([value, label]) => 
-                          label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          value.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          category.toLowerCase().includes(searchTerm.toLowerCase())
-                        );
+                    <button
+                      className="w-full p-2 border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 text-gray-700 dark:text-white rounded-md text-left flex items-center justify-between"
+                      onClick={() => {
+                        const newState = !showIconSelector;
+                        setShowIconSelector(newState);
+                        // Clear search when closing the selector
+                        if (!newState) {
+                          setSearchTerm('');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {ICONS[iconName] && React.createElement(ICONS[iconName], { size: 16 })}
+                        <span>{ICON_CATEGORIES[Object.keys(ICON_CATEGORIES).find(cat =>
+                          ICON_CATEGORIES[cat][iconName]
+                        )]?.[iconName] || iconName}</span>
+                      </div>
+                      <FaChevronDown className={`transition-transform ${showIconSelector ? 'rotate-180' : ''}`} size={12} />
+                    </button>
 
-                        // Skip category if no icons match search
-                        if (filteredIcons.length === 0) return null;
+                    {showIconSelector && (
+                      <div className="mt-2 border border-gray-300 dark:border-slate-500 rounded-md bg-white dark:bg-slate-600">
+                        {/* Search Bar */}
+                        <div className="p-3 border-b border-gray-200 dark:border-slate-500">
+                          <input
+                            type="text"
+                            placeholder="Search icons..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full p-2 text-sm border border-gray-300 dark:border-slate-400 bg-white dark:bg-slate-700 text-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          {searchTerm.trim() !== '' && (
+                            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                              {(() => {
+                                const totalIcons = filteredIconsByCategory.reduce((sum, { icons }) => sum + icons.length, 0);
+                                return `${totalIcons} icon${totalIcons !== 1 ? 's' : ''} found`;
+                              })()}
+                            </div>
+                          )}
+                        </div>
 
-                        return (
-                        <div key={category} className="mb-3">
-                          <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{category}</h3>
-                          <div className="grid grid-cols-3 gap-2">
-                            {filteredIcons.map(([value, label]) => {
-                              const Icon = ICONS[value];
-                              return (
-                                <button
-                                  key={value}
-                                  className={`px-2 py-1 text-xs rounded flex items-center justify-center ${
-                                    iconName === value
-                                      ? 'bg-primary text-white'
-                                      : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
-                                  }`}
-                                  onClick={() => actions.setProp((props) => { props.iconName = value; })}
-                                  title={label}
-                                >
-                                  <Icon size={20} className="p-1" />
-                                </button>
-                              );
-                            })}
-                          </div>
+                        {/* Icon Grid */}
+                        <div className="max-h-64 overflow-y-auto">
+                          {filteredIconsByCategory.length === 0 ? (
+                            <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+                              No icons found matching "{searchTerm}"
+                            </div>
+                          ) : (
+                            filteredIconsByCategory.map(({ category, icons }) => (
+                              <div key={category} className="border-b border-gray-200 dark:border-slate-500 last:border-b-0">
+                                <div className="px-3 py-2 bg-gray-50 dark:bg-slate-700 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                  {category}
+                                </div>
+                                <div className="grid grid-cols-4 gap-1 p-2">
+                                  {icons.map(({ key, name }) => (
+                                    <button
+                                      key={key}
+                                      className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-500 flex items-center justify-center ${
+                                        iconName === key ? 'bg-blue-100 dark:bg-blue-900' : ''
+                                      }`}
+                                      onClick={() => {
+                                        actions.setProp((props) => {
+                                          props.iconName = key;
+                                        });
+                                        setShowIconSelector(false);
+                                        setSearchTerm(''); // Clear search when icon is selected
+                                      }}
+                                      title={name}
+                                    >
+                                      {ICONS[key] && React.createElement(ICONS[key], { size: 16 })}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))
+                          )}
                         </div>
-                      )})}
-                      {/* Show "No results" message when no icons match the search */}
-                      {Object.entries(ICON_CATEGORIES).every(([category, icons]) => 
-                        Object.entries(icons).every(([value, label]) => 
-                          !label.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                          !value.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                          !category.toLowerCase().includes(searchTerm.toLowerCase())
-                        )
-                      ) && (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-xs">
-                          No icons match your search
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                   <div className="mb-3 pl-6">
                     <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">

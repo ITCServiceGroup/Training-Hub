@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSearch, FaClipboardList } from 'react-icons/fa';
 import CraftRenderer from './craft/CraftRenderer';
+import { studyGuidesService } from '../services/api/studyGuides';
 import { countSearchTermOccurrences, extractTextFromContent } from '../utils/contentTextExtractor';
 import LoadingSpinner from './common/LoadingSpinner';
 
@@ -86,6 +87,39 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
       setSearchMatchCount(0);
     }
   }, [searchTerm, studyGuide, isLoading]);
+
+  // Listen for study guide navigation events from buttons
+  useEffect(() => {
+    const handleStudyGuideNavigation = async (event) => {
+      const { studyGuideId, sectionId, categoryId } = event.detail;
+
+      try {
+        // Fetch the new study guide
+        const newStudyGuide = await studyGuidesService.getWithCategory(studyGuideId);
+
+        // Check if the guide is published
+        if (!newStudyGuide.is_published) {
+          console.log('StudyGuideViewer: Linked study guide is not published');
+          return;
+        }
+
+        // Navigate to the new study guide URL to update the browser URL
+        const newUrl = `/study/${sectionId}/${categoryId}/${studyGuideId}`;
+        navigate(newUrl, { replace: false });
+
+      } catch (error) {
+        console.error('Error navigating to study guide:', error);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('studyGuideNavigation', handleStudyGuideNavigation);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('studyGuideNavigation', handleStudyGuideNavigation);
+    };
+  }, [navigate]);
 
   // Loading and Empty states
   if (isLoading) {
