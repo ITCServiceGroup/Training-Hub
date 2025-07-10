@@ -158,6 +158,7 @@ export const Button = ({
         },
       ])}
       style={{
+        cursor: isViewMode && (linkType === 'url' || linkType === 'study-guide') ? 'pointer' : 'default',
         background: buttonBackground,
         border: buttonBorder,
         margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
@@ -190,22 +191,6 @@ export const Button = ({
           e.preventDefault();
           e.stopPropagation();
           handleStudyGuideNavigation();
-        }
-      }}
-      style={{
-        cursor: isViewMode && (linkType === 'url' || linkType === 'study-guide') ? 'pointer' : 'default',
-        ...{
-          background: buttonBackground,
-          border: buttonBorder,
-          margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-          padding: `${currentSizeConfig.padding[0]}px ${currentSizeConfig.padding[1]}px ${currentSizeConfig.padding[2]}px ${currentSizeConfig.padding[3]}px`,
-          borderRadius: `${radius}px`,
-          fontSize: `${currentSizeConfig.fontSize}px`,
-          fontWeight,
-          color: `rgba(${Object.values(themeColor)})`,
-          '--hover-bg': hoverStyles.background,
-          '--hover-color': hoverStyles.color,
-          '--hover-border': hoverStyles.borderColor,
         }
       }}
       onMouseEnter={(e) => {
