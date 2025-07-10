@@ -96,6 +96,9 @@ export const TextSettings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showIconSelector, setShowIconSelector] = useState(false);
 
+  // Local state for font size input to allow free typing
+  const [localFontSize, setLocalFontSize] = useState('');
+
   // Get all icons organized by category for the selector
   const iconsByCategory = Object.entries(ICON_CATEGORIES).map(([category, icons]) => ({
     category,
@@ -196,6 +199,24 @@ export const TextSettings = () => {
       },
     };
   });
+
+  // Sync local font size with actual fontSize prop
+  useEffect(() => {
+    setLocalFontSize(fontSize.toString());
+  }, [fontSize]);
+
+  // Handler to commit font size changes
+  const handleFontSizeCommit = () => {
+    const value = parseInt(localFontSize, 10);
+    if (!isNaN(value) && value >= 10 && value <= 80) {
+      actions.setProp((props) => {
+        props.fontSize = value;
+      });
+    } else {
+      // Reset to current fontSize if invalid
+      setLocalFontSize(fontSize.toString());
+    }
+  };
 
   return (
     <div className="text-settings">
@@ -511,7 +532,11 @@ export const TextSettings = () => {
                     value={fontSize}
                     min={10}
                     max={80}
-                    onChange={(e) => actions.setProp((props) => { props.fontSize = parseInt(e.target.value); })}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      setLocalFontSize(value.toString());
+                      actions.setProp((props) => { props.fontSize = value; });
+                    }}
                     className="w-full mr-2 accent-primary [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary"
                   />
                 </div>
@@ -520,15 +545,25 @@ export const TextSettings = () => {
                     type="number"
                     min={10}
                     max={80}
-                    value={fontSize}
+                    value={localFontSize}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value, 10);
-                      if (!isNaN(value) && value >= 10 && value <= 80) {
-                        actions.setProp((props) => { props.fontSize = value; });
+                      const value = e.target.value;
+                      setLocalFontSize(value);
+
+                      // If it's a valid number within range, update immediately (for arrows)
+                      const numValue = parseInt(value, 10);
+                      if (!isNaN(numValue) && numValue >= 10 && numValue <= 80) {
+                        actions.setProp((props) => { props.fontSize = numValue; });
                       }
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === 'Tab') {
+                        handleFontSizeCommit();
+                      }
+                    }}
+                    onBlur={handleFontSizeCommit}
                     className="w-full px-1 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white text-center h-6"
-                    aria-label="Font size in pixels"
+                    aria-label="Font size in pixels (10-80)"
                   />
                 </div>
               </div>

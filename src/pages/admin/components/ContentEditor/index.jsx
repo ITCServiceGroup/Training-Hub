@@ -29,6 +29,7 @@ import { Table } from './components/selectors/Table';
 import { TableText } from './components/selectors/Table/TableText';
 import { CollapsibleSection } from './components/selectors/CollapsibleSection';
 import { Tabs } from './components/selectors/Tabs';
+import { HorizontalLine } from './components/selectors/HorizontalLine';
 
 // Helper function to recursively parse stringified JSON properties
 function deepParseJsonStrings(value, depth = 0) {
@@ -184,7 +185,8 @@ const sanitizeEditorJson = (jsonData) => {
     'Table': Table,
     'Table Text': TableText,
     'Collapsible Section': CollapsibleSection,
-    'Tabs': Tabs
+    'Tabs': Tabs,
+    'Horizontal Line': HorizontalLine
   };
 
   const processNode = (node) => {
@@ -1073,7 +1075,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
       <ToolbarZIndexProvider>
         <Editor
           resolver={{
-            Container, Text, Button, Image, Icon, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs
+            Container, Text, Button, Image, Icon, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs, HorizontalLine, 'Horizontal Line': HorizontalLine
           }}
           enabled={true}
           onRender={RenderNode}

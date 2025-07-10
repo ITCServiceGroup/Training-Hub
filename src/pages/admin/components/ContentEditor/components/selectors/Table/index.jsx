@@ -265,13 +265,17 @@ export const Table = (props) => {
           }
         }
 
+        // Debug log to check cellAlignment value
+        if (i === 0 && j === 0) {
+          console.log('Table cellAlignment value:', cellAlignment);
+        }
+
         cells.push(
           <td
             key={cellKey}
-            className={`craft-table-cell ${isHeader ? 'craft-table-header' : ''} ${!isHeader && ((tableData.hasHeader && i % 2 === 0) || (!tableData.hasHeader && i % 2 === 1)) ? 'craft-table-row-alternate' : ''}`}
+            className={`craft-table-cell cell-align-${cellAlignment} ${isHeader ? 'craft-table-header' : ''} ${!isHeader && ((tableData.hasHeader && i % 2 === 0) || (!tableData.hasHeader && i % 2 === 1)) ? 'craft-table-row-alternate' : ''}`}
             style={{
               padding: `${cellPadding}px`,
-              verticalAlign: cellAlignment,
               width: `${currentColumnWidths[j] || (100 / tableData.columnCount)}%`,
               border: borderStyle !== 'none' ?
                 `${Math.max(borderWidth, 1)}px ${borderStyle} rgba(${Object.values(getThemeColor(borderColor, isDark, 'table', autoConvertColors))})` :
@@ -441,7 +445,7 @@ export const Table = (props) => {
         className="table-content-wrapper"
         style={{
           width: '100%',
-          height: '100%',
+          height: 'auto',
           boxSizing: 'border-box',
           position: 'relative'
         }}>
@@ -449,7 +453,7 @@ export const Table = (props) => {
           ref={tableRef}
           style={{
             width: '100%',
-            height: '100%',
+            height: 'auto',
             borderCollapse: 'separate',
             borderSpacing: 0,
             tableLayout: 'fixed',

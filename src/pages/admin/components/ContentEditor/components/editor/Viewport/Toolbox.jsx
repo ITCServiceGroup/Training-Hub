@@ -1,6 +1,6 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
 import React from 'react';
-import { FaFont, FaSquare, FaImage, FaStar, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns, FaRegStar, FaListOl, FaIdCard, FaMousePointer } from 'react-icons/fa';
+import { FaFont, FaSquare, FaImage, FaStar, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns, FaRegStar, FaListOl, FaIdCard, FaMousePointer, FaGripLines } from 'react-icons/fa';
 import { HiViewColumns } from 'react-icons/hi2';
 import { BsLayoutThreeColumns, BsGrid1X2, BsViewStacked } from 'react-icons/bs';
 import { MdViewColumn, MdViewWeek } from 'react-icons/md';
@@ -14,6 +14,7 @@ import { Interactive } from '../../selectors/Interactive';
 import { Table } from '../../selectors/Table';
 import { CollapsibleSection } from '../../selectors/CollapsibleSection';
 import { Tabs } from '../../selectors/Tabs';
+import { HorizontalLine } from '../../selectors/HorizontalLine';
 import classNames from 'classnames';
 
 export const Toolbox = () => {
@@ -102,6 +103,27 @@ export const Toolbox = () => {
           </div>
         </div>
 
+        <div
+          ref={(ref) => {
+            create(
+              ref,
+              <CraftElement
+                is={HorizontalLine}
+                width="auto"
+                thickness={2}
+                color={{
+                  light: { r: 156, g: 163, b: 175, a: 1 },
+                  dark: { r: 107, g: 114, b: 128, a: 1 }
+                }}
+                alignment="center"
+              />
+            );
+          }}
+        >
+          <div className="toolbox-item" title="Horizontal Line">
+            <FaGripLines size={24} />
+          </div>
+        </div>
 
         <div
           ref={(ref) => {
@@ -364,32 +386,171 @@ export const Toolbox = () => {
               <CraftElement
                 canvas
                 is={Container}
-                background={{ light: { r: 255, g: 255, b: 255, a: 1 }, dark: { r: 31, g: 41, b: 55, a: 1 } }}
+                flexDirection="column"
+                alignItems="flex-start"
+                justifyContent="flex-start"
                 padding={['20', '20', '20', '20']}
-                radius={8}
+                margin={['0', '0', '0', '0']}
+                background={{ r: 255, g: 255, b: 255, a: 1 }}
                 borderStyle="solid"
                 borderWidth={1}
-                borderColor={{ light: { r: 229, g: 231, b: 235, a: 1 }, dark: { r: 75, g: 85, b: 99, a: 1 } }}
-                flexDirection="row"
-                alignItems="flex-start"
+                borderColor={{ r: 229, g: 231, b: 235, a: 1 }}
+                shadow={{
+                  enabled: false,
+                  x: 0,
+                  y: 4,
+                  blur: 8,
+                  spread: 0,
+                  color: { r: 0, g: 0, b: 0, a: 0.15 }
+                }}
+                radius={8}
                 width="100%"
+                height="auto"
+                autoConvertColors={true}
               >
                 <CraftElement
                   canvas
                   is={Container}
-                  width="60px"
-                  height="60px"
-                  background={{ light: { r: 59, g: 130, b: 246, a: 1 }, dark: { r: 96, g: 165, b: 250, a: 1 } }}
-                  radius={30}
-                  alignItems="center"
-                  justifyContent="center"
-                  margin={['0', '16', '0', '0']}
+                  flexDirection="row"
+                  alignItems="flex-start"
+                  justifyContent="flex-start"
+                  padding={['0', '20', '0', '20']}
+                  margin={['0', '0', '0', '0']}
+                  background={{ r: 255, g: 255, b: 255, a: 1 }}
+                  borderStyle="none"
+                  borderWidth={1}
+                  borderColor={{ r: 229, g: 231, b: 235, a: 1 }}
+                  shadow={{
+                    enabled: false,
+                    x: 0,
+                    y: 4,
+                    blur: 8,
+                    spread: 0,
+                    color: { r: 0, g: 0, b: 0, a: 0.15 }
+                  }}
+                  radius={0}
+                  width="100%"
+                  height="auto"
+                  autoConvertColors={true}
                 >
-                  <Text fontSize="24" fontWeight="700" text="1" textAlign="center" color={{ light: { r: 255, g: 255, b: 255, a: 1 }, dark: { r: 255, g: 255, b: 255, a: 1 } }} />
-                </CraftElement>
-                <CraftElement canvas is={Container} width="calc(100% - 76px)">
-                  <Text fontSize="20" fontWeight="600" text="Step Title" margin={['0', '0', '8', '0']} />
-                  <Text fontSize="16" text="Describe this step in your process or tutorial." />
+                  <CraftElement
+                    canvas
+                    is={Container}
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    padding={['0', '0', '0', '0']}
+                    margin={['0', '16', '0', '0']}
+                    background={{ r: 59, g: 130, b: 246, a: 1 }}
+                    borderStyle="none"
+                    borderWidth={1}
+                    borderColor={{ r: 229, g: 231, b: 235, a: 1 }}
+                    shadow={{
+                      enabled: false,
+                      x: 0,
+                      y: 4,
+                      blur: 8,
+                      spread: 0,
+                      color: { r: 0, g: 0, b: 0, a: 0.15 }
+                    }}
+                    radius={30}
+                    width="60px"
+                    height="60px"
+                    autoConvertColors={true}
+                  >
+                    <Text
+                      fontSize="24"
+                      lineHeight={1.5}
+                      textAlign="center"
+                      fontWeight="700"
+                      color={{ r: 255, g: 255, b: 255, a: 1 }}
+                      margin={['0', '0', '0', '0']}
+                      padding={['0', '0', '0', '0']}
+                      shadow={{
+                        enabled: false,
+                        x: 0,
+                        y: 2,
+                        blur: 4,
+                        spread: 0,
+                        color: { r: 0, g: 0, b: 0, a: 0.15 }
+                      }}
+                      text="1"
+                      autoConvertColors={true}
+                      enableFormatting={true}
+                      linkColor={{ r: 59, g: 130, b: 246, a: 1 }}
+                      linkHoverColor={{ r: 37, g: 99, b: 235, a: 1 }}
+                    />
+                  </CraftElement>
+                  <CraftElement
+                    canvas
+                    is={Container}
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    justifyContent="flex-start"
+                    padding={['0', '0', '0', '5']}
+                    margin={['0', '0', '0', '0']}
+                    background={{ r: 255, g: 255, b: 255, a: 1 }}
+                    borderStyle="none"
+                    borderWidth={1}
+                    borderColor={{ r: 229, g: 231, b: 235, a: 1 }}
+                    shadow={{
+                      enabled: false,
+                      x: 0,
+                      y: 4,
+                      blur: 8,
+                      spread: 0,
+                      color: { r: 0, g: 0, b: 0, a: 0.15 }
+                    }}
+                    radius={0}
+                    width="30%"
+                    height="auto"
+                    autoConvertColors={true}
+                  >
+                    <Text
+                      fontSize={22}
+                      lineHeight={1}
+                      textAlign="left"
+                      fontWeight="600"
+                      color={{ r: 92, g: 90, b: 90, a: 1 }}
+                      margin={['0', '0', 0, '0']}
+                      padding={['0', '0', '0', '0']}
+                      shadow={{
+                        enabled: false,
+                        x: 0,
+                        y: 2,
+                        blur: 4,
+                        spread: 0,
+                        color: { r: 0, g: 0, b: 0, a: 0.15 }
+                      }}
+                      text="Step Title"
+                      autoConvertColors={true}
+                      enableFormatting={true}
+                      linkColor={{ r: 59, g: 130, b: 246, a: 1 }}
+                      linkHoverColor={{ r: 37, g: 99, b: 235, a: 1 }}
+                    />
+                    <Text
+                      fontSize={18}
+                      lineHeight={1.1}
+                      textAlign="left"
+                      fontWeight="500"
+                      color={{ r: 92, g: 90, b: 90, a: 1 }}
+                      margin={['0', '0', '0', '0']}
+                      padding={['0', '0', '0', '0']}
+                      shadow={{
+                        enabled: false,
+                        x: 0,
+                        y: 2,
+                        blur: 4,
+                        spread: 0,
+                        color: { r: 0, g: 0, b: 0, a: 0.15 }
+                      }}
+                      text="Describe this step in your process or tutorial."
+                      autoConvertColors={true}
+                      enableFormatting={true}
+                      linkColor={{ r: 59, g: 130, b: 246, a: 1 }}
+                      linkHoverColor={{ r: 37, g: 99, b: 235, a: 1 }}
+                    />
+                  </CraftElement>
                 </CraftElement>
               </CraftElement>
             );
