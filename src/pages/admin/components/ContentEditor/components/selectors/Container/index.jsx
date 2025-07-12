@@ -251,8 +251,22 @@ export const Container = (props) => {
           boxSizing: 'border-box',
           flexShrink: 0,
           flexBasis: 'auto',
-          // Apply only right and left margins
+          // Apply only right and left margins - don't interfere with justifyContent
           margin: `0px ${rightMarginValue}px 0px ${leftMarginValue}px`,
+          // Add horizontal alignment for column containers with width < 100%
+          alignSelf: (() => {
+            // Only apply horizontal alignment for column containers with width < 100%
+            if (flexDirection === 'column' && width !== '100%') {
+              if (alignItems === 'center') {
+                return 'center';
+              } else if (alignItems === 'flex-end') {
+                return 'flex-end';
+              } else {
+                return 'flex-start';
+              }
+            }
+            return 'auto'; // Default - don't interfere with parent's justifyContent
+          })(),
           padding: 0,
           pointerEvents: 'auto'
         }}

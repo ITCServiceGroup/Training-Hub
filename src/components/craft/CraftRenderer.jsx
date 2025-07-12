@@ -14,6 +14,8 @@ import { Interactive } from '../../pages/admin/components/ContentEditor/componen
 import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
 import { TableText } from '../../pages/admin/components/ContentEditor/components/selectors/Table/TableText';
 import { Tabs } from '../../pages/admin/components/ContentEditor/components/selectors/Tabs'; // Added Tabs import
+import { HorizontalLine } from '../../pages/admin/components/ContentEditor/components/selectors/HorizontalLine'; // Added HorizontalLine import
+import { Icon } from '../../pages/admin/components/ContentEditor/components/selectors/Icon'; // Added Icon import
 import InteractiveRenderer from '../../pages/admin/components/ContentEditor/components/selectors/Interactive/InteractiveRenderer';
 
 import './CraftRenderer.css';
@@ -239,6 +241,29 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
 
       const filteredContent = filterDefaultPlaceholders(parsed);
       console.log('CraftRenderer: Filtered out default placeholder text nodes');
+
+      // Validate that all component types in the content are registered
+      const validateComponents = (nodes) => {
+        const resolver = {
+          Container, Text, Button, Image, Interactive, Table, TableText,
+          CollapsibleSection, 'Collapsible Section': CollapsibleSection,
+          Tabs, HorizontalLine, 'Horizontal Line': HorizontalLine, Icon
+        };
+
+        for (const nodeId in nodes) {
+          const node = nodes[nodeId];
+          if (node.type && node.type.resolvedName) {
+            const componentName = node.type.resolvedName;
+            if (!resolver[componentName]) {
+              console.error(`CraftRenderer: Component "${componentName}" not found in resolver. Available components:`, Object.keys(resolver));
+              throw new Error(`Component "${componentName}" is not registered in the CraftRenderer resolver`);
+            }
+          }
+        }
+      };
+
+      validateComponents(filteredContent);
+
       setParsedContent(filteredContent);
       setError(null);
 
@@ -288,7 +313,10 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
             TableText,
             CollapsibleSection,
             'Collapsible Section': CollapsibleSection,
-            Tabs
+            Tabs,
+            HorizontalLine,
+            'Horizontal Line': HorizontalLine,
+            Icon
           }}
           enabled={false}
           onRender={({ render, node }) => {
