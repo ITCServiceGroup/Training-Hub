@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNode } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
@@ -95,6 +95,9 @@ export const TextSettings = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showIconSelector, setShowIconSelector] = useState(false);
+
+  // Ref for icon grid container to enable scrolling to selected icon
+  const iconGridRef = useRef(null);
 
   // Local state for font size input to allow free typing
   const [localFontSize, setLocalFontSize] = useState('');
@@ -204,6 +207,26 @@ export const TextSettings = () => {
   useEffect(() => {
     setLocalFontSize(fontSize.toString());
   }, [fontSize]);
+
+  // Effect to scroll to selected icon when icon selector opens
+  useEffect(() => {
+    if (showIconSelector && iconGridRef.current && iconName) {
+      // Small delay to ensure the DOM is fully rendered
+      const timer = setTimeout(() => {
+        const selectedIconButton = iconGridRef.current.querySelector(`button[data-icon-key="${iconName}"]`);
+        if (selectedIconButton) {
+          // Set scroll position instantly without animation to open at the selected icon
+          selectedIconButton.scrollIntoView({
+            behavior: 'instant',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showIconSelector, iconName]);
 
   // Handler to commit font size changes
   const handleFontSizeCommit = () => {
@@ -874,7 +897,7 @@ export const TextSettings = () => {
                         </div>
 
                         {/* Icon Grid */}
-                        <div className="max-h-64 overflow-y-auto">
+                        <div ref={iconGridRef} className="max-h-64 overflow-y-auto">
                           {filteredIconsByCategory.length === 0 ? (
                             <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
                               No icons found matching "{searchTerm}"
@@ -889,6 +912,7 @@ export const TextSettings = () => {
                                   {icons.map(({ key, name }) => (
                                     <button
                                       key={key}
+                                      data-icon-key={key}
                                       className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-500 flex items-center justify-center ${
                                         iconName === key ? 'bg-blue-100 dark:bg-blue-900' : ''
                                       }`}

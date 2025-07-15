@@ -298,6 +298,7 @@ export const Container = (props) => {
             alignItems,
             width: '100%',
             height: height || 'auto',
+            minHeight: height === 'auto' ? '50px' : 'auto', // Ensure minimum height for vertical alignment
             background: (() => {
               try {
                 const color = getThemeColor(backgroundProp, isDark, 'container');

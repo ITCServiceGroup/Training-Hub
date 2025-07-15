@@ -442,7 +442,11 @@ export const Text = ({
     <div
       ref={connect}
       className="flex items-center"
-      style={{ width: '100%' }}
+      style={{
+        width: '100%',
+        // Apply margin to the outer wrapper
+        margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
+      }}
     >
       {hasIcon && IconComponent && (
         <div
@@ -484,7 +488,8 @@ export const Text = ({
           tagName="div"
           style={{
             width: '100%',
-            margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
+            // Remove margin from ContentEditable - now applied to outer wrapper
+            // Apply only padding to the inner content
             padding: padding.every(p => p === '0' || p === 0)
               ? '4px 0' // Default padding if none is set
               : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,

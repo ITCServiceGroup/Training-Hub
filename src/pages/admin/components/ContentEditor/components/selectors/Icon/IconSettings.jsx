@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
@@ -53,6 +53,9 @@ export const IconSettings = () => {
 
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Ref for icon grid container to enable scrolling to selected icon
+  const iconGridRef = useRef(null);
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
@@ -132,6 +135,25 @@ export const IconSettings = () => {
         )
       })).filter(({ icons }) => icons.length > 0);
 
+  // Effect to scroll to selected icon when icon selector opens
+  useEffect(() => {
+    if (showIconSelector && iconGridRef.current && iconName) {
+      // Small delay to ensure the DOM is fully rendered
+      const timer = setTimeout(() => {
+        const selectedIconButton = iconGridRef.current.querySelector(`button[data-icon-key="${iconName}"]`);
+        if (selectedIconButton) {
+          selectedIconButton.scrollIntoView({
+            behavior: 'instant',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showIconSelector, iconName]);
+
   return (
     <div className="icon-settings">
       {/* Icon Settings Section */}
@@ -198,7 +220,7 @@ export const IconSettings = () => {
                   </div>
 
                   {/* Icon Grid */}
-                  <div className="max-h-64 overflow-y-auto">
+                  <div ref={iconGridRef} className="max-h-64 overflow-y-auto">
                     {filteredIconsByCategory.length === 0 ? (
                       <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
                         No icons found matching "{searchTerm}"
@@ -213,6 +235,7 @@ export const IconSettings = () => {
                         {icons.map(({ key, name }) => (
                           <button
                             key={key}
+                            data-icon-key={key}
                             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-500 flex items-center justify-center ${
                               iconName === key ? 'bg-blue-100 dark:bg-blue-900' : ''
                             }`}

@@ -15,6 +15,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
   const triggerRef = useRef(null);
+  const iconGridRef = useRef(null);
 
   // Find the selected icon object
   const selectedIconObj = availableIcons.find(icon => icon.name === selectedIcon) || availableIcons[0];
@@ -91,6 +92,25 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
     }
   }, [isOpen]);
 
+  // Effect to scroll to selected icon when icon selector opens
+  useEffect(() => {
+    if (isOpen && iconGridRef.current && selectedIcon) {
+      // Small delay to ensure the DOM is fully rendered
+      const timer = setTimeout(() => {
+        const selectedIconDiv = iconGridRef.current.querySelector(`[data-icon-name="${selectedIcon}"]`);
+        if (selectedIconDiv) {
+          selectedIconDiv.scrollIntoView({
+            behavior: 'instant',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, selectedIcon]);
+
   return (
     <div className="relative">
       <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'} mb-2`}>
@@ -134,10 +154,11 @@ const IconSelector = ({ selectedIcon, onSelectIcon, isDark }) => {
           </div>
 
           {/* Icons grid - showing more icons with compact layout */}
-          <div className="grid grid-cols-4 gap-2 p-2">
+          <div ref={iconGridRef} className="grid grid-cols-4 gap-2 p-2">
             {filteredIcons.map((icon) => (
               <div
                 key={icon.name}
+                data-icon-name={icon.name}
                 className={`p-1 flex flex-col items-center justify-center rounded-md cursor-pointer hover:bg-gray-100 hover:dark:bg-slate-600 ${selectedIcon === icon.name ? (isDark ? 'bg-slate-600' : 'bg-gray-100') : ''}`}
                 onClick={() => {
                   onSelectIcon(icon.name);
