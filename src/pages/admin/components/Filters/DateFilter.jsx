@@ -88,67 +88,94 @@ const DateFilter = ({ value, onChange }) => {
 
   return (
     <div className="w-full">
-      {/* Sub-labels row for alignment */}
-      <div className="flex flex-row gap-2 mb-1">
-        <div className="w-full md:w-40" />
-        <div className="w-full md:w-36">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block text-left">Start</span>
-        </div>
-        <div className="w-full md:w-36">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block text-left">End</span>
-        </div>
-      </div>
-      <div className="flex flex-col md:flex-row items-stretch gap-2 w-full">
+      <div className="space-y-3 w-full">
         {/* Preset Dropdown */}
-        <select
-          value={value.preset}
-          onChange={handlePresetChange}
-          className="block w-full md:w-40 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-        >
-          {presetOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        {/* Start Date */}
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Flatpickr
-            id="start-date"
-            value={value.startDate}
-            onChange={([date]) => {
-              onChange({
-                ...value,
-                preset: 'custom',
-                startDate: date ? date.toISOString().split('T')[0] : null
-              });
-            }}
-            className="block w-full md:w-36 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-            options={{
-              dateFormat: 'Y-m-d',
-              maxDate: value.endDate || 'today'
-            }}
-          />
+        <div>
+          <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Preset</label>
+          <select
+            value={value.preset}
+            onChange={handlePresetChange}
+            className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+          >
+            {presetOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
-        {/* End Date */}
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Flatpickr
-            id="end-date"
-            value={value.endDate}
-            onChange={([date]) => {
-              onChange({
-                ...value,
-                preset: 'custom',
-                endDate: date ? date.toISOString().split('T')[0] : null
-              });
-            }}
-            className="block w-full md:w-36 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-            options={{
-              dateFormat: 'Y-m-d',
-              minDate: value.startDate,
-              maxDate: 'today'
-            }}
-          />
+
+        {/* Date Range - Side by Side */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Start Date */}
+          <div>
+            <Flatpickr
+              id="start-date"
+              value={value.startDate || ''}
+              onChange={([date]) => {
+                if (date) {
+                  onChange({
+                    ...value,
+                    preset: 'custom',
+                    startDate: date.toISOString().split('T')[0]
+                  });
+                }
+              }}
+              placeholder="Start Date"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              options={{
+                dateFormat: 'Y-m-d',
+                maxDate: value.endDate || 'today',
+                clickOpens: true,
+                allowInput: false,
+                disableMobile: true,
+                onClose: (selectedDates, dateStr, instance) => {
+                  // Prevent event bubbling that might close the popover
+                  instance.element.blur();
+                },
+                onReady: (selectedDates, dateStr, instance) => {
+                  // Disable browser autocomplete
+                  instance.element.setAttribute('autocomplete', 'off');
+                  instance.element.setAttribute('readonly', 'readonly');
+                }
+              }}
+            />
+          </div>
+          {/* End Date */}
+          <div>
+            <Flatpickr
+              id="end-date"
+              value={value.endDate || ''}
+              onChange={([date]) => {
+                if (date) {
+                  onChange({
+                    ...value,
+                    preset: 'custom',
+                    endDate: date.toISOString().split('T')[0]
+                  });
+                }
+              }}
+              placeholder="End Date"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              options={{
+                dateFormat: 'Y-m-d',
+                minDate: value.startDate,
+                maxDate: 'today',
+                clickOpens: true,
+                allowInput: false,
+                disableMobile: true,
+                onClose: (selectedDates, dateStr, instance) => {
+                  // Prevent event bubbling that might close the popover
+                  instance.element.blur();
+                },
+                onReady: (selectedDates, dateStr, instance) => {
+                  // Disable browser autocomplete
+                  instance.element.setAttribute('autocomplete', 'off');
+                  instance.element.setAttribute('readonly', 'readonly');
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>

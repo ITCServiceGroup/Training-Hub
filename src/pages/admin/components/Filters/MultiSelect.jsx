@@ -122,6 +122,7 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       <Select
         id={`filter-${type}`}
         isMulti
+        isSearchable={false}
         options={options}
         value={options.filter(option => value.includes(option.value))}
         onChange={(selected) => onChange(selected ? selected.map(item => item.value) : [])}

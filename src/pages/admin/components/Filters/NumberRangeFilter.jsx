@@ -1,9 +1,11 @@
 import React from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 
-const NumberRangeFilter = ({ type, value, onChange, hideTitle = false }) => {
+const NumberRangeFilter = ({ type, value, onChange, hideTitle = false, min = 0, max = 100, unit = '' }) => {
   const { theme } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
+
+  // Use provided props or fallback to type-based config
   const labels = {
     score: {
       title: 'Score Range',
@@ -26,48 +28,53 @@ const NumberRangeFilter = ({ type, value, onChange, hideTitle = false }) => {
   const handleChange = (field, newValue) => {
     onChange({
       ...value,
-      [field]: newValue
+      [field]: parseInt(newValue) || 0
     });
   };
 
-  const config = labels[type];
+  // Use type-based config if available, otherwise use generic labels
+  const config = type && labels[type] ? labels[type] : {
+    title: 'Range',
+    min: `Min ${unit}`,
+    max: `Max ${unit}`,
+    step: '1',
+    minPlaceholder: min.toString(),
+    maxPlaceholder: max.toString()
+  };
 
   return (
-    <div className="space-y-2 w-full">
-      {!hideTitle && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {config.title}
-        </label>
-      )}
-      <div className="grid grid-cols-2 gap-4 w-full">
+    <div className="w-full">
+      <div className="grid grid-cols-2 gap-3 w-full">
         <div className="min-w-0">
-          <label htmlFor={`${type}-min`} className="block text-sm text-gray-600 dark:text-gray-400">
-            {config.min}
+          <label htmlFor={`${type || 'range'}-min`} className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
+            Min {unit}
           </label>
           <input
             type="number"
-            id={`${type}-min`}
-            value={value.min}
+            id={`${type || 'range'}-min`}
+            value={value?.min || min}
             onChange={(e) => handleChange('min', e.target.value)}
-            min="0"
+            min={min}
+            max={max}
             step={config.step}
             placeholder={config.minPlaceholder}
-            className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+            className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
           />
         </div>
         <div className="min-w-0">
-          <label htmlFor={`${type}-max`} className="block text-sm text-gray-600 dark:text-gray-400">
-            {config.max}
+          <label htmlFor={`${type || 'range'}-max`} className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
+            Max {unit}
           </label>
           <input
             type="number"
-            id={`${type}-max`}
-            value={value.max}
+            id={`${type || 'range'}-max`}
+            value={value?.max || max}
             onChange={(e) => handleChange('max', e.target.value)}
-            min={value.min || "0"}
+            min={value?.min || min}
+            max={max}
             step={config.step}
             placeholder={config.maxPlaceholder}
-            className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+            className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
           />
         </div>
       </div>

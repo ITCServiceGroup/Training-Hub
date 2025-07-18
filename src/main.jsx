@@ -19,7 +19,13 @@ console.log('Looking for root element:', document.getElementById('root'));
 try {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <HashRouter basename={basename}>
+      <HashRouter
+        basename={basename}
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <AuthProvider>
           <ThemeProvider>
             <ToastProvider>
@@ -37,7 +43,13 @@ try {
   // Fallback to render without AuthProvider if there's an error
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <HashRouter basename={basename}>
+      <HashRouter
+        basename={basename}
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <ThemeProvider>
           <ToastProvider>
             <App />
