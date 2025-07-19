@@ -13,7 +13,6 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
-const AdminDashboardV2 = lazy(() => import('./pages/admin/AdminDashboardV2'));
 const AdminStudyGuides = lazy(() => import('./pages/admin/StudyGuides'));
 const AdminQuizzes = lazy(() => import('./pages/admin/AdminQuizzes'));
 const QuizBuilderPage = lazy(() => import('./components/quiz-builder/QuizBuilderPage'));
@@ -123,14 +122,10 @@ function App() {
             <Route element={<AdminLayout />}>
               <Route index element={
                 <Suspense fallback={<LoadingFallback />}>
-                  <AdminDashboardV2 />
-                </Suspense>
-              } />
-              <Route path="dashboard-old" element={
-                <Suspense fallback={<LoadingFallback />}>
                   <AdminDashboard />
                 </Suspense>
               } />
+
               <Route path="study-guides" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <AdminStudyGuides />
