@@ -160,13 +160,11 @@ export const DashboardProvider = ({ children }) => {
 
   // Handle persistent cross-filtering (shows in breadcrumbs)
   const applyCrossFilter = useCallback((type, value, sourceChart) => {
-    setCrossFilters({
-      supervisor: type === 'supervisor' ? value : null,
-      market: type === 'market' ? value : null,
-      timeRange: type === 'timeRange' ? value : null,
-      scoreRange: type === 'scoreRange' ? value : null,
-      sourceChart: value ? sourceChart : null
-    });
+    setCrossFilters(prev => ({
+      ...prev,
+      [type]: value,
+      sourceChart: value ? sourceChart : (prev[type] ? null : prev.sourceChart)
+    }));
   }, []);
 
   // Handle brush selection for trend charts
@@ -279,11 +277,53 @@ export const DashboardProvider = ({ children }) => {
 
   // Get combined filters (drill-down + cross-filters + hover filters + brush selection)
   const getCombinedFilters = useCallback(() => {
+    // Combine time range filters - we need to intersect them if both exist
+    let combinedTimeRange = null;
+
+    // Handle combination of drill-down time range (from time distribution clicks) and brush selection
+    if (drillDownState.timeRange && brushSelection.timeRange) {
+      // Time distribution filter has {min, max} (seconds), brush selection has {startDate, endDate}
+      // We need to apply both constraints - the time distribution constraint AND the date range constraint
+      combinedTimeRange = {
+        ...brushSelection.timeRange, // Keep the date range from brush selection
+        min: drillDownState.timeRange.min, // Add time duration constraint
+        max: drillDownState.timeRange.max,
+        label: `${drillDownState.timeRange.label} ∩ ${brushSelection.timeRange.label}`
+      };
+    } else if (crossFilters.timeRange && brushSelection.timeRange) {
+      // Handle cross-filter + brush selection intersection (if we ever use cross-filters)
+      const crossStart = new Date(crossFilters.timeRange.startDate || '1970-01-01');
+      const crossEnd = new Date(crossFilters.timeRange.endDate || '2099-12-31');
+      const brushStart = new Date(brushSelection.timeRange.startDate);
+      const brushEnd = new Date(brushSelection.timeRange.endDate);
+
+      // Find the intersection of the two time ranges
+      const intersectionStart = new Date(Math.max(crossStart.getTime(), brushStart.getTime()));
+      const intersectionEnd = new Date(Math.min(crossEnd.getTime(), brushEnd.getTime()));
+
+      // Only use intersection if it's valid (start < end)
+      if (intersectionStart < intersectionEnd) {
+        combinedTimeRange = {
+          startDate: intersectionStart.toISOString().split('T')[0],
+          endDate: intersectionEnd.toISOString().split('T')[0],
+          label: `${crossFilters.timeRange.label} ∩ ${brushSelection.timeRange.label}`,
+          min: crossFilters.timeRange.min,
+          max: crossFilters.timeRange.max
+        };
+      } else {
+        // If no valid intersection, use the more restrictive one (brush selection)
+        combinedTimeRange = brushSelection.timeRange;
+      }
+    } else {
+      // Use whichever one exists
+      combinedTimeRange = drillDownState.timeRange || crossFilters.timeRange || brushSelection.timeRange;
+    }
+
     // Drill-down filters take precedence and are always applied
     const baseFilters = {
       supervisor: drillDownState.supervisor,
       market: drillDownState.market,
-      timeRange: drillDownState.timeRange || brushSelection.timeRange,
+      timeRange: combinedTimeRange,
       scoreRange: drillDownState.scoreRange,
       quizType: drillDownState.quizType,
       question: drillDownState.question,
@@ -293,7 +333,7 @@ export const DashboardProvider = ({ children }) => {
     const withCrossFilters = {
       supervisor: baseFilters.supervisor || crossFilters.supervisor,
       market: baseFilters.market || crossFilters.market,
-      timeRange: baseFilters.timeRange || crossFilters.timeRange,
+      timeRange: baseFilters.timeRange,
       scoreRange: baseFilters.scoreRange || crossFilters.scoreRange,
       quizType: baseFilters.quizType || crossFilters.quizType,
       question: baseFilters.question || crossFilters.question,
@@ -309,16 +349,51 @@ export const DashboardProvider = ({ children }) => {
       question: withCrossFilters.question,
     };
 
-    // Add hover filters as additional constraints (only if they don't conflict with existing filters)
+    // Add hover filters as additional constraints
     if (hoverFilters.supervisor && !finalFilters.supervisor) {
       finalFilters.supervisor = hoverFilters.supervisor;
     }
     if (hoverFilters.market && !finalFilters.market) {
       finalFilters.market = hoverFilters.market;
     }
-    if (hoverFilters.timeRange && !finalFilters.timeRange) {
-      finalFilters.timeRange = hoverFilters.timeRange;
+
+    // Special handling for time range hover filters - combine with existing time range filters
+    if (hoverFilters.timeRange) {
+      if (!finalFilters.timeRange) {
+        // No existing time range filter, use hover filter
+        finalFilters.timeRange = hoverFilters.timeRange;
+      } else {
+        // Combine hover time range with existing time range filter
+        const existing = finalFilters.timeRange;
+        const hover = hoverFilters.timeRange;
+
+        // Create combined filter with both constraints
+        finalFilters.timeRange = {
+          // Keep existing date range constraints if present
+          ...(existing.startDate && existing.endDate ? {
+            startDate: existing.startDate,
+            endDate: existing.endDate
+          } : {}),
+          // Add hover duration constraints (time distribution hover)
+          ...(hover.min !== undefined && hover.max !== undefined ? {
+            min: hover.min,
+            max: hover.max
+          } : {}),
+          // Combine existing duration constraints if present
+          ...(existing.min !== undefined && existing.max !== undefined ? {
+            min: existing.min,
+            max: existing.max
+          } : {}),
+          // Add hover date constraints if present
+          ...(hover.startDate && hover.endDate ? {
+            startDate: hover.startDate,
+            endDate: hover.endDate
+          } : {}),
+          label: `${existing.label} + ${hover.label}`
+        };
+      }
     }
+
     if (hoverFilters.scoreRange && !finalFilters.scoreRange) {
       finalFilters.scoreRange = hoverFilters.scoreRange;
     }
@@ -340,10 +415,52 @@ export const DashboardProvider = ({ children }) => {
 
   // Get base filters (drill-down + cross-filters + brush, excluding hover)
   const getBaseFilters = useCallback(() => {
+    // Use the same time range combination logic as getCombinedFilters
+    let combinedTimeRange = null;
+
+    // Handle combination of drill-down time range (from time distribution clicks) and brush selection
+    if (drillDownState.timeRange && brushSelection.timeRange) {
+      // Time distribution filter has {min, max} (seconds), brush selection has {startDate, endDate}
+      // We need to apply both constraints - the time distribution constraint AND the date range constraint
+      combinedTimeRange = {
+        ...brushSelection.timeRange, // Keep the date range from brush selection
+        min: drillDownState.timeRange.min, // Add time duration constraint
+        max: drillDownState.timeRange.max,
+        label: `${drillDownState.timeRange.label} ∩ ${brushSelection.timeRange.label}`
+      };
+    } else if (crossFilters.timeRange && brushSelection.timeRange) {
+      // Handle cross-filter + brush selection intersection (if we ever use cross-filters)
+      const crossStart = new Date(crossFilters.timeRange.startDate || '1970-01-01');
+      const crossEnd = new Date(crossFilters.timeRange.endDate || '2099-12-31');
+      const brushStart = new Date(brushSelection.timeRange.startDate);
+      const brushEnd = new Date(brushSelection.timeRange.endDate);
+
+      // Find the intersection of the two time ranges
+      const intersectionStart = new Date(Math.max(crossStart.getTime(), brushStart.getTime()));
+      const intersectionEnd = new Date(Math.min(crossEnd.getTime(), brushEnd.getTime()));
+
+      // Only use intersection if it's valid (start < end)
+      if (intersectionStart < intersectionEnd) {
+        combinedTimeRange = {
+          startDate: intersectionStart.toISOString().split('T')[0],
+          endDate: intersectionEnd.toISOString().split('T')[0],
+          label: `${crossFilters.timeRange.label} ∩ ${brushSelection.timeRange.label}`,
+          min: crossFilters.timeRange.min,
+          max: crossFilters.timeRange.max
+        };
+      } else {
+        // If no valid intersection, use the more restrictive one (brush selection)
+        combinedTimeRange = brushSelection.timeRange;
+      }
+    } else {
+      // Use whichever one exists
+      combinedTimeRange = drillDownState.timeRange || crossFilters.timeRange || brushSelection.timeRange;
+    }
+
     return {
       supervisor: drillDownState.supervisor || crossFilters.supervisor,
       market: drillDownState.market || crossFilters.market,
-      timeRange: drillDownState.timeRange || crossFilters.timeRange || brushSelection.timeRange,
+      timeRange: combinedTimeRange,
       scoreRange: drillDownState.scoreRange || crossFilters.scoreRange,
       quizType: drillDownState.quizType || crossFilters.quizType,
       question: drillDownState.question || crossFilters.question,

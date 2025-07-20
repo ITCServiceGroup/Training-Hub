@@ -133,6 +133,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
           if (score >= 70) return '#f59e0b'; // Orange
           return '#ef4444'; // Red
         }}
+        borderRadius={4}
         theme={{
           background: 'transparent',
           text: {

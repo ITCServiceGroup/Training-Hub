@@ -1,51 +1,54 @@
 import React, { useMemo, useState } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { useDashboardFilters } from '../../contexts/DashboardContext';
+import { useDashboard } from '../../contexts/DashboardContext';
+import { filterDataForChart } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaToggleOn, FaToggleOff, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const TopBottomPerformersChart = ({ data = [], loading = false }) => {
-  const { isDark } = useTheme();
-  const { getFiltersForChart, shouldFilterChart } = useDashboardFilters();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const { getFiltersForChart, shouldFilterChart } = useDashboard();
   const [showTopPerformers, setShowTopPerformers] = useState(true);
   const [anonymizeNames, setAnonymizeNames] = useState(true);
   const [performerCount, setPerformerCount] = useState(10);
 
-  // Filter data for this chart (includes hover filters from other charts, excludes own hover)
-  const chartFilteredData = useMemo(() => {
+  // Get filtered data using the centralized filtering utility
+  const filteredData = useMemo(() => {
     const filters = getFiltersForChart('top-bottom-performers');
     const shouldFilter = shouldFilterChart('top-bottom-performers');
-
-    if (!shouldFilter) return data;
-
-    return data.filter(result => {
-      if (filters.supervisor && result.supervisor !== filters.supervisor) return false;
-      if (filters.market && result.market !== filters.market) return false;
-      if (filters.timeRange) {
-        const resultDate = new Date(result.date_of_test);
-        const startDate = new Date(filters.timeRange.startDate);
-        const endDate = new Date(filters.timeRange.endDate);
-        if (resultDate < startDate || resultDate > endDate) return false;
-      }
-      if (filters.scoreRange) {
-        const score = parseFloat(result.score_value) * 100;
-        if (score < filters.scoreRange.min || score > filters.scoreRange.max) return false;
-      }
-      if (filters.quizType && result.quiz_type !== filters.quizType) return false;
-      return true;
-    });
+    return filterDataForChart(data, filters, 'top-bottom-performers', shouldFilter);
   }, [data, getFiltersForChart, shouldFilterChart]);
 
   // Process data by individual performers
   const chartData = useMemo(() => {
-    if (!chartFilteredData || chartFilteredData.length === 0) return [];
+    if (!data || data.length === 0) return [];
 
-    // Group by LDAP (individual user)
-    const userGroups = {};
-    
-    chartFilteredData.forEach(result => {
+    // First, identify users with 2+ tests overall (unfiltered)
+    const allUserGroups = {};
+    data.forEach(result => {
       const ldap = result.ldap || 'Unknown';
+      if (!allUserGroups[ldap]) {
+        allUserGroups[ldap] = 0;
+      }
+      allUserGroups[ldap]++;
+    });
+
+    // Get users who have 1+ tests overall
+    const qualifyingUsers = Object.keys(allUserGroups).filter(ldap => allUserGroups[ldap] >= 1);
+
+    if (qualifyingUsers.length === 0) return [];
+
+    // Now filter the data and group by qualifying users only
+    const userGroups = {};
+
+    filteredData.forEach(result => {
+      const ldap = result.ldap || 'Unknown';
+
+      // Only include users who have 2+ tests overall
+      if (!qualifyingUsers.includes(ldap)) return;
+
       if (!userGroups[ldap]) {
         userGroups[ldap] = {
           scores: [],
@@ -56,26 +59,27 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
           latestTest: result.date_of_test
         };
       }
-      
+
       userGroups[ldap].scores.push(parseFloat(result.score_value) || 0);
       userGroups[ldap].times.push(parseInt(result.time_taken) || 0);
       userGroups[ldap].count++;
-      
+
       // Keep track of latest test date
       if (new Date(result.date_of_test) > new Date(userGroups[ldap].latestTest)) {
         userGroups[ldap].latestTest = result.date_of_test;
       }
     });
 
-    // Calculate averages and format for chart
+    // Calculate averages and format for chart (only for users who have data in the filtered set)
     const userData = Object.entries(userGroups)
+      .filter(([ldap, group]) => group.count > 0) // Must have at least 1 test in filtered data
       .map(([ldap, group]) => {
         const avgScore = group.scores.reduce((sum, score) => sum + score, 0) / group.scores.length;
         const avgTime = group.times.reduce((sum, time) => sum + time, 0) / group.times.length;
         const bestScore = Math.max(...group.scores);
         const worstScore = Math.min(...group.scores);
         const consistency = 1 - (Math.sqrt(group.scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / group.scores.length));
-        
+
         return {
           ldap: anonymizeNames ? `User ${ldap.slice(-4)}` : ldap,
           fullLdap: ldap,
@@ -85,14 +89,14 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
           worstScore: (worstScore * 100).toFixed(1),
           consistency: (consistency * 100).toFixed(1),
           count: group.count,
+          totalTests: allUserGroups[ldap], // Show total tests for context
           supervisor: group.supervisor,
           market: group.market,
           latestTest: group.latestTest,
-          trend: group.scores.length > 1 ? 
+          trend: group.scores.length > 1 ?
             (group.scores[group.scores.length - 1] > group.scores[0] ? 'improving' : 'declining') : 'stable'
         };
       })
-      .filter(user => user.count >= 2) // Only show users with multiple tests
       .sort((a, b) => parseFloat(b.averageScore) - parseFloat(a.averageScore));
 
     // Return top or bottom performers based on toggle
@@ -101,7 +105,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
     } else {
       return userData.slice(-performerCount).reverse();
     }
-  }, [chartFilteredData, showTopPerformers, anonymizeNames, performerCount]);
+  }, [data, filteredData, showTopPerformers, anonymizeNames, performerCount]);
 
   if (loading) {
     return (
@@ -114,7 +118,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
   if (chartData.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-slate-500 dark:text-slate-400">No data available (requires users with 2+ tests)</div>
+        <div className="text-slate-500 dark:text-slate-400">No data available</div>
       </div>
     );
   }
@@ -174,6 +178,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
             return '#eab308'; // Yellow
           }
         }}
+        borderRadius={4}
         theme={{
           background: 'transparent',
           text: {
@@ -260,7 +265,8 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
             { label: 'Best Score', value: `${data.bestScore}%` },
             { label: 'Worst Score', value: `${data.worstScore}%` },
             { label: 'Consistency', value: `${data.consistency}%` },
-            { label: 'Tests Taken', value: data.count },
+            { label: 'Filtered Tests', value: data.count },
+            { label: 'Total Tests', value: data.totalTests },
             { label: 'Supervisor', value: data.supervisor },
             { label: 'Market', value: data.market },
             { label: 'Trend', value: data.trend }

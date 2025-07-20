@@ -42,19 +42,26 @@ export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter)
   // Apply time range filter
   if (combinedFilters.timeRange) {
     const timeRange = combinedFilters.timeRange;
-    if (timeRange.startDate && timeRange.endDate) {
-      // Date-based time range filter
-      filteredData = filteredData.filter(result => {
+
+    filteredData = filteredData.filter(result => {
+      let passesFilter = true;
+
+      // Apply date-based filter if present
+      if (timeRange.startDate && timeRange.endDate) {
         const resultDate = new Date(result.date_of_test);
-        return resultDate >= new Date(timeRange.startDate) && resultDate <= new Date(timeRange.endDate);
-      });
-    } else if (timeRange.min !== undefined && timeRange.max !== undefined) {
-      // Duration-based time range filter (from time distribution chart)
-      filteredData = filteredData.filter(result => {
+        const startDate = new Date(timeRange.startDate);
+        const endDate = new Date(timeRange.endDate);
+        passesFilter = passesFilter && (resultDate >= startDate && resultDate <= endDate);
+      }
+
+      // Apply duration-based filter if present
+      if (timeRange.min !== undefined && timeRange.max !== undefined) {
         const timeTaken = parseInt(result.time_taken) || 0;
-        return timeTaken >= timeRange.min && (timeRange.max === Infinity ? true : timeTaken <= timeRange.max);
-      });
-    }
+        passesFilter = passesFilter && (timeTaken >= timeRange.min && (timeRange.max === Infinity ? true : timeTaken <= timeRange.max));
+      }
+
+      return passesFilter;
+    });
   }
 
   // Apply score range filter

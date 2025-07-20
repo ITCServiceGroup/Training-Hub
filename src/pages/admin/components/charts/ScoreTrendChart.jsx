@@ -59,7 +59,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       })
       .sort((a, b) => new Date(a.x) - new Date(b.x));
 
-    return [{ id: 'Average Score', color: '#3b82f6', data: points }];
+    return [{ id: 'Average Score', color: '#f59e0b', data: points }];
   }, []);
 
   // Process individual user data
@@ -265,7 +265,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     <div
       ref={chartRef}
       className="h-full w-full relative cursor-crosshair"
-      style={{ height: '275px' }}
+      style={{ height: '230px' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

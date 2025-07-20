@@ -266,6 +266,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
         valueScale={{ type: 'linear', min: 0, max: 100 }}
         indexScale={{ type: 'band', round: true }}
         colors={({ data }) => data.statusColor}
+        borderRadius={4}
         theme={{
           background: 'transparent',
           text: {

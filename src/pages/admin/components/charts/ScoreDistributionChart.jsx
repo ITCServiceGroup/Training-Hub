@@ -114,7 +114,7 @@ const ScoreDistributionChart = ({ data = [], loading = false }) => {
   }
 
   return (
-    <div className="h-full w-full" style={{ height: '275px' }}>
+    <div className="h-full w-full" style={{ height: '230px' }}>
       <ResponsiveBar
         data={chartData}
         keys={['count']}
@@ -124,6 +124,7 @@ const ScoreDistributionChart = ({ data = [], loading = false }) => {
         valueScale={{ type: 'linear' }}
         indexScale={{ type: 'band', round: true }}
         colors={['#3b82f6']}
+        borderRadius={4}
         theme={{
           background: 'transparent',
           text: {
