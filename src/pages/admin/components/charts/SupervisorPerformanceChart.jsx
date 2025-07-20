@@ -93,7 +93,7 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
   }
 
   return (
-    <div className="h-full w-full" style={{ height: '230px' }}>
+    <div className="h-full w-full" style={{ height: '275px' }}>
       <ResponsiveBar
         data={chartData}
         keys={['averageScore']}

@@ -265,7 +265,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     <div
       ref={chartRef}
       className="h-full w-full relative cursor-crosshair"
-      style={{ height: '230px' }}
+      style={{ height: '275px' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
