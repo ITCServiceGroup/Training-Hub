@@ -567,16 +567,19 @@ const Dashboard = () => {
   return (
     <DashboardProvider activeDashboardId={activeDashboard?.id}>
       <div className="space-y-6">
-        {/* Header with Preset Selector and Global Filters */}
+        {/* Streamlined Dashboard Header */}
         <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Dashboard
-              </h1>
-
-              {/* Beautiful Dashboard Manager Dropdown */}
-              <DashboardManagerDropdown
+          <div className="space-y-4 mb-6">
+            {/* Analytics Dashboard Title */}
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              Analytics Dashboard
+            </h1>
+            
+            {/* Dashboard Controls Row */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {/* Dashboard Manager Dropdown */}
+                <DashboardManagerDropdown
                 dashboards={dashboards}
                 activeDashboard={activeDashboard}
                 onDashboardChange={switchToDashboard}
@@ -588,7 +591,7 @@ const Dashboard = () => {
                 loading={dashboardLoading}
               />
 
-              {/* Tile Library Button */}
+              {/* Edit Charts Button */}
               <TileLibraryButton
                 currentTiles={getCurrentTiles().map(tile => tile.id)}
                 onAddTile={(tileId) => {
@@ -617,7 +620,7 @@ const Dashboard = () => {
 
               {/* Export Button */}
               <ExportButton
-                targetSelector=".dashboard-grid"
+                targetSelector=".dashboard-resizable-grid"
                 type="dashboard"
                 filename={`dashboard_${activeDashboard?.name || 'export'}`}
                 title={`${activeDashboard?.name || 'Dashboard'} Export`}
@@ -631,8 +634,85 @@ const Dashboard = () => {
                 }}
                 rawData={results}
               />
+              </div>
 
+              {/* Quick Filter on the right */}
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Quick Filter
+                  </label>
+                  <select
+                    value={globalFilters.quickPreset || 'last-30-days'}
+                    onChange={(e) => {
+                      const preset = e.target.value;
+                      let newFilters = { ...globalFilters, quickPreset: preset };
+                      
+                      // Apply preset date ranges
+                      const now = new Date();
+                      switch (preset) {
+                        case 'today':
+                          newFilters.dateRange = 'today';
+                          break;
+                        case 'yesterday':
+                          newFilters.dateRange = 'yesterday';
+                          break;
+                        case 'last-7-days':
+                          newFilters.dateRange = 'last-7-days';
+                          break;
+                        case 'last-30-days':
+                          newFilters.dateRange = 'last-30-days';
+                          break;
+                        case 'this-month':
+                          newFilters.dateRange = 'this-month';
+                          break;
+                        case 'this-year':
+                          newFilters.dateRange = 'this-year';
+                          break;
+                        default:
+                          break;
+                      }
+                      setGlobalFilters(newFilters);
+                    }}
+                    className="block w-32 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                  >
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="last-7-days">Last 7 Days</option>
+                    <option value="last-30-days">Last 30 Days</option>
+                    <option value="this-month">This Month</option>
+                    <option value="this-year">This Year</option>
+                  </select>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    const dashboardFilters = activeDashboard?.filters || {};
+                    setGlobalFilters({ ...dashboardFilters, quickPreset: 'last-30-days' });
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
+                  style={{
+                    backgroundColor: 'var(--primary-color)',
+                    '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-dark)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-color)';
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
             </div>
+            
+            {/* Dashboard Description */}
+            {activeDashboard?.description && (
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                {activeDashboard.description}
+              </p>
+            )}
           </div>
 
           <GlobalFilters
@@ -703,7 +783,7 @@ const Dashboard = () => {
       <ExportModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
-        targetSelector=".dashboard-grid"
+        targetSelector=".dashboard-resizable-grid"
         type="dashboard"
         defaultFilename={`dashboard_${activeDashboard?.name || 'export'}`}
         title={`Export ${activeDashboard?.name || 'Dashboard'}`}

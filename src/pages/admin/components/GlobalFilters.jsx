@@ -97,34 +97,11 @@ const GlobalFilters = ({
 
   return (
     <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 ${className}`}>
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Analytics Dashboard
-        </h1>
-        <p className="text-slate-600 dark:text-slate-300 mt-1">
-          Interactive charts and insights for quiz performance
-        </p>
-      </div>
+      {/* Empty space to push filters to the right */}
+      <div></div>
       
-      {/* Filter Controls */}
+      {/* Advanced Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-        {/* Quick Presets */}
-        <div className="flex flex-col">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Quick Filter
-          </label>
-          <select
-            value={filters.quickPreset}
-            onChange={(e) => handleQuickPresetChange(e.target.value)}
-            className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 px-3 py-2"
-          >
-            {quickPresets.map(preset => (
-              <option key={preset.value} value={preset.value}>
-                {preset.label}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* Custom Date Range (shown when custom is selected) */}
         {filters.quickPreset === 'custom' && (
@@ -154,18 +131,9 @@ const GlobalFilters = ({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleReset}
-            className="btn-secondary flex items-center gap-2 text-sm"
-            title="Reset all filters"
-          >
-            <BiRefresh className="w-4 h-4" />
-            Reset
-          </button>
-          
-          {onExport && (
+        {/* Export Button (if provided) */}
+        {onExport && (
+          <div className="flex gap-2">
             <button
               onClick={onExport}
               className="btn-primary flex items-center gap-2 text-sm"
@@ -174,8 +142,8 @@ const GlobalFilters = ({
               <BiDownload className="w-4 h-4" />
               Export
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
