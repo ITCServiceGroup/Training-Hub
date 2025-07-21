@@ -2,15 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import ConfigurationEditor from './ConfigurationEditor';
 import ConfigurationGallery from './ConfigurationGallery';
-import { 
-  FaChevronDown, 
-  FaEdit, 
-  FaLayerGroup, 
+import {
+  FaChevronDown,
+  FaEdit,
+  FaLayerGroup,
   FaPlus,
   FaCopy,
   FaTrash,
   FaEye,
-  FaTachometerAlt
+  FaTachometerAlt,
+  FaStar,
+  FaRegStar
 } from 'react-icons/fa';
 
 /**
@@ -27,6 +29,7 @@ const DashboardManagerDropdown = ({
   onUpdateDashboard,
   onDuplicateDashboard,
   onDeleteDashboard,
+  onSetDefaultDashboard,
   loading = false
 }) => {
   const { theme } = useTheme();
@@ -191,7 +194,7 @@ const DashboardManagerDropdown = ({
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className={`absolute top-full left-0 mt-2 rounded-lg border shadow-xl z-50 min-w-[320px] ${
+          <div className={`absolute top-full left-0 mt-2 rounded-lg border shadow-xl z-50 min-w-[380px] ${
             isDark
               ? 'bg-slate-800 border-slate-600'
               : 'bg-white border-slate-200'
@@ -251,6 +254,7 @@ const DashboardManagerDropdown = ({
               ) : (
                 dashboards.map((dashboard) => {
                   const isActive = activeDashboard?.id === dashboard.id;
+                  const isDefault = dashboard.is_default;
                   return (
                     <div
                       key={dashboard.id}
@@ -267,7 +271,10 @@ const DashboardManagerDropdown = ({
                           setIsOpen(false);
                         }}
                       >
-                        <div className="font-medium">{dashboard.name}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{dashboard.name}</span>
+                          {isDefault && <FaStar className="text-yellow-500" size={12} />}
+                        </div>
                         {dashboard.description && (
                           <div className={`text-xs ${
                             isActive
@@ -287,6 +294,20 @@ const DashboardManagerDropdown = ({
                       </div>
                       
                       <div className="flex items-center gap-1 ml-2">
+                        <button
+                          onClick={() => onSetDefaultDashboard && onSetDefaultDashboard(dashboard.id)}
+                          className={`p-1.5 rounded transition-colors ${
+                            isDefault
+                              ? 'text-yellow-500'
+                              : isDark
+                                ? 'hover:bg-slate-600 text-slate-400 hover:text-yellow-500'
+                                : 'hover:bg-slate-200 text-slate-500 hover:text-yellow-500'
+                          }`}
+                          title={isDefault ? 'Default dashboard' : 'Set as default'}
+                        >
+                          {isDefault ? <FaStar size={12} /> : <FaRegStar size={12} />}
+                        </button>
+
                         <button
                           onClick={() => handleEditDashboard(dashboard)}
                           className={`p-1.5 rounded transition-colors ${
@@ -370,8 +391,8 @@ const DashboardManagerDropdown = ({
             handleDelete(configId);
             setShowGallery(false);
           }}
-          onSetDefault={() => {
-            // Could implement default dashboard functionality
+          onSetDefault={(configId) => {
+            onSetDefaultDashboard && onSetDefaultDashboard(configId);
           }}
           onClose={() => setShowGallery(false)}
           loading={loading}

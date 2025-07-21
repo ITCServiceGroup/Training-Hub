@@ -52,6 +52,7 @@ const Dashboard = () => {
     updateActiveDashboard,
     deleteDashboard,
     duplicateDashboardById,
+    setAsDefaultDashboard,
     clearError
   } = useDashboards();
 
@@ -583,6 +584,7 @@ const Dashboard = () => {
                 onUpdateDashboard={updateActiveDashboard}
                 onDuplicateDashboard={duplicateDashboardById}
                 onDeleteDashboard={deleteDashboard}
+                onSetDefaultDashboard={setAsDefaultDashboard}
                 loading={dashboardLoading}
               />
 

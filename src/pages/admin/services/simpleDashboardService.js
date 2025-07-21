@@ -270,7 +270,7 @@ export const updateDashboardTiles = async (userId, dashboardId, tiles) => {
  */
 export const duplicateDashboard = async (userId, dashboardId, newName) => {
   const originalDashboard = await getUserDashboard(userId, dashboardId);
-  
+
   return createUserDashboard(userId, {
     name: newName || `${originalDashboard.name} (Copy)`,
     description: originalDashboard.description,
@@ -278,4 +278,72 @@ export const duplicateDashboard = async (userId, dashboardId, newName) => {
     filters: originalDashboard.filters,
     layout: originalDashboard.layout
   });
+};
+
+/**
+ * Set a dashboard as default for a user
+ */
+export const setDefaultDashboard = async (userId, dashboardId) => {
+  if (!userId || !dashboardId) {
+    throw new Error('User ID and Dashboard ID are required');
+  }
+
+  console.log('⭐ Setting dashboard as default:', dashboardId, 'for user:', userId);
+
+  // First, unset all other defaults for this user
+  await supabase
+    .from(TABLE_NAME)
+    .update({ is_default: false })
+    .eq('user_id', userId)
+    .eq('is_template', false);
+
+  // Then set the new default
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .update({ is_default: true })
+    .eq('user_id', userId)
+    .eq('id', dashboardId)
+    .eq('is_template', false)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('❌ Error setting default dashboard:', error);
+    throw new Error(`Failed to set default dashboard: ${error.message}`);
+  }
+
+  console.log('✅ Set dashboard as default:', data.name);
+  return data;
+};
+
+/**
+ * Get the default dashboard for a user
+ */
+export const getDefaultDashboard = async (userId) => {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  console.log('🎯 Getting default dashboard for user:', userId);
+
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_default', true)
+    .eq('is_template', false)
+    .single();
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+    console.error('❌ Error getting default dashboard:', error);
+    throw new Error(`Failed to get default dashboard: ${error.message}`);
+  }
+
+  if (data) {
+    console.log('✅ Found default dashboard:', data.name);
+    return data;
+  }
+
+  console.log('ℹ️ No default dashboard found for user');
+  return null;
 };

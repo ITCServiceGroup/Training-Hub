@@ -8,7 +8,9 @@ import {
   deleteUserDashboard,
   updateDashboardTiles,
   duplicateDashboard,
-  initializeUserDashboards
+  initializeUserDashboards,
+  setDefaultDashboard,
+  getDefaultDashboard
 } from '../services/simpleDashboardService';
 
 /**
@@ -50,9 +52,12 @@ export const useDashboards = () => {
       setDashboards(userDashboards);
       console.log('✅ Loaded', userDashboards.length, 'dashboards');
 
-      // Set first dashboard as active if none is selected
+      // Set the default dashboard as active, or the first dashboard if no default exists
       if (userDashboards.length > 0 && !activeDashboard) {
-        setActiveDashboard(userDashboards[0]);
+        const defaultDashboard = userDashboards.find(d => d.is_default);
+        const dashboardToActivate = defaultDashboard || userDashboards[0];
+        setActiveDashboard(dashboardToActivate);
+        console.log('📋 Set dashboard as active:', dashboardToActivate.name, defaultDashboard ? '(default)' : '(first)');
       }
 
     } catch (err) {
@@ -258,6 +263,43 @@ export const useDashboards = () => {
     return activeDashboard?.tiles || [];
   }, [activeDashboard]);
 
+  /**
+   * Set a dashboard as default
+   */
+  const setAsDefaultDashboard = useCallback(async (dashboardId) => {
+    if (!user?.id || !dashboardId) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('⭐ Setting dashboard as default:', dashboardId);
+      const updatedDashboard = await setDefaultDashboard(user.id, dashboardId);
+
+      // Update the dashboards list to reflect the new default status
+      setDashboards(prevDashboards =>
+        prevDashboards.map(dashboard => ({
+          ...dashboard,
+          is_default: dashboard.id === dashboardId
+        }))
+      );
+
+      // If this is the active dashboard, update it too
+      if (activeDashboard?.id === dashboardId) {
+        setActiveDashboard(prev => ({ ...prev, is_default: true }));
+      }
+
+      console.log('✅ Dashboard set as default:', updatedDashboard.name);
+      return updatedDashboard;
+    } catch (err) {
+      console.error('❌ Error setting dashboard as default:', err);
+      setError('Failed to set dashboard as default: ' + err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, activeDashboard]);
+
   // Load dashboards when user changes
   useEffect(() => {
     if (user?.id) {
@@ -286,6 +328,7 @@ export const useDashboards = () => {
     deleteDashboard,
     duplicateDashboardById,
     switchToDashboard,
+    setAsDefaultDashboard,
     clearError,
 
     // Utilities
