@@ -6,7 +6,7 @@ import { quizResultsService } from '../../services/api/quizResults';
 import DashboardTile from './components/DashboardTile';
 import TileFilterPopover from './components/TileFilterPopover';
 import GlobalFilters from './components/GlobalFilters';
-import UpdateTemplatesButton from './components/UpdateTemplatesButton';
+
 import TileLibraryButton from './components/TileLibraryButton';
 import DashboardManagerDropdown from './components/DashboardManagerDropdown';
 import ExportButton from './components/ExportButton';
@@ -611,10 +611,7 @@ const Dashboard = () => {
                 }}
               />
 
-              {/* Update Templates Button - Temporary for testing */}
-              <div className="mb-4">
-                <UpdateTemplatesButton />
-              </div>
+
 
               {/* Export Button */}
               <ExportButton
