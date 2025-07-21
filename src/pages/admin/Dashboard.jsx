@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDashboards } from './hooks/useDashboards';
@@ -61,6 +61,16 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Stable loading state for charts to prevent reloading during layout changes
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Stable data reference to prevent chart reloading
+  const stableDataRef = useRef([]);
+  const stableFiltersRef = useRef({});
+  
+  // Flag to prevent data fetching during layout operations
+  const isLayoutOperationRef = useRef(false);
+
   // Tile order state (managed by presets and saved layouts)
   const [tileOrder, setTileOrder] = useState([]);
 
@@ -87,6 +97,18 @@ const Dashboard = () => {
 
   // Grid layout state
   const [gridLayout, setGridLayout] = useState([]);
+  
+  // Simple debounce timer for layout saves
+  const saveTimeoutRef = useRef(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Convert tile configurations to grid layout format
   const convertTileConfigsToGridLayout = useCallback((tileConfigs) => {
@@ -252,55 +274,57 @@ const Dashboard = () => {
 
 
 
-  // Handle grid layout changes (drag and resize)
-  const handleGridLayoutChange = useCallback(async (newLayout) => {
+  // Handle grid layout changes (drag and resize) - prevent data fetching during layout ops
+  const handleGridLayoutChange = useCallback((newLayout) => {
+    // Set flag to prevent data fetching during layout operations
+    isLayoutOperationRef.current = true;
+    
+    // Immediately update visual layout for responsive feedback
     setGridLayout(newLayout);
-
-    // Convert grid layout to tile configurations
-    const newTileConfigs = convertGridLayoutToTileConfigs(newLayout);
-
-    // Also convert to tile order for compatibility
+    
+    // Update tile order for UI consistency
     const newTileOrder = convertGridLayoutToTileOrder(newLayout);
     setTileOrder(newTileOrder);
 
-    console.log('🔄 Grid layout changed:', newLayout);
-    console.log('📋 New tile configurations:', newTileConfigs);
-    console.log('📋 New tile order (legacy):', newTileOrder);
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
 
-    // Update the dashboard using simplified approach
-    if (activeDashboard) {
-      console.log('🔄 Updating tiles for dashboard:', activeDashboard.name);
-      try {
-        await updateTiles(newTileConfigs);
-        console.log('� Tiles updated successfully');
-      } catch (error) {
-        console.error('❌ Failed to update tiles:', error);
+    // Debounce the save operations to prevent excessive database calls
+    saveTimeoutRef.current = setTimeout(async () => {
+      const newTileConfigs = convertGridLayoutToTileConfigs(newLayout);
+      
+      // Update the dashboard
+      if (activeDashboard) {
+        try {
+          await updateTiles(newTileConfigs);
+          console.log('✅ Tiles updated successfully');
+        } catch (error) {
+          console.error('❌ Failed to update tiles:', error);
+        }
       }
-    }
 
-    // Save to localStorage as fallback
-    try {
-      localStorage.setItem('dashboard-tile-order', JSON.stringify(newTileOrder));
-      localStorage.setItem('dashboard-grid-layout', JSON.stringify(newLayout));
-      localStorage.setItem('dashboard-tile-configs', JSON.stringify(newTileConfigs));
-      console.log('💾 Grid layout, tile configurations, and tile order saved');
-    } catch (error) {
-      console.error('❌ Failed to save grid layout:', error);
-    }
+      // Save to localStorage as fallback
+      try {
+        localStorage.setItem('dashboard-tile-order', JSON.stringify(newTileOrder));
+        localStorage.setItem('dashboard-grid-layout', JSON.stringify(newLayout));
+        localStorage.setItem('dashboard-tile-configs', JSON.stringify(newTileConfigs));
+        console.log('💾 Grid layout saved');
+      } catch (error) {
+        console.error('❌ Failed to save grid layout:', error);
+      }
+      
+      // Clear the layout operation flag after saving
+      setTimeout(() => {
+        isLayoutOperationRef.current = false;
+      }, 100);
+    }, 300); // 300ms debounce
   }, [activeDashboard, updateTiles, convertGridLayoutToTileConfigs, convertGridLayoutToTileOrder]);
 
   // Handle grid resize events
   const handleGridResize = useCallback((newLayout, oldItem, newItem) => {
-    console.log('📏 Tile resized:', {
-      id: newItem.i,
-      oldSize: { w: oldItem.w, h: oldItem.h },
-      newSize: { w: newItem.w, h: newItem.h }
-    });
-
-    // Update the grid layout immediately for responsive feedback
-    setGridLayout(newLayout);
-
-    // The full layout change will be handled by handleGridLayoutChange
+    // Let handleGridLayoutChange handle all state updates
     // This provides immediate visual feedback during resize
   }, []);
 
@@ -338,6 +362,12 @@ const Dashboard = () => {
   // Fetch dashboard data based on global filters
   useEffect(() => {
     const fetchDashboardData = async () => {
+      // Skip data fetching during layout operations to prevent chart reloading
+      if (isLayoutOperationRef.current) {
+        console.log('🚫 Skipping data fetch during layout operation');
+        return;
+      }
+      
       try {
         setLoading(true);
         setError(null);
@@ -360,6 +390,12 @@ const Dashboard = () => {
 
         const data = await quizResultsService.getFilteredResults(filterParams);
         setResults(data);
+        // Update stable references only when data actually changes
+        stableDataRef.current = data;
+        stableFiltersRef.current = globalFilters;
+        if (isInitialLoad) {
+          setIsInitialLoad(false);
+        }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data');
@@ -369,12 +405,12 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
-  }, [globalFilters]);
+  }, [globalFilters, isInitialLoad]);
 
 
 
-  // Handle tile filter button clicks
-  const handleTileFilterClick = (tileId, event) => {
+  // Handle tile filter button clicks - memoized
+  const handleTileFilterClick = useCallback((tileId, event) => {
     const rect = event.target.getBoundingClientRect();
     setFilterPopover({
       isOpen: true,
@@ -384,79 +420,83 @@ const Dashboard = () => {
         y: rect.bottom + 8
       }
     });
-  };
+  }, []);
 
-  // Handle tile filter changes
-  const handleTileFiltersChange = (tileId, filters) => {
+  // Handle tile filter changes - memoized
+  const handleTileFiltersChange = useCallback((tileId, filters) => {
     setTileFilters(prev => ({
       ...prev,
       [tileId]: filters
     }));
-  };
+  }, []);
 
-  // Handle use global filters
-  const handleUseGlobalFilters = (tileId) => {
+  // Handle use global filters - memoized
+  const handleUseGlobalFilters = useCallback((tileId) => {
     setTileFilters(prev => {
       const newFilters = { ...prev };
       delete newFilters[tileId];
       return newFilters;
     });
     setFilterPopover({ isOpen: false, tileId: null, position: { x: 0, y: 0 } });
-  };
+  }, []);
 
-  // Handle tile refresh
-  const handleTileRefresh = () => {
+  // Handle tile refresh - memoized
+  const handleTileRefresh = useCallback(() => {
     // For now, just refresh all data
     // In the future, we could refresh individual tiles
     window.location.reload();
-  };
+  }, []);
 
-  // Grid Tile Component (for react-grid-layout)
-  const GridTile = ({ tileId }) => {
-    // Get tile configuration from dashboard tiles or fallback to static config
-    const dashboardTiles = getCurrentTiles();
-    const tileConfig = dashboardTiles.find(tile => tile.id === tileId);
-    const staticConfig = tileConfigs[tileId];
+  // Grid Tile Component (for react-grid-layout) - Memoized to prevent chart reloading
+  const GridTile = memo(({ tileId }) => {
+    // Memoize the tile configuration to prevent unnecessary recalculations
+    const config = useMemo(() => {
+      const dashboardTiles = getCurrentTiles();
+      const tileConfig = dashboardTiles.find(tile => tile.id === tileId);
+      const staticConfig = tileConfigs[tileId];
 
-    const config = {
-      title: staticConfig?.title || tileId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      description: staticConfig?.description || '',
-      id: tileId,
-      ...tileConfig
-    };
+      return {
+        title: staticConfig?.title || tileId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        description: staticConfig?.description || '',
+        id: tileId,
+        ...tileConfig
+      };
+    }, [tileId, getCurrentTiles]);
 
-    // Get filtered data for this specific tile
-    const tileData = getFilteredDataForTile(tileId);
+    // Use stable data references to prevent charts from re-rendering
+    const tileData = useMemo(() => {
+      // Use stable data reference instead of changing results/globalFilters
+      return getFilteredDataForTile(tileId, stableDataRef.current, stableFiltersRef.current);
+    }, [tileId]);
 
-    // Render the appropriate chart component
-    const renderChart = () => {
+    // Memoize chart rendering to prevent recreation of chart components
+    const chartComponent = useMemo(() => {
       switch (tileId) {
         case 'score-distribution':
-          return <ScoreDistributionChart data={tileData} loading={loading} />;
+          return <ScoreDistributionChart data={tileData} loading={isInitialLoad} />;
         case 'time-distribution':
-          return <TimeDistributionChart data={tileData} loading={loading} />;
+          return <TimeDistributionChart data={tileData} loading={isInitialLoad} />;
         case 'score-trend':
-          return <ScoreTrendChart data={tileData} loading={loading} />;
+          return <ScoreTrendChart data={tileData} loading={isInitialLoad} />;
         case 'supervisor-performance':
-          return <SupervisorPerformanceChart data={tileData} loading={loading} />;
+          return <SupervisorPerformanceChart data={tileData} loading={isInitialLoad} />;
         case 'market-results':
-          return <MarketResultsChart data={tileData} loading={loading} />;
+          return <MarketResultsChart data={tileData} loading={isInitialLoad} />;
         case 'time-vs-score':
-          return <TimeVsScoreChart data={tileData} loading={loading} />;
+          return <TimeVsScoreChart data={tileData} loading={isInitialLoad} />;
         case 'pass-fail-rate':
-          return <PassFailRateChart data={tileData} loading={loading} />;
+          return <PassFailRateChart data={tileData} loading={isInitialLoad} />;
         case 'quiz-type-performance':
-          return <QuizTypePerformanceChart data={tileData} loading={loading} />;
+          return <QuizTypePerformanceChart data={tileData} loading={isInitialLoad} />;
         case 'top-bottom-performers':
-          return <TopBottomPerformersChart data={tileData} loading={loading} />;
+          return <TopBottomPerformersChart data={tileData} loading={isInitialLoad} />;
         case 'supervisor-effectiveness':
-          return <SupervisorEffectivenessChart data={tileData} loading={loading} />;
+          return <SupervisorEffectivenessChart data={tileData} loading={isInitialLoad} />;
         case 'question-analytics':
         case 'question-level-analytics':
-          return <QuestionLevelAnalyticsChart data={tileData} loading={loading} />;
+          return <QuestionLevelAnalyticsChart data={tileData} loading={isInitialLoad} />;
         case 'retake-analysis':
-          return <RetakeAnalysisChart data={tileData} loading={loading} />;
-
+          return <RetakeAnalysisChart data={tileData} loading={isInitialLoad} />;
         default:
           return (
             <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -467,7 +507,8 @@ const Dashboard = () => {
             </div>
           );
       }
-    };
+    }, [tileId, tileData, isInitialLoad]);
+
 
     return (
       <DashboardTile
@@ -480,20 +521,20 @@ const Dashboard = () => {
         onRefresh={handleTileRefresh}
         dragHandle={null}
       >
-        {renderChart()}
+        {chartComponent}
       </DashboardTile>
     );
-  };
+  });
 
   // Get effective filters for a tile (tile-specific or global)
-  const getEffectiveFilters = (tileId) => {
+  const getEffectiveFilters = (tileId, filtersSource = globalFilters) => {
     if (tileFilters[tileId]) {
       return tileFilters[tileId];
     }
 
     // Return global filters as default
     return {
-      dateRange: globalFilters.dateRange,
+      dateRange: filtersSource.dateRange,
       supervisors: [],
       markets: [],
       scoreRange: { min: 0, max: 100 },
@@ -502,17 +543,17 @@ const Dashboard = () => {
   };
 
   // Apply filters to data for a specific tile
-  const getFilteredDataForTile = (tileId) => {
-    const filters = getEffectiveFilters(tileId);
+  const getFilteredDataForTile = (tileId, dataSource = results, filtersSource = globalFilters) => {
+    const filters = getEffectiveFilters(tileId, filtersSource);
 
-    if (!results || results.length === 0) return [];
+    if (!dataSource || dataSource.length === 0) return [];
 
     // If this tile has custom filters, log for debugging
     if (tileFilters[tileId]) {
       console.log(`🔍 Applying custom filters for ${tileId}:`, filters);
     }
 
-    return results.filter(result => {
+    return dataSource.filter(result => {
       // Date range filter
       if (filters.dateRange?.startDate && filters.dateRange?.endDate) {
         const resultDate = new Date(result.date_of_test);
@@ -559,10 +600,10 @@ const Dashboard = () => {
     });
   };
 
-  // Check if tile has custom filters
-  const hasCustomFilters = (tileId) => {
+  // Check if tile has custom filters - memoized
+  const hasCustomFilters = useCallback((tileId) => {
     return !!tileFilters[tileId];
-  };
+  }, [tileFilters]);
 
   return (
     <DashboardProvider activeDashboardId={activeDashboard?.id}>
@@ -793,4 +834,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default memo(Dashboard);
