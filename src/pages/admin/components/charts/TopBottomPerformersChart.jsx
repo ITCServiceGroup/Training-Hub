@@ -124,7 +124,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
   }
 
   return (
-    <div className="h-full w-full relative" style={{ height: '275px' }}>
+    <div className="h-full w-full relative">
       {/* Controls */}
       <div className="absolute top-2 right-2 z-10 flex gap-2">
         {/* Top/Bottom Toggle */}

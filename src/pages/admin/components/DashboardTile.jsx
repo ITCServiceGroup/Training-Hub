@@ -44,10 +44,10 @@ const DashboardTile = ({
       style={{ minHeight: '320px' }}
     >
       {/* Tile Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-600">
+      <div className="dashboard-tile-header flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-600">
         <div className="flex items-center gap-3">
           {/* Drag Handle */}
-          {dragHandle}
+          {dragHandle && dragHandle}
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
             {title}
           </h3>
@@ -101,7 +101,7 @@ const DashboardTile = ({
       </div>
 
       {/* Tile Content */}
-      <div className="p-4 h-[calc(100%-4rem)]">
+      <div className="dashboard-tile-content p-4 h-[calc(100%-4rem)]">
         {error ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="text-red-500 dark:text-red-400 mb-2">

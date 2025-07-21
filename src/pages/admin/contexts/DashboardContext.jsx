@@ -13,54 +13,81 @@ export const useDashboard = () => {
 // Alias for backward compatibility
 export const useDashboardFilters = useDashboard;
 
-export const DashboardProvider = ({ children }) => {
-  // Drill-down state
-  const [drillDownState, setDrillDownState] = useState({
-    supervisor: null,
-    market: null,
-    timeRange: null,
-    scoreRange: null,
-    quizType: null,
-    question: null,
-    breadcrumbs: []
+export const DashboardProvider = ({ children, activeDashboardId }) => {
+  // Dashboard-specific filter states - each dashboard has its own filters
+  const [dashboardFilters, setDashboardFilters] = useState({});
+
+  // Get the current dashboard's filter state or create default
+  const getCurrentDashboardFilters = useCallback(() => {
+    if (!activeDashboardId) return getDefaultFilters();
+
+    if (!dashboardFilters[activeDashboardId]) {
+      return getDefaultFilters();
+    }
+
+    return dashboardFilters[activeDashboardId];
+  }, [activeDashboardId, dashboardFilters]);
+
+  // Default filter structure
+  const getDefaultFilters = () => ({
+    drillDownState: {
+      supervisor: null,
+      market: null,
+      timeRange: null,
+      scoreRange: null,
+      quizType: null,
+      question: null,
+      breadcrumbs: []
+    },
+    crossFilters: {
+      supervisor: null,
+      market: null,
+      timeRange: null,
+      scoreRange: null,
+      quizType: null,
+      question: null,
+      sourceChart: null
+    },
+    hoverFilters: {
+      supervisor: null,
+      market: null,
+      timeRange: null,
+      scoreRange: null,
+      quizType: null,
+      question: null,
+      sourceChart: null
+    }
   });
 
-  // Cross-filtering state
-  const [crossFilters, setCrossFilters] = useState({
-    supervisor: null,
-    market: null,
-    timeRange: null,
-    scoreRange: null,
-    quizType: null,
-    question: null,
-    sourceChart: null // Track which chart initiated the filter
-  });
+  // Get current dashboard's states
+  const currentFilters = getCurrentDashboardFilters();
+  const drillDownState = currentFilters.drillDownState;
+  const crossFilters = currentFilters.crossFilters;
+  const hoverFilters = currentFilters.hoverFilters;
 
-  // Temporary hover cross-filters (don't show in breadcrumbs)
-  const [hoverFilters, setHoverFilters] = useState({
-    supervisor: null,
-    market: null,
-    timeRange: null,
-    scoreRange: null,
-    quizType: null,
-    question: null,
-    sourceChart: null
-  });
+  // Helper function to update dashboard-specific state
+  const updateDashboardState = useCallback((updateFn) => {
+    if (!activeDashboardId) return;
 
-  // Brush selection state for trend charts
-  const [brushSelection, setBrushSelection] = useState({
-    timeRange: null,
-    sourceChart: null
-  });
+    setDashboardFilters(prev => ({
+      ...prev,
+      [activeDashboardId]: updateFn(prev[activeDashboardId] || getDefaultFilters())
+    }));
+  }, [activeDashboardId]);
 
-  // Active drill-down level
-  const [drillLevel, setDrillLevel] = useState(0); // 0 = overview, 1 = first drill, 2 = second drill, etc.
+  // Brush selection state for trend charts (dashboard-specific)
+  const [dashboardBrushSelections, setDashboardBrushSelections] = useState({});
+  const brushSelection = dashboardBrushSelections[activeDashboardId] || { timeRange: null, sourceChart: null };
+
+  // Active drill-down level (dashboard-specific)
+  const [dashboardDrillLevels, setDashboardDrillLevels] = useState({});
+  const drillLevel = dashboardDrillLevels[activeDashboardId] || 0;
 
   // Handle drill-down actions
   const drillDown = useCallback((type, value, sourceChart) => {
-    setDrillDownState(prev => {
-      const newState = { ...prev };
-      const newBreadcrumbs = [...prev.breadcrumbs];
+    updateDashboardState(prev => {
+      const newState = { ...prev.drillDownState };
+      const newBreadcrumbs = [...prev.drillDownState.breadcrumbs];
 
       switch (type) {
         case 'supervisor':
@@ -124,17 +151,91 @@ export const DashboardProvider = ({ children }) => {
       }
 
       newState.breadcrumbs = newBreadcrumbs;
-      return newState;
+      return {
+        ...prev,
+        drillDownState: newState
+      };
     });
 
-    setDrillLevel(prev => prev + 1);
-  }, []);
+    setDashboardDrillLevels(prev => ({
+      ...prev,
+      [activeDashboardId]: (prev[activeDashboardId] || 0) + 1
+    }));
+  }, [updateDashboardState, activeDashboardId]);
 
   // Handle hover cross-filtering (temporary filters for visual feedback only)
   const applyHoverFilter = useCallback((type, value, sourceChart) => {
     if (value === null) {
       // Clear all hover filters when hovering stops
-      setHoverFilters({
+      updateDashboardState(prev => ({
+        ...prev,
+        hoverFilters: {
+          supervisor: null,
+          market: null,
+          timeRange: null,
+          scoreRange: null,
+          quizType: null,
+          question: null,
+          sourceChart: null
+        }
+      }));
+    } else {
+      // Only apply hover filter if there's no existing drill-down or cross-filter for this type
+      // This ensures drill-down filters are preserved during hover
+      updateDashboardState(prev => ({
+        ...prev,
+        hoverFilters: {
+          supervisor: type === 'supervisor' ? value : null,
+          market: type === 'market' ? value : null,
+          timeRange: type === 'timeRange' ? value : null,
+          scoreRange: type === 'scoreRange' ? value : null,
+          quizType: type === 'quizType' ? value : null,
+          question: type === 'question' ? value : null,
+          sourceChart
+        }
+      }));
+    }
+  }, [updateDashboardState]);
+
+  // Handle persistent cross-filtering (shows in breadcrumbs)
+  const applyCrossFilter = useCallback((type, value, sourceChart) => {
+    updateDashboardState(prev => ({
+      ...prev,
+      crossFilters: {
+        ...prev.crossFilters,
+        [type]: value,
+        sourceChart: value ? sourceChart : (prev.crossFilters[type] ? null : prev.crossFilters.sourceChart)
+      }
+    }));
+  }, [updateDashboardState]);
+
+  // Handle brush selection for trend charts
+  const applyBrushSelection = useCallback((timeRange, sourceChart) => {
+    setDashboardBrushSelections(prev => ({
+      ...prev,
+      [activeDashboardId]: {
+        timeRange,
+        sourceChart: timeRange ? sourceChart : null
+      }
+    }));
+  }, [activeDashboardId]);
+
+  // Clear brush selection
+  const clearBrushSelection = useCallback(() => {
+    setDashboardBrushSelections(prev => ({
+      ...prev,
+      [activeDashboardId]: {
+        timeRange: null,
+        sourceChart: null
+      }
+    }));
+  }, [activeDashboardId]);
+
+  // Clear cross-filters
+  const clearCrossFilters = useCallback(() => {
+    updateDashboardState(prev => ({
+      ...prev,
+      crossFilters: {
         supervisor: null,
         market: null,
         timeRange: null,
@@ -142,94 +243,50 @@ export const DashboardProvider = ({ children }) => {
         quizType: null,
         question: null,
         sourceChart: null
-      });
-    } else {
-      // Only apply hover filter if there's no existing drill-down or cross-filter for this type
-      // This ensures drill-down filters are preserved during hover
-      setHoverFilters({
-        supervisor: type === 'supervisor' ? value : null,
-        market: type === 'market' ? value : null,
-        timeRange: type === 'timeRange' ? value : null,
-        scoreRange: type === 'scoreRange' ? value : null,
-        quizType: type === 'quizType' ? value : null,
-        question: type === 'question' ? value : null,
-        sourceChart
-      });
-    }
-  }, []);
-
-  // Handle persistent cross-filtering (shows in breadcrumbs)
-  const applyCrossFilter = useCallback((type, value, sourceChart) => {
-    setCrossFilters(prev => ({
-      ...prev,
-      [type]: value,
-      sourceChart: value ? sourceChart : (prev[type] ? null : prev.sourceChart)
+      },
+      hoverFilters: {
+        supervisor: null,
+        market: null,
+        timeRange: null,
+        scoreRange: null,
+        quizType: null,
+        question: null,
+        sourceChart: null
+      }
     }));
-  }, []);
-
-  // Handle brush selection for trend charts
-  const applyBrushSelection = useCallback((timeRange, sourceChart) => {
-    setBrushSelection({
-      timeRange,
-      sourceChart: timeRange ? sourceChart : null
-    });
-  }, []);
-
-  // Clear brush selection
-  const clearBrushSelection = useCallback(() => {
-    setBrushSelection({
-      timeRange: null,
-      sourceChart: null
-    });
-  }, []);
-
-  // Clear cross-filters
-  const clearCrossFilters = useCallback(() => {
-    setCrossFilters({
-      supervisor: null,
-      market: null,
-      timeRange: null,
-      scoreRange: null,
-      quizType: null,
-      question: null,
-      sourceChart: null
-    });
-    setHoverFilters({
-      supervisor: null,
-      market: null,
-      timeRange: null,
-      scoreRange: null,
-      quizType: null,
-      question: null,
-      sourceChart: null
-    });
     clearBrushSelection();
-  }, [clearBrushSelection]);
+  }, [updateDashboardState, clearBrushSelection]);
 
   // Navigate back in drill-down
   const drillBack = useCallback((targetLevel = null) => {
     if (targetLevel !== null) {
       // Navigate to specific level
       const targetBreadcrumbs = drillDownState.breadcrumbs.slice(0, targetLevel);
-      setDrillDownState(prev => ({
+      updateDashboardState(prev => ({
         ...prev,
-        breadcrumbs: targetBreadcrumbs,
-        supervisor: targetBreadcrumbs.find(b => b.type === 'supervisor')?.value || null,
-        market: targetBreadcrumbs.find(b => b.type === 'market')?.value || null,
-        timeRange: targetBreadcrumbs.find(b => b.type === 'timeRange')?.value || null,
-        scoreRange: targetBreadcrumbs.find(b => b.type === 'scoreRange')?.value || null,
-        quizType: targetBreadcrumbs.find(b => b.type === 'quizType')?.value || null,
-        question: targetBreadcrumbs.find(b => b.type === 'question')?.value || null
+        drillDownState: {
+          ...prev.drillDownState,
+          breadcrumbs: targetBreadcrumbs,
+          supervisor: targetBreadcrumbs.find(b => b.type === 'supervisor')?.value || null,
+          market: targetBreadcrumbs.find(b => b.type === 'market')?.value || null,
+          timeRange: targetBreadcrumbs.find(b => b.type === 'timeRange')?.value || null,
+          scoreRange: targetBreadcrumbs.find(b => b.type === 'scoreRange')?.value || null,
+          quizType: targetBreadcrumbs.find(b => b.type === 'quizType')?.value || null,
+          question: targetBreadcrumbs.find(b => b.type === 'question')?.value || null
+        }
       }));
-      setDrillLevel(targetLevel);
+      setDashboardDrillLevels(prev => ({
+        ...prev,
+        [activeDashboardId]: targetLevel
+      }));
     } else {
       // Go back one level
       const newBreadcrumbs = drillDownState.breadcrumbs.slice(0, -1);
       const lastRemoved = drillDownState.breadcrumbs[drillDownState.breadcrumbs.length - 1];
-      
-      setDrillDownState(prev => {
-        const newState = { ...prev, breadcrumbs: newBreadcrumbs };
-        
+
+      updateDashboardState(prev => {
+        const newState = { ...prev.drillDownState, breadcrumbs: newBreadcrumbs };
+
         // Remove the last drill-down filter
         if (lastRemoved) {
           switch (lastRemoved.type) {
@@ -253,27 +310,39 @@ export const DashboardProvider = ({ children }) => {
               break;
           }
         }
-        
-        return newState;
+
+        return {
+          ...prev,
+          drillDownState: newState
+        };
       });
-      setDrillLevel(prev => Math.max(0, prev - 1));
+      setDashboardDrillLevels(prev => ({
+        ...prev,
+        [activeDashboardId]: Math.max(0, (prev[activeDashboardId] || 0) - 1)
+      }));
     }
-  }, [drillDownState.breadcrumbs]);
+  }, [drillDownState.breadcrumbs, updateDashboardState, activeDashboardId]);
 
   // Reset all drill-down state
   const resetDrillDown = useCallback(() => {
-    setDrillDownState({
-      supervisor: null,
-      market: null,
-      timeRange: null,
-      scoreRange: null,
-      quizType: null,
-      question: null,
-      breadcrumbs: []
-    });
-    setDrillLevel(0);
+    updateDashboardState(prev => ({
+      ...prev,
+      drillDownState: {
+        supervisor: null,
+        market: null,
+        timeRange: null,
+        scoreRange: null,
+        quizType: null,
+        question: null,
+        breadcrumbs: []
+      }
+    }));
+    setDashboardDrillLevels(prev => ({
+      ...prev,
+      [activeDashboardId]: 0
+    }));
     clearCrossFilters();
-  }, [clearCrossFilters]);
+  }, [updateDashboardState, activeDashboardId, clearCrossFilters]);
 
   // Get combined filters (drill-down + cross-filters + hover filters + brush selection)
   const getCombinedFilters = useCallback(() => {

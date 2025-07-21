@@ -13,7 +13,6 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
   // Local state for brush selection
   const [brushRange, setBrushRange] = useState(null);
-  const [activeBrushRange, setActiveBrushRange] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
   const chartRef = useRef(null);
@@ -224,13 +223,9 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
         );
 
-        // Save the brush range for persistent display
-        setActiveBrushRange([startX, endX]);
+        // Apply the brush selection
         applyBrushSelection(timeRange, 'score-trend');
       }
-    } else {
-      // Clear selection if drag was too small
-      setActiveBrushRange(null);
     }
 
     setIsDragging(false);
@@ -240,7 +235,6 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
   // Clear brush selection
   const handleClearBrush = useCallback(() => {
-    setActiveBrushRange(null);
     setBrushRange(null);
     applyBrushSelection(null, 'score-trend');
   }, [applyBrushSelection]);
@@ -265,7 +259,6 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     <div
       ref={chartRef}
       className="h-full w-full relative cursor-crosshair"
-      style={{ height: '275px' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -340,18 +333,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         />
       )}
 
-      {/* Persistent brush selection overlay */}
-      {activeBrushRange && !brushRange && (
-        <div
-          className="absolute top-0 bg-blue-100 bg-opacity-40 border-l-2 border-r-2 border-blue-600 pointer-events-none"
-          style={{
-            left: `${activeBrushRange[0]}px`,
-            width: `${activeBrushRange[1] - activeBrushRange[0]}px`,
-            height: '100%',
-            zIndex: 4
-          }}
-        />
-      )}
+
 
       {/* Active brush selection indicator */}
       {brushSelection.timeRange && brushSelection.sourceChart === 'score-trend' && (

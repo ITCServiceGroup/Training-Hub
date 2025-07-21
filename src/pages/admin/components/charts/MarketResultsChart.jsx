@@ -100,7 +100,7 @@ const MarketResultsChart = ({ data = [], loading = false }) => {
   ];
 
   return (
-    <div className="h-full w-full" style={{ height: '275px' }}>
+    <div className="h-full w-full">
       <ResponsivePie
         data={chartData}
         margin={{ top: 20, right: 80, bottom: 20, left: 80 }}

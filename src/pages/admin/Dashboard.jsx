@@ -1,36 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDashboards } from './hooks/useDashboards';
 import { quizResultsService } from '../../services/api/quizResults';
 import DashboardTile from './components/DashboardTile';
 import TileFilterPopover from './components/TileFilterPopover';
 import GlobalFilters from './components/GlobalFilters';
-import ConfigurationSelector from './components/ConfigurationSelector';
-import ConfigurationEditor from './components/ConfigurationEditor';
-import ConfigurationGallery from './components/ConfigurationGallery';
+import UpdateTemplatesButton from './components/UpdateTemplatesButton';
+import TileLibraryButton from './components/TileLibraryButton';
+import DashboardManagerDropdown from './components/DashboardManagerDropdown';
 import ExportButton from './components/ExportButton';
 import ExportModal from './components/ExportModal';
 import { DashboardProvider } from './contexts/DashboardContext';
 import DrillDownBreadcrumbs from './components/DrillDownBreadcrumbs';
-import { useDashboardConfigurations } from './hooks/useDashboardConfigurations';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  rectSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { FaBars, FaPlus, FaLayerGroup } from 'react-icons/fa';
+// Removed old complex hook - now using simplified useDashboards
+
+
+import ResizableGridLayout from './components/ResizableGridLayout';
 import './components/styles/dashboard-grid.css';
+import './components/styles/resizable-grid.css';
+import './components/styles/resizable-grid.css';
 // Temporarily revert to direct imports while fixing lazy loading
 import ScoreDistributionChart from './components/charts/ScoreDistributionChart';
 import TimeDistributionChart from './components/charts/TimeDistributionChart';
@@ -50,29 +39,21 @@ const Dashboard = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Unified dashboard configurations
+  // Simplified dashboard system
   const {
-    configurations,
-    activeConfiguration,
-    defaultConfiguration,
-    loading: configLoading,
-    error: configError,
-    isEditing,
-    editingConfiguration,
-    applyConfiguration,
-    saveConfigurationData,
-    deleteConfigurationById,
-    setAsDefault,
-    cloneConfigurationData,
-    startEditing,
-    stopEditing,
-    saveEditingConfiguration,
-    updateEditingConfiguration,
-    getCurrentTileOrder,
-    getCurrentFilters,
-    updateTileOrder,
+    dashboards,
+    activeDashboard,
+    loading: dashboardLoading,
+    error: dashboardError,
+    switchToDashboard,
+    updateTiles,
+    getCurrentTiles,
+    createDashboard,
+    updateActiveDashboard,
+    deleteDashboard,
+    duplicateDashboardById,
     clearError
-  } = useDashboardConfigurations();
+  } = useDashboards();
 
   // Dashboard state
   const [results, setResults] = useState([]);
@@ -92,8 +73,7 @@ const Dashboard = () => {
     quickPreset: 'last_month'
   });
 
-  // UI state for configuration management
-  const [showGallery, setShowGallery] = useState(false);
+  // UI state - simplified (removed complex configuration management)
   const [showExportModal, setShowExportModal] = useState(false);
 
   // Individual tile filters state
@@ -104,44 +84,118 @@ const Dashboard = () => {
     position: { x: 0, y: 0 }
   });
 
-  // Sync tile order with active configuration
+  // Grid layout state
+  const [gridLayout, setGridLayout] = useState([]);
+
+  // Convert tile configurations to grid layout format
+  const convertTileConfigsToGridLayout = useCallback((tileConfigs) => {
+    if (!Array.isArray(tileConfigs)) return [];
+
+    return tileConfigs.map((tileConfig) => {
+      // Handle both old format (string IDs) and new format (tile configuration objects)
+      if (typeof tileConfig === 'string') {
+        // Legacy format - convert to default 1x1 tile
+        const index = tileConfigs.indexOf(tileConfig);
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        return {
+          i: tileConfig,
+          x: col,
+          y: row,
+          w: 1, // Default width: 1 column
+          h: 1, // Default height: 1 row
+          minW: 1,
+          maxW: 3,
+          minH: 1,
+          maxH: 2,
+        };
+      } else {
+        // New format - use tile configuration data
+        return {
+          i: tileConfig.id,
+          x: tileConfig.position?.x || 0,
+          y: tileConfig.position?.y || 0,
+          w: tileConfig.size?.w || 1,
+          h: tileConfig.size?.h || 1,
+          minW: 1,
+          maxW: 3,
+          minH: 1,
+          maxH: 2,
+        };
+      }
+    });
+  }, []);
+
+  // Convert grid layout back to tile configurations
+  const convertGridLayoutToTileConfigs = useCallback((layout) => {
+    return layout
+      .sort((a, b) => {
+        if (a.y === b.y) {
+          return a.x - b.x; // Same row, sort by column
+        }
+        return a.y - b.y; // Different rows, sort by row
+      })
+      .map((item, index) => ({
+        id: item.i,
+        position: { x: item.x, y: item.y },
+        size: { w: item.w, h: item.h },
+        priority: index + 1,
+        isVisible: true,
+        config: {},
+        customSettings: {}
+      }));
+  }, []);
+
+  // Convert grid layout back to tile order for compatibility (legacy support)
+  const convertGridLayoutToTileOrder = useCallback((layout) => {
+    return layout
+      .sort((a, b) => {
+        if (a.y === b.y) {
+          return a.x - b.x; // Same row, sort by column
+        }
+        return a.y - b.y; // Different rows, sort by row
+      })
+      .map(item => item.i);
+  }, []);
+
+  // Sync tile configurations with active dashboard
   useEffect(() => {
-    const loadTileOrder = async () => {
-      if (activeConfiguration) {
-        const configTileOrder = await getCurrentTileOrder();
-        if (configTileOrder.length > 0) {
-          setTileOrder(configTileOrder);
-          console.log('📋 Loaded tile order from configuration:', configTileOrder);
+    const loadTileConfigurations = async () => {
+      if (activeDashboard) {
+        const dashboardTiles = getCurrentTiles();
+        if (dashboardTiles.length > 0) {
+          // Use dashboard tiles
+          const tileOrder = dashboardTiles.map(tile => tile.id);
+          setTileOrder(tileOrder);
+          const newGridLayout = convertTileConfigsToGridLayout(dashboardTiles);
+          setGridLayout(newGridLayout);
+          console.log('📋 Loaded tile configurations from dashboard:', dashboardTiles);
+          console.log('🔲 Generated grid layout:', newGridLayout);
         } else {
-          // Fallback to default tiles if no configuration tile order
+          // Fallback to default tiles if no dashboard tiles
           const { DEFAULT_DASHBOARD_TILES } = await import('./config/availableTiles');
           setTileOrder(DEFAULT_DASHBOARD_TILES);
+          const newGridLayout = convertTileConfigsToGridLayout(DEFAULT_DASHBOARD_TILES);
+          setGridLayout(newGridLayout);
           console.log('📋 Using default tile order:', DEFAULT_DASHBOARD_TILES);
+          console.log('🔲 Generated grid layout:', newGridLayout);
         }
       }
     };
-    loadTileOrder();
-  }, [activeConfiguration, getCurrentTileOrder]);
+    loadTileConfigurations();
+  }, [activeDashboard, getCurrentTiles, convertTileConfigsToGridLayout]);
 
-  // Sync global filters with active configuration
+  // Sync global filters with active dashboard
   useEffect(() => {
-    if (activeConfiguration) {
-      const configFilters = getCurrentFilters();
-      if (configFilters && Object.keys(configFilters).length > 0) {
-        setGlobalFilters(configFilters);
+    if (activeDashboard) {
+      const dashboardFilters = activeDashboard.filters;
+      if (dashboardFilters && Object.keys(dashboardFilters).length > 0) {
+        setGlobalFilters(dashboardFilters);
       }
     }
-  }, [activeConfiguration, getCurrentFilters]);
+  }, [activeDashboard]);
 
   // Charts are now loaded directly (lazy loading to be implemented later)
-
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Tile configuration
   const tileConfigs = {
@@ -195,47 +249,67 @@ const Dashboard = () => {
     }
   };
 
-  // Handle drag end
-  const handleDragEnd = useCallback(async (event) => {
-    const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      const oldIndex = tileOrder.findIndex((id) => id === active.id);
-      const newIndex = tileOrder.findIndex((id) => id === over.id);
 
-      if (oldIndex === -1 || newIndex === -1) return;
+  // Handle grid layout changes (drag and resize)
+  const handleGridLayoutChange = useCallback(async (newLayout) => {
+    setGridLayout(newLayout);
 
-      const newOrder = arrayMove(tileOrder, oldIndex, newIndex);
-      setTileOrder(newOrder);
+    // Convert grid layout to tile configurations
+    const newTileConfigs = convertGridLayoutToTileConfigs(newLayout);
 
-      console.log('🔄 Drag completed. New order:', newOrder);
-      console.log('📋 Active configuration:', activeConfiguration?.name, activeConfiguration?.type);
+    // Also convert to tile order for compatibility
+    const newTileOrder = convertGridLayoutToTileOrder(newLayout);
+    setTileOrder(newTileOrder);
 
-      // Update the tile order (works for both system and user configurations)
-      if (activeConfiguration) {
-        console.log('🔄 Updating tile order for configuration:', activeConfiguration.name);
-        await updateTileOrder(activeConfiguration.id, newOrder);
-      } else {
-        console.warn('⚠️ No active configuration found');
-      }
+    console.log('🔄 Grid layout changed:', newLayout);
+    console.log('📋 New tile configurations:', newTileConfigs);
+    console.log('📋 New tile order (legacy):', newTileOrder);
 
-      // Save to localStorage as fallback
+    // Update the dashboard using simplified approach
+    if (activeDashboard) {
+      console.log('🔄 Updating tiles for dashboard:', activeDashboard.name);
       try {
-        localStorage.setItem('dashboard-tile-order', JSON.stringify(newOrder));
-        console.log('💾 Tile order saved:', newOrder);
+        await updateTiles(newTileConfigs);
+        console.log('� Tiles updated successfully');
       } catch (error) {
-        console.error('❌ Failed to save tile order:', error);
+        console.error('❌ Failed to update tiles:', error);
       }
     }
-  }, [tileOrder, activeConfiguration, updateTileOrder]);
+
+    // Save to localStorage as fallback
+    try {
+      localStorage.setItem('dashboard-tile-order', JSON.stringify(newTileOrder));
+      localStorage.setItem('dashboard-grid-layout', JSON.stringify(newLayout));
+      localStorage.setItem('dashboard-tile-configs', JSON.stringify(newTileConfigs));
+      console.log('💾 Grid layout, tile configurations, and tile order saved');
+    } catch (error) {
+      console.error('❌ Failed to save grid layout:', error);
+    }
+  }, [activeDashboard, updateTiles, convertGridLayoutToTileConfigs, convertGridLayoutToTileOrder]);
+
+  // Handle grid resize events
+  const handleGridResize = useCallback((newLayout, oldItem, newItem) => {
+    console.log('📏 Tile resized:', {
+      id: newItem.i,
+      oldSize: { w: oldItem.w, h: oldItem.h },
+      newSize: { w: newItem.w, h: newItem.h }
+    });
+
+    // Update the grid layout immediately for responsive feedback
+    setGridLayout(newLayout);
+
+    // The full layout change will be handled by handleGridLayoutChange
+    // This provides immediate visual feedback during resize
+  }, []);
 
 
 
   // Load tile order from localStorage on mount (fallback if no active configuration)
   useEffect(() => {
     const loadFallbackTileOrder = async () => {
-      // Only use localStorage if no active configuration is set
-      if (!activeConfiguration && tileOrder.length === 0) {
+      // Only use localStorage if no active dashboard is set
+      if (!activeDashboard && tileOrder.length === 0) {
         try {
           const savedOrder = localStorage.getItem('dashboard-tile-order');
           if (savedOrder) {
@@ -258,7 +332,7 @@ const Dashboard = () => {
     };
 
     loadFallbackTileOrder();
-  }, [activeConfiguration, tileOrder.length]);
+  }, [activeDashboard, tileOrder.length]);
 
   // Fetch dashboard data based on global filters
   useEffect(() => {
@@ -336,25 +410,19 @@ const Dashboard = () => {
     window.location.reload();
   };
 
-  // Sortable Tile Component
-  const SortableTile = ({ tileId }) => {
-    const {
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-      attributes,
-      listeners,
-    } = useSortable({ id: tileId });
+  // Grid Tile Component (for react-grid-layout)
+  const GridTile = ({ tileId }) => {
+    // Get tile configuration from dashboard tiles or fallback to static config
+    const dashboardTiles = getCurrentTiles();
+    const tileConfig = dashboardTiles.find(tile => tile.id === tileId);
+    const staticConfig = tileConfigs[tileId];
 
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      zIndex: isDragging ? 1000 : 'auto',
-      opacity: isDragging ? 0.8 : 1,
+    const config = {
+      title: staticConfig?.title || tileId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      description: staticConfig?.description || '',
+      id: tileId,
+      ...tileConfig
     };
-
-    const config = tileConfigs[tileId];
 
     // Get filtered data for this specific tile
     const tileData = getFilteredDataForTile(tileId);
@@ -383,46 +451,36 @@ const Dashboard = () => {
         case 'supervisor-effectiveness':
           return <SupervisorEffectivenessChart data={tileData} loading={loading} />;
         case 'question-analytics':
+        case 'question-level-analytics':
           return <QuestionLevelAnalyticsChart data={tileData} loading={loading} />;
         case 'retake-analysis':
           return <RetakeAnalysisChart data={tileData} loading={loading} />;
+
         default:
           return (
             <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
-              Chart not implemented
+              <div className="text-center">
+                <div className="text-lg font-medium">Chart: {tileId}</div>
+                <div className="text-sm">Component not found</div>
+              </div>
             </div>
           );
       }
     };
 
     return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`dashboard-grid-item ${isDragging ? 'dragging' : ''}`}
+      <DashboardTile
+        id={tileId}
+        title={config.title}
+        loading={loading}
+        error={error}
+        hasCustomFilters={hasCustomFilters(tileId)}
+        onFilterClick={(id, event) => handleTileFilterClick(id, event)}
+        onRefresh={handleTileRefresh}
+        dragHandle={null}
       >
-        <DashboardTile
-          id={tileId}
-          title={config.title}
-          loading={loading}
-          error={error}
-          hasCustomFilters={hasCustomFilters(tileId)}
-          onFilterClick={(id, event) => handleTileFilterClick(id, event)}
-          onRefresh={handleTileRefresh}
-          dragHandle={
-            <span
-              {...attributes}
-              {...listeners}
-              className="text-gray-400 dark:text-gray-300 cursor-grab p-1 rounded flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FaBars />
-            </span>
-          }
-        >
-          {renderChart()}
-        </DashboardTile>
-      </div>
+        {renderChart()}
+      </DashboardTile>
     );
   };
 
@@ -506,7 +564,7 @@ const Dashboard = () => {
   };
 
   return (
-    <DashboardProvider>
+    <DashboardProvider activeDashboardId={activeDashboard?.id}>
       <div className="space-y-6">
         {/* Header with Preset Selector and Global Filters */}
         <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6">
@@ -515,57 +573,62 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                 Dashboard
               </h1>
-              <ConfigurationSelector
-                configurations={configurations}
-                activeConfiguration={activeConfiguration}
-                defaultConfiguration={defaultConfiguration}
-                onConfigurationChange={applyConfiguration}
-                onStartEditing={startEditing}
-                onClone={cloneConfigurationData}
-                onDelete={deleteConfigurationById}
-                onSetDefault={setAsDefault}
-                loading={configLoading}
+
+              {/* Beautiful Dashboard Manager Dropdown */}
+              <DashboardManagerDropdown
+                dashboards={dashboards}
+                activeDashboard={activeDashboard}
+                onDashboardChange={switchToDashboard}
+                onCreateDashboard={createDashboard}
+                onUpdateDashboard={updateActiveDashboard}
+                onDuplicateDashboard={duplicateDashboardById}
+                onDeleteDashboard={deleteDashboard}
+                loading={dashboardLoading}
               />
 
-              <button
-                onClick={() => startEditing()}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  isDark
-                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white border border-slate-600'
-                    : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200'
-                }`}
-                title="Create new configuration"
-              >
-                <FaPlus size={14} />
-                <span className="hidden sm:inline">New</span>
-              </button>
+              {/* Tile Library Button */}
+              <TileLibraryButton
+                currentTiles={getCurrentTiles()}
+                onAddTile={(tileId) => {
+                  // Add tile to current dashboard
+                  const currentTiles = getCurrentTiles();
+                  const newTile = {
+                    id: tileId,
+                    position: { x: 0, y: 0 }, // Will be auto-positioned
+                    size: { w: 1, h: 1 },
+                    priority: currentTiles.length + 1,
+                    isVisible: true,
+                    config: {},
+                    customSettings: {}
+                  };
+                  updateTiles([...currentTiles, newTile]);
+                }}
+                onRemoveTile={(tileId) => {
+                  // Remove tile from current dashboard
+                  const currentTiles = getCurrentTiles();
+                  const updatedTiles = currentTiles.filter(tile => tile.id !== tileId);
+                  updateTiles(updatedTiles);
+                }}
+              />
 
-              <button
-                onClick={() => setShowGallery(true)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  isDark
-                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white border border-slate-600'
-                    : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200'
-                }`}
-                title="Browse all configurations"
-              >
-                <FaLayerGroup size={14} />
-                <span className="hidden sm:inline">Browse</span>
-              </button>
+              {/* Update Templates Button - Temporary for testing */}
+              <div className="mb-4">
+                <UpdateTemplatesButton />
+              </div>
 
               {/* Export Button */}
               <ExportButton
                 targetSelector=".dashboard-grid"
                 type="dashboard"
-                filename={`dashboard_${activeConfiguration?.name || 'export'}`}
-                title={`${activeConfiguration?.name || 'Dashboard'} Export`}
+                filename={`dashboard_${activeDashboard?.name || 'export'}`}
+                title={`${activeDashboard?.name || 'Dashboard'} Export`}
                 variant="dropdown"
                 size="normal"
                 showLabel={true}
                 dashboardContext={{
                   filters: globalFilters,
                   tileFilters,
-                  configuration: activeConfiguration
+                  dashboard: activeDashboard
                 }}
                 rawData={results}
               />
@@ -577,8 +640,8 @@ const Dashboard = () => {
             filters={globalFilters}
             onFiltersChange={setGlobalFilters}
             onReset={() => {
-              const configFilters = getCurrentFilters();
-              setGlobalFilters(configFilters);
+              const dashboardFilters = activeDashboard?.filters || {};
+              setGlobalFilters(dashboardFilters);
             }}
           />
         </div>
@@ -601,23 +664,25 @@ const Dashboard = () => {
               Retry
             </button>
           </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+        ) : gridLayout.length > 0 ? (
+          <ResizableGridLayout
+            layout={gridLayout}
+            onLayoutChange={handleGridLayoutChange}
+            onResize={handleGridResize}
+            className="dashboard-resizable-grid"
           >
-            <SortableContext
-              items={tileOrder}
-              strategy={rectSortingStrategy}
-            >
-              <div className="dashboard-grid">
-                {tileOrder.map((tileId) => (
-                  <SortableTile key={tileId} tileId={tileId} />
-                ))}
+            {gridLayout.map((item) => (
+              <div key={item.i}>
+                <GridTile tileId={item.i} />
               </div>
-            </SortableContext>
-          </DndContext>
+            ))}
+          </ResizableGridLayout>
+        ) : (
+          <div className="p-8 text-center">
+            <div className="text-slate-500 dark:text-slate-400">
+              Loading dashboard tiles...
+            </div>
+          </div>
         )}
       </div>
 
@@ -633,45 +698,7 @@ const Dashboard = () => {
         position={filterPopover.position}
       />
 
-      {/* Configuration Editor Modal */}
-      {isEditing && (
-        <ConfigurationEditor
-          configuration={editingConfiguration}
-          onSave={saveEditingConfiguration}
-          onCancel={stopEditing}
-          onUpdateConfiguration={updateEditingConfiguration}
-          isLoading={configLoading}
-        />
-      )}
-
-      {/* Configuration Gallery Modal */}
-      {showGallery && (
-        <ConfigurationGallery
-          configurations={configurations}
-          activeConfiguration={activeConfiguration}
-          loading={configLoading}
-          onConfigurationSelect={(configId) => {
-            console.log('🎯 Gallery: Applying configuration:', configId);
-            applyConfiguration(configId);
-            setShowGallery(false);
-          }}
-          onEdit={(configId) => {
-            startEditing(configId);
-            setShowGallery(false);
-          }}
-          onClone={(configId, newName) => {
-            cloneConfigurationData(configId, newName);
-            setShowGallery(false);
-          }}
-          onDelete={(configId) => {
-            deleteConfigurationById(configId);
-          }}
-          onSetDefault={(configId) => {
-            setAsDefault(configId);
-          }}
-          onClose={() => setShowGallery(false)}
-        />
-      )}
+      {/* Removed complex configuration modals - using simplified dashboard system */}
 
       {/* Export Modal */}
       <ExportModal
@@ -679,8 +706,8 @@ const Dashboard = () => {
         onClose={() => setShowExportModal(false)}
         targetSelector=".dashboard-grid"
         type="dashboard"
-        defaultFilename={`dashboard_${activeConfiguration?.name || 'export'}`}
-        title={`Export ${activeConfiguration?.name || 'Dashboard'}`}
+        defaultFilename={`dashboard_${activeDashboard?.name || 'export'}`}
+        title={`Export ${activeDashboard?.name || 'Dashboard'}`}
       />
       </div>
     </DashboardProvider>

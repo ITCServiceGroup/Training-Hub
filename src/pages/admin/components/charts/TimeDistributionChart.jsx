@@ -103,7 +103,7 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
   const colors = ['#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
   return (
-    <div className="h-full w-full" style={{ height: '275px' }}>
+    <div className="h-full w-full">
       <ResponsivePie
         data={chartData}
         margin={{ top: 20, right: 80, bottom: 20, left: 80 }}

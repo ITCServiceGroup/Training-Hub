@@ -260,26 +260,26 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
   }
 
   return (
-    <div className="h-full w-full relative" style={{ height: '275px' }}>
-      {/* Legend */}
-      <div className="absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2">
-        <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Retake Flow</div>
-        <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-          <div>• Flow shows attempt → outcome patterns</div>
-          <div>• Width = number of users</div>
-          <div>• Green = passed, Red = failed</div>
+    <div className="h-full w-full relative">
+      {/* Legend - Horizontal layout at top */}
+      <div className="absolute top-2 left-2 right-2 z-10 p-1">
+        <div className="flex items-center gap-4 text-xs">
+          <span className="font-medium text-slate-700 dark:text-slate-300">Retake Flow:</span>
+          <span className="text-slate-600 dark:text-slate-400">Flow shows attempt → outcome patterns</span>
+          <span className="text-slate-600 dark:text-slate-400">Width = number of users</span>
+          <span className="text-slate-600 dark:text-slate-400">Green = passed, Red = failed</span>
         </div>
       </div>
 
       <ResponsiveSankey
         data={sankeyData}
-        margin={{ top: 40, right: 160, bottom: 40, left: 50 }}
+        margin={{ top: 50, right: 180, bottom: 50, left: 120 }}
         align="justify"
         colors={{ scheme: 'category10' }}
         nodeOpacity={1}
         nodeHoverOthersOpacity={0.35}
         nodeThickness={18}
-        nodeSpacing={24}
+        nodeSpacing={30}
         nodeBorderWidth={0}
         nodeBorderColor={{
           from: 'color',
@@ -290,8 +290,8 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
         linkContract={3}
         enableLinkGradient={true}
         labelPosition="outside"
-        labelOrientation="vertical"
-        labelPadding={16}
+        labelOrientation="horizontal"
+        labelPadding={20}
         labelTextColor={{
           from: 'color',
           modifiers: [['darker', 1]],

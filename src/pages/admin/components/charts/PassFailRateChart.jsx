@@ -118,7 +118,7 @@ const PassFailRateChart = ({ data = [], loading = false, passingThreshold = 0.7 
   };
 
   return (
-    <div className="h-full w-full relative" style={{ height: '275px' }}>
+    <div className="h-full w-full relative">
       {/* Pass Rate Summary */}
       <div className="absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2">
         <div className="text-xs text-slate-600 dark:text-slate-400">Pass Rate</div>

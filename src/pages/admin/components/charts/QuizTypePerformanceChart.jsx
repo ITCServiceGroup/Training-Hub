@@ -117,7 +117,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
   }
 
   return (
-    <div className="h-full w-full" style={{ height: '275px' }}>
+    <div className="h-full w-full">
       <ResponsiveBar
         data={chartData}
         keys={['averageScore']}

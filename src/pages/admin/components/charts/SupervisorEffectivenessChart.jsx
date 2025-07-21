@@ -16,6 +16,8 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
     if (!shouldFilter) return data;
 
     return data.filter(result => {
+      // Note: Supervisor filters are intentionally ignored for this chart
+      // since it's designed to show multiple supervisors for comparison
       if (filters.market && result.market !== filters.market) return false;
       if (filters.timeRange) {
         const resultDate = new Date(result.date_of_test);
@@ -33,12 +35,12 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
   }, [data, getFiltersForChart, shouldFilterChart]);
 
   // Process data by supervisor with multiple effectiveness metrics
-  const chartData = useMemo(() => {
-    if (!chartFilteredData || chartFilteredData.length === 0) return [];
+  const supervisorMetrics = useMemo(() => {
+    if (!chartFilteredData || chartFilteredData.length === 0) return { data: [], supervisors: [] };
 
     // Group by supervisor
     const supervisorGroups = {};
-    
+
     chartFilteredData.forEach(result => {
       const supervisor = result.supervisor || 'Unknown';
       if (!supervisorGroups[supervisor]) {
@@ -49,7 +51,7 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
           count: 0
         };
       }
-      
+
       supervisorGroups[supervisor].scores.push(parseFloat(result.score_value) || 0);
       supervisorGroups[supervisor].times.push(parseInt(result.time_taken) || 0);
       supervisorGroups[supervisor].users.add(result.ldap);
@@ -64,27 +66,28 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
         const passRate = group.scores.filter(score => score >= 0.7).length / group.scores.length;
         const teamSize = group.users.size;
         const testsPerUser = group.count / teamSize;
-        
+
         // Calculate consistency (lower standard deviation = higher consistency)
         const scoreVariance = group.scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / group.scores.length;
         const consistency = Math.max(0, 1 - Math.sqrt(scoreVariance));
-        
+
         // Calculate efficiency (good scores in reasonable time)
         const efficiency = avgScore / (avgTime / 600); // Normalize time to 10-minute baseline
-        
+
         // Calculate engagement (tests per user)
         const engagement = Math.min(1, testsPerUser / 5); // Normalize to 5 tests per user baseline
-        
+
         return {
-          supervisor: supervisor.length > 15 ? supervisor.substring(0, 15) + '...' : supervisor,
+          supervisor: supervisor, // Don't truncate supervisor names
           fullName: supervisor,
-          // Normalize all metrics to 0-100 scale for radar chart
-          'Avg Score': (avgScore * 100).toFixed(1),
-          'Pass Rate': (passRate * 100).toFixed(1),
-          'Consistency': (consistency * 100).toFixed(1),
-          'Efficiency': Math.min(100, (efficiency * 50)).toFixed(1), // Scale efficiency
-          'Engagement': (engagement * 100).toFixed(1),
-          'Team Size': Math.min(100, (teamSize / 20) * 100).toFixed(1), // Scale team size (max 20)
+          metrics: {
+            'Avg Score': parseFloat((avgScore * 100).toFixed(1)),
+            'Pass Rate': parseFloat((passRate * 100).toFixed(1)),
+            'Consistency': parseFloat((consistency * 100).toFixed(1)),
+            'Efficiency': parseFloat(Math.min(100, (efficiency * 50)).toFixed(1)), // Scale efficiency
+            'Engagement': parseFloat((engagement * 100).toFixed(1)),
+            'Team Size': parseFloat(Math.min(100, (teamSize / 20) * 100).toFixed(1)), // Scale team size (max 20)
+          },
           // Raw values for tooltips
           rawData: {
             avgScore: (avgScore * 100).toFixed(1),
@@ -97,15 +100,31 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
           }
         };
       })
-      .sort((a, b) => parseFloat(b['Avg Score']) - parseFloat(a['Avg Score']))
+      .sort((a, b) => parseFloat(b.metrics['Avg Score']) - parseFloat(a.metrics['Avg Score']))
       .slice(0, 5); // Show top 5 supervisors for readability
 
-    return supervisorData;
+    // Transform data for Nivo radar chart format
+    const metrics = ['Avg Score', 'Pass Rate', 'Consistency', 'Efficiency', 'Engagement', 'Team Size'];
+    const radarData = metrics.map(metric => {
+      const dataPoint = { metric };
+      supervisorData.forEach(supervisor => {
+        dataPoint[supervisor.supervisor] = supervisor.metrics[metric];
+      });
+      return dataPoint;
+    });
+
+    return {
+      data: radarData,
+      supervisors: supervisorData.map(s => s.supervisor),
+      supervisorDetails: supervisorData
+    };
   }, [chartFilteredData]);
+
+  const chartData = supervisorMetrics.data;
 
   // Handle supervisor click for drill-down
   const handleSupervisorClick = (point) => {
-    const supervisorData = chartData.find(s => s.supervisor === point.id);
+    const supervisorData = supervisorMetrics.supervisorDetails.find(s => s.supervisor === point.id);
     if (supervisorData) {
       drillDown('supervisor', {
         fullName: supervisorData.fullName,
@@ -130,30 +149,46 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
     );
   }
 
-  const radarKeys = ['Avg Score', 'Pass Rate', 'Consistency', 'Efficiency', 'Engagement', 'Team Size'];
+  // For the new data structure, keys are the supervisor names
+  const radarKeys = supervisorMetrics.supervisors;
+
+
+
+  // Use the transformed radar data
+  const dataToUse = chartData;
+
+  // Custom legend colors
+  const legendColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   return (
-    <div className="h-full w-full relative" style={{ height: '275px' }}>
-      {/* Legend */}
-      <div className="absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2">
-        <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Effectiveness Metrics</div>
-        <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-          <div>• Score: Average test scores</div>
-          <div>• Pass Rate: % passing tests</div>
-          <div>• Consistency: Score reliability</div>
-          <div>• Efficiency: Score vs time</div>
-          <div>• Engagement: Tests per user</div>
-          <div>• Team Size: Number of users</div>
+    <div className="h-full w-full relative" style={{ overflow: 'visible' }}>
+      {/* Custom Legend */}
+     <div className="absolute z-20 p-1" style={{ top: '-6px', left: '-4px' }}>
+        <div className="space-y-1">
+          {radarKeys.map((supervisor, index) => (
+            <div key={supervisor} className="flex items-center space-x-1.5">
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: legendColors[index] }}
+              />
+              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                {supervisor}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <ResponsiveRadar
-        data={chartData}
+        <ResponsiveRadar
+        key={`radar-${radarKeys.join('-')}`}
+        data={dataToUse}
         keys={radarKeys}
-        indexBy="supervisor"
+        indexBy="metric"
         valueFormat=">-.1f"
-        margin={{ top: 40, right: 80, bottom: 40, left: 80 }}
+        maxValue="auto"
+        margin={{ top: 20, right: 80, bottom: 60, left: 80 }}
         borderColor={{ from: 'color' }}
+        borderWidth={2}
         gridLevels={5}
         gridShape="circular"
         gridLabelOffset={36}
@@ -163,7 +198,6 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
         dotBorderWidth={2}
         dotBorderColor={{ from: 'color' }}
         enableDotLabel={false}
-        colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']}
         fillOpacity={0.1}
         blendMode="multiply"
         animate={true}
@@ -183,7 +217,10 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
               fontSize: 12,
               borderRadius: 6,
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+              border: `2px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+              padding: '12px',
+              minWidth: '280px',
+              maxWidth: '350px'
             },
           },
           grid: {
@@ -193,43 +230,14 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
             },
           },
         }}
-        legends={[
-          {
-            anchor: 'top-left',
-            direction: 'column',
-            translateX: -50,
-            translateY: -40,
-            itemWidth: 80,
-            itemHeight: 20,
-            itemTextColor: isDark ? '#e2e8f0' : '#475569',
-            symbolSize: 12,
-            symbolShape: 'circle',
-          },
-        ]}
-        tooltip={({ id, value, formattedValue, color }) => {
-          const supervisorData = chartData.find(s => s.supervisor === id);
-          if (!supervisorData) return null;
+        colors={legendColors}
+        legends={[]}
 
-          const tooltipData = [
-            { label: 'Supervisor', value: supervisorData.fullName },
-            { label: 'Team Size', value: supervisorData.rawData.teamSize },
-            { label: 'Total Tests', value: supervisorData.rawData.count },
-            { label: 'Avg Score', value: `${supervisorData.rawData.avgScore}%` },
-            { label: 'Pass Rate', value: `${supervisorData.rawData.passRate}%` },
-            { label: 'Avg Time', value: `${supervisorData.rawData.avgTime} min` },
-            { label: 'Tests/User', value: supervisorData.rawData.testsPerUser },
-            { label: 'Consistency', value: `${supervisorData.rawData.consistency}%` }
-          ];
 
-          return (
-            <EnhancedTooltip
-              title="Supervisor Effectiveness"
-              data={tooltipData}
-              icon={true}
-              color={color}
-              additionalInfo={`Managing ${supervisorData.rawData.teamSize} team members with ${supervisorData.rawData.passRate}% pass rate`}
-            />
-          );
+        onClick={(point) => {
+          if (point) {
+            handleSupervisorClick(point);
+          }
         }}
       />
     </div>

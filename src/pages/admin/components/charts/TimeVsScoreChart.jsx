@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { ResponsiveScatterPlot } from '@nivo/scatterplot';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
@@ -13,10 +13,25 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
 
   // Efficiency quadrant analysis
   const [showQuadrants, setShowQuadrants] = useState(true);
-  const [quadrantThresholds, setQuadrantThresholds] = useState({
-    scoreThreshold: 80, // 80% score threshold
-    timeThreshold: 10   // 10 minutes time threshold
+  const [quadrantThresholds, setQuadrantThresholds] = useState(() => {
+    const saved = localStorage.getItem('timeVsScoreChart_quadrantThresholds');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.warn('Failed to parse saved quadrant thresholds:', e);
+      }
+    }
+    return {
+      scoreThreshold: 90, // 90% score threshold
+      timeThreshold: 15   // 15 minutes time threshold
+    };
   });
+
+  // Save quadrant thresholds to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('timeVsScoreChart_quadrantThresholds', JSON.stringify(quadrantThresholds));
+  }, [quadrantThresholds]);
 
   // Get filtered data (includes hover filters from other charts, excludes own hover)
   const filteredData = useMemo(() => {
@@ -117,9 +132,9 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
   }
 
   return (
-    <div className="h-full w-full relative" style={{ height: '275px' }}>
+    <div className="h-full w-full relative">
       {/* Quadrant Controls */}
-      <div className="absolute top-2 left-2 z-10 flex gap-2">
+      <div className="absolute top-1 left-1 z-10 flex gap-2">
         <button
           onClick={() => setShowQuadrants(!showQuadrants)}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
@@ -134,7 +149,7 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
         </button>
 
         {showQuadrants && (
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-600 px-2 py-1">
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-600 px-1 h-7 overflow-hidden">
             <div className="flex items-center gap-1">
               <span className="text-xs text-slate-600 dark:text-slate-400">Score:</span>
               <input
@@ -142,9 +157,10 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
                 value={quadrantThresholds.scoreThreshold}
                 onChange={(e) => setQuadrantThresholds(prev => ({
                   ...prev,
-                  scoreThreshold: parseInt(e.target.value) || 80
+                  scoreThreshold: parseInt(e.target.value) || 90
                 }))}
                 className="w-12 text-xs px-1 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                style={{ marginTop: '16px' }}
                 min="0"
                 max="100"
               />
@@ -158,9 +174,10 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
                 value={quadrantThresholds.timeThreshold}
                 onChange={(e) => setQuadrantThresholds(prev => ({
                   ...prev,
-                  timeThreshold: parseInt(e.target.value) || 10
+                  timeThreshold: parseInt(e.target.value) || 15
                 }))}
                 className="w-12 text-xs px-1 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                style={{ marginTop: '16px' }}
                 min="1"
                 max="30"
               />
@@ -170,39 +187,88 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
         )}
       </div>
 
-      {/* Quadrant Statistics */}
-      {showQuadrants && (
-        <div className="absolute top-2 right-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2">
-          <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Efficiency Analysis</div>
-          <div className="text-xs space-y-0.5">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span>Optimal: {quadrantStats.optimal?.percentage}%</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span>Thorough: {quadrantStats.thorough?.percentage}%</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-              <span>Rushed: {quadrantStats.rushed?.percentage}%</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-red-500"></div>
-              <span>Struggling: {quadrantStats.struggling?.percentage}%</span>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <ResponsiveScatterPlot
         data={chartData}
-        margin={{ top: 20, right: 30, bottom: 50, left: 60 }}
+        margin={{ top: 50, right: 30, bottom: 50, left: 60 }}
         xScale={{ type: 'linear', min: 0, max: 'auto' }}
         yScale={{ type: 'linear', min: 0, max: 100 }}
         blendMode="multiply"
         nodeSize={8}
         colors={{ datum: 'color' }}
+        layers={[
+          'grid',
+          'axes',
+          // Custom quadrant layer
+          showQuadrants && (({ xScale, yScale, innerWidth, innerHeight }) => {
+            const timeThreshold = quadrantThresholds.timeThreshold;
+            const scoreThreshold = quadrantThresholds.scoreThreshold;
+
+            const xPos = xScale(timeThreshold);
+            const yPos = yScale(scoreThreshold);
+
+            return (
+              <g>
+                {/* Quadrant backgrounds */}
+                {/* Top-left: Optimal (Fast + High Score) */}
+                <rect
+                  x={0}
+                  y={0}
+                  width={xPos}
+                  height={yPos}
+                  fill="rgba(34, 197, 94, 0.1)"
+                />
+                {/* Top-right: Thorough (Slow + High Score) */}
+                <rect
+                  x={xPos}
+                  y={0}
+                  width={innerWidth - xPos}
+                  height={yPos}
+                  fill="rgba(59, 130, 246, 0.1)"
+                />
+                {/* Bottom-left: Rushed (Fast + Low Score) */}
+                <rect
+                  x={0}
+                  y={yPos}
+                  width={xPos}
+                  height={innerHeight - yPos}
+                  fill="rgba(249, 115, 22, 0.1)"
+                />
+                {/* Bottom-right: Struggling (Slow + Low Score) */}
+                <rect
+                  x={xPos}
+                  y={yPos}
+                  width={innerWidth - xPos}
+                  height={innerHeight - yPos}
+                  fill="rgba(239, 68, 68, 0.1)"
+                />
+
+                {/* Quadrant lines */}
+                <line
+                  x1={xPos}
+                  y1={0}
+                  x2={xPos}
+                  y2={innerHeight}
+                  stroke={isDark ? '#6b7280' : '#9ca3af'}
+                  strokeWidth={2}
+                  strokeDasharray="5,5"
+                />
+                <line
+                  x1={0}
+                  y1={yPos}
+                  x2={innerWidth}
+                  y2={yPos}
+                  stroke={isDark ? '#6b7280' : '#9ca3af'}
+                  strokeWidth={2}
+                  strokeDasharray="5,5"
+                />
+              </g>
+            );
+          }),
+          'nodes',
+          'mesh'
+        ].filter(Boolean)}
         theme={{
           background: 'transparent',
           text: {
@@ -323,28 +389,27 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
 
       />
 
-      {/* Quadrant Labels (simplified approach) */}
+      {/* Quadrant Statistics */}
       {showQuadrants && (
-        <div className="absolute top-16 left-16 z-10 text-xs font-bold space-y-1 bg-white dark:bg-slate-800 rounded p-2 shadow-sm border border-slate-200 dark:border-slate-600">
-          <div className="text-slate-600 dark:text-slate-400 mb-1">Efficiency Quadrants:</div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-green-600 dark:text-green-400">OPTIMAL (Fast + High Score)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span className="text-blue-600 dark:text-blue-400">THOROUGH (Slow + High Score)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-            <span className="text-orange-600 dark:text-orange-400">RUSHED (Fast + Low Score)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-            <span className="text-red-600 dark:text-red-400">STRUGGLING (Slow + Low Score)</span>
-          </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Thresholds: {quadrantThresholds.scoreThreshold}% score, {quadrantThresholds.timeThreshold}min time
+        <div className="absolute top-2 right-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2">
+          <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Efficiency Analysis</div>
+          <div className="text-xs space-y-0.5">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span>Optimal: {quadrantStats.optimal?.percentage}%</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <span>Thorough: {quadrantStats.thorough?.percentage}%</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+              <span>Rushed: {quadrantStats.rushed?.percentage}%</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+              <span>Struggling: {quadrantStats.struggling?.percentage}%</span>
+            </div>
           </div>
         </div>
       )}

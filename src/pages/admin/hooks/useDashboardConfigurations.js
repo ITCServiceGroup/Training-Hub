@@ -55,17 +55,97 @@ export const useDashboardConfigurations = () => {
   const loadConfigurations = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const allConfigs = await getAllConfigurations(user?.id);
-      setConfigurations(allConfigs);
+
+      // Merge user overrides with system configurations
+      const mergedConfigs = mergeUserOverridesWithSystemConfigs(allConfigs, user?.id);
+
+      setConfigurations(mergedConfigs);
+
+      // If there's an active configuration, update it to the merged version
+      if (activeConfiguration) {
+        const updatedActiveConfig = mergedConfigs.find(c => c.id === activeConfiguration.id);
+        if (updatedActiveConfig) {
+          console.log('🔄 Updating active configuration to merged version after load');
+          setActiveConfiguration(updatedActiveConfig);
+        }
+      }
     } catch (err) {
       setError('Failed to load dashboard configurations');
       console.error('Error loading configurations:', err);
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, activeConfiguration]);
+
+  /**
+   * Merge user overrides with system configurations
+   * This allows users to have customized versions of system configs without creating duplicates
+   */
+  const mergeUserOverridesWithSystemConfigs = useCallback((allConfigs, userId) => {
+    if (!userId) return allConfigs;
+
+    // Separate system configs, user overrides, and regular user configs
+    const systemConfigs = allConfigs.filter(c => c.type === CONFIGURATION_TYPES.SYSTEM);
+    const userOverrides = allConfigs.filter(c =>
+      c.type === CONFIGURATION_TYPES.USER &&
+      c.metadata?.isSystemOverride &&
+      c.metadata?.originalSystemConfig
+    );
+    const regularUserConfigs = allConfigs.filter(c =>
+      c.type === CONFIGURATION_TYPES.USER &&
+      !c.metadata?.isSystemOverride
+    );
+
+    console.log('🔍 Merge debug - System configs:', systemConfigs.length);
+    console.log('🔍 Merge debug - User overrides:', userOverrides.length);
+    console.log('🔍 Merge debug - Regular user configs:', regularUserConfigs.length);
+    console.log('🔍 User overrides found:', userOverrides.map(o => ({
+      id: o.id,
+      name: o.name,
+      originalSystemConfig: o.metadata?.originalSystemConfig
+    })));
+
+    // Create merged system configs with user customizations
+    const mergedSystemConfigs = systemConfigs.map(systemConfig => {
+      const userOverride = userOverrides.find(override =>
+        override.metadata?.originalSystemConfig === systemConfig.id
+      );
+
+      if (userOverride) {
+        // User has customized this system config - use their version but keep system appearance
+        console.log('🔄 Merging user customizations for:', systemConfig.name);
+        console.log('🔄 System config tiles:', systemConfig.tiles.length, 'tiles');
+        console.log('🔄 User override tiles:', userOverride.tiles.length, 'tiles');
+        console.log('🔄 User override ID:', userOverride.id);
+
+        const mergedConfig = {
+          ...systemConfig, // Keep original system config structure
+          tiles: userOverride.tiles, // Use user's customized tiles
+          filters: userOverride.filters || systemConfig.filters,
+          layout: userOverride.layout || systemConfig.layout,
+          metadata: {
+            ...systemConfig.metadata,
+            customizedBy: userId,
+            lastCustomized: userOverride.metadata?.updatedAt,
+            userOverrideId: userOverride.id // Track the user override ID for updates
+          }
+        };
+
+        console.log('🔄 Merged config tiles:', mergedConfig.tiles.length, 'tiles');
+        console.log('🔄 First merged tile:', mergedConfig.tiles[0]);
+        return mergedConfig;
+      }
+
+      // No user customizations - return original system config
+      return systemConfig;
+    });
+
+    // Return merged configs: customized system configs + regular user configs
+    return [...mergedSystemConfigs, ...regularUserConfigs];
+  }, []);
 
   /**
    * Load and set the default configuration
@@ -368,6 +448,49 @@ export const useDashboardConfigurations = () => {
   }, [activeConfiguration]);
 
   /**
+   * Get current tile configurations from active configuration
+   */
+  const getCurrentTileConfigs = useCallback(() => {
+    if (!activeConfiguration) {
+      console.log('📋 getCurrentTileConfigs: No active configuration');
+      return [];
+    }
+
+    console.log('📋 getCurrentTileConfigs - Active config:', {
+      id: activeConfiguration.id,
+      name: activeConfiguration.name,
+      type: activeConfiguration.type,
+      tilesCount: activeConfiguration.tiles?.length || 0,
+      hasUserOverrideId: !!activeConfiguration.metadata?.userOverrideId,
+      userOverrideId: activeConfiguration.metadata?.userOverrideId
+    });
+
+    // Get full tile configurations from configuration
+    if (activeConfiguration.tiles && activeConfiguration.tiles.length > 0) {
+      const tileConfigs = activeConfiguration.tiles
+        .sort((a, b) => a.priority - b.priority)
+        .map((tile, index) => {
+          // Migration: ensure all required fields are present
+          return {
+            id: tile.id,
+            position: tile.position || { x: index % 3, y: Math.floor(index / 3) },
+            size: tile.size || { w: 1, h: 1 },
+            priority: tile.priority !== undefined ? tile.priority : index,
+            isVisible: tile.isVisible !== undefined ? tile.isVisible : true,
+            config: tile.config || {},
+            customSettings: tile.customSettings || {}
+          };
+        });
+      console.log('📋 getCurrentTileConfigs (effective):', tileConfigs);
+      console.log('📋 First tile details:', tileConfigs[0]);
+      return tileConfigs;
+    }
+
+    console.log('📋 getCurrentTileConfigs: No tiles in configuration');
+    return [];
+  }, [activeConfiguration]);
+
+  /**
    * Get current filters from active configuration
    */
   const getCurrentFilters = useCallback(() => {
@@ -392,10 +515,17 @@ export const useDashboardConfigurations = () => {
 
       console.log('📋 Found configuration:', config.name, config.type);
 
-      // Only allow updating user configurations
-      if (config.type === 'system') {
-        console.warn('🏛️ System configurations are read-only and cannot be reordered');
-        return false;
+      // Handle both system and user configurations
+      if (config.type === CONFIGURATION_TYPES.SYSTEM) {
+        console.log('🏛️ System configuration - creating/updating user-specific customization');
+        // Check if user already has an override for this system config
+        if (config.metadata?.userOverrideId) {
+          console.log('🔄 Updating existing user override:', config.metadata.userOverrideId);
+          // Update the existing user override by ID
+          return await updateUserOverrideById(config.metadata.userOverrideId, { tileOrder: newTileOrder });
+        }
+        // For system configs, create a user-specific override in the database
+        return await saveSystemConfigurationOverride(config, { tileOrder: newTileOrder });
       }
 
       // For user configurations, update the configuration directly
@@ -442,6 +572,12 @@ export const useDashboardConfigurations = () => {
       const result = await saveConfigurationData(updatedConfig);
       console.log('💾 Save result:', result);
 
+      // Update the active configuration if this is the currently active one
+      if (activeConfiguration && activeConfiguration.id === configId) {
+        console.log('🔄 Updating active configuration with new tile order');
+        setActiveConfiguration(updatedConfig);
+      }
+
       console.log('✅ Updated tile order for configuration:', config.name);
       return true;
     } catch (err) {
@@ -449,7 +585,446 @@ export const useDashboardConfigurations = () => {
       console.error('Error updating tile order:', err);
       return false;
     }
-  }, [configurations, saveConfigurationData]);
+  }, [configurations, saveConfigurationData, activeConfiguration]);
+
+  /**
+   * Update full tile configurations (position, size, order) for user configurations only
+   */
+  const updateTileConfigurations = useCallback(async (configId, newTileConfigs) => {
+    console.log('🔧 updateTileConfigurations called:', { configId, newTileConfigs });
+    setError(null);
+
+    try {
+      const config = configurations.find(c => c.id === configId);
+      if (!config) {
+        console.error('❌ Configuration not found for ID:', configId);
+        console.log('📋 Available configurations:', configurations.map(c => ({ id: c.id, name: c.name, type: c.type })));
+        throw new Error('Configuration not found');
+      }
+
+      console.log('📋 Found configuration:', { id: config.id, name: config.name, type: config.type });
+      console.log('🔍 CONFIGURATION_TYPES.SYSTEM:', CONFIGURATION_TYPES.SYSTEM);
+      console.log('🔍 config.type === CONFIGURATION_TYPES.SYSTEM:', config.type === CONFIGURATION_TYPES.SYSTEM);
+
+      // Handle both system and user configurations
+      if (config.type === CONFIGURATION_TYPES.SYSTEM) {
+        console.log('🏛️ System configuration - creating/updating user-specific customization');
+        // Check if user already has an override for this system config
+        if (config.metadata?.userOverrideId) {
+          console.log('🔄 Updating existing user override:', config.metadata.userOverrideId);
+          // Update the existing user override by ID
+          return await updateUserOverrideById(config.metadata.userOverrideId, { tileConfigurations: newTileConfigs });
+        }
+        // For system configs, create a user-specific override in the database
+        return await saveSystemConfigurationOverride(config, { tileConfigurations: newTileConfigs });
+      }
+
+      // For user configurations, update the configuration directly
+      console.log('👤 User configuration - updating tile configurations');
+
+      // Validate and prepare tile configurations
+      const updatedTiles = newTileConfigs.map((tileConfig, index) => {
+        return {
+          id: tileConfig.id,
+          position: tileConfig.position || { x: 0, y: 0 },
+          size: tileConfig.size || { w: 1, h: 1 },
+          priority: tileConfig.priority !== undefined ? tileConfig.priority : index,
+          isVisible: tileConfig.isVisible !== undefined ? tileConfig.isVisible : true,
+          config: tileConfig.config || {},
+          customSettings: tileConfig.customSettings || {}
+        };
+      });
+
+      console.log('✅ Updated tile configurations:', updatedTiles);
+
+      // Update the configuration
+      const updatedConfig = {
+        ...config,
+        tiles: updatedTiles,
+        metadata: {
+          ...config.metadata,
+          updatedAt: new Date().toISOString()
+        }
+      };
+
+      // Save the updated configuration
+      console.log('💾 Saving updated configuration with tile configurations...');
+      const result = await saveConfigurationData(updatedConfig);
+      console.log('💾 Save result:', result);
+
+      // Update the active configuration if this is the currently active one
+      if (activeConfiguration && activeConfiguration.id === configId) {
+        console.log('🔄 Updating active configuration with new tile data');
+        setActiveConfiguration(updatedConfig);
+      }
+
+      console.log('✅ Updated tile configurations for configuration:', config.name);
+      return true;
+    } catch (err) {
+      setError('Failed to update tile configurations');
+      console.error('Error updating tile configurations:', err);
+      return false;
+    }
+  }, [configurations, saveConfigurationData, activeConfiguration]);
+
+  /**
+   * Create a user-specific customization of a system configuration
+   */
+  const createUserCustomization = useCallback(async (systemConfig, customizations) => {
+    console.log('🎨 Creating user customization for system config:', systemConfig.name);
+    console.log('🎨 System config details:', { id: systemConfig.id, type: systemConfig.type });
+    console.log('🎨 Customizations:', customizations);
+    console.log('🎨 User ID:', user?.id);
+    setError(null);
+
+    try {
+      // Create a user configuration based on the system configuration
+      // Don't set an ID - let the saveConfiguration service generate it
+      const customizedConfig = {
+        ...systemConfig,
+        id: undefined, // Let the service generate the ID
+        name: `${systemConfig.name} (Custom)`,
+        description: `Customized version of ${systemConfig.name}`,
+        type: CONFIGURATION_TYPES.USER,
+        isDefault: false,
+        isTemplate: false,
+        metadata: {
+          ...systemConfig.metadata,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: user?.id,
+          basedOn: systemConfig.id, // Track the original system config
+          version: '1.0.0'
+        }
+      };
+
+      // Apply customizations
+      if (customizations.tileOrder) {
+        // Update tile order (legacy support)
+        const updatedTiles = customizations.tileOrder.map((tileId, index) => {
+          const existingTile = systemConfig.tiles.find(t => t.id === tileId);
+          if (existingTile) {
+            return {
+              ...existingTile,
+              priority: index
+            };
+          }
+          return {
+            id: tileId,
+            position: { x: index % 3, y: Math.floor(index / 3) },
+            size: { w: 1, h: 1 },
+            priority: index,
+            config: {},
+            customSettings: {}
+          };
+        });
+        customizedConfig.tiles = updatedTiles;
+      }
+
+      if (customizations.tileConfigurations) {
+        // Update full tile configurations
+        customizedConfig.tiles = customizations.tileConfigurations.map((tileConfig, index) => ({
+          id: tileConfig.id,
+          position: tileConfig.position || { x: 0, y: 0 },
+          size: tileConfig.size || { w: 1, h: 1 },
+          priority: tileConfig.priority !== undefined ? tileConfig.priority : index,
+          isVisible: tileConfig.isVisible !== undefined ? tileConfig.isVisible : true,
+          config: tileConfig.config || {},
+          customSettings: tileConfig.customSettings || {}
+        }));
+      }
+
+      // Save the new user configuration
+      console.log('💾 Saving user customization...');
+      const savedConfig = await saveConfigurationData(customizedConfig);
+      console.log('💾 User customization saved:', savedConfig);
+
+      // Set the new configuration as active directly (avoid timing issues)
+      console.log('🔄 Setting customized configuration as active');
+      setActiveConfiguration(savedConfig);
+
+      // Update usage tracking
+      try {
+        await updateConfigurationUsage(user?.id, savedConfig.id);
+      } catch (err) {
+        console.warn('Failed to update configuration usage:', err);
+      }
+
+      console.log('✅ Created and applied user customization:', savedConfig.name);
+      console.log('🎉 You can now fully customize this dashboard!');
+      return true;
+    } catch (err) {
+      setError('Failed to create user customization');
+      console.error('Error creating user customization:', err);
+      return false;
+    }
+  }, [user?.id, saveConfigurationData, updateConfigurationUsage]);
+
+  /**
+   * Save user-specific customizations for system configurations
+   * This creates a user override while keeping the same configuration ID and name
+   */
+  const saveSystemConfigurationOverride = useCallback(async (systemConfig, customizations) => {
+    console.log('🎨 Saving user override for system config:', systemConfig.name);
+    setError(null);
+
+    try {
+      // Create a user-specific version with a unique ID but same name
+      const userOverride = {
+        ...systemConfig,
+        id: undefined, // Let the service generate a unique ID
+        type: CONFIGURATION_TYPES.USER, // Convert to user type for database storage
+        metadata: {
+          ...systemConfig.metadata,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: user?.id,
+          originalSystemConfig: systemConfig.id, // Track the original
+          isSystemOverride: true, // Flag to identify this as a system override
+          version: '1.0.0'
+        }
+      };
+
+      // Apply customizations
+      if (customizations.tileOrder) {
+        const updatedTiles = customizations.tileOrder.map((tileId, index) => {
+          const existingTile = systemConfig.tiles.find(t => t.id === tileId);
+          if (existingTile) {
+            return {
+              ...existingTile,
+              priority: index
+            };
+          }
+          return {
+            id: tileId,
+            position: { x: index % 3, y: Math.floor(index / 3) },
+            size: { w: 1, h: 1 },
+            priority: index,
+            config: {},
+            customSettings: {}
+          };
+        });
+        userOverride.tiles = updatedTiles;
+      }
+
+      if (customizations.tileConfigurations) {
+        userOverride.tiles = customizations.tileConfigurations.map((tileConfig, index) => ({
+          id: tileConfig.id,
+          position: tileConfig.position || { x: 0, y: 0 },
+          size: tileConfig.size || { w: 1, h: 1 },
+          priority: tileConfig.priority !== undefined ? tileConfig.priority : index,
+          isVisible: tileConfig.isVisible !== undefined ? tileConfig.isVisible : true,
+          config: tileConfig.config || {},
+          customSettings: tileConfig.customSettings || {}
+        }));
+      }
+
+      // Save the user override
+      console.log('💾 Saving system configuration override...');
+      const savedConfig = await saveConfigurationData(userOverride);
+      console.log('💾 System override saved:', savedConfig);
+
+      // Update the active configuration to reflect the changes
+      console.log('🔄 Updating active configuration with user customizations');
+      const updatedActiveConfig = {
+        ...systemConfig,
+        tiles: userOverride.tiles,
+        metadata: {
+          ...systemConfig.metadata,
+          customizedBy: user?.id,
+          lastCustomized: new Date().toISOString()
+        }
+      };
+      setActiveConfiguration(updatedActiveConfig);
+
+      console.log('✅ System configuration customized successfully:', systemConfig.name);
+      return true;
+    } catch (err) {
+      setError('Failed to save system configuration customization');
+      console.error('Error saving system configuration override:', err);
+      return false;
+    }
+  }, [user?.id, saveConfigurationData]);
+
+  /**
+   * Update an existing user override configuration
+   */
+  const updateExistingUserOverride = useCallback(async (overrideConfig, customizations) => {
+    console.log('🔄 Updating existing user override:', overrideConfig.name);
+    setError(null);
+
+    try {
+      const updatedOverride = { ...overrideConfig };
+
+      // Apply customizations
+      if (customizations.tileOrder) {
+        const updatedTiles = customizations.tileOrder.map((tileId, index) => {
+          const existingTile = overrideConfig.tiles.find(t => t.id === tileId);
+          if (existingTile) {
+            return {
+              ...existingTile,
+              priority: index
+            };
+          }
+          return {
+            id: tileId,
+            position: { x: index % 3, y: Math.floor(index / 3) },
+            size: { w: 1, h: 1 },
+            priority: index,
+            config: {},
+            customSettings: {}
+          };
+        });
+        updatedOverride.tiles = updatedTiles;
+      }
+
+      if (customizations.tileConfigurations) {
+        updatedOverride.tiles = customizations.tileConfigurations.map((tileConfig, index) => ({
+          id: tileConfig.id,
+          position: tileConfig.position || { x: 0, y: 0 },
+          size: tileConfig.size || { w: 1, h: 1 },
+          priority: tileConfig.priority !== undefined ? tileConfig.priority : index,
+          isVisible: tileConfig.isVisible !== undefined ? tileConfig.isVisible : true,
+          config: tileConfig.config || {},
+          customSettings: tileConfig.customSettings || {}
+        }));
+      }
+
+      // Update metadata
+      updatedOverride.metadata = {
+        ...updatedOverride.metadata,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Save the updated override
+      console.log('💾 Saving updated user override...');
+      const savedConfig = await saveConfigurationData(updatedOverride);
+      console.log('💾 Updated user override saved:', savedConfig);
+
+      // Update the active configuration if this is the currently active one
+      if (activeConfiguration && activeConfiguration.metadata?.userOverrideId === overrideConfig.id) {
+        console.log('🔄 Updating active configuration with updated customizations');
+        const updatedActiveConfig = {
+          ...activeConfiguration,
+          tiles: updatedOverride.tiles,
+          metadata: {
+            ...activeConfiguration.metadata,
+            lastCustomized: new Date().toISOString()
+          }
+        };
+        setActiveConfiguration(updatedActiveConfig);
+      }
+
+      console.log('✅ User override updated successfully');
+      return true;
+    } catch (err) {
+      setError('Failed to update user override');
+      console.error('Error updating user override:', err);
+      return false;
+    }
+  }, [saveConfigurationData, activeConfiguration]);
+
+  /**
+   * Update a user override configuration by ID
+   */
+  const updateUserOverrideById = useCallback(async (overrideId, customizations) => {
+    console.log('🔄 Updating user override by ID:', overrideId);
+    setError(null);
+
+    try {
+      // Get the existing override configuration from the database
+      const existingOverride = await getConfigurationById(user?.id, overrideId);
+      if (!existingOverride) {
+        console.error('❌ User override not found:', overrideId);
+        throw new Error('User override configuration not found');
+      }
+
+      console.log('📋 Found existing override:', existingOverride.name);
+      const updatedOverride = { ...existingOverride };
+
+      // Apply customizations
+      if (customizations.tileOrder) {
+        const updatedTiles = customizations.tileOrder.map((tileId, index) => {
+          const existingTile = existingOverride.tiles.find(t => t.id === tileId);
+          if (existingTile) {
+            return {
+              ...existingTile,
+              priority: index
+            };
+          }
+          return {
+            id: tileId,
+            position: { x: index % 3, y: Math.floor(index / 3) },
+            size: { w: 1, h: 1 },
+            priority: index,
+            config: {},
+            customSettings: {}
+          };
+        });
+        updatedOverride.tiles = updatedTiles;
+      }
+
+      if (customizations.tileConfigurations) {
+        updatedOverride.tiles = customizations.tileConfigurations.map((tileConfig, index) => ({
+          id: tileConfig.id,
+          position: tileConfig.position || { x: 0, y: 0 },
+          size: tileConfig.size || { w: 1, h: 1 },
+          priority: tileConfig.priority !== undefined ? tileConfig.priority : index,
+          isVisible: tileConfig.isVisible !== undefined ? tileConfig.isVisible : true,
+          config: tileConfig.config || {},
+          customSettings: tileConfig.customSettings || {}
+        }));
+      }
+
+      // Update metadata
+      updatedOverride.metadata = {
+        ...updatedOverride.metadata,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Save the updated override
+      console.log('💾 Saving updated user override...');
+      const savedConfig = await saveConfigurationData(updatedOverride);
+      console.log('💾 Updated user override saved:', savedConfig);
+
+      // Update the active configuration if this override belongs to the currently active system config
+      if (activeConfiguration &&
+          (activeConfiguration.metadata?.userOverrideId === overrideId ||
+           (activeConfiguration.type === CONFIGURATION_TYPES.SYSTEM &&
+            updatedOverride.metadata?.originalSystemConfig === activeConfiguration.id))) {
+        console.log('🔄 Updating active configuration with updated customizations');
+        console.log('🔄 Active config ID:', activeConfiguration.id);
+        console.log('🔄 Override original system config:', updatedOverride.metadata?.originalSystemConfig);
+
+        const updatedActiveConfig = {
+          ...activeConfiguration,
+          tiles: updatedOverride.tiles,
+          metadata: {
+            ...activeConfiguration.metadata,
+            lastCustomized: new Date().toISOString(),
+            userOverrideId: overrideId // Ensure the override ID is tracked
+          }
+        };
+
+        // Set the active configuration immediately
+        setActiveConfiguration(updatedActiveConfig);
+        console.log('✅ Active configuration updated with new tiles');
+
+      } else {
+        console.log('⚠️ Active configuration not updated - no match found');
+        console.log('⚠️ Active config:', activeConfiguration?.id, activeConfiguration?.type);
+        console.log('⚠️ Override ID:', overrideId);
+        console.log('⚠️ Override original system config:', updatedOverride.metadata?.originalSystemConfig);
+      }
+
+      console.log('✅ User override updated successfully by ID');
+      return true;
+    } catch (err) {
+      setError('Failed to update user override');
+      console.error('Error updating user override by ID:', err);
+      return false;
+    }
+  }, [user?.id, saveConfigurationData, activeConfiguration]);
 
   /**
    * Clear error state
@@ -490,8 +1065,14 @@ export const useDashboardConfigurations = () => {
     
     // Utilities
     getCurrentTileOrder,
+    getCurrentTileConfigs,
     getCurrentFilters,
     updateTileOrder,
+    updateTileConfigurations,
+    createUserCustomization,
+    saveSystemConfigurationOverride,
+    updateExistingUserOverride,
+    updateUserOverrideById,
     clearError
   };
 };
