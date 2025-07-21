@@ -98,11 +98,11 @@ const TileLibrary = ({
     const IconComponent = tile.icon;
     
     return (
-      <div className={`p-4 rounded-lg border transition-all duration-200 ${
+      <div className={`p-4 rounded-lg border-2 transition-all duration-200 ${
         isAdded
           ? isDark 
-            ? 'border-green-500 bg-green-900/20' 
-            : 'border-green-500 bg-green-50'
+            ? 'border-green-400 bg-green-900/30 shadow-lg shadow-green-500/20' 
+            : 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
           : isDark 
             ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-700 hover:border-slate-500' 
             : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
@@ -110,10 +110,22 @@ const TileLibrary = ({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${
-              isDark ? 'bg-slate-600' : 'bg-slate-100'
+              isAdded
+                ? isDark 
+                  ? 'bg-green-700/50' 
+                  : 'bg-green-100'
+                : isDark 
+                  ? 'bg-slate-600' 
+                  : 'bg-slate-100'
             }`}>
               <IconComponent size={20} className={
-                isDark ? 'text-slate-300' : 'text-slate-600'
+                isAdded
+                  ? isDark 
+                    ? 'text-green-300' 
+                    : 'text-green-700'
+                  : isDark 
+                    ? 'text-slate-300' 
+                    : 'text-slate-600'
               } />
             </div>
             <div>

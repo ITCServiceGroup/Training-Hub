@@ -92,20 +92,26 @@ const DashboardManagerDropdown = ({
 
   const handleSaveConfiguration = async (configurationData) => {
     try {
+      console.log('🔧 Saving configuration:', configurationData);
+      
       // Convert configuration format back to dashboard format
       const dashboardData = {
+        id: configurationData.id,
         name: configurationData.name,
         description: configurationData.description,
         tiles: configurationData.tiles,
         filters: configurationData.filters,
-        layout: configurationData.layout,
-        settings: configurationData.settings
+        layout: configurationData.layout
       };
 
+      console.log('🔧 Dashboard data:', dashboardData);
+
       if (configurationData.id) {
+        console.log('🔧 Updating existing dashboard with ID:', configurationData.id);
         // Update existing dashboard
         await onUpdateDashboard(dashboardData);
       } else {
+        console.log('🔧 Creating new dashboard');
         // Create new dashboard
         await onCreateDashboard(dashboardData);
       }
@@ -357,12 +363,14 @@ const DashboardManagerDropdown = ({
       {showEditor && editingDashboard && (
         <ConfigurationEditor
           configuration={editingDashboard}
-          onSave={handleSaveConfiguration}
+          onSave={() => handleSaveConfiguration(editingDashboard)}
           onCancel={() => {
             setShowEditor(false);
             setEditingDashboard(null);
           }}
-          onUpdateConfiguration={setEditingDashboard}
+          onUpdateConfiguration={(updates) => 
+            setEditingDashboard(prev => ({ ...prev, ...updates }))
+          }
           isLoading={loading}
         />
       )}

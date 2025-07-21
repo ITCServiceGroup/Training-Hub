@@ -590,7 +590,7 @@ const Dashboard = () => {
 
               {/* Tile Library Button */}
               <TileLibraryButton
-                currentTiles={getCurrentTiles()}
+                currentTiles={getCurrentTiles().map(tile => tile.id)}
                 onAddTile={(tileId) => {
                   // Add tile to current dashboard
                   const currentTiles = getCurrentTiles();

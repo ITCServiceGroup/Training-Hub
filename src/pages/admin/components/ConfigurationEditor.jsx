@@ -42,12 +42,10 @@ const ConfigurationEditor = ({
   const isDark = theme === 'dark';
   
   // UI State
-  const [activePanel, setActivePanel] = useState('tiles'); // 'tiles', 'preview', 'settings'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState('category'); // 'category', 'popular', 'search'
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
-  const [previewMode, setPreviewMode] = useState('grid'); // 'grid', 'list'
 
   // Get current tiles in configuration
   const currentTileIds = useMemo(() => 
@@ -302,53 +300,82 @@ const ConfigurationEditor = ({
           </div>
         </div>
 
-        {/* Panel Navigation */}
-        <div className={`flex border-b flex-shrink-0 ${
-          isDark ? 'border-slate-600' : 'border-slate-200'
-        }`}>
-          {[
-            { id: 'tiles', label: 'Tiles', icon: FaLayerGroup },
-            { id: 'preview', label: 'Preview', icon: FaEye },
-            { id: 'settings', label: 'Settings', icon: FaCog }
-          ].map(panel => {
-            const IconComponent = panel.icon;
-            return (
-              <button
-                key={panel.id}
-                onClick={() => setActivePanel(panel.id)}
-                className={`flex items-center gap-2 px-4 py-3 transition-colors ${
-                  activePanel === panel.id
-                    ? isDark 
-                      ? 'bg-slate-700 text-blue-400 border-b-2 border-blue-400' 
-                      : 'bg-slate-50 text-blue-600 border-b-2 border-blue-600'
-                    : isDark 
-                      ? 'text-slate-400 hover:text-white hover:bg-slate-700' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <IconComponent size={16} />
-                {panel.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Panel Content */}
+        {/* Main Content */}
         <div className="flex-1 overflow-hidden">
-          {activePanel === 'tiles' && (
-            <div className="h-full flex">
-              {/* Tile Library */}
-              <div className="w-1/2 border-r border-slate-200 dark:border-slate-600 flex flex-col">
-                {/* Tile Library Controls */}
-                <div className="p-4 border-b border-slate-200 dark:border-slate-600 flex-shrink-0">
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="flex-1 relative">
-                      <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
-                        isDark ? 'text-slate-400' : 'text-slate-500'
-                      }`} size={14} />
-                      <input
-                        type="text"
-                        placeholder="Search tiles..."
+            <div className="h-full flex flex-col">
+              {/* Dashboard Name & Description */}
+              <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-600">
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className={`block text-xs font-medium mb-1 ${
+                      isDark ? 'text-slate-300' : 'text-slate-700'
+                    }`}>
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={configuration?.name || ''}
+                      onChange={(e) => handleFieldUpdate('name', e.target.value)}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        isDark 
+                          ? 'bg-slate-700 border-slate-600 text-white' 
+                          : 'bg-white border-slate-300 text-slate-900'
+                      }`}
+                      placeholder="Enter dashboard name"
+                      maxLength={100}
+                    />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <label className={`block text-xs font-medium mb-1 ${
+                      isDark ? 'text-slate-300' : 'text-slate-700'
+                    }`}>
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      value={configuration?.description || ''}
+                      onChange={(e) => handleFieldUpdate('description', e.target.value)}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        isDark 
+                          ? 'bg-slate-700 border-slate-600 text-white' 
+                          : 'bg-white border-slate-300 text-slate-900'
+                      }`}
+                      placeholder="Optional description"
+                      maxLength={500}
+                    />
+                  </div>
+
+                  {/* Validation Errors */}
+                  {!validation.isValid && (
+                    <div className="flex items-center">
+                      <span className={`text-sm text-red-500 ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                        Fix: {validation.errors[0]}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Charts Section */}
+              <div className="flex-1 flex overflow-hidden">
+                {/* Chart Library */}
+                <div className="w-1/2 border-r border-slate-200 dark:border-slate-600 flex flex-col">
+                  {/* Chart Library Header */}
+                  <div className="p-4 border-b border-slate-200 dark:border-slate-600">
+                    <h4 className={`text-md font-medium mb-3 ${
+                      isDark ? 'text-white' : 'text-slate-900'
+                    }`}>
+                      Available Charts
+                    </h4>
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="flex-1 relative">
+                        <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                          isDark ? 'text-slate-400' : 'text-slate-500'
+                        }`} size={14} />
+                        <input
+                          type="text"
+                          placeholder="Search charts..."
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
                         className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -467,18 +494,18 @@ const ConfigurationEditor = ({
                 </div>
               </div>
 
-              {/* Current Configuration */}
+              {/* Selected Charts */}
               <div className="w-1/2 flex flex-col">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-600 flex-shrink-0">
                   <h3 className={`font-medium ${
                     isDark ? 'text-white' : 'text-slate-900'
                   }`}>
-                    Current Configuration
+                    Selected Charts
                   </h3>
                   <p className={`text-sm ${
                     isDark ? 'text-slate-400' : 'text-slate-600'
                   }`}>
-                    {configuration?.tiles?.length || 0} tiles selected
+                    {configuration?.tiles?.length || 0} charts selected
                   </p>
                 </div>
                 
@@ -551,297 +578,8 @@ const ConfigurationEditor = ({
                   )}
                 </div>
               </div>
-            </div>
-          )}
-
-          {activePanel === 'preview' && (
-            <div className="h-full flex flex-col">
-              {/* Preview Controls */}
-              <div className="p-4 border-b border-slate-200 dark:border-slate-600">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className={`font-medium ${
-                      isDark ? 'text-white' : 'text-slate-900'
-                    }`}>
-                      Dashboard Preview
-                    </h3>
-                    <p className={`text-sm ${
-                      isDark ? 'text-slate-400' : 'text-slate-600'
-                    }`}>
-                      Live preview of your configuration layout
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setPreviewMode(previewMode === 'grid' ? 'list' : 'grid')}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                        isDark
-                          ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      {previewMode === 'grid' ? <FaCompress size={14} /> : <FaExpand size={14} />}
-                      {previewMode === 'grid' ? 'List View' : 'Grid View'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preview Content */}
-              <div className="flex-1 p-4 overflow-y-auto">
-                {configuration?.tiles?.length > 0 ? (
-                  previewMode === 'grid' ? (
-                    // Grid Preview
-                    <div className="grid grid-cols-3 gap-4 max-w-4xl mx-auto">
-                      {configuration.tiles
-                        .sort((a, b) => a.priority - b.priority)
-                        .map((configTile, index) => {
-                          const tile = AVAILABLE_TILES[configTile.id];
-                          if (!tile) return null;
-
-                          const IconComponent = tile.icon;
-                          const gridSpan = configTile.size.w > 1 ? `col-span-${Math.min(configTile.size.w, 3)}` : '';
-                          const heightClass = configTile.size.h > 1 ? 'h-48' : 'h-32';
-
-                          return (
-                            <div
-                              key={configTile.id}
-                              className={`${gridSpan} ${heightClass} p-4 rounded-lg border-2 border-dashed transition-all ${
-                                isDark
-                                  ? 'border-slate-600 bg-slate-700/30 hover:border-slate-500'
-                                  : 'border-slate-300 bg-slate-50 hover:border-slate-400'
-                              }`}
-                            >
-                              <div className="h-full flex flex-col items-center justify-center text-center">
-                                <div className={`p-3 rounded-lg mb-3 ${
-                                  isDark ? 'bg-slate-600' : 'bg-white'
-                                }`}>
-                                  <IconComponent size={24} className={
-                                    isDark ? 'text-slate-300' : 'text-slate-600'
-                                  } />
-                                </div>
-
-                                <h4 className={`font-medium text-sm mb-1 ${
-                                  isDark ? 'text-white' : 'text-slate-900'
-                                }`}>
-                                  {tile.name}
-                                </h4>
-
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className={`px-2 py-1 rounded ${
-                                    isDark ? 'bg-slate-600 text-slate-300' : 'bg-slate-200 text-slate-600'
-                                  }`}>
-                                    {configTile.size.w}×{configTile.size.h}
-                                  </span>
-                                  <span className={`px-2 py-1 rounded ${
-                                    isDark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'
-                                  }`}>
-                                    #{configTile.priority + 1}
-                                  </span>
-                                </div>
-
-                                <p className={`text-xs mt-2 ${
-                                  isDark ? 'text-slate-400' : 'text-slate-500'
-                                }`}>
-                                  {tile.description.substring(0, 50)}...
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  ) : (
-                    // List Preview
-                    <div className="max-w-2xl mx-auto space-y-3">
-                      {configuration.tiles
-                        .sort((a, b) => a.priority - b.priority)
-                        .map((configTile, index) => {
-                          const tile = AVAILABLE_TILES[configTile.id];
-                          if (!tile) return null;
-
-                          const IconComponent = tile.icon;
-
-                          return (
-                            <div
-                              key={configTile.id}
-                              className={`flex items-center gap-4 p-4 rounded-lg border ${
-                                isDark
-                                  ? 'border-slate-600 bg-slate-700/50'
-                                  : 'border-slate-200 bg-white'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium ${
-                                  isDark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'
-                                }`}>
-                                  {configTile.priority + 1}
-                                </span>
-
-                                <div className={`p-2 rounded ${
-                                  isDark ? 'bg-slate-600' : 'bg-slate-100'
-                                }`}>
-                                  <IconComponent size={20} className={
-                                    isDark ? 'text-slate-300' : 'text-slate-600'
-                                  } />
-                                </div>
-                              </div>
-
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className={`font-medium ${
-                                    isDark ? 'text-white' : 'text-slate-900'
-                                  }`}>
-                                    {tile.name}
-                                  </h4>
-
-                                  <span className={`text-xs px-2 py-0.5 rounded ${
-                                    isDark ? 'bg-slate-600 text-slate-300' : 'bg-slate-100 text-slate-600'
-                                  }`}>
-                                    {configTile.size.w}×{configTile.size.h}
-                                  </span>
-
-                                  {tile.isCore && (
-                                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">
-                                      Core
-                                    </span>
-                                  )}
-                                </div>
-
-                                <p className={`text-sm ${
-                                  isDark ? 'text-slate-400' : 'text-slate-600'
-                                }`}>
-                                  {tile.description}
-                                </p>
-
-                                <div className="flex items-center gap-2 mt-2">
-                                  {tile.tags.slice(0, 3).map(tag => (
-                                    <span
-                                      key={tag}
-                                      className={`text-xs px-2 py-0.5 rounded ${
-                                        isDark ? 'bg-slate-600 text-slate-300' : 'bg-slate-100 text-slate-600'
-                                      }`}
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1">
-                                <FaFire size={12} className="text-orange-500" />
-                                <span className={`text-xs ${
-                                  isDark ? 'text-slate-400' : 'text-slate-500'
-                                }`}>
-                                  {tile.popularity}%
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  )
-                ) : (
-                  <div className="text-center py-12">
-                    <FaEye size={48} className={`mx-auto mb-4 ${
-                      isDark ? 'text-slate-600' : 'text-slate-400'
-                    }`} />
-                    <h3 className={`text-lg font-medium mb-2 ${
-                      isDark ? 'text-white' : 'text-slate-900'
-                    }`}>
-                      No Tiles Selected
-                    </h3>
-                    <p className={`text-sm ${
-                      isDark ? 'text-slate-400' : 'text-slate-600'
-                    }`}>
-                      Add tiles from the Tiles panel to see a preview of your dashboard
-                    </p>
-                    <button
-                      onClick={() => setActivePanel('tiles')}
-                      className={`mt-4 px-4 py-2 rounded-lg transition-colors ${
-                        isDark
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-blue-500 hover:bg-blue-600 text-white'
-                      }`}
-                    >
-                      Add Tiles
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
-          )}
-
-          {activePanel === 'settings' && (
-            <div className="p-6 flex-1 overflow-y-auto">
-              <div className="max-w-2xl space-y-6">
-                {/* Basic Information */}
-                <div>
-                  <h3 className={`text-lg font-medium mb-4 ${
-                    isDark ? 'text-white' : 'text-slate-900'
-                  }`}>
-                    Basic Information
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${
-                        isDark ? 'text-slate-300' : 'text-slate-700'
-                      }`}>
-                        Configuration Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={configuration?.name || ''}
-                        onChange={(e) => handleFieldUpdate('name', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          isDark 
-                            ? 'bg-slate-700 border-slate-600 text-white' 
-                            : 'bg-white border-slate-300 text-slate-900'
-                        }`}
-                        placeholder="Enter configuration name"
-                        maxLength={100}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${
-                        isDark ? 'text-slate-300' : 'text-slate-700'
-                      }`}>
-                        Description
-                      </label>
-                      <textarea
-                        value={configuration?.description || ''}
-                        onChange={(e) => handleFieldUpdate('description', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border resize-none ${
-                          isDark 
-                            ? 'bg-slate-700 border-slate-600 text-white' 
-                            : 'bg-white border-slate-300 text-slate-900'
-                        }`}
-                        placeholder="Optional description"
-                        rows={3}
-                        maxLength={500}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Validation Errors */}
-                {!validation.isValid && (
-                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <h4 className="font-medium text-red-800 dark:text-red-400 mb-2">
-                      Configuration Issues
-                    </h4>
-                    <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
-                      {validation.errors.map((error, index) => (
-                        <li key={index}>• {error}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

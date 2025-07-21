@@ -29,10 +29,10 @@ const TileLibraryButton = ({
             ? 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white border border-slate-600' 
             : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200'
         }`}
-        title="Add or remove dashboard tiles"
+        title="Edit dashboard - add or remove tiles"
       >
         <FaLayerGroup size={16} />
-        <span className="hidden sm:inline">Tiles</span>
+        <span className="hidden sm:inline">Edit</span>
         <div className={`flex items-center gap-1 ml-1 px-2 py-0.5 rounded text-xs ${
           isDark ? 'bg-slate-600 text-slate-300' : 'bg-slate-100 text-slate-600'
         }`}>
