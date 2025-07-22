@@ -9,6 +9,7 @@ class QuizResultsService extends BaseService {
   /**
    * Get filtered quiz results
    * @param {Object} filters - Filter parameters
+   * @param {boolean} includeQuizMetadata - Whether to include quiz metadata (passing_score, etc.)
    * @returns {Promise<Array>} - Filtered quiz results
    */
   async getFilteredResults({
@@ -23,7 +24,8 @@ class QuizResultsService extends BaseService {
     minTime,
     maxTime,
     sortField = 'date_of_test',
-    sortOrder = 'desc'
+    sortOrder = 'desc',
+    includeQuizMetadata = false
   }) {
     try {
       let query = supabase
@@ -88,10 +90,79 @@ class QuizResultsService extends BaseService {
       });
 
       const { data, error } = await query;
-      console.log('Query results:', data); // Also log the results received
 
       if (error) {
         throw error;
+      }
+
+      // If quiz metadata was requested, fetch it separately
+      if (includeQuizMetadata && data && data.length > 0) {
+        try {
+          // First try to use quiz_id if available
+          const quizIds = [...new Set(data.map(result => result.quiz_id).filter(Boolean))];
+          // If no quiz_id, try to match by quiz_type (title)
+          if (quizIds.length === 0) {
+            const quizTypes = [...new Set(data.map(result => result.quiz_type).filter(Boolean))];
+            
+            if (quizTypes.length > 0) {
+              // Fetch quiz metadata by matching titles
+              const { data: quizData, error: quizError } = await supabase
+                .from('v2_quizzes')
+                .select('id, title, passing_score')
+                .in('title', quizTypes);
+
+              if (!quizError && quizData) {
+                // Create a lookup map for quiz metadata by title
+                const quizMap = {};
+                quizData.forEach(quiz => {
+                  quizMap[quiz.title] = quiz;
+                });
+
+                // Merge quiz metadata into results using quiz_type
+                const enrichedData = data.map(result => ({
+                  ...result,
+                  quiz_title: result.quiz_type,
+                  passing_threshold: quizMap[result.quiz_type]?.passing_score || 0.7, // Default to 70% if missing
+                }));
+                
+                return enrichedData;
+              }
+            }
+          } else {
+            // Original logic for quiz_id
+            const { data: quizData, error: quizError } = await supabase
+              .from('v2_quizzes')
+              .select('id, title, passing_score')
+              .in('id', quizIds);
+
+            if (!quizError && quizData) {
+              // Create a lookup map for quiz metadata
+              const quizMap = {};
+              quizData.forEach(quiz => {
+                quizMap[quiz.id] = quiz;
+              });
+
+              // Merge quiz metadata into results
+              const enrichedData = data.map(result => ({
+                ...result,
+                quiz_title: quizMap[result.quiz_id]?.title || null,
+                passing_threshold: quizMap[result.quiz_id]?.passing_score || 0.7, // Default to 70% if missing
+              }));
+              
+              return enrichedData;
+            }
+          }
+          
+        } catch (quizError) {
+          console.warn('Failed to fetch quiz metadata, using defaults:', quizError);
+        }
+
+        // Fallback: add default passing threshold without quiz metadata
+        return data.map(result => ({
+          ...result,
+          quiz_title: null,
+          passing_threshold: 0.7 // Default to 70%
+        }));
       }
 
       return data;

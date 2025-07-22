@@ -407,7 +407,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
       {/* Active brush selection indicator */}
       {brushSelection.timeRange && brushSelection.sourceChart === 'score-trend' && (
-        <div className="absolute top-2 left-2 z-10 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-300">
+        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-300 shadow-sm">
           Selected: {brushSelection.timeRange.label}
         </div>
       )}

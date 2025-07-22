@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
-import { filterDataForChart } from '../../utils/dashboardFilters';
+import { filterDataForChart, createPassFailClassificationFilter } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
 
-const PassFailRateChart = ({ data = [], loading = false, passingThreshold = 0.7 }) => {
+const PassFailRateChart = ({ data = [], loading = false }) => {
   const { isDark } = useTheme();
   const {
     getFiltersForChart,
@@ -30,16 +30,24 @@ const PassFailRateChart = ({ data = [], loading = false, passingThreshold = 0.7 
     }
   }, [data, getFiltersForChart, shouldFilterChart]);
 
-  // Process data for pass/fail analysis
+  // Process data for pass/fail analysis using quiz-specific thresholds
   const chartData = useMemo(() => {
     if (!chartFilteredData || chartFilteredData.length === 0) return [];
 
     let passCount = 0;
     let failCount = 0;
 
-    chartFilteredData.forEach(result => {
+    // Analyze thresholds in the dataset for context
+    const thresholds = chartFilteredData
+      .map(result => result.passing_threshold || 70) // Keep as percentage for display
+      .filter((threshold, index, arr) => arr.indexOf(threshold) === index);
+
+    chartFilteredData.forEach((result) => {
       const score = parseFloat(result.score_value) || 0;
-      if (score >= passingThreshold) {
+      // Convert threshold to decimal format (0-1) to match score format
+      const thresholdDecimal = (result.passing_threshold || 70) / 100; // Convert percentage to decimal
+      
+      if (score >= thresholdDecimal) {
         passCount++;
       } else {
         failCount++;
@@ -49,23 +57,32 @@ const PassFailRateChart = ({ data = [], loading = false, passingThreshold = 0.7 
     const total = passCount + failCount;
     if (total === 0) return [];
 
-    return [
+    // Create threshold context for display
+    const thresholdLabel = thresholds.length > 1 
+      ? `${Math.min(...thresholds)}%-${Math.max(...thresholds)}%`
+      : `${thresholds[0]}%`;
+
+    const chartData = [
       {
         id: 'pass',
         label: 'Pass',
         value: passCount,
         percentage: ((passCount / total) * 100).toFixed(1),
-        color: '#10b981' // Green
+        color: '#10b981', // Green
+        thresholdLabel
       },
       {
         id: 'fail',
         label: 'Fail',
         value: failCount,
         percentage: ((failCount / total) * 100).toFixed(1),
-        color: '#ef4444' // Red
+        color: '#ef4444', // Red
+        thresholdLabel
       }
     ].filter(item => item.value > 0);
-  }, [chartFilteredData, passingThreshold]);
+
+    return chartData;
+  }, [chartFilteredData]);
 
   if (loading) {
     return (
@@ -83,38 +100,29 @@ const PassFailRateChart = ({ data = [], loading = false, passingThreshold = 0.7 
     );
   }
 
-  const passRate = chartData.find(d => d.id === 'pass')?.percentage || '0';
+  const passData = chartData.find(d => d.id === 'pass');
+  const passRate = passData?.percentage || '0';
   const total = chartData.reduce((sum, d) => sum + d.value, 0);
 
   // Handle pass/fail segment click for drill-down
   const handleSegmentClick = (segment) => {
-    const isPass = segment.id === 'pass';
-    const scoreRange = isPass
-      ? { min: passingThreshold * 100, max: 100 }
-      : { min: 0, max: passingThreshold * 100 };
+    const classification = segment.id; // 'pass' or 'fail'
+    const classificationFilter = createPassFailClassificationFilter(classification, chartFilteredData);
 
-    drillDown('scoreRange', {
-      min: scoreRange.min,
-      max: scoreRange.max,
-      label: isPass ? 'Passing Scores' : 'Failing Scores',
-      threshold: passingThreshold * 100
-    }, 'pass-fail-rate');
+    drillDown('passFailClassification', classificationFilter, 'pass-fail-rate');
   };
 
   // Handle segment hover for cross-filtering
   const handleSegmentHover = (segment) => {
     if (segment) {
-      const isPass = segment.id === 'pass';
-      const scoreRange = isPass
-        ? { min: passingThreshold * 100, max: 100 }
-        : { min: 0, max: passingThreshold * 100 };
-
-      applyHoverFilter('scoreRange', scoreRange, 'pass-fail-rate');
+      const classification = segment.id; // 'pass' or 'fail'
+      const classificationFilter = createPassFailClassificationFilter(classification, chartFilteredData);
+      applyHoverFilter('passFailClassification', classificationFilter, 'pass-fail-rate');
     }
   };
 
   const handleSegmentLeave = () => {
-    applyHoverFilter('scoreRange', null, 'pass-fail-rate');
+    applyHoverFilter('passFailClassification', null, 'pass-fail-rate');
   };
 
   return (
@@ -177,18 +185,21 @@ const PassFailRateChart = ({ data = [], loading = false, passingThreshold = 0.7 
         onMouseLeave={handleSegmentLeave}
         tooltip={({ datum }) => {
           const isPassing = datum.id === 'pass';
-          const threshold = (passingThreshold * 100).toFixed(0);
+          // Get thresholdLabel from our chartData since Nivo doesn't pass custom fields
+          const chartDataItem = chartData.find(d => d.id === datum.id);
+          const thresholdLabel = chartDataItem?.thresholdLabel || '70%';
           
           const tooltipData = [
             { label: 'Result', value: datum.label },
             { label: 'Count', value: datum.value },
-            { label: 'Percentage', value: `${datum.percentage}%` },
-            { label: 'Threshold', value: `${threshold}%` }
+            { label: 'Percentage', value: `${chartDataItem?.percentage || '0'}%` },
+            { label: 'Thresholds', value: thresholdLabel }
           ];
 
-          const additionalInfo = isPassing 
-            ? `Students scoring ${threshold}% or higher`
-            : `Students scoring below ${threshold}%`;
+          // Create contextual additional info based on threshold variety
+          const additionalInfo = thresholdLabel.includes('-')
+            ? `Quiz-specific thresholds: ${thresholdLabel}`
+            : `${isPassing ? 'Meeting' : 'Below'} ${thresholdLabel} threshold`;
 
           return (
             <EnhancedTooltip

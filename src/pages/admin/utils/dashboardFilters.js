@@ -89,6 +89,22 @@ export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter)
     });
   }
 
+  // Apply pass/fail classification filter (threshold-aware)
+  if (combinedFilters.passFailClassification) {
+    const { classification } = combinedFilters.passFailClassification;
+    filteredData = filteredData.filter(result => {
+      const score = parseFloat(result.score_value) || 0;
+      const thresholdDecimal = (result.passing_threshold || 70) / 100; // Convert percentage to decimal for comparison
+      
+      if (classification === 'pass') {
+        return score >= thresholdDecimal;
+      } else if (classification === 'fail') {
+        return score < thresholdDecimal;
+      }
+      return true; // Default to include all if classification is unknown
+    });
+  }
+
   // Apply quiz type filter
   if (combinedFilters.quizType) {
     const quizTypeValue = typeof combinedFilters.quizType === 'object'
@@ -258,7 +274,45 @@ export const getChartDrillDownActions = (chartType) => {
       return ['supervisor', 'market'];
     case 'time-vs-score':
       return ['supervisor', 'market'];
+    case 'pass-fail-rate':
+      return ['passFailClassification', 'supervisor', 'market'];
     default:
       return ['supervisor', 'market'];
   }
+};
+
+/**
+ * Create a pass/fail classification filter object for threshold-aware filtering
+ * @param {string} classification - 'pass' or 'fail'
+ * @param {Array} data - Array of quiz results data to analyze thresholds
+ * @returns {Object} Pass/fail classification filter object
+ */
+export const createPassFailClassificationFilter = (classification, data = []) => {
+  // Analyze the thresholds in the dataset to provide context
+  const thresholds = data
+    .map(result => result.passing_threshold || 70) // Default to 70% if missing
+    .filter((threshold, index, arr) => arr.indexOf(threshold) === index) // Get unique values
+    .sort((a, b) => a - b);
+  
+  const minThreshold = thresholds.length > 0 ? Math.min(...thresholds) : 70;
+  const maxThreshold = thresholds.length > 0 ? Math.max(...thresholds) : 70;
+  
+  // Create descriptive label based on threshold range (thresholds are already percentages)
+  const thresholdLabel = thresholds.length > 1 
+    ? `${minThreshold}%-${maxThreshold}%`
+    : `${minThreshold}%`;
+  
+  return {
+    classification,
+    label: classification === 'pass' 
+      ? `Passing Results (Thresholds: ${thresholdLabel})`
+      : `Failing Results (Thresholds: ${thresholdLabel})`,
+    thresholdRange: thresholdLabel,
+    affectedQuizzes: [...new Set(data.map(result => result.quiz_title).filter(Boolean))],
+    count: data.filter(result => {
+      const score = parseFloat(result.score_value) || 0;
+      const thresholdDecimal = (result.passing_threshold || 70) / 100; // Convert percentage to decimal for comparison
+      return classification === 'pass' ? score >= thresholdDecimal : score < thresholdDecimal;
+    }).length
+  };
 };

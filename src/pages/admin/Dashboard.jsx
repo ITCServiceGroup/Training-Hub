@@ -399,7 +399,10 @@ const Dashboard = () => {
           sortOrder: 'desc'
         };
 
-        const data = await quizResultsService.getFilteredResults(filterParams);
+        const data = await quizResultsService.getFilteredResults({
+          ...filterParams,
+          includeQuizMetadata: true // Include quiz passing thresholds for pass/fail analysis
+        });
         setResults(data);
         // Update stable references only when data actually changes
         stableDataRef.current = data;

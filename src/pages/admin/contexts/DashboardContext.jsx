@@ -35,6 +35,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: null,
       timeRange: null,
       scoreRange: null,
+      passFailClassification: null,
       quizType: null,
       question: null,
       breadcrumbs: []
@@ -44,6 +45,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: null,
       timeRange: null,
       scoreRange: null,
+      passFailClassification: null,
       quizType: null,
       question: null,
       sourceChart: null
@@ -53,6 +55,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: null,
       timeRange: null,
       scoreRange: null,
+      passFailClassification: null,
       quizType: null,
       question: null,
       sourceChart: null
@@ -128,6 +131,15 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
             sourceChart
           });
           break;
+        case 'passFailClassification':
+          newState.passFailClassification = value;
+          newBreadcrumbs.push({
+            type: 'passFailClassification',
+            value,
+            label: value.label,
+            sourceChart
+          });
+          break;
         case 'quizType':
           newState.quizType = value.fullName || value;
           newBreadcrumbs.push({
@@ -174,6 +186,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
           market: null,
           timeRange: null,
           scoreRange: null,
+          passFailClassification: null,
           quizType: null,
           question: null,
           sourceChart: null
@@ -189,6 +202,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
           market: type === 'market' ? value : null,
           timeRange: type === 'timeRange' ? value : null,
           scoreRange: type === 'scoreRange' ? value : null,
+          passFailClassification: type === 'passFailClassification' ? value : null,
           quizType: type === 'quizType' ? value : null,
           question: type === 'question' ? value : null,
           sourceChart
@@ -240,6 +254,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
         market: null,
         timeRange: null,
         scoreRange: null,
+        passFailClassification: null,
         quizType: null,
         question: null,
         sourceChart: null
@@ -249,6 +264,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
         market: null,
         timeRange: null,
         scoreRange: null,
+        passFailClassification: null,
         quizType: null,
         question: null,
         sourceChart: null
@@ -271,6 +287,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
           market: targetBreadcrumbs.find(b => b.type === 'market')?.value || null,
           timeRange: targetBreadcrumbs.find(b => b.type === 'timeRange')?.value || null,
           scoreRange: targetBreadcrumbs.find(b => b.type === 'scoreRange')?.value || null,
+          passFailClassification: targetBreadcrumbs.find(b => b.type === 'passFailClassification')?.value || null,
           quizType: targetBreadcrumbs.find(b => b.type === 'quizType')?.value || null,
           question: targetBreadcrumbs.find(b => b.type === 'question')?.value || null
         }
@@ -302,6 +319,9 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
             case 'scoreRange':
               newState.scoreRange = null;
               break;
+            case 'passFailClassification':
+              newState.passFailClassification = null;
+              break;
             case 'quizType':
               newState.quizType = null;
               break;
@@ -332,6 +352,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
         market: null,
         timeRange: null,
         scoreRange: null,
+        passFailClassification: null,
         quizType: null,
         question: null,
         breadcrumbs: []
@@ -394,6 +415,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: drillDownState.market,
       timeRange: combinedTimeRange,
       scoreRange: drillDownState.scoreRange,
+      passFailClassification: drillDownState.passFailClassification,
       quizType: drillDownState.quizType,
       question: drillDownState.question,
     };
@@ -404,6 +426,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: baseFilters.market || crossFilters.market,
       timeRange: baseFilters.timeRange,
       scoreRange: baseFilters.scoreRange || crossFilters.scoreRange,
+      passFailClassification: baseFilters.passFailClassification || crossFilters.passFailClassification,
       quizType: baseFilters.quizType || crossFilters.quizType,
       question: baseFilters.question || crossFilters.question,
     };
@@ -414,6 +437,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: withCrossFilters.market,
       timeRange: withCrossFilters.timeRange,
       scoreRange: withCrossFilters.scoreRange,
+      passFailClassification: withCrossFilters.passFailClassification,
       quizType: withCrossFilters.quizType,
       question: withCrossFilters.question,
     };
@@ -465,6 +489,9 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
 
     if (hoverFilters.scoreRange && !finalFilters.scoreRange) {
       finalFilters.scoreRange = hoverFilters.scoreRange;
+    }
+    if (hoverFilters.passFailClassification && !finalFilters.passFailClassification) {
+      finalFilters.passFailClassification = hoverFilters.passFailClassification;
     }
     if (hoverFilters.quizType && !finalFilters.quizType) {
       finalFilters.quizType = hoverFilters.quizType;
@@ -562,7 +589,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
   // Check if data should be filtered for a specific chart
   const shouldFilterChart = useCallback((chartId) => {
     const filters = getFiltersForChart(chartId);
-    return filters.supervisor || filters.market || filters.timeRange || filters.scoreRange || filters.quizType || filters.question;
+    return filters.supervisor || filters.market || filters.timeRange || filters.scoreRange || filters.passFailClassification || filters.quizType || filters.question;
   }, [getFiltersForChart]);
 
   const value = {
