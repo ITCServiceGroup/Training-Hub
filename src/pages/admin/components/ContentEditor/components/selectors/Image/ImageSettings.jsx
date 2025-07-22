@@ -44,7 +44,7 @@ export const ImageSettings = () => {
         width: 0,
         color: { r: 0, g: 0, b: 0, a: 1 },
       },
-      objectFit: props.objectFit || 'cover',
+      objectFit: props.objectFit || 'none',
       margin: props.margin || ['0', '0', '0', '0'],
       padding: props.padding || ['0', '0', '0', '0'],
       shadow: props.shadow || {
@@ -148,16 +148,17 @@ export const ImageSettings = () => {
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Object Fit
               </label>
-              <div className="flex space-x-1">
+              <div className="flex gap-1">
                 {['cover', 'contain', 'fill', 'none'].map((fit) => (
                   <button
                     key={fit}
-                    className={`px-2 py-1 text-xs rounded capitalize ${
+                    className={`flex-1 px-1 py-0.5 text-xs rounded capitalize ${
                       objectFit === fit
                         ? 'bg-primary text-white'
                         : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
                     }`}
                     onClick={() => actions.setProp((props) => { props.objectFit = fit; })}
+                    style={{ fontSize: '10px' }}
                   >
                     {fit}
                   </button>

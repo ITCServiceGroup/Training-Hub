@@ -17,7 +17,7 @@ export const Image = ({
     width: 0,
     color: { r: 0, g: 0, b: 0, a: 1 }
   },
-  objectFit = 'cover',
+  objectFit = 'none',
   shadow = {
     enabled: false,
     x: 0,
@@ -52,6 +52,52 @@ export const Image = ({
     ? aspectRatio.replace('/', ' / ')
     : 'auto';
 
+  // Determine if we need to constrain the image for object-fit to work
+  const needsConstraints = objectFit && objectFit !== 'none';
+  const hasExplicitDimensions = (width && width !== 'auto') || (height && height !== 'auto');
+  const hasAspectRatio = aspectRatio && aspectRatio !== 'auto';
+
+  // Calculate image styles based on object-fit requirements
+  const getImageStyles = () => {
+    const baseStyles = {
+      objectFit,
+      aspectRatio: formattedAspectRatio,
+      borderRadius: `${radius}px`,
+      border: borderStyle,
+      boxShadow: shadowStyle
+    };
+
+    if (needsConstraints && (hasExplicitDimensions || hasAspectRatio)) {
+      // For contain, we want the image to size naturally within the container
+      // For cover and fill, we want the image to fill the container completely
+      if (objectFit === 'contain') {
+        return {
+          ...baseStyles,
+          maxWidth: '100%',
+          maxHeight: '100%',
+          width: 'auto',
+          height: 'auto'
+        };
+      } else {
+        // For cover, fill, etc. - image should fill the container
+        return {
+          ...baseStyles,
+          width: '100%',
+          height: '100%'
+        };
+      }
+    } else {
+      // Default behavior - let image size naturally but with container limits
+      return {
+        ...baseStyles,
+        maxWidth: '100%',
+        maxHeight: '100%',
+        width: 'auto',
+        height: 'auto'
+      };
+    }
+  };
+
   return (
     <Resizer
       propKey={{ width: 'width', height: 'height' }}
@@ -66,7 +112,9 @@ export const Image = ({
                        alignment === 'right' ? 'flex-end' : 'center',
         width: width,
         height: height,
-        position: 'relative'
+        position: 'relative',
+        // Ensure container has proper dimensions for object-fit
+        ...(needsConstraints && hasExplicitDimensions ? { overflow: 'hidden' } : {})
       }}
       className={`craft-image-container ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
     >
@@ -74,17 +122,7 @@ export const Image = ({
         ref={drag}
         src={src}
         alt={alt}
-        style={{
-          maxWidth: '100%',
-          maxHeight: '100%',
-          width: 'auto',
-          height: 'auto',
-          objectFit,
-          aspectRatio: formattedAspectRatio,
-          borderRadius: `${radius}px`,
-          border: borderStyle,
-          boxShadow: shadowStyle
-        }}
+        style={getImageStyles()}
         className="craft-image"
       />
     </Resizer>
@@ -107,7 +145,7 @@ Image.craft = {
       width: 0,
       color: { r: 0, g: 0, b: 0, a: 1 }
     },
-    objectFit: 'cover',
+    objectFit: 'none',
     shadow: {
       enabled: false,
       x: 0,
