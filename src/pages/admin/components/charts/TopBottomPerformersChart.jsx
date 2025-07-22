@@ -14,6 +14,31 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
   const [anonymizeNames, setAnonymizeNames] = useState(true);
   const [performerCount, setPerformerCount] = useState(10);
 
+  // Enhanced anonymization function
+  const anonymizeName = (ldap) => {
+    if (!anonymizeNames) return ldap;
+    
+    // Create a stable hash from the LDAP for consistent anonymization
+    let hash = 0;
+    for (let i = 0; i < ldap.length; i++) {
+      const char = ldap.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert hash to positive number
+    hash = Math.abs(hash);
+    
+    // Generate anonymous identifier
+    const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+    const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+    
+    const prefixIndex = hash % prefixes.length;
+    const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+    
+    return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+  };
+
   // Track data changes and drill down state to control animations
   const prevDataRef = useRef(null);
   const prevFiltersRef = useRef(null);
@@ -100,7 +125,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
         const consistency = 1 - (Math.sqrt(group.scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / group.scores.length));
 
         return {
-          ldap: anonymizeNames ? `User ${ldap.slice(-4)}` : ldap,
+          ldap: anonymizeName(ldap),
           fullLdap: ldap,
           averageScore: (avgScore * 100).toFixed(1),
           averageTime: Math.round(avgTime / 60), // Convert to minutes

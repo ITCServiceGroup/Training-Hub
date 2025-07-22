@@ -1,9 +1,9 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { ResponsiveLine } from '@nivo/line';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
-import { FaUser, FaUsers, FaChartLine } from 'react-icons/fa';
+import { FaUser, FaUsers, FaChartLine, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { filterDataForChart, createTimeRangeFilter } from '../../utils/dashboardFilters';
 
 const ScoreTrendChart = ({ data = [], loading = false }) => {
@@ -17,8 +17,50 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
   const [dragStart, setDragStart] = useState(null);
   const chartRef = useRef(null);
 
-  // Learning curve analysis mode
-  const [analysisMode, setAnalysisMode] = useState('aggregate'); // 'aggregate', 'individual', 'cohort'
+  // Learning curve analysis mode - persist selection in localStorage
+  const [analysisMode, setAnalysisMode] = useState(() => {
+    const saved = localStorage.getItem('scoreTrendAnalysisMode');
+    return saved && ['aggregate', 'individual', 'cohort'].includes(saved) ? saved : 'aggregate';
+  });
+  const [anonymizeNames, setAnonymizeNames] = useState(() => {
+    const saved = localStorage.getItem('scoreTrendAnonymizeNames');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Save analysis mode to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('scoreTrendAnalysisMode', analysisMode);
+  }, [analysisMode]);
+
+  // Save anonymization preference to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('scoreTrendAnonymizeNames', JSON.stringify(anonymizeNames));
+  }, [anonymizeNames]);
+
+  // Enhanced anonymization function
+  const anonymizeName = (ldap) => {
+    if (!anonymizeNames) return ldap;
+    
+    // Create a stable hash from the LDAP for consistent anonymization
+    let hash = 0;
+    for (let i = 0; i < ldap.length; i++) {
+      const char = ldap.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert hash to positive number
+    hash = Math.abs(hash);
+    
+    // Generate anonymous identifier
+    const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+    const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+    
+    const prefixIndex = hash % prefixes.length;
+    const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+    
+    return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+  };
 
   // Get filtered data (includes hover filters from other charts, excludes own hover)
   const filteredData = useMemo(() => {
@@ -72,7 +114,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       userGroups[user].push({
         x: result.date_of_test ? result.date_of_test.split('T')[0] : null,
         y: (parseFloat(result.score_value) || 0) * 100,
-        attempt: userGroups[user].length + 1
+        date: new Date(result.date_of_test)
       });
     });
 
@@ -81,12 +123,24 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     return Object.entries(userGroups)
       .filter(([user, attempts]) => attempts.length >= 2)
       .slice(0, 6) // Show top 6 users for readability
-      .map(([user, attempts], index) => ({
-        id: user.length > 15 ? user.substring(0, 15) + '...' : user,
-        data: attempts.filter(a => a.x).sort((a, b) => new Date(a.x) - new Date(b.x)),
-        color: colors[index % colors.length]
-      }));
-  }, []);
+      .map(([user, attempts], index) => {
+        const displayName = anonymizeName(user);
+        const truncatedName = displayName.length > 15 ? displayName.substring(0, 15) + '...' : displayName;
+        return {
+          id: truncatedName,
+          fullLdap: user,
+          displayName: displayName,
+          data: attempts.filter(a => a.x).sort((a, b) => new Date(a.x) - new Date(b.x))
+            .map((attempt, index) => ({ 
+              ...attempt, 
+              fullLdap: user, 
+              displayName: displayName,
+              attempt: index + 1 // Now correctly numbered after sorting by date
+            })),
+          color: colors[index % colors.length]
+        };
+      });
+  }, [anonymizeNames]);
 
   // Process cohort data (users who started around the same time)
   const processCohortData = useCallback((data) => {
@@ -161,7 +215,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       default:
         return processAggregateData(filteredData);
     }
-  }, [filteredData, analysisMode, processAggregateData, processIndividualData, processCohortData]);
+  }, [filteredData, analysisMode, anonymizeNames, processAggregateData, processIndividualData, processCohortData]);
 
   // Convert pixel position to date
   const pixelToDate = useCallback((pixelX, chartWidth, dataPoints) => {
@@ -269,7 +323,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       }}
     >
       {/* Analysis Mode Controls */}
-      <div className="absolute top-2 left-2 z-10 flex gap-1">
+      <div className="top-2 left-1 z-10 flex gap-1" >
         <button
           onClick={() => setAnalysisMode('aggregate')}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
@@ -308,6 +362,22 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           <FaChartLine size={10} />
           Cohort
         </button>
+        
+        {/* Anonymization toggle - only show in individual mode */}
+        {analysisMode === 'individual' && (
+          <button
+            onClick={() => setAnonymizeNames(!anonymizeNames)}
+            className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+              isDark 
+                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            title={anonymizeNames ? 'Show real names' : 'Anonymize names'}
+          >
+            {anonymizeNames ? <FaEyeSlash size={10} /> : <FaEye size={10} />}
+            {anonymizeNames ? 'Anonymous' : 'Names'}
+          </button>
+        )}
       </div>
 
       {/* Clear brush button */}
@@ -438,7 +508,14 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         pointSize={8}
         pointColor="#ffffff"
         pointBorderWidth={2}
-        pointBorderColor="#f59e0b"
+        pointBorderColor={(point) => {
+          // For aggregate mode, use the fixed orange color like before
+          if (analysisMode === 'aggregate') {
+            return '#f59e0b';
+          }
+          // For individual and cohort modes, use the seriesColor directly from the point
+          return point.seriesColor || '#3b82f6';
+        }}
         pointLabelYOffset={-12}
         useMesh={true}
         enableSlices={false}
@@ -448,6 +525,47 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         motionStiffness={90}
         motionDamping={15}
         tooltip={({ point }) => {
+          // Individual mode has different tooltip structure
+          if (analysisMode === 'individual') {
+            const userDisplayName = anonymizeNames ? point.data.displayName : point.data.fullLdap;
+            const attemptNumber = point.data.attempt;
+            const userSeries = chartData.find(series => series.fullLdap === point.data.fullLdap);
+            
+            // Calculate user-specific trend if there's a previous attempt
+            const userAttempts = userSeries?.data || [];
+            const currentAttemptIndex = userAttempts.findIndex(d => d.x === point.data.x);
+            const previousAttempt = currentAttemptIndex > 0 ? userAttempts[currentAttemptIndex - 1] : null;
+            
+            let trend = null;
+            if (previousAttempt) {
+              const change = parseFloat(point.data.y) - parseFloat(previousAttempt.y);
+              const percentChange = ((change / parseFloat(previousAttempt.y)) * 100).toFixed(1);
+              trend = {
+                direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable',
+                value: `${Math.abs(percentChange)}% from previous attempt`
+              };
+            }
+            
+            const data = [
+              { label: 'User', value: userDisplayName || 'Unknown' },
+              { label: 'Date', value: point.data.xFormatted },
+              { label: 'Score', value: `${point.data.yFormatted}%` },
+              { label: 'Attempt #', value: attemptNumber || 'N/A' }
+            ];
+            
+            return (
+              <EnhancedTooltip
+                title="Individual Performance"
+                data={data}
+                icon={true}
+                color={point.serieColor}
+                trend={trend}
+                additionalInfo={`${userAttempts.length} total attempts`}
+              />
+            );
+          }
+          
+          // Default tooltip for Aggregate and Cohort modes
           const currentIndex = chartData[0]?.data.findIndex(d => d.x === point.data.x) || 0;
           const previousPoint = currentIndex > 0 ? chartData[0]?.data[currentIndex - 1] : null;
           const nextPoint = currentIndex < (chartData[0]?.data.length - 1) ? chartData[0]?.data[currentIndex + 1] : null;
@@ -481,7 +599,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
           return (
             <EnhancedTooltip
-              title="Score Trend"
+              title={analysisMode === 'cohort' ? 'Cohort Performance' : 'Score Trend'}
               data={data}
               icon={true}
               color="#f59e0b"

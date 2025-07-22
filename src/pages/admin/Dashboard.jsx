@@ -33,6 +33,8 @@ import TopBottomPerformersChart from './components/charts/TopBottomPerformersCha
 import SupervisorEffectivenessChart from './components/charts/SupervisorEffectivenessChart';
 import QuestionLevelAnalyticsChart from './components/charts/QuestionLevelAnalyticsChart';
 import RetakeAnalysisChart from './components/charts/RetakeAnalysisChart';
+import DashboardResultsSection from './components/DashboardResultsSection';
+import PDFModal from './components/PDFModal';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -86,6 +88,15 @@ const Dashboard = () => {
 
   // UI state - simplified (removed complex configuration management)
   const [showExportModal, setShowExportModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+
+  // Handle PDF view
+  const handleViewPDF = useCallback((url) => {
+    console.log('handleViewPDF called with URL:', url);
+    setPdfUrl(url);
+    setShowPdfModal(true);
+  }, []);
 
   // Individual tile filters state
   const [tileFilters, setTileFilters] = useState({});
@@ -806,6 +817,13 @@ const Dashboard = () => {
         )}
       </div>
 
+      {/* Results Table */}
+      <DashboardResultsSection 
+        data={stableDataRef.current || []}
+        loading={loading}
+        onViewPDF={handleViewPDF}
+      />
+
       {/* Filter Popover */}
       <TileFilterPopover
         isOpen={filterPopover.isOpen}
@@ -828,6 +846,13 @@ const Dashboard = () => {
         type="dashboard"
         defaultFilename={`dashboard_${activeDashboard?.name || 'export'}`}
         title={`Export ${activeDashboard?.name || 'Dashboard'}`}
+      />
+
+      {/* PDF Modal */}
+      <PDFModal
+        isOpen={showPdfModal}
+        pdfUrl={pdfUrl}
+        onClose={() => setShowPdfModal(false)}
       />
       </div>
     </DashboardProvider>
