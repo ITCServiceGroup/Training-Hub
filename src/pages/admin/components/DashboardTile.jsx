@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { BiFilter, BiX, BiRefresh } from 'react-icons/bi';
+import { BiFilter } from 'react-icons/bi';
 import { useTheme } from '../../../contexts/ThemeContext';
-import ExportButton from './ExportButton';
 
 const DashboardTile = ({
   id,
@@ -11,7 +10,6 @@ const DashboardTile = ({
   error = null,
   hasCustomFilters = false,
   onFilterClick,
-  onRefresh,
   dragHandle = null,
   className = ''
 }) => {
@@ -22,17 +20,12 @@ const DashboardTile = ({
 
   const handleFilterClick = (e) => {
     e.stopPropagation();
+    e.preventDefault();
     if (onFilterClick) {
       onFilterClick(id, e);
     }
   };
 
-  const handleRefreshClick = (e) => {
-    e.stopPropagation();
-    if (onRefresh) {
-      onRefresh(id);
-    }
-  };
 
   return (
     <div
@@ -54,7 +47,11 @@ const DashboardTile = ({
         </div>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-2 ml-4">
+        <div 
+          className="flex items-center gap-2 ml-4"
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           {/* Custom Filter Indicator */}
           {hasCustomFilters && (
             <div className="w-2 h-2 bg-blue-500 rounded-full" title="Custom filters applied" />
@@ -73,30 +70,6 @@ const DashboardTile = ({
             <BiFilter className="w-4 h-4" />
           </button>
           
-          {/* Refresh Button */}
-          <button
-            onClick={handleRefreshClick}
-            className={`p-1.5 rounded-md transition-colors duration-200 ${
-              isHovered
-                ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                : 'text-slate-400 dark:text-slate-500'
-            } hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300`}
-            title="Refresh data"
-          >
-            <BiRefresh className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-
-          {/* Export Button */}
-          {isHovered && (
-            <ExportButton
-              targetElement={tileRef.current}
-              type="chart"
-              filename={`${title.toLowerCase().replace(/\s+/g, '_')}_chart`}
-              variant="icon"
-              size="small"
-              showLabel={false}
-            />
-          )}
         </div>
       </div>
 

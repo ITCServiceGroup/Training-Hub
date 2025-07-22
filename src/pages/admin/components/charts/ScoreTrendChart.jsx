@@ -475,6 +475,10 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
               borderRadius: 6,
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+              maxWidth: '300px',
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              zIndex: 9999
             },
           },
           crosshair: {
@@ -525,43 +529,124 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         motionStiffness={90}
         motionDamping={15}
         tooltip={({ point }) => {
+          // Calculate minimal positioning adjustments only when very close to edges
+          const [tooltipStyle, setTooltipStyle] = useState({});
+          
+          useEffect(() => {
+            const handleMouseMove = (e) => {
+              const tooltipWidth = 300; // Approximate tooltip width
+              const tooltipHeight = 180; // Approximate tooltip height
+              const edgeThreshold = 50; // Only adjust when within 50px of edge
+              
+              const viewportWidth = window.innerWidth;
+              const viewportHeight = window.innerHeight;
+              
+              let adjustments = {};
+              
+              // Only adjust if VERY close to right edge
+              if (e.clientX + tooltipWidth/2 > viewportWidth - edgeThreshold) {
+                const overflowAmount = (e.clientX + tooltipWidth/2) - (viewportWidth - 20);
+                adjustments.marginLeft = `-${Math.min(overflowAmount, tooltipWidth/3)}px`;
+              }
+              // Only adjust if VERY close to left edge  
+              else if (e.clientX - tooltipWidth/2 < edgeThreshold) {
+                const overflowAmount = edgeThreshold - (e.clientX - tooltipWidth/2);
+                adjustments.marginLeft = `${Math.min(overflowAmount, tooltipWidth/3)}px`;
+              }
+              
+              // Only adjust if VERY close to top edge
+              if (e.clientY - tooltipHeight < edgeThreshold) {
+                adjustments.marginTop = '15px'; // Move slightly below cursor
+                adjustments.transform = 'translateY(0)';
+              }
+              
+              setTooltipStyle(adjustments);
+            };
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            return () => document.removeEventListener('mousemove', handleMouseMove);
+          }, []);
           // Individual mode has different tooltip structure
           if (analysisMode === 'individual') {
             const userDisplayName = anonymizeNames ? point.data.displayName : point.data.fullLdap;
             const attemptNumber = point.data.attempt;
             const userSeries = chartData.find(series => series.fullLdap === point.data.fullLdap);
             
-            // Calculate user-specific trend if there's a previous attempt
+            // Calculate comprehensive progression analysis
             const userAttempts = userSeries?.data || [];
-            const currentAttemptIndex = userAttempts.findIndex(d => d.x === point.data.x);
+            const currentAttemptIndex = userAttempts.findIndex(d => d.x === point.data.xFormatted);
             const previousAttempt = currentAttemptIndex > 0 ? userAttempts[currentAttemptIndex - 1] : null;
+            const firstAttempt = userAttempts[0];
+            const currentScore = parseFloat(point.data.y);
             
+            // Calculate performance metrics
+            const bestScore = Math.max(...userAttempts.map(a => parseFloat(a.y)));
+            const worstScore = Math.min(...userAttempts.map(a => parseFloat(a.y)));
+            const firstScore = firstAttempt ? parseFloat(firstAttempt.y) : currentScore;
+            
+            // Previous attempt trend
             let trend = null;
             if (previousAttempt) {
-              const change = parseFloat(point.data.y) - parseFloat(previousAttempt.y);
+              const change = currentScore - parseFloat(previousAttempt.y);
               const percentChange = ((change / parseFloat(previousAttempt.y)) * 100).toFixed(1);
               trend = {
                 direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable',
-                value: `${Math.abs(percentChange)}% from previous attempt`
+                value: `${Math.abs(percentChange)}% from previous`
               };
             }
+            
+            // Overall progress from first attempt
+            let overallProgress = null;
+            if (userAttempts.length > 1 && firstAttempt) {
+              const totalChange = currentScore - firstScore;
+              const totalPercentChange = ((totalChange / firstScore) * 100).toFixed(1);
+              overallProgress = {
+                direction: totalChange > 0 ? 'up' : totalChange < 0 ? 'down' : 'stable',
+                value: `${Math.abs(totalPercentChange)}% from first attempt`,
+                points: `${firstScore.toFixed(1)}% → ${currentScore.toFixed(1)}%`
+              };
+            }
+            
+            // Performance classification
+            const getPerformanceTier = (score) => {
+              if (score >= 95) return 'Expert';
+              if (score >= 85) return 'Proficient';
+              if (score >= 70) return 'Developing';
+              return 'Struggling';
+            };
+            
+            const performanceTier = getPerformanceTier(currentScore);
+            const isPersonalBest = Math.abs(currentScore - bestScore) < 0.1;
             
             const data = [
               { label: 'User', value: userDisplayName || 'Unknown' },
               { label: 'Date', value: point.data.xFormatted },
-              { label: 'Score', value: `${point.data.yFormatted}%` },
-              { label: 'Attempt #', value: attemptNumber || 'N/A' }
+              { label: 'Score', value: `${point.data.yFormatted}%${isPersonalBest ? ' 🏆' : ''}` },
+              { label: 'Attempt #', value: `${attemptNumber || 'N/A'} of ${userAttempts.length}` },
+              { label: 'Performance', value: performanceTier },
+              ...(overallProgress ? [{ label: 'Overall Progress', value: overallProgress.points }] : [])
             ];
             
+            // Create comprehensive additional info
+            const additionalInfo = [
+              `Personal best: ${bestScore.toFixed(1)}%`,
+              overallProgress ? `${overallProgress.direction === 'up' ? '📈' : overallProgress.direction === 'down' ? '📉' : '➡️'} ${overallProgress.value}` : null
+            ].filter(Boolean).join(' • ');
+            
             return (
-              <EnhancedTooltip
-                title="Individual Performance"
-                data={data}
-                icon={true}
-                color={point.serieColor}
-                trend={trend}
-                additionalInfo={`${userAttempts.length} total attempts`}
-              />
+              <div style={{
+                position: 'relative',
+                ...tooltipStyle
+              }}>
+                <EnhancedTooltip
+                  title="Individual Performance"
+                  data={data}
+                  icon={true}
+                  color={point.serieColor}
+                  trend={trend}
+                  additionalInfo={additionalInfo || `${userAttempts.length} total attempts`}
+                />
+              </div>
             );
           }
           
@@ -598,15 +683,20 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           ];
 
           return (
-            <EnhancedTooltip
-              title={analysisMode === 'cohort' ? 'Cohort Performance' : 'Score Trend'}
-              data={data}
-              icon={true}
-              color="#f59e0b"
-              trend={trend}
-              comparison={comparison}
-              additionalInfo={`${point.data.count} test${point.data.count !== 1 ? 's' : ''} completed on this date`}
-            />
+            <div style={{
+              position: 'relative',
+              ...tooltipStyle
+            }}>
+              <EnhancedTooltip
+                title={analysisMode === 'cohort' ? 'Cohort Performance' : 'Score Trend'}
+                data={data}
+                icon={true}
+                color="#f59e0b"
+                trend={trend}
+                comparison={comparison}
+                additionalInfo={`${point.data.count} test${point.data.count !== 1 ? 's' : ''} completed on this date`}
+              />
+            </div>
           );
         }}
       />

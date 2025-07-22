@@ -30,6 +30,11 @@
 /* Force drag handle behavior - make only drag handle draggable */
 .react-grid-item {
   cursor: default !important;
+  /* Prevent text selection during drag */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .react-grid-item .drag-handle {
@@ -38,6 +43,24 @@
 
 .react-grid-item .drag-handle:active {
   cursor: grabbing !important;
+}
+
+/* Prevent text selection while dragging */
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.react-draggable-dragging * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Additional prevention for the entire grid during drag */
+.react-grid-layout.dragging,
+.react-grid-layout.dragging * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
 }
 
 /* Ensure chart content is not draggable */
