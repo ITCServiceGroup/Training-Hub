@@ -8,7 +8,7 @@ const BreadcrumbNav = ({ items }) => {
   return (
     <nav className="flex items-center gap-2 py-4 text-gray-500 dark:text-gray-300 text-sm" aria-label="Breadcrumb">
       <span className="text-gray-600 dark:text-gray-200 font-medium">
-        Study Guides
+        Create
       </span>
       {items.map((item, index) => (
         <React.Fragment key={index}>

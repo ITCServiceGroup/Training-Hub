@@ -163,7 +163,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
         <div className="fixed inset-0 bg-black opacity-30" onClick={onClose}></div>
         <div className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Create New Study Guide</h2>
+            <h2 className="text-2xl font-bold">Create New Content</h2>
             <button
               onClick={onClose}
               className={`p-2 rounded-full ${isDark ? 'hover:bg-slate-700' : 'hover:bg-gray-100'}`}

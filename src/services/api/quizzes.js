@@ -536,9 +536,9 @@ class QuizzesService extends BaseService {
   }
 
   /**
-   * Get study guides linked to a specific quiz
+   * Get content linked to a specific quiz
    * @param {string} quizId - Quiz ID
-   * @returns {Promise<Array>} - Study guides linked to the quiz
+   * @returns {Promise<Array>} - Content linked to the quiz
    */
   async getLinkedStudyGuides(quizId) {
     try {
@@ -566,7 +566,7 @@ class QuizzesService extends BaseService {
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching linked study guides:', error.message);
+      console.error('Error fetching linked content:', error.message);
       throw error;
     }
   }

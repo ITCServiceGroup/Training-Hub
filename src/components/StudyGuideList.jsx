@@ -20,7 +20,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
     return (
       <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-6 shadow h-full flex flex-col max-h-[calc(100vh-100px)] overflow-y-auto`}>
         <div className="flex items-center justify-between mb-4 sticky top-0 z-10 pb-2 pt-0 bg-inherit">
-          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{categoryName || 'Study Guides'}</h3>
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{categoryName || 'Learn'}</h3>
           {onClose && (
             <button
               onClick={onClose}
@@ -41,7 +41,7 @@ const StudyGuideList = ({ studyGuides, sectionId, categoryId, categoryName, sele
   return (
     <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-6 shadow h-full flex flex-col max-h-[calc(100vh-100px)] overflow-y-auto`}>
       <div className="flex items-center justify-between mb-4 sticky top-0 z-10 pb-2 pt-0 bg-inherit">
-        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{categoryName || 'Study Guides'}</h3>
+        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{categoryName || 'Learn'}</h3>
         {onClose && (
           <button
             onClick={onClose}

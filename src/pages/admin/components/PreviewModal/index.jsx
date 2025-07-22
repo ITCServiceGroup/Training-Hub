@@ -185,7 +185,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
         <Dialog.Panel className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg w-full max-w-[1400px] max-h-[calc(100vh-80px)] h-[calc(100vh-80px)] flex flex-col relative`}>
           <div className={`py-[6px] px-3 border-b ${isDark ? 'border-slate-700' : 'border-gray-200'} flex justify-between items-center h-10 flex-shrink-0`}>
             <Dialog.Title id="preview-modal-title" className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {title || 'Study Guide Preview'}
+              {title || 'Content Preview'}
             </Dialog.Title>
             <button
               className={`p-1 rounded border-none bg-transparent cursor-pointer ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'} flex items-center justify-center`}
@@ -226,7 +226,7 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
                 key={iframeKey} // Force remount when key changes
                 className={`flex-1 w-full h-full border-none rounded-none ${isDark ? 'bg-white' : 'bg-white'} block transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                 sandbox="allow-scripts allow-same-origin"
-                title="Study Guide Preview"
+                title="Content Preview"
                 ref={iframeRef}
                 onLoad={() => {
                   try {

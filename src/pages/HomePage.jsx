@@ -29,14 +29,14 @@ const HomePage = () => {
                 className={`${isDark ? 'bg-primary hover:bg-primary-light' : 'bg-primary hover:bg-primary-dark'} text-white py-4 px-8 rounded-lg font-semibold no-underline transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2`}
               >
                 <BiBook className="text-xl" />
-                Explore Study Guides
+                Learn
               </Link>
               <Link
                 to="/quiz"
                 className={`${isDark ? 'bg-transparent hover:bg-secondary text-secondary hover:text-white border-secondary' : 'bg-white hover:bg-secondary text-secondary hover:text-white border-secondary'} border-2 py-4 px-8 rounded-lg font-semibold no-underline transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2`}
               >
                 <MdQuiz className="text-xl" />
-                Take a Quiz
+                Quiz
               </Link>
             </div>
           </div>
@@ -62,7 +62,7 @@ const HomePage = () => {
                 <MdTouchApp className={`text-2xl ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
               <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-3`}>
-                Interactive Study Guides
+                Interactive Learning
               </h3>
               <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'} leading-relaxed`}>
                 Rich content with interactive elements, collapsible sections, tables, and multimedia support for engaging learning experiences.
@@ -217,7 +217,7 @@ const HomePage = () => {
                   to="/study"
                   className={`block w-full ${isDark ? 'bg-primary/20 hover:bg-primary/30 text-primary-light border-primary/30' : 'bg-primary/10 hover:bg-primary/20 text-primary-dark border-primary/20'} border-2 py-3 px-4 rounded-lg font-medium no-underline transition-colors duration-200 text-center`}
                 >
-                  Browse All Study Guides
+                  Browse All Learning Materials
                 </Link>
                 <Link
                   to="/quiz"

@@ -111,7 +111,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
           {category.description || 'No description available'}
         </p>
         <div className="flex items-center text-gray-500 dark:text-gray-300 text-sm mt-2 flex-shrink-0">
-          {studyGuideCount} Study Guides
+          {studyGuideCount} Content Items
         </div>
       </div>
 
@@ -121,7 +121,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
            className="bg-primary hover:bg-primary-dark text-white border-none py-2 px-4 rounded-md flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm"
            onClick={(e) => { stopPropagation(e); onViewStudyGuides(category); }}
          >
-           <span>View Study Guides</span>
+           <span>View Content</span>
            <FaChevronRight size={12} />
          </button>
        </div>

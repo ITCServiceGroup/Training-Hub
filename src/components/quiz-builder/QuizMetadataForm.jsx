@@ -13,7 +13,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   const [studyGuides, setStudyGuides] = useState([]);
   const [linkedStudyGuides, setLinkedStudyGuides] = useState([]);
 
-  // Fetch sections, categories, and study guides
+  // Fetch sections, categories, and content
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -27,11 +27,11 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
         setCategories(allCategories);
 
-        // Fetch published study guides for linking
+        // Fetch published content for linking
         const studyGuidesData = await studyGuidesService.getPublishedForQuizLinking();
         setStudyGuides(studyGuidesData);
       } catch (error) {
-        console.error('Failed to load sections, categories, and study guides', error);
+        console.error('Failed to load sections, categories, and content', error);
       }
     };
 
@@ -55,7 +55,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
     }
   }, [categories, quiz.category_ids, onChange]);
 
-  // Load linked study guides when quiz changes
+  // Load linked content when quiz changes
   useEffect(() => {
     const loadLinkedStudyGuides = async () => {
       if (quiz.id) {
@@ -64,7 +64,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           const linkedGuides = await quizzesService.getLinkedStudyGuides(quiz.id);
           setLinkedStudyGuides(linkedGuides.map(guide => guide.id));
         } catch (error) {
-          console.error('Error loading linked study guides:', error);
+          console.error('Error loading linked content:', error);
         }
       }
     };
@@ -80,29 +80,26 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
     });
   };
 
-  // Handle study guide linking
+  // Handle content linking
   const handleStudyGuideLink = async (studyGuideId, shouldLink) => {
     // Don't allow linking if quiz hasn't been saved yet
     if (!quiz.id) {
-      console.warn('Cannot link study guides to unsaved quiz');
+      console.warn('Cannot link content to unsaved quiz');
       return;
     }
 
     try {
-      console.log('Linking study guide:', studyGuideId, 'to quiz:', quiz.id, 'shouldLink:', shouldLink);
       if (shouldLink) {
-        // Link the study guide to this quiz
+        // Link the content to this quiz
         await studyGuidesService.updateLinkedQuiz(studyGuideId, quiz.id);
         setLinkedStudyGuides(prev => [...prev, studyGuideId]);
-        console.log('Successfully linked study guide');
       } else {
-        // Unlink the study guide from this quiz
+        // Unlink the content from this quiz
         await studyGuidesService.updateLinkedQuiz(studyGuideId, null);
         setLinkedStudyGuides(prev => prev.filter(id => id !== studyGuideId));
-        console.log('Successfully unlinked study guide');
       }
     } catch (error) {
-      console.error('Error updating study guide link:', error);
+      console.error('Error updating content link:', error);
       // You might want to show a toast notification here
     }
   };
@@ -315,7 +312,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         </select>
       </div>
 
-      {/* Categories and Study Guides Section - Side by side layout */}
+      {/* Categories and Content Section - Side by side layout */}
       <div className={`grid gap-6 ${quiz.id && (quiz.is_practice || quiz.has_practice_mode) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
         {/* Select Categories */}
         <div>
@@ -347,23 +344,23 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           </div>
         </div>
 
-        {/* Study Guide Linking Section */}
+        {/* Content Linking Section */}
         {(quiz.is_practice || quiz.has_practice_mode) && (
           <div>
             <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
-              Link Study Guides
+              Link Content
             </label>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
-              Select study guides that should show a "Take Practice Quiz" button linking to this quiz.
+              Select content that should show a "Take Practice Quiz" button linking to this quiz.
               {!quiz.id && (
                 <span className={`block mt-1 text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-600'} font-medium`}>
-                  Note: Save the quiz first to enable study guide linking.
+                  Note: Save the quiz first to enable content linking.
                 </span>
               )}
             </p>
             <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
               {(() => {
-                // Filter study guides to only show those from selected categories
+                // Filter content to only show those from selected categories
                 const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
                   ? studyGuides.filter(guide =>
                       guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
@@ -400,13 +397,13 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                   if (quiz.category_ids && quiz.category_ids.length > 0) {
                     return (
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
-                        No published study guides available in the selected categories
+                        No published content available in the selected categories
                       </p>
                     );
                   } else {
                     return (
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
-                        No published study guides available. Please select categories for this quiz first.
+                        No published content available. Please select categories for this quiz first.
                       </p>
                     );
                   }

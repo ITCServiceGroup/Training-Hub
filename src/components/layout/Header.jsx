@@ -20,7 +20,7 @@ const Header = () => {
     const path = location.pathname;
 
     if (path === '/admin') return 'Admin Dashboard';
-    if (path.includes('/admin/study-guides')) return 'Study Guides Management';
+    if (path.includes('/admin/study-guides')) return 'Creation Management';
     if (path.includes('/admin/media')) return 'Media Library';
     if (path.includes('/admin/questions')) return 'Questions Management';
     if (path.includes('/admin/quizzes')) return 'Quizzes Management';
@@ -112,7 +112,7 @@ const Header = () => {
                   to="/study"
                   className="inline-block text-white no-underline font-medium hover:bg-primary-dark hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
                 >
-                  Study Guides
+                  Learn
                 </Link>
               </li>
               <li>
@@ -240,7 +240,7 @@ const Header = () => {
                   className="block text-white no-underline font-medium hover:bg-primary-dark px-3 py-3 rounded-md transition-colors"
                   onClick={handleMenuItemClick}
                 >
-                  Study Guides
+                  Learn
                 </Link>
               </li>
               <li>

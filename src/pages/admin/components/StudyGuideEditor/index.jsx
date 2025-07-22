@@ -687,10 +687,10 @@ const StudyGuideEditor = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Dialog.Panel className={`${isDark ? 'bg-slate-800' : 'bg-white'} p-6 rounded-lg max-w-md w-[90%]`}>
             <Dialog.Title className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-3`}>
-              Delete Study Guide
+              Delete Content
             </Dialog.Title>
             <Dialog.Description className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'} mb-5`}>
-              Are you sure you want to delete this study guide? This action cannot be undone and all associated data will be permanently lost.
+              Are you sure you want to delete this content? This action cannot be undone and all associated data will be permanently lost.
             </Dialog.Description>
             <div className="flex justify-end gap-3">
               <button

@@ -869,7 +869,7 @@ const StudyGuides = () => {
             isOpen={isDeleteConfirmOpen}
             onClose={() => setIsDeleteConfirmOpen(false)}
             onConfirm={handleDelete}
-            title="Delete Study Guide"
+            title="Delete Content"
             description={`Are you sure you want to delete "${selectedStudyGuide?.title}"? This action cannot be undone and all associated data will be permanently lost.`}
           />
         </>
@@ -966,7 +966,7 @@ const StudyGuides = () => {
             isOpen={isCopyConfirmOpen}
             onClose={() => setIsCopyConfirmOpen(false)}
             onConfirm={handleCopyConfirm}
-            title="Copy Study Guide"
+            title="Copy Content"
             description={`Are you sure you want to copy "${guideToAction?.title}" to ${selectedTargetCategoryName}?`}
             confirmButtonText="Copy"
             confirmButtonVariant="primary"
@@ -977,7 +977,7 @@ const StudyGuides = () => {
             isOpen={isMoveConfirmOpen}
             onClose={() => setIsMoveConfirmOpen(false)}
             onConfirm={handleMoveConfirm}
-            title="Move Study Guide"
+            title="Move Content"
             description={`Are you sure you want to move "${guideToAction?.title}" to ${selectedTargetCategoryName}?`}
             confirmButtonText="Move"
             confirmButtonVariant="primary"

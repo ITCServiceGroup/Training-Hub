@@ -127,7 +127,7 @@ const StudyGuideSelector = ({ isOpen, onClose, onSelect, currentSelection }) => 
         {/* Header */}
         <div className={`flex justify-between items-center p-6 border-b ${isDark ? 'border-slate-600' : 'border-gray-200'}`}>
           <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Select Study Guide
+            Select Content
           </h2>
           <button
             onClick={onClose}
@@ -186,7 +186,7 @@ const StudyGuideSelector = ({ isOpen, onClose, onSelect, currentSelection }) => 
           {selectedCategoryId && (
             <div className="mb-4">
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Search Study Guides
+                Search Content
               </label>
               <div className="relative">
                 <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} size={14} />
@@ -201,7 +201,7 @@ const StudyGuideSelector = ({ isOpen, onClose, onSelect, currentSelection }) => 
             </div>
           )}
 
-          {/* Study Guides List */}
+          {/* Content List */}
           {selectedCategoryId && (
             <div className="flex-1 overflow-auto">
               {isLoading ? (

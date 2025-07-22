@@ -330,7 +330,7 @@ const CategoryTree = ({ onSelectCategory, selectedCategoryId }) => {
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800">Study Guide Categories</h3>
+        <h3 className="text-xl font-bold text-gray-800">Content Categories</h3>
         <button
           onClick={() => setIsAddingSection(true)}
           className="py-2 px-4 text-sm bg-primary hover:bg-primary-dark text-white rounded-md border-none cursor-pointer shadow-sm flex items-center gap-1"

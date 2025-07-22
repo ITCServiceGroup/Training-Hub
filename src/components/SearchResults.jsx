@@ -245,7 +245,7 @@ const SearchResults = ({
       {results.studyGuides.length > 0 && (
         <div>
           <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Study Guides ({results.studyGuides.length})
+            Learn ({results.studyGuides.length})
           </h3>
           <div className="space-y-3">
             {results.studyGuides.map(guide => (

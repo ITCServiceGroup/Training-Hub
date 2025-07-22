@@ -320,7 +320,7 @@ export const ButtonSettings = () => {
                     }`}
                     onClick={() => actions.setProp((props) => { props.linkType = 'study-guide'; })}
                   >
-                    Study Guide
+                    Content
                   </button>
                 </div>
 
@@ -349,14 +349,14 @@ export const ButtonSettings = () => {
                   </div>
                 )}
 
-                {/* Study Guide Selection */}
+                {/* Content Selection */}
                 {linkType === 'study-guide' && (
                   <div className="space-y-2">
                     <button
                       onClick={() => setIsStudyGuideSelectorOpen(true)}
                       className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-left"
                     >
-                      {linkStudyGuideTitle || 'Select Study Guide...'}
+                      {linkStudyGuideTitle || 'Select Content...'}
                     </button>
                     {linkStudyGuideTitle && (
                       <button
@@ -1051,7 +1051,7 @@ export const ButtonSettings = () => {
         )}
       </div>
 
-      {/* Study Guide Selector Modal */}
+      {/* Content Selector Modal */}
       <StudyGuideSelector
         isOpen={isStudyGuideSelectorOpen}
         onClose={() => setIsStudyGuideSelectorOpen(false)}

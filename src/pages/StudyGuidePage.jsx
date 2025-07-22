@@ -347,7 +347,7 @@ const StudyGuidePage = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/study" className="no-underline">
-              <h2 className={`text-3xl text-primary m-0 hover:opacity-90 transition-opacity`}>Study Guides</h2>
+              <h2 className={`text-3xl text-primary m-0 hover:opacity-90 transition-opacity`}>Learn</h2>
             </Link>
             {(sectionId || categoryId || studyGuideId) && (
               <div className="ml-2 pt-1">

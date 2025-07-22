@@ -768,14 +768,14 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       if (updatedGuide.is_published) {
         setPublishSuccessDialog({
           isOpen: true,
-          title: 'Study Guide Published',
-          message: 'Your study guide has been published successfully and is now available to all users in the public study guides section.'
+          title: 'Content Published',
+          message: 'Your content has been published successfully and is now available to all users in the public learn section.'
         });
       } else {
         setPublishSuccessDialog({
           isOpen: true,
-          title: 'Study Guide Unpublished',
-          message: 'Your study guide has been unpublished and is no longer visible to users in the public study guides section.'
+          title: 'Content Unpublished',
+          message: 'Your content has been unpublished and is no longer visible to users in the public learn section.'
         });
       }
     } catch (error) {

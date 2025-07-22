@@ -96,7 +96,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId, navigatio
         } else {
           // Only count published study guides
           itemCount = category.v2_study_guides?.filter(guide => guide.is_published)?.length || 0;
-          itemLabel = itemCount === 1 ? 'Study Guide' : 'Study Guides';
+          itemLabel = itemCount === 1 ? 'Learn Item' : 'Learn Items';
           buttonText = 'View Guides';
         }
 
