@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
@@ -13,6 +13,25 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
   const [showTopPerformers, setShowTopPerformers] = useState(true);
   const [anonymizeNames, setAnonymizeNames] = useState(true);
   const [performerCount, setPerformerCount] = useState(10);
+
+  // Track data changes and drill down state to control animations
+  const prevDataRef = useRef(null);
+  const prevFiltersRef = useRef(null);
+  const shouldAnimate = useRef(false);
+
+  useEffect(() => {
+    const filters = getFiltersForChart('top-bottom-performers');
+    const filtersChanged = prevFiltersRef.current !== null && 
+      JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters);
+    const dataChanged = prevDataRef.current !== null && 
+      JSON.stringify(prevDataRef.current) !== JSON.stringify(data);
+
+    // Animate if this is a filter change (drill down) or data change, but not on initial mount
+    shouldAnimate.current = filtersChanged || dataChanged;
+    
+    prevDataRef.current = data;
+    prevFiltersRef.current = filters;
+  }, [data, getFiltersForChart]);
 
   // Get filtered data using the centralized filtering utility
   const filteredData = useMemo(() => {
@@ -255,7 +274,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
           from: 'color',
           modifiers: [['darker', 1.6]],
         }}
-        animate={true}
+        animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}
         tooltip={({ id, value, data }) => {

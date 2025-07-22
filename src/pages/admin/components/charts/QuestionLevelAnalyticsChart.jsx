@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
@@ -16,6 +16,25 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
   const [sortBy, setSortBy] = useState('difficulty'); // 'difficulty', 'attempts', 'question'
   const [sortOrder, setSortOrder] = useState('desc');
   const [showOnlyProblematic, setShowOnlyProblematic] = useState(false);
+
+  // Track data changes and drill down state to control animations
+  const prevDataRef = useRef(null);
+  const prevFiltersRef = useRef(null);
+  const shouldAnimate = useRef(false);
+
+  useEffect(() => {
+    const filters = getFiltersForChart('question-analytics');
+    const filtersChanged = prevFiltersRef.current !== null && 
+      JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters);
+    const dataChanged = prevDataRef.current !== null && 
+      JSON.stringify(prevDataRef.current) !== JSON.stringify(data);
+
+    // Animate if this is a filter change (drill down) or data change, but not on initial mount
+    shouldAnimate.current = filtersChanged || dataChanged;
+    
+    prevDataRef.current = data;
+    prevFiltersRef.current = filters;
+  }, [data, getFiltersForChart]);
 
   // Filter data for this chart (includes hover filters from other charts, excludes own hover)
   const chartFilteredData = useMemo(() => {
@@ -337,7 +356,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
           legendOffset: -50,
         }}
         enableLabel={false}
-        animate={true}
+        animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}
         onClick={handleQuestionClick}

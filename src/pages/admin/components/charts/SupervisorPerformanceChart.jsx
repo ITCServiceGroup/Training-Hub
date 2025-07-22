@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
@@ -9,6 +9,25 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { getFiltersForChart, getCombinedFilters, shouldFilterChart, drillDown, applyHoverFilter } = useDashboard();
+
+  // Track data changes and drill down state to control animations
+  const prevDataRef = useRef(null);
+  const prevFiltersRef = useRef(null);
+  const shouldAnimate = useRef(false);
+
+  useEffect(() => {
+    const filters = getFiltersForChart('supervisor-performance');
+    const filtersChanged = prevFiltersRef.current !== null && 
+      JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters);
+    const dataChanged = prevDataRef.current !== null && 
+      JSON.stringify(prevDataRef.current) !== JSON.stringify(data);
+
+    // Animate if this is a filter change (drill down) or data change, but not on initial mount
+    shouldAnimate.current = filtersChanged || dataChanged;
+    
+    prevDataRef.current = data;
+    prevFiltersRef.current = filters;
+  }, [data, getFiltersForChart]);
 
   // Get filtered data (includes hover filters from other charts, excludes own hover)
   const filteredData = useMemo(() => {
@@ -180,7 +199,7 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
           from: 'color',
           modifiers: [['darker', 1.6]],
         }}
-        animate={true}
+        animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}
         onClick={handleSupervisorClick}
