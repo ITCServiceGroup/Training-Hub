@@ -577,6 +577,78 @@ class ExportService {
       return;
     }
 
+    // Special layout for Supervisor Effectiveness
+    if (chartType === 'supervisor-effectiveness') {
+      await this._addSupervisorEffectivenessSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Score Distribution
+    if (chartType === 'score-distribution') {
+      await this._addScoreDistributionSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Time Distribution
+    if (chartType === 'time-distribution') {
+      await this._addTimeDistributionSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Test Completion Trend
+    if (chartType === 'test-completion-trend') {
+      await this._addTestCompletionTrendSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Category Performance
+    if (chartType === 'category-performance') {
+      await this._addCategoryPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Market Performance
+    if (chartType === 'market-performance') {
+      await this._addMarketPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Top Performers
+    if (chartType === 'top-performers') {
+      await this._addTopPerformersSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Recent Activity
+    if (chartType === 'recent-activity') {
+      await this._addRecentActivitySpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Pass/Fail Rate
+    if (chartType === 'pass-fail-rate') {
+      await this._addPassFailRateSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Time vs Score
+    if (chartType === 'time-vs-score') {
+      await this._addTimeVsScoreSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Question Analytics
+    if (chartType === 'question-analytics') {
+      await this._addQuestionAnalyticsSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Retake Analysis
+    if (chartType === 'retake-analysis') {
+      await this._addRetakeAnalysisSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
     // Add chart in left column
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, height * 0.9);
 
@@ -717,6 +789,9 @@ class ExportService {
 
     // Add underline for section header
     pdf.line(x + 4, currentStatsY - 2, x + statsWidth - 4, currentStatsY - 2);
+
+    // Add padding below the dividing line
+    currentStatsY += 3;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
@@ -901,23 +976,810 @@ class ExportService {
     });
   }
 
+  async _addSupervisorEffectivenessSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addSupervisorEffectivenessHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addSupervisorEffectivenessDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addScoreDistributionSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addScoreDistributionHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addScoreDistributionDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addTimeDistributionSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addTimeDistributionHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addTimeDistributionDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addTestCompletionTrendSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addTestCompletionTrendHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addTestCompletionTrendDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addCategoryPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addCategoryPerformanceHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addCategoryPerformanceDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addMarketPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addMarketPerformanceHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addMarketPerformanceDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addTopPerformersSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addTopPerformersHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addTopPerformersDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addRecentActivitySpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addRecentActivityHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addRecentActivityDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addPassFailRateSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addPassFailRateHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addPassFailRateDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addTimeVsScoreSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addTimeVsScoreHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addTimeVsScoreDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addQuestionAnalyticsSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addQuestionAnalyticsHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addQuestionAnalyticsDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addRetakeAnalysisSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85;
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add statistics below the chart
+    const statsY = y + chartHeight + 6;
+    await this._addRetakeAnalysisHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add details in right column
+    await this._addRetakeAnalysisDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addTimeVsScoreHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate time vs score correlation statistics
+    const validRecords = rawData.filter(record => 
+      record.score_value != null && record.time_taken != null
+    );
+
+    if (validRecords.length === 0) return;
+
+    const scores = validRecords.map(r => parseFloat(r.score_value) || 0);
+    const times = validRecords.map(r => parseFloat(r.time_taken) || 0);
+    
+    // Calculate correlation coefficient
+    const n = validRecords.length;
+    const sumX = times.reduce((a, b) => a + b, 0);
+    const sumY = scores.reduce((a, b) => a + b, 0);
+    const sumXY = times.map((x, i) => x * scores[i]).reduce((a, b) => a + b, 0);
+    const sumX2 = times.map(x => x * x).reduce((a, b) => a + b, 0);
+    const sumY2 = scores.map(y => y * y).reduce((a, b) => a + b, 0);
+    
+    const correlation = n > 1 ? 
+      (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY)) : 0;
+
+    const avgTime = sumX / n;
+    const avgScore = (sumY / n) * 100;
+    const fastTests = validRecords.filter(r => parseFloat(r.time_taken) < avgTime).length;
+    const slowTests = n - fastTests;
+    const efficiencyScore = validRecords.filter(r => 
+      parseFloat(r.time_taken) <= avgTime && parseFloat(r.score_value) >= 0.8
+    ).length;
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Time vs Score Analysis:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Correlation Coefficient:', value: `${(correlation || 0).toFixed(3)}` },
+      { label: 'Average Time:', value: `${avgTime.toFixed(1)} min` },
+      { label: 'Average Score:', value: `${avgScore.toFixed(1)}%` },
+      { label: 'Efficient Tests:', value: `${efficiencyScore}/${n} (${((efficiencyScore/n)*100).toFixed(1)}%)` },
+      { label: 'Time Distribution:', value: `${fastTests} fast, ${slowTests} slow` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addTimeVsScoreDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    const validRecords = rawData.filter(record => 
+      record.score_value != null && record.time_taken != null
+    ).slice(0, 10);
+
+    if (validRecords.length === 0) return;
+
+    // Sort by efficiency (high score, low time)
+    const detailRecords = validRecords.map(record => {
+      const score = parseFloat(record.score_value) * 100;
+      const time = parseFloat(record.time_taken);
+      const efficiency = time > 0 ? score / time : 0;
+      return {
+        user: record.user_name || record.user_id || 'Unknown',
+        score: score,
+        time: time,
+        efficiency: efficiency,
+        test: record.test_name || 'Test'
+      };
+    }).sort((a, b) => b.efficiency - a.efficiency);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const maxRecordsToShow = Math.min(detailRecords.length, 10);
+    const recordsPerColumn = Math.ceil(maxRecordsToShow / 2);
+    const recordHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (recordsPerColumn * recordHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Time vs Score Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    detailRecords.forEach((record, index) => {
+      const ranking = index + 1;
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (record.efficiency >= 5) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (record.efficiency >= 3) {
+        pdf.setTextColor(255, 140, 0);
+      } else {
+        pdf.setTextColor(180, 0, 0);
+      }
+      pdf.text(`#${ranking}: ${record.user}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const recordInfo = [
+        `  Score: ${record.score.toFixed(1)}%`,
+        `  Time: ${record.time.toFixed(1)} min`,
+        `  Efficiency: ${record.efficiency.toFixed(2)}`,
+        `  Test: ${record.test.substring(0, 20)}${record.test.length > 20 ? '...' : ''}`
+      ];
+
+      recordInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addQuestionAnalyticsHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate question analytics statistics
+    const questionGroups = {};
+    rawData.forEach(record => {
+      const questionId = record.question_id || record.question || 'Unknown';
+      if (!questionGroups[questionId]) {
+        questionGroups[questionId] = {
+          id: questionId,
+          attempts: 0,
+          correct: 0,
+          totalTime: 0,
+          responses: []
+        };
+      }
+      questionGroups[questionId].attempts++;
+      if (record.is_correct || (parseFloat(record.score_value) || 0) >= 0.8) {
+        questionGroups[questionId].correct++;
+      }
+      questionGroups[questionId].totalTime += parseFloat(record.time_taken) || 0;
+      questionGroups[questionId].responses.push(record);
+    });
+
+    const questions = Object.values(questionGroups).map(group => ({
+      id: group.id,
+      difficulty: group.attempts > 0 ? ((group.attempts - group.correct) / group.attempts) * 100 : 0,
+      successRate: group.attempts > 0 ? (group.correct / group.attempts) * 100 : 0,
+      avgTime: group.attempts > 0 ? group.totalTime / group.attempts : 0,
+      attempts: group.attempts
+    }));
+
+    const totalQuestions = questions.length;
+    const totalAttempts = questions.reduce((sum, q) => sum + q.attempts, 0);
+    const overallSuccessRate = questions.length > 0 
+      ? questions.reduce((sum, q) => sum + q.successRate, 0) / questions.length 
+      : 0;
+    const hardestQuestion = questions.sort((a, b) => a.successRate - b.successRate)[0];
+    const easiestQuestion = questions.sort((a, b) => b.successRate - a.successRate)[0];
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Question Analytics Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Questions:', value: `${totalQuestions}` },
+      { label: 'Total Attempts:', value: `${totalAttempts}` },
+      { label: 'Overall Success Rate:', value: `${overallSuccessRate.toFixed(1)}%` },
+      { label: 'Hardest Question:', value: `${hardestQuestion?.id || 'N/A'} (${(hardestQuestion?.successRate || 0).toFixed(1)}%)` },
+      { label: 'Easiest Question:', value: `${easiestQuestion?.id || 'N/A'} (${(easiestQuestion?.successRate || 0).toFixed(1)}%)` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addQuestionAnalyticsDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    const questionGroups = {};
+    rawData.forEach(record => {
+      const questionId = record.question_id || record.question || 'Unknown';
+      if (!questionGroups[questionId]) {
+        questionGroups[questionId] = {
+          id: questionId,
+          attempts: 0,
+          correct: 0,
+          totalTime: 0,
+          text: record.question_text || questionId
+        };
+      }
+      questionGroups[questionId].attempts++;
+      if (record.is_correct || (parseFloat(record.score_value) || 0) >= 0.8) {
+        questionGroups[questionId].correct++;
+      }
+      questionGroups[questionId].totalTime += parseFloat(record.time_taken) || 0;
+    });
+
+    const questions = Object.values(questionGroups).slice(0, 10).map(group => ({
+      id: group.id,
+      text: group.text,
+      successRate: group.attempts > 0 ? (group.correct / group.attempts) * 100 : 0,
+      avgTime: group.attempts > 0 ? group.totalTime / group.attempts : 0,
+      attempts: group.attempts,
+      difficulty: group.attempts > 0 ? ((group.attempts - group.correct) / group.attempts) * 100 : 0
+    })).sort((a, b) => a.successRate - b.successRate);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const maxQuestionsToShow = Math.min(questions.length, 10);
+    const questionsPerColumn = Math.ceil(maxQuestionsToShow / 2);
+    const questionHeight = (tightLineHeight + 1) + (5 * tightLineHeight) + 2;
+    const detailsContentHeight = (questionsPerColumn * questionHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Question Analytics Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    questions.forEach((question, index) => {
+      const ranking = index + 1;
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (question.successRate <= 50) {
+        pdf.setTextColor(180, 0, 0);
+      } else if (question.successRate <= 75) {
+        pdf.setTextColor(255, 140, 0);
+      } else {
+        pdf.setTextColor(0, 120, 0);
+      }
+      pdf.text(`Q${ranking}: ${question.id}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const questionInfo = [
+        `  Success Rate: ${question.successRate.toFixed(1)}%`,
+        `  Avg Time: ${question.avgTime.toFixed(1)} min`,
+        `  Attempts: ${question.attempts}`,
+        `  Difficulty: ${question.difficulty < 25 ? 'Easy' : question.difficulty < 50 ? 'Medium' : 'Hard'}`,
+        `  Text: ${question.text.substring(0, 25)}${question.text.length > 25 ? '...' : ''}`
+      ];
+
+      questionInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addRetakeAnalysisHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate retake analysis statistics
+    const userAttempts = {};
+    rawData.forEach(record => {
+      const userId = record.user_id || record.user_name || 'Unknown';
+      const testId = record.test_id || record.test_name || 'Unknown';
+      const key = `${userId}_${testId}`;
+      
+      if (!userAttempts[key]) {
+        userAttempts[key] = {
+          user: userId,
+          test: testId,
+          attempts: [],
+          scores: [],
+          times: []
+        };
+      }
+      
+      const attemptNum = parseInt(record.attempt_number) || userAttempts[key].attempts.length + 1;
+      const score = parseFloat(record.score_value) || 0;
+      const time = parseFloat(record.time_taken) || 0;
+      
+      userAttempts[key].attempts.push(attemptNum);
+      userAttempts[key].scores.push(score);
+      userAttempts[key].times.push(time);
+    });
+
+    const retakeData = Object.values(userAttempts).filter(data => data.attempts.length > 1);
+    const totalRetakes = retakeData.length;
+    const totalUsers = Object.keys(userAttempts).length;
+    const retakeRate = totalUsers > 0 ? (totalRetakes / totalUsers) * 100 : 0;
+    
+    let improvedScores = 0;
+    let avgImprovement = 0;
+    let successfulRetakes = 0;
+
+    retakeData.forEach(data => {
+      const firstScore = data.scores[0] * 100;
+      const lastScore = data.scores[data.scores.length - 1] * 100;
+      const improvement = lastScore - firstScore;
+      
+      if (improvement > 0) {
+        improvedScores++;
+        avgImprovement += improvement;
+      }
+      
+      if (lastScore >= 80) {
+        successfulRetakes++;
+      }
+    });
+
+    avgImprovement = improvedScores > 0 ? avgImprovement / improvedScores : 0;
+    const improvementRate = totalRetakes > 0 ? (improvedScores / totalRetakes) * 100 : 0;
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Retake Analysis Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Retake Rate:', value: `${retakeRate.toFixed(1)}% (${totalRetakes}/${totalUsers})` },
+      { label: 'Improvement Rate:', value: `${improvementRate.toFixed(1)}% (${improvedScores}/${totalRetakes})` },
+      { label: 'Average Improvement:', value: `${avgImprovement.toFixed(1)}%` },
+      { label: 'Successful Retakes:', value: `${successfulRetakes}/${totalRetakes} (${totalRetakes > 0 ? ((successfulRetakes/totalRetakes)*100).toFixed(1) : 0}%)` },
+      { label: 'Total Retake Instances:', value: `${totalRetakes}` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addRetakeAnalysisDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    const userAttempts = {};
+    rawData.forEach(record => {
+      const userId = record.user_id || record.user_name || 'Unknown';
+      const testId = record.test_id || record.test_name || 'Unknown';
+      const key = `${userId}_${testId}`;
+      
+      if (!userAttempts[key]) {
+        userAttempts[key] = {
+          user: userId,
+          test: testId,
+          attempts: [],
+          scores: [],
+          times: []
+        };
+      }
+      
+      const attemptNum = parseInt(record.attempt_number) || userAttempts[key].attempts.length + 1;
+      const score = parseFloat(record.score_value) || 0;
+      const time = parseFloat(record.time_taken) || 0;
+      
+      userAttempts[key].attempts.push(attemptNum);
+      userAttempts[key].scores.push(score);
+      userAttempts[key].times.push(time);
+    });
+
+    const retakeDetails = Object.values(userAttempts)
+      .filter(data => data.attempts.length > 1)
+      .slice(0, 10)
+      .map(data => {
+        const firstScore = data.scores[0] * 100;
+        const lastScore = data.scores[data.scores.length - 1] * 100;
+        const improvement = lastScore - firstScore;
+        const maxAttempts = Math.max(...data.attempts);
+        
+        return {
+          user: data.user,
+          test: data.test,
+          attempts: maxAttempts,
+          firstScore: firstScore,
+          lastScore: lastScore,
+          improvement: improvement,
+          successful: lastScore >= 80
+        };
+      })
+      .sort((a, b) => b.improvement - a.improvement);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const maxRetakesToShow = Math.min(retakeDetails.length, 10);
+    const retakesPerColumn = Math.ceil(maxRetakesToShow / 2);
+    const retakeHeight = (tightLineHeight + 1) + (5 * tightLineHeight) + 2;
+    const detailsContentHeight = (retakesPerColumn * retakeHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Retake Analysis Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    retakeDetails.forEach((retake, index) => {
+      const ranking = index + 1;
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (retake.improvement > 20) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (retake.improvement > 0) {
+        pdf.setTextColor(255, 140, 0);
+      } else {
+        pdf.setTextColor(180, 0, 0);
+      }
+      pdf.text(`#${ranking}: ${retake.user}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const retakeInfo = [
+        `  First: ${retake.firstScore.toFixed(1)}%`,
+        `  Last: ${retake.lastScore.toFixed(1)}%`,
+        `  Improvement: ${retake.improvement >= 0 ? '+' : ''}${retake.improvement.toFixed(1)}%`,
+        `  Attempts: ${retake.attempts}`,
+        `  Status: ${retake.successful ? 'Passed' : 'Failed'}`
+      ];
+
+      retakeInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
   async _addSupervisorPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     // This function is now bypassed by the special layout system
     // Supervisor Performance uses _addSupervisorPerformanceSpecialLayout instead
     return y;
   }
 
-  async _addSupervisorEffectivenessDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
-    let currentY = y;
+  async _addSupervisorEffectivenessHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
 
-    if (!rawData || !Array.isArray(rawData)) {
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('No data available for supervisor effectiveness analysis', x, currentY);
-      return currentY + lineHeight;
-    }
-
-    // Group by supervisor
+    // Process rawData to calculate effectiveness statistics
     const supervisorGroups = {};
     rawData.forEach(record => {
       const supervisor = record.supervisor || 'Unknown';
@@ -930,10 +1792,10 @@ class ExportService {
           passCount: 0
         };
       }
-      supervisorGroups[supervisor].scores.push(record.score || 0);
+      supervisorGroups[supervisor].scores.push(parseFloat(record.score_value) || 0);
       supervisorGroups[supervisor].count++;
-      supervisorGroups[supervisor].totalTime += record.timeSpent || 0;
-      if ((record.score || 0) >= 70) supervisorGroups[supervisor].passCount++;
+      supervisorGroups[supervisor].totalTime += parseFloat(record.time_taken) || 0;
+      if ((parseFloat(record.score_value) || 0) >= 0.7) supervisorGroups[supervisor].passCount++;
     });
 
     const supervisors = Object.values(supervisorGroups).map(group => {
@@ -942,27 +1804,12 @@ class ExportService {
         : 0;
       const passRate = group.count > 0 ? (group.passCount / group.count) * 100 : 0;
       const avgTime = group.count > 0 ? group.totalTime / group.count : 0;
-
-      // Calculate effectiveness metrics
-      const consistency = group.scores.length > 1
-        ? 100 - (Math.sqrt(group.scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) / group.scores.length))
-        : 100;
-
-      const efficiency = avgTime > 0 ? Math.min(100, (300 / avgTime) * 100) : 0; // Assuming 5 min is optimal
-      const engagement = Math.min(100, (group.count / 10) * 100); // Assuming 10+ tests is high engagement
-
-      const initials = group.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
-
       return {
         name: group.name,
-        initials: initials,
-        averageScore: averageScore,
-        testsSupervised: group.count,
+        averageScore: averageScore * 100,
         passRate: passRate,
-        consistency: consistency.toFixed(1),
-        efficiency: efficiency.toFixed(1),
-        engagement: engagement.toFixed(1),
-        teamSize: Math.floor(Math.random() * 20) + 5 // Mock team size
+        averageTime: avgTime,
+        testsSupervised: group.count
       };
     }).sort((a, b) => b.averageScore - a.averageScore);
 
@@ -971,143 +1818,527 @@ class ExportService {
     const overallAvg = supervisors.length > 0
       ? supervisors.reduce((sum, sup) => sum + sup.averageScore, 0) / supervisors.length
       : 0;
-
     const topPerformer = supervisors[0] || {};
 
-    pdf.setFontSize(10);
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Supervisor Effectiveness Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
     const stats = [
-      `Total Supervisors: ${totalSupervisors}`,
-      `Total Tests: ${totalTests}`,
-      `Overall Average: ${overallAvg.toFixed(1)}%`,
-      `Top Performer: ${topPerformer.name || 'N/A'} (${topPerformer.initials || ''})`,
-      `Top Score: ${(topPerformer.averageScore || 0).toFixed(1)}%`
+      { label: 'Total Supervisors:', value: `${totalSupervisors}` },
+      { label: 'Total Tests:', value: `${totalTests}` },
+      { label: 'Overall Average:', value: `${overallAvg.toFixed(1)}%` },
+      { label: 'Top Performer:', value: topPerformer.name || 'N/A' },
+      { label: 'Top Score:', value: `${(topPerformer.averageScore || 0).toFixed(1)}%` }
     ];
 
     stats.forEach(stat => {
-      pdf.text(stat, x, currentY);
-      currentY += lineHeight;
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addSupervisorEffectivenessDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const supervisorGroups = {};
+    rawData.forEach(record => {
+      const supervisor = record.supervisor || 'Unknown';
+      if (!supervisorGroups[supervisor]) {
+        supervisorGroups[supervisor] = {
+          name: supervisor,
+          scores: [],
+          count: 0,
+          totalTime: 0,
+          passCount: 0
+        };
+      }
+      supervisorGroups[supervisor].scores.push(parseFloat(record.score_value) || 0);
+      supervisorGroups[supervisor].count++;
+      supervisorGroups[supervisor].totalTime += parseFloat(record.time_taken) || 0;
+      if ((parseFloat(record.score_value) || 0) >= 0.7) supervisorGroups[supervisor].passCount++;
     });
 
-    currentY += sectionSpacing;
+    const supervisors = Object.values(supervisorGroups).slice(0, 10).map(group => {
+      const averageScore = group.scores.length > 0
+        ? group.scores.reduce((sum, score) => sum + score, 0) / group.scores.length
+        : 0;
+      const passRate = group.count > 0 ? (group.passCount / group.count) * 100 : 0;
+      const avgTime = group.count > 0 ? group.totalTime / group.count : 0;
+      return {
+        name: group.name,
+        averageScore: averageScore * 100,
+        passRate: passRate,
+        averageTime: avgTime,
+        testsSupervised: group.count
+      };
+    }).sort((a, b) => b.averageScore - a.averageScore);
 
-    // Individual Supervisor Details
-    pdf.setFontSize(12);
+    const tightLineHeight = 5;
+    const padding = 4;
+    const maxSupervisorsToShow = Math.min(supervisors.length, 10);
+    const supervisorsPerColumn = Math.ceil(maxSupervisorsToShow / 2);
+    const supervisorHeight = (tightLineHeight + 1) + (5 * tightLineHeight) + 2;
+    const detailsContentHeight = (supervisorsPerColumn * supervisorHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Supervisor Details:', x, currentY);
-    currentY += lineHeight + 5;
+    pdf.text('Supervisor Effectiveness Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
 
-    pdf.setFontSize(10);
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
 
     supervisors.forEach((supervisor, index) => {
       const ranking = index + 1;
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
 
-      const supervisorDetails = [
-        `${supervisor.name} (${supervisor.initials})`,
-        `  Average Score: ${supervisor.averageScore.toFixed(1)}%`,
-        `  Tests Supervised: ${supervisor.testsSupervised}`,
+      pdf.setFont('helvetica', 'bold');
+      if (ranking <= 2) {
+        pdf.setTextColor(0, 120, 0);
+      } else {
+        pdf.setTextColor(0, 0, 0);
+      }
+      pdf.text(`#${ranking}: ${supervisor.name}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const supervisorInfo = [
+        `  Average: ${supervisor.averageScore.toFixed(1)}%`,
         `  Pass Rate: ${supervisor.passRate.toFixed(1)}%`,
-        `  Consistency: ${supervisor.consistency}%`,
-        `  Efficiency: ${supervisor.efficiency}%`,
-        `  Engagement: ${supervisor.engagement}%`,
-        `  Team Size: ${supervisor.teamSize} users`,
-        `  Ranking: #${ranking} of ${totalSupervisors}`,
-        ''
+        `  Avg Time: ${Math.round(supervisor.averageTime)}min`,
+        `  Tests: ${supervisor.testsSupervised}`,
+        `  Effectiveness: ${supervisor.passRate >= 80 ? 'High' : supervisor.passRate >= 60 ? 'Medium' : 'Low'}`
       ];
 
-      supervisorDetails.forEach(detail => {
-        if (detail.trim()) {
-          pdf.text(detail, x, currentY);
+      supervisorInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addSupervisorEffectivenessDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Supervisor Effectiveness uses _addSupervisorEffectivenessSpecialLayout instead
+    return y;
+  }
+
+  async _addScoreDistributionHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate score distribution statistics
+    const scoreRanges = [
+      { min: 0, max: 20, label: '0-20%', count: 0 },
+      { min: 21, max: 40, label: '21-40%', count: 0 },
+      { min: 41, max: 60, label: '41-60%', count: 0 },
+      { min: 61, max: 80, label: '61-80%', count: 0 },
+      { min: 81, max: 100, label: '81-100%', count: 0 }
+    ];
+
+    let totalRecords = 0;
+    let scoreSum = 0;
+
+    rawData.forEach(record => {
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      scoreSum += score;
+      totalRecords++;
+
+      scoreRanges.forEach(range => {
+        if (score >= range.min && score <= range.max) {
+          range.count++;
         }
-        currentY += lineHeight;
       });
     });
 
-    return currentY;
-  }
+    const averageScore = totalRecords > 0 ? scoreSum / totalRecords : 0;
+    const highPerformers = scoreRanges[4].count; // 81-100%
+    const lowPerformers = scoreRanges[0].count + scoreRanges[1].count; // 0-40%
+    const mostCommonRange = scoreRanges.reduce((prev, current) => 
+      (current.count > prev.count) ? current : prev
+    );
 
-  async _addScoreDistributionDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
-    let currentY = y;
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
 
-    if (!rawData || !Array.isArray(rawData)) {
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('No data available for score distribution analysis', x, currentY);
-      return currentY + lineHeight;
-    }
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
 
-    // Define score ranges
-    const ranges = [
-      { min: 0, max: 20, label: '0-20%' },
-      { min: 21, max: 40, label: '21-40%' },
-      { min: 41, max: 60, label: '41-60%' },
-      { min: 61, max: 80, label: '61-80%' },
-      { min: 81, max: 100, label: '81-100%' }
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Score Distribution Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Records:', value: `${totalRecords}` },
+      { label: 'Average Score:', value: `${(averageScore * 100).toFixed(1)}%` },
+      { label: 'High Performers:', value: `${highPerformers} (${((highPerformers/totalRecords)*100).toFixed(1)}%)` },
+      { label: 'Most Common Range:', value: mostCommonRange.label },
+      { label: 'Range Count:', value: `${mostCommonRange.count} records` }
     ];
 
-    const distribution = ranges.map(range => {
-      const recordsInRange = rawData.filter(record => {
-        const score = record.score || 0;
-        return score >= range.min && score <= range.max;
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addScoreDistributionDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const scoreRanges = [
+      { min: 0, max: 20, label: '0-20%', count: 0, records: [] },
+      { min: 21, max: 40, label: '21-40%', count: 0, records: [] },
+      { min: 41, max: 60, label: '41-60%', count: 0, records: [] },
+      { min: 61, max: 80, label: '61-80%', count: 0, records: [] },
+      { min: 81, max: 100, label: '81-100%', count: 0, records: [] }
+    ];
+
+    rawData.forEach(record => {
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      scoreRanges.forEach(range => {
+        if (score >= range.min && score <= range.max) {
+          range.count++;
+          range.records.push(record);
+        }
       });
-
-      const averageScore = recordsInRange.length > 0
-        ? recordsInRange.reduce((sum, record) => sum + (record.score || 0), 0) / recordsInRange.length
-        : 0;
-
-      let performanceLevel = 'Needs Improvement';
-      if (range.min >= 81) performanceLevel = 'Excellent';
-      else if (range.min >= 61) performanceLevel = 'Good';
-      else if (range.min >= 41) performanceLevel = 'Satisfactory';
-
-      return {
-        range: range.label,
-        count: recordsInRange.length,
-        averageScore: averageScore,
-        performanceLevel: performanceLevel
-      };
     });
 
     const totalRecords = rawData.length;
 
-    pdf.setFontSize(10);
+    const tightLineHeight = 5;
+    const padding = 4;
+    const rangesPerColumn = Math.ceil(scoreRanges.length / 2);
+    const rangeHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (rangesPerColumn * rangeHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Score Distribution Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
-    const stats = [
-      `Total Records: ${totalRecords}`,
-      '',
-      'Score Distribution Breakdown:',
-      ''
-    ];
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
 
-    stats.forEach(stat => {
-      if (stat.trim()) {
-        pdf.text(stat, x, currentY);
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    scoreRanges.forEach((range, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      const percentage = totalRecords > 0 ? (range.count / totalRecords) * 100 : 0;
+
+      pdf.setFont('helvetica', 'bold');
+      if (percentage >= 30) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (percentage >= 20) {
+        pdf.setTextColor(0, 0, 120);
+      } else {
+        pdf.setTextColor(0, 0, 0);
       }
-      currentY += lineHeight;
-    });
+      pdf.text(`${range.label}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
 
-    distribution.forEach(segment => {
-      const percentage = totalRecords > 0 ? ((segment.count / totalRecords) * 100).toFixed(1) : '0';
-
-      const segmentDetails = [
-        `${segment.range}: ${segment.count} tests (${percentage}%)`,
-        `  Average Score: ${segment.averageScore.toFixed(1)}%`,
-        `  Performance Level: ${segment.performanceLevel}`,
-        ''
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const rangeInfo = [
+        `  Count: ${range.count}`,
+        `  Percentage: ${percentage.toFixed(1)}%`,
+        `  Performance: ${percentage >= 20 ? 'Normal' : 'Low Distribution'}`,
+        `  Trend: ${range.min >= 61 ? 'High Achievers' : range.min >= 41 ? 'Average' : 'Needs Improvement'}`
       ];
 
-      segmentDetails.forEach(detail => {
-        if (detail.trim()) {
-          pdf.text(detail, x, currentY);
+      rangeInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addScoreDistributionDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Score Distribution uses _addScoreDistributionSpecialLayout instead
+    return y;
+  }
+
+  async _addTimeDistributionHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate time distribution statistics
+    const timeRanges = [
+      { min: 0, max: 300, label: '0-5 min', count: 0 },
+      { min: 301, max: 600, label: '5-10 min', count: 0 },
+      { min: 601, max: 900, label: '10-15 min', count: 0 },
+      { min: 901, max: 1800, label: '15-30 min', count: 0 },
+      { min: 1801, max: Infinity, label: '30+ min', count: 0 }
+    ];
+
+    let totalRecords = 0;
+    let timeSum = 0;
+
+    rawData.forEach(record => {
+      const timeSpent = parseFloat(record.time_taken) || parseFloat(record.timeSpent) || 0;
+      timeSum += timeSpent;
+      totalRecords++;
+
+      timeRanges.forEach(range => {
+        if (timeSpent >= range.min && timeSpent <= range.max) {
+          range.count++;
         }
-        currentY += lineHeight;
       });
     });
 
-    return currentY;
+    const averageTime = totalRecords > 0 ? timeSum / totalRecords : 0;
+    const quickUsers = timeRanges[0].count + timeRanges[1].count; // 0-10 min
+    const slowUsers = timeRanges[4].count; // 30+ min
+    const mostCommonRange = timeRanges.reduce((prev, current) => 
+      (current.count > prev.count) ? current : prev
+    );
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Time Distribution Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Records:', value: `${totalRecords}` },
+      { label: 'Average Time:', value: `${Math.round(averageTime / 60)} min` },
+      { label: 'Quick Users (0-10m):', value: `${quickUsers} (${((quickUsers/totalRecords)*100).toFixed(1)}%)` },
+      { label: 'Most Common Range:', value: mostCommonRange.label },
+      { label: 'Range Count:', value: `${mostCommonRange.count} records` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addTimeDistributionDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const timeRanges = [
+      { min: 0, max: 300, label: '0-5 min', count: 0, records: [] },
+      { min: 301, max: 600, label: '5-10 min', count: 0, records: [] },
+      { min: 601, max: 900, label: '10-15 min', count: 0, records: [] },
+      { min: 901, max: 1800, label: '15-30 min', count: 0, records: [] },
+      { min: 1801, max: Infinity, label: '30+ min', count: 0, records: [] }
+    ];
+
+    rawData.forEach(record => {
+      const timeSpent = parseFloat(record.time_taken) || parseFloat(record.timeSpent) || 0;
+      timeRanges.forEach(range => {
+        if (timeSpent >= range.min && timeSpent <= range.max) {
+          range.count++;
+          range.records.push(record);
+        }
+      });
+    });
+
+    const totalRecords = rawData.length;
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const rangesPerColumn = Math.ceil(timeRanges.length / 2);
+    const rangeHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (rangesPerColumn * rangeHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Time Distribution Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    timeRanges.forEach((range, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      const percentage = totalRecords > 0 ? (range.count / totalRecords) * 100 : 0;
+
+      pdf.setFont('helvetica', 'bold');
+      if (range.label.includes('5-10') || range.label.includes('10-15')) {
+        pdf.setTextColor(0, 120, 0); // Green for optimal times
+      } else if (range.label.includes('30+')) {
+        pdf.setTextColor(120, 0, 0); // Red for slow times
+      } else {
+        pdf.setTextColor(0, 0, 0);
+      }
+      pdf.text(`${range.label}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const rangeInfo = [
+        `  Count: ${range.count}`,
+        `  Percentage: ${percentage.toFixed(1)}%`,
+        `  Speed: ${range.min <= 600 ? 'Fast' : range.min <= 1800 ? 'Average' : 'Slow'}`,
+        `  Efficiency: ${percentage >= 20 ? 'Normal Distribution' : 'Low Activity'}`
+      ];
+
+      rangeInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
   }
 
   async _addTestCompletionTrendDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
@@ -1221,91 +2452,374 @@ class ExportService {
   }
 
   async _addTimeDistributionDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
-    let currentY = y;
+    // This function is now bypassed by the special layout system
+    // Time Distribution uses _addTimeDistributionSpecialLayout instead
+    return y;
+  }
 
-    if (!rawData || !Array.isArray(rawData)) {
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('No data available for time distribution analysis', x, currentY);
-      return currentY + lineHeight;
-    }
+  async _addTestCompletionTrendHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
 
-    // Define time ranges
-    const timeRanges = [
-      { min: 0, max: 180, label: '1-3 min' },
-      { min: 181, max: 300, label: '3-5 min' },
-      { min: 301, max: 600, label: '5-10 min' },
-      { min: 601, max: 999999, label: '> 10 min' }
-    ];
+    // Process rawData to calculate test completion trend statistics
+    const dateGroups = {};
+    let totalTests = 0;
+    let passedTests = 0;
+    let totalScore = 0;
 
-    const distribution = timeRanges.map(range => {
-      const recordsInRange = rawData.filter(record => {
-        const timeSpent = record.timeSpent || 0;
-        return timeSpent >= range.min && timeSpent <= range.max;
-      });
-
-      const averageScore = recordsInRange.length > 0
-        ? recordsInRange.reduce((sum, record) => sum + (record.score || 0), 0) / recordsInRange.length
-        : 0;
-
-      const averageTime = recordsInRange.length > 0
-        ? recordsInRange.reduce((sum, record) => sum + (record.timeSpent || 0), 0) / recordsInRange.length
-        : 0;
-
-      // Calculate efficiency rating based on score vs time
-      let efficiencyRating = 'Poor';
-      if (averageScore >= 80 && averageTime <= 300) efficiencyRating = 'Excellent';
-      else if (averageScore >= 70 && averageTime <= 600) efficiencyRating = 'Good';
-      else if (averageScore >= 60) efficiencyRating = 'Fair';
-
-      return {
-        timeRange: range.label,
-        count: recordsInRange.length,
-        averageScore: averageScore,
-        averageTime: `${Math.floor(averageTime / 60)}:${String(Math.floor(averageTime % 60)).padStart(2, '0')}`,
-        efficiencyRating: efficiencyRating
-      };
+    rawData.forEach(record => {
+      const date = record.completion_date || record.date || new Date().toISOString().split('T')[0];
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      if (!dateGroups[date]) {
+        dateGroups[date] = { count: 0, totalScore: 0, passed: 0 };
+      }
+      
+      dateGroups[date].count++;
+      dateGroups[date].totalScore += score;
+      if (score >= 0.7) dateGroups[date].passed++;
+      
+      totalTests++;
+      totalScore += score;
+      if (score >= 0.7) passedTests++;
     });
 
-    const totalRecords = rawData.length;
+    const dates = Object.keys(dateGroups).sort();
+    const averageScore = totalTests > 0 ? (totalScore / totalTests) * 100 : 0;
+    const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
+    const totalDays = dates.length;
+    const avgTestsPerDay = totalDays > 0 ? totalTests / totalDays : 0;
 
-    pdf.setFontSize(10);
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Test Completion Trend Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
     const stats = [
-      `Total Records: ${totalRecords}`,
-      '',
-      'Time Distribution Breakdown:',
-      ''
+      { label: 'Total Tests:', value: `${totalTests}` },
+      { label: 'Average Score:', value: `${averageScore.toFixed(1)}%` },
+      { label: 'Pass Rate:', value: `${passRate.toFixed(1)}%` },
+      { label: 'Days Active:', value: `${totalDays}` },
+      { label: 'Avg Tests/Day:', value: `${avgTestsPerDay.toFixed(1)}` }
     ];
 
     stats.forEach(stat => {
-      if (stat.trim()) {
-        pdf.text(stat, x, currentY);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addTestCompletionTrendDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const dateGroups = {};
+    rawData.forEach(record => {
+      const date = record.completion_date || record.date || new Date().toISOString().split('T')[0];
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      if (!dateGroups[date]) {
+        dateGroups[date] = { count: 0, totalScore: 0, passed: 0, records: [] };
       }
-      currentY += lineHeight;
+      
+      dateGroups[date].count++;
+      dateGroups[date].totalScore += score;
+      if (score >= 0.7) dateGroups[date].passed++;
+      dateGroups[date].records.push(record);
     });
 
-    distribution.forEach(segment => {
-      const percentage = totalRecords > 0 ? ((segment.count / totalRecords) * 100).toFixed(1) : '0';
+    const dateEntries = Object.entries(dateGroups)
+      .map(([date, data]) => ({
+        date,
+        count: data.count,
+        avgScore: data.count > 0 ? (data.totalScore / data.count) * 100 : 0,
+        passRate: data.count > 0 ? (data.passed / data.count) * 100 : 0
+      }))
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 10);
 
-      const segmentDetails = [
-        `${segment.timeRange}: ${segment.count} tests (${percentage}%)`,
-        `  Average Score: ${segment.averageScore.toFixed(1)}%`,
-        `  Average Time: ${segment.averageTime}`,
-        `  Efficiency Rating: ${segment.efficiencyRating}`,
-        ''
+    const tightLineHeight = 5;
+    const padding = 4;
+    const entriesPerColumn = Math.ceil(dateEntries.length / 2);
+    const entryHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (entriesPerColumn * entryHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Test Completion Trend Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    dateEntries.forEach((entry, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (entry.passRate >= 80) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (entry.passRate >= 60) {
+        pdf.setTextColor(0, 0, 120);
+      } else {
+        pdf.setTextColor(120, 0, 0);
+      }
+      pdf.text(`${entry.date}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const entryInfo = [
+        `  Tests: ${entry.count}`,
+        `  Avg Score: ${entry.avgScore.toFixed(1)}%`,
+        `  Pass Rate: ${entry.passRate.toFixed(1)}%`,
+        `  Trend: ${entry.passRate >= 70 ? 'Positive' : 'Needs Attention'}`
       ];
 
-      segmentDetails.forEach(detail => {
-        if (detail.trim()) {
-          pdf.text(detail, x, currentY);
-        }
-        currentY += lineHeight;
+      entryInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
       });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addTestCompletionTrendDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Test Completion Trend uses _addTestCompletionTrendSpecialLayout instead
+    return y;
+  }
+
+  async _addCategoryPerformanceHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate category performance statistics
+    const categoryGroups = {};
+    let totalTests = 0;
+    let totalScore = 0;
+
+    rawData.forEach(record => {
+      const category = record.category || record.test_category || 'Unknown';
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      if (!categoryGroups[category]) {
+        categoryGroups[category] = { count: 0, totalScore: 0, passed: 0 };
+      }
+      
+      categoryGroups[category].count++;
+      categoryGroups[category].totalScore += score;
+      if (score >= 0.7) categoryGroups[category].passed++;
+      
+      totalTests++;
+      totalScore += score;
     });
 
-    return currentY;
+    const categories = Object.entries(categoryGroups)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        avgScore: data.count > 0 ? (data.totalScore / data.count) * 100 : 0,
+        passRate: data.count > 0 ? (data.passed / data.count) * 100 : 0
+      }))
+      .sort((a, b) => b.avgScore - a.avgScore);
+
+    const totalCategories = categories.length;
+    const overallAvg = totalTests > 0 ? (totalScore / totalTests) * 100 : 0;
+    const topCategory = categories[0] || {};
+    const avgTestsPerCategory = totalCategories > 0 ? totalTests / totalCategories : 0;
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Category Performance Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Categories:', value: `${totalCategories}` },
+      { label: 'Overall Average:', value: `${overallAvg.toFixed(1)}%` },
+      { label: 'Top Category:', value: topCategory.name || 'N/A' },
+      { label: 'Top Score:', value: `${(topCategory.avgScore || 0).toFixed(1)}%` },
+      { label: 'Avg Tests/Category:', value: `${avgTestsPerCategory.toFixed(1)}` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addCategoryPerformanceDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const categoryGroups = {};
+    rawData.forEach(record => {
+      const category = record.category || record.test_category || 'Unknown';
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      if (!categoryGroups[category]) {
+        categoryGroups[category] = { count: 0, totalScore: 0, passed: 0, records: [] };
+      }
+      
+      categoryGroups[category].count++;
+      categoryGroups[category].totalScore += score;
+      if (score >= 0.7) categoryGroups[category].passed++;
+      categoryGroups[category].records.push(record);
+    });
+
+    const categories = Object.entries(categoryGroups)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        avgScore: data.count > 0 ? (data.totalScore / data.count) * 100 : 0,
+        passRate: data.count > 0 ? (data.passed / data.count) * 100 : 0
+      }))
+      .sort((a, b) => b.avgScore - a.avgScore)
+      .slice(0, 10);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const categoriesPerColumn = Math.ceil(categories.length / 2);
+    const categoryHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (categoriesPerColumn * categoryHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Category Performance Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    categories.forEach((category, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (category.avgScore >= 80) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (category.avgScore >= 60) {
+        pdf.setTextColor(0, 0, 120);
+      } else {
+        pdf.setTextColor(120, 0, 0);
+      }
+      pdf.text(`${category.name}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const categoryInfo = [
+        `  Tests: ${category.count}`,
+        `  Avg Score: ${category.avgScore.toFixed(1)}%`,
+        `  Pass Rate: ${category.passRate.toFixed(1)}%`,
+        `  Performance: ${category.avgScore >= 80 ? 'Excellent' : category.avgScore >= 60 ? 'Good' : 'Needs Improvement'}`
+      ];
+
+      categoryInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
   }
 
   async _addTopBottomPerformersSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
@@ -1319,7 +2833,7 @@ class ExportService {
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
 
     // Add horizontal summary statistics below the chart
-    const statsY = y + chartHeight + 10;
+    const statsY = y + chartHeight + 6;
     await this._addTopBottomPerformersHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
 
     // Add detailed performer lists in right column
@@ -1336,7 +2850,7 @@ class ExportService {
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
 
     // Add overall statistics below the chart
-    const statsY = y + chartHeight + 10;
+    const statsY = y + chartHeight + 6;
     await this._addSupervisorPerformanceHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
 
     // Add supervisor details in right column
@@ -1365,18 +2879,14 @@ class ExportService {
     // Detect anonymization state from the chart component
     const shouldAnonymize = this._detectAnonymizationState(tileElement);
 
-    const padding = 4; // Internal padding for text
-    
     // Calculate basic statistics first
     const minTestsRequired = 1;
     const userGroups = {};
 
-    console.log('📊 PDF Export (Horizontal Stats): Processing', rawData.length, 'records with anonymization:', shouldAnonymize);
-
     rawData.forEach(record => {
       const userName = record.ldap || record.userName || 'Anonymous';
       const displayName = shouldAnonymize ? anonymizeName(userName) : userName;
-      
+
       if (!userGroups[userName]) {
         userGroups[userName] = {
           name: displayName,
@@ -1411,111 +2921,49 @@ class ExportService {
       ? `${qualifiedUsers[qualifiedUsers.length - 1].averageScore.toFixed(1)}% - ${qualifiedUsers[0].averageScore.toFixed(1)}%`
       : 'N/A';
 
-    // Setup layout calculations
-    const colWidth = (width - (padding * 2)) / 3; // Account for padding
-    const lineHeight = 6;
-    const startY = y + padding; // Add top padding
-    
-    pdf.setFontSize(8); // Slightly smaller to prevent overflow
-    pdf.setFont('helvetica', 'normal');
+    // Standard horizontal stats layout (matching Score Distribution style)
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 6 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
 
-    // Column 1 - structured with label/value pairs
-    const col1Stats = [
-      { label: 'Total Performers:', value: `${topPerformers.length}` },
-      { label: 'Qualified Users:', value: `${totalQualified}` },
-      { label: 'Min Tests Required:', value: `${minTestsRequired}` }
-    ];
-
-    // Column 2 - will wrap if needed
-    const col2Stats = [
-      { label: 'Average Score:', value: `${topAverage.toFixed(1)}%` },
-      { label: 'Score Range:', value: scoreRange },
-      { label: 'Total Records:', value: `${rawData.length}` }
-    ];
-
-    // Column 3 - will wrap if needed
-    const col3Stats = [
-      { label: 'Top Performer:', value: topPerformers[0]?.name || 'N/A' },
-      { label: 'Top Score:', value: `${topPerformers[0]?.averageScore.toFixed(1) || '0'}%` },
-      { label: 'Analysis:', value: 'Performance Rankings' }
-    ];
-
-    const allColumns = [col1Stats, col2Stats, col3Stats];
-
-    // Calculate the actual height needed by measuring text wrapping
-    let maxColumnHeight = 0;
-    
-    allColumns.forEach((columnStats, colIndex) => {
-      let columnHeight = 0;
-      const availableWidth = colWidth - 6; // Leave some margin
-      
-      columnStats.forEach(stat => {
-        // Calculate if this stat will wrap
-        pdf.setFont('helvetica', 'bold');
-        const labelWidth = pdf.getTextWidth(stat.label);
-        pdf.setFont('helvetica', 'normal');
-        const valueMaxWidth = availableWidth - labelWidth - 2;
-        const valueWidth = pdf.getTextWidth(stat.value);
-        
-        if (valueWidth <= valueMaxWidth) {
-          // Single line
-          columnHeight += lineHeight;
-        } else {
-          // Two lines (label + wrapped value)
-          columnHeight += lineHeight * 2;
-        }
-      });
-      
-      maxColumnHeight = Math.max(maxColumnHeight, columnHeight);
-    });
-
-    // Dynamic height calculation with minimal padding
-    const statsHeight = maxColumnHeight + (padding * 2) - 4; // Add padding but reduce excess buffer
-    
-    // Draw border with calculated height
-    pdf.setDrawColor(200, 200, 200); // Light gray border
+    pdf.setDrawColor(200, 200, 200);
     pdf.setLineWidth(0.5);
     pdf.rect(x, y - 2, width, statsHeight);
 
-    // Add vertical dividers between columns with proper positioning
-    pdf.setDrawColor(200, 200, 200);
-    pdf.setLineWidth(0.3);
-    for (let i = 1; i < 3; i++) {
-      const dividerX = x + padding + (i * colWidth);
-      pdf.line(dividerX, y, dividerX, y + statsHeight - 2);
-    }
+    let currentY = y + padding;
 
-    // Render columns with proper padding and text wrapping
-    allColumns.forEach((columnStats, colIndex) => {
-      let colY = startY;
-      const colX = x + padding + (colIndex * colWidth) + 2; // Additional small margin from divider
-      
-      columnStats.forEach(stat => {
-        // Calculate available width for this column
-        let availableWidth = colWidth - 6; // Leave some margin
-        
-        // Bold label - always on first line
-        pdf.setFont('helvetica', 'bold');
-        const labelWidth = pdf.getTextWidth(stat.label);
-        pdf.text(stat.label, colX, colY);
-        
-        // Check if value fits on same line
-        pdf.setFont('helvetica', 'normal');
-        const valueStartX = colX + labelWidth + 2;
-        const valueMaxWidth = availableWidth - labelWidth - 2;
-        const valueWidth = pdf.getTextWidth(stat.value);
-        
-        if (valueWidth <= valueMaxWidth) {
-          // Value fits on same line
-          pdf.text(stat.value, valueStartX, colY);
-          colY += lineHeight;
-        } else {
-          // Value doesn't fit, wrap to next line
-          colY += lineHeight; // Move to next line
-          pdf.text(stat.value, colX, colY); // Start value at left margin of column
-          colY += lineHeight;
-        }
-      });
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Top/Bottom Performers Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Performers:', value: `${topPerformers.length}` },
+      { label: 'Average Score:', value: `${topAverage.toFixed(1)}%` },
+      { label: 'Top Performer:', value: topPerformers[0]?.name || 'N/A' },
+      { label: 'Top Score:', value: `${topPerformers[0]?.averageScore.toFixed(1) || '0'}%` },
+      { label: 'Score Range:', value: scoreRange },
+      { label: 'Qualified Users:', value: `${totalQualified}` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
     });
   }
 
@@ -1903,6 +3351,193 @@ class ExportService {
   }
 
   async _addCategoryPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Category Performance uses _addCategoryPerformanceSpecialLayout instead
+    return y;
+  }
+
+  async _addMarketPerformanceHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate market performance statistics
+    const marketGroups = {};
+    let totalTests = 0;
+    let totalScore = 0;
+
+    rawData.forEach(record => {
+      const market = record.market || record.region || record.location || 'Unknown';
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      if (!marketGroups[market]) {
+        marketGroups[market] = { count: 0, totalScore: 0, passed: 0 };
+      }
+      
+      marketGroups[market].count++;
+      marketGroups[market].totalScore += score;
+      if (score >= 0.7) marketGroups[market].passed++;
+      
+      totalTests++;
+      totalScore += score;
+    });
+
+    const markets = Object.entries(marketGroups)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        avgScore: data.count > 0 ? (data.totalScore / data.count) * 100 : 0,
+        passRate: data.count > 0 ? (data.passed / data.count) * 100 : 0
+      }))
+      .sort((a, b) => b.avgScore - a.avgScore);
+
+    const totalMarkets = markets.length;
+    const overallAvg = totalTests > 0 ? (totalScore / totalTests) * 100 : 0;
+    const topMarket = markets[0] || {};
+    const avgTestsPerMarket = totalMarkets > 0 ? totalTests / totalMarkets : 0;
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Market Performance Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Markets:', value: `${totalMarkets}` },
+      { label: 'Overall Average:', value: `${overallAvg.toFixed(1)}%` },
+      { label: 'Top Market:', value: topMarket.name || 'N/A' },
+      { label: 'Top Score:', value: `${(topMarket.avgScore || 0).toFixed(1)}%` },
+      { label: 'Avg Tests/Market:', value: `${avgTestsPerMarket.toFixed(1)}` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addMarketPerformanceDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const marketGroups = {};
+    rawData.forEach(record => {
+      const market = record.market || record.region || record.location || 'Unknown';
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      if (!marketGroups[market]) {
+        marketGroups[market] = { count: 0, totalScore: 0, passed: 0, records: [] };
+      }
+      
+      marketGroups[market].count++;
+      marketGroups[market].totalScore += score;
+      if (score >= 0.7) marketGroups[market].passed++;
+      marketGroups[market].records.push(record);
+    });
+
+    const markets = Object.entries(marketGroups)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        avgScore: data.count > 0 ? (data.totalScore / data.count) * 100 : 0,
+        passRate: data.count > 0 ? (data.passed / data.count) * 100 : 0
+      }))
+      .sort((a, b) => b.avgScore - a.avgScore)
+      .slice(0, 10);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const marketsPerColumn = Math.ceil(markets.length / 2);
+    const marketHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (marketsPerColumn * marketHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Market Performance Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    markets.forEach((market, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (market.avgScore >= 80) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (market.avgScore >= 60) {
+        pdf.setTextColor(0, 0, 120);
+      } else {
+        pdf.setTextColor(120, 0, 0);
+      }
+      pdf.text(`${market.name}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const marketInfo = [
+        `  Tests: ${market.count}`,
+        `  Avg Score: ${market.avgScore.toFixed(1)}%`,
+        `  Pass Rate: ${market.passRate.toFixed(1)}%`,
+        `  Performance: ${market.avgScore >= 80 ? 'Excellent' : market.avgScore >= 60 ? 'Good' : 'Needs Improvement'}`
+      ];
+
+      marketInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addOldCategoryPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
     // Overall Statistics Header
@@ -2021,6 +3656,12 @@ class ExportService {
   }
 
   async _addMarketPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Market Performance uses _addMarketPerformanceSpecialLayout instead
+    return y;
+  }
+
+  async _addOldMarketPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
     // Overall Statistics Header
@@ -2131,7 +3772,153 @@ class ExportService {
     return currentY;
   }
 
+  async _addTopPerformersHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate top performers statistics
+    const performers = rawData.map(record => ({
+      name: record.name || record.user_name || record.ldap || 'Unknown',
+      score: parseFloat(record.score_value) || parseFloat(record.score) || 0,
+      timeSpent: parseFloat(record.time_taken) || parseFloat(record.timeSpent) || 0
+    })).sort((a, b) => b.score - a.score);
+
+    const totalPerformers = performers.length;
+    const topPerformers = performers.slice(0, 10);
+    const averageScore = performers.length > 0 ? performers.reduce((sum, p) => sum + p.score, 0) / performers.length : 0;
+    const highPerformers = performers.filter(p => p.score >= 0.8).length;
+    const topScore = performers[0]?.score || 0;
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Top Performers Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Performers:', value: `${totalPerformers}` },
+      { label: 'Average Score:', value: `${(averageScore * 100).toFixed(1)}%` },
+      { label: 'High Performers:', value: `${highPerformers} (${((highPerformers/totalPerformers)*100).toFixed(1)}%)` },
+      { label: 'Top Score:', value: `${(topScore * 100).toFixed(1)}%` },
+      { label: 'Top Performer:', value: topPerformers[0]?.name || 'N/A' }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addTopPerformersDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const performers = rawData.map(record => ({
+      name: record.name || record.user_name || record.ldap || 'Unknown',
+      score: parseFloat(record.score_value) || parseFloat(record.score) || 0,
+      timeSpent: parseFloat(record.time_taken) || parseFloat(record.timeSpent) || 0
+    })).sort((a, b) => b.score - a.score).slice(0, 10);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const performersPerColumn = Math.ceil(performers.length / 2);
+    const performerHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (performersPerColumn * performerHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Top Performers Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    performers.forEach((performer, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      const ranking = index + 1;
+
+      pdf.setFont('helvetica', 'bold');
+      if (ranking <= 3) {
+        pdf.setTextColor(0, 120, 0);
+      } else {
+        pdf.setTextColor(0, 0, 0);
+      }
+      pdf.text(`#${ranking}: ${performer.name}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const performerInfo = [
+        `  Score: ${(performer.score * 100).toFixed(1)}%`,
+        `  Time: ${Math.round(performer.timeSpent / 60)}min`,
+        `  Rank: #${ranking}`,
+        `  Level: ${performer.score >= 0.9 ? 'Expert' : performer.score >= 0.8 ? 'Advanced' : 'Intermediate'}`
+      ];
+
+      performerInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
   async _addTopPerformersDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Top Performers uses _addTopPerformersSpecialLayout instead
+    return y;
+  }
+
+  async _addOldTopPerformersDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
     // Overall Statistics Header
@@ -2241,7 +4028,171 @@ class ExportService {
     return currentY;
   }
 
+  async _addRecentActivityHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate recent activity statistics
+    const now = new Date();
+    const activities = rawData.map(record => {
+      const date = new Date(record.completion_date || record.date || record.timestamp || now);
+      const daysSince = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+      return {
+        date: date.toISOString().split('T')[0],
+        daysSince,
+        user: record.name || record.user_name || record.ldap || 'Unknown',
+        activity: record.activity || record.test_name || 'Test Completion',
+        score: parseFloat(record.score_value) || parseFloat(record.score) || 0
+      };
+    }).sort((a, b) => a.daysSince - b.daysSince);
+
+    const totalActivities = activities.length;
+    const recentActivities = activities.filter(a => a.daysSince <= 7).length;
+    const todayActivities = activities.filter(a => a.daysSince === 0).length;
+    const weeklyAverage = recentActivities / 7;
+    const mostActiveUser = activities.reduce((acc, curr) => {
+      acc[curr.user] = (acc[curr.user] || 0) + 1;
+      return acc;
+    }, {});
+    const topUser = Object.entries(mostActiveUser).sort(([,a], [,b]) => b - a)[0];
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Recent Activity Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Activities:', value: `${totalActivities}` },
+      { label: 'Recent (7 days):', value: `${recentActivities}` },
+      { label: 'Today:', value: `${todayActivities}` },
+      { label: 'Weekly Average:', value: `${weeklyAverage.toFixed(1)}` },
+      { label: 'Most Active User:', value: topUser ? `${topUser[0]} (${topUser[1]})` : 'N/A' }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addRecentActivityDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const now = new Date();
+    const activities = rawData.map(record => {
+      const date = new Date(record.completion_date || record.date || record.timestamp || now);
+      const daysSince = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+      return {
+        date: date.toISOString().split('T')[0],
+        daysSince,
+        user: record.name || record.user_name || record.ldap || 'Unknown',
+        activity: record.activity || record.test_name || 'Test Completion',
+        score: parseFloat(record.score_value) || parseFloat(record.score) || 0
+      };
+    }).sort((a, b) => a.daysSince - b.daysSince).slice(0, 10);
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const activitiesPerColumn = Math.ceil(activities.length / 2);
+    const activityHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (activitiesPerColumn * activityHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Recent Activity Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    activities.forEach((activity, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      pdf.setFont('helvetica', 'bold');
+      if (activity.daysSince === 0) {
+        pdf.setTextColor(0, 120, 0);
+      } else if (activity.daysSince <= 3) {
+        pdf.setTextColor(0, 0, 120);
+      } else {
+        pdf.setTextColor(0, 0, 0);
+      }
+      pdf.text(`${activity.user}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const activityInfo = [
+        `  Date: ${activity.date}`,
+        `  Days Ago: ${activity.daysSince}`,
+        `  Activity: ${activity.activity.substring(0, 20)}...`,
+        `  Recency: ${activity.daysSince === 0 ? 'Today' : activity.daysSince <= 3 ? 'Recent' : 'Older'}`
+      ];
+
+      activityInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
   async _addRecentActivityDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Recent Activity uses _addRecentActivitySpecialLayout instead
+    return y;
+  }
+
+  async _addOldRecentActivityDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
     // Overall Statistics Header
@@ -2328,7 +4279,176 @@ class ExportService {
     return currentY;
   }
 
+  async _addPassFailRateHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Process rawData to calculate pass/fail rate statistics
+    let totalTests = 0;
+    let passedTests = 0;
+    let failedTests = 0;
+    let totalScore = 0;
+
+    rawData.forEach(record => {
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      totalTests++;
+      totalScore += score;
+      
+      if (score >= 0.7) {
+        passedTests++;
+      } else {
+        failedTests++;
+      }
+    });
+
+    const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
+    const failRate = totalTests > 0 ? (failedTests / totalTests) * 100 : 0;
+    const averageScore = totalTests > 0 ? (totalScore / totalTests) * 100 : 0;
+    const passThreshold = 70;
+
+    // Standard horizontal stats layout
+    const padding = 4;
+    const tightLineHeight = 5;
+    const statsLineHeight = 6;
+    const headerHeight = 12;
+    const statsContentHeight = 5 * statsLineHeight;
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Pass/Fail Rate Stats:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const stats = [
+      { label: 'Total Tests:', value: `${totalTests}` },
+      { label: 'Pass Rate:', value: `${passRate.toFixed(1)}% (${passedTests})` },
+      { label: 'Fail Rate:', value: `${failRate.toFixed(1)}% (${failedTests})` },
+      { label: 'Average Score:', value: `${averageScore.toFixed(1)}%` },
+      { label: 'Pass Threshold:', value: `${passThreshold}%` }
+    ];
+
+    stats.forEach(stat => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentY);
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
+      currentY += statsLineHeight;
+    });
+  }
+
+  async _addPassFailRateDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Same processing as horizontal stats
+    const scoreRanges = [
+      { min: 0, max: 0.3, label: 'Poor (0-30%)', count: 0, type: 'fail' },
+      { min: 0.31, max: 0.49, label: 'Below Average (31-49%)', count: 0, type: 'fail' },
+      { min: 0.5, max: 0.69, label: 'Average (50-69%)', count: 0, type: 'fail' },
+      { min: 0.7, max: 0.84, label: 'Good (70-84%)', count: 0, type: 'pass' },
+      { min: 0.85, max: 1.0, label: 'Excellent (85-100%)', count: 0, type: 'pass' }
+    ];
+
+    rawData.forEach(record => {
+      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      scoreRanges.forEach(range => {
+        if (score >= range.min && score <= range.max) {
+          range.count++;
+        }
+      });
+    });
+
+    const totalRecords = rawData.length;
+
+    const tightLineHeight = 5;
+    const padding = 4;
+    const rangesPerColumn = Math.ceil(scoreRanges.length / 2);
+    const rangeHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
+    const detailsContentHeight = (rangesPerColumn * rangeHeight) + 15;
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    let currentY = y + padding;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Pass/Fail Rate Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    const colWidth = (width - 20) / 2;
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4;
+
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    scoreRanges.forEach((range, index) => {
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      const percentage = totalRecords > 0 ? (range.count / totalRecords) * 100 : 0;
+
+      pdf.setFont('helvetica', 'bold');
+      if (range.type === 'pass') {
+        pdf.setTextColor(0, 120, 0);
+      } else {
+        pdf.setTextColor(120, 0, 0);
+      }
+      pdf.text(`${range.label}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      
+      const rangeInfo = [
+        `  Count: ${range.count}`,
+        `  Percentage: ${percentage.toFixed(1)}%`,
+        `  Status: ${range.type.toUpperCase()}`,
+        `  Impact: ${range.type === 'pass' ? 'Positive' : 'Needs Improvement'}`
+      ];
+
+      rangeInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
+      });
+
+      colY += 2;
+
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
   async _addPassFailRateDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Pass/Fail Rate uses _addPassFailRateSpecialLayout instead
+    return y;
+  }
+
+  async _addOldPassFailRateDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
     // Overall Statistics Header
@@ -2534,6 +4654,10 @@ class ExportService {
       return 'pass-fail-rate';
     } else if (title.includes('time vs score') || title.includes('time-vs-score')) {
       return 'time-vs-score';
+    } else if (title.includes('question analytics') || title.includes('question-analytics')) {
+      return 'question-analytics';
+    } else if (title.includes('retake analysis') || title.includes('retake-analysis')) {
+      return 'retake-analysis';
     } else if (title.includes('recent') || title.includes('activity')) {
       return 'recent-activity';
     }
@@ -2636,7 +4760,18 @@ class ExportService {
     }
   }
 
-  async _addChartImageToPDF(pdf, chartContent, x, y, width, height) {
+  async _addChartImageToPDF(pdf, tileElement, x, y, width, height) {
+    // Find the actual chart content within the tile, excluding header/title/controls
+    let chartContent = tileElement.querySelector('.dashboard-tile-content');
+
+    // Fallback to other possible chart content selectors
+    if (!chartContent) {
+      chartContent = tileElement.querySelector('.chart-content') ||
+                    tileElement.querySelector('canvas')?.parentElement ||
+                    tileElement.querySelector('svg')?.parentElement ||
+                    tileElement;
+    }
+
     // Check if chart contains SVG
     const hasSVG = chartContent.querySelector('svg') !== null;
 
