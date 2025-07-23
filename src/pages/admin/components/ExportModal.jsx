@@ -1,7 +1,7 @@
 /**
  * Export Modal Component
  * 
- * Advanced export dialog with customizable options for dashboard and chart exports
+ * Advanced export dialog with customizable options for dashboard exports
  * Provides format selection, quality settings, and export previews
  */
 
@@ -15,7 +15,6 @@ const ExportModal = ({
   onClose, 
   targetElement = null,
   targetSelector = null,
-  type = 'chart', // 'chart' or 'dashboard'
   defaultFilename = null,
   title = 'Export Options'
 }) => {
@@ -35,10 +34,10 @@ const ExportModal = ({
   useEffect(() => {
     if (isOpen && !filename) {
       const timestamp = new Date().toISOString().split('T')[0];
-      const baseFilename = defaultFilename || (type === 'dashboard' ? 'dashboard' : 'chart');
+      const baseFilename = defaultFilename || 'dashboard';
       setFilename(`${baseFilename}_${timestamp}`);
     }
-  }, [isOpen, defaultFilename, type, filename]);
+  }, [isOpen, defaultFilename, filename]);
 
   // Get target element for export
   const getTargetElement = () => {
@@ -64,23 +63,14 @@ const ExportModal = ({
         title: includeTitle ? (title || 'Export') : null,
         includeTimestamp,
         quality: quality === 'high' ? 1.0 : quality === 'medium' ? 0.8 : 0.6,
-        chartsPerPage: type === 'dashboard' ? chartsPerPage : 1
+        chartsPerPage: chartsPerPage
       };
 
-      if (type === 'dashboard') {
-        setExportProgress('Capturing dashboard...');
-        if (exportFormat === 'PNG') {
-          await exportService.exportDashboardAsPNG(element, filename);
-        } else {
-          await exportService.exportDashboardAsPDF(element, exportOptions);
-        }
+      setExportProgress('Capturing dashboard...');
+      if (exportFormat === 'PNG') {
+        await exportService.exportDashboardAsPNG(element, filename);
       } else {
-        setExportProgress('Capturing chart...');
-        if (exportFormat === 'PNG') {
-          await exportService.exportChartAsPNG(element, filename);
-        } else {
-          await exportService.exportChartAsPDF(element, filename);
-        }
+        await exportService.exportDashboardAsPDF(element, exportOptions);
       }
 
       setExportProgress('Export completed successfully!');
@@ -211,8 +201,8 @@ const ExportModal = ({
             </select>
           </div>
 
-          {/* Dashboard-specific options */}
-          {type === 'dashboard' && exportFormat === 'PDF' && (
+          {/* Dashboard PDF options */}
+          {exportFormat === 'PDF' && (
             <div>
               <label className="block text-sm font-medium mb-2">Charts per Page</label>
               <select

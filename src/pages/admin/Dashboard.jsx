@@ -709,7 +709,6 @@ const Dashboard = () => {
               {/* Export Button */}
               <ExportButton
                 targetSelector=".dashboard-resizable-grid"
-                type="dashboard"
                 filename={`dashboard_${activeDashboard?.name || 'export'}`}
                 title={`${activeDashboard?.name || 'Dashboard'} Export`}
                 variant="dropdown"
@@ -959,7 +958,6 @@ const Dashboard = () => {
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         targetSelector=".dashboard-resizable-grid"
-        type="dashboard"
         defaultFilename={`dashboard_${activeDashboard?.name || 'export'}`}
         title={`Export ${activeDashboard?.name || 'Dashboard'}`}
       />

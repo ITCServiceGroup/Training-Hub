@@ -1,7 +1,7 @@
 /**
  * Export Button Component
  * 
- * Provides export functionality for individual charts and dashboard views
+ * Provides export functionality for dashboard views
  * Supports PNG and PDF export formats with customizable options
  */
 
@@ -13,7 +13,6 @@ import exportService from '../services/exportService';
 const ExportButton = ({
   targetElement = null,
   targetSelector = null,
-  type = 'chart', // 'chart' or 'dashboard'
   filename = null,
   title = null,
   showLabel = true,
@@ -36,13 +35,12 @@ const ExportButton = ({
     return null;
   };
 
-  // Generate filename based on type and current date
+  // Generate filename based on current date
   const generateFilename = (format) => {
     if (filename) return filename;
     
     const timestamp = new Date().toISOString().split('T')[0];
-    const baseFilename = type === 'dashboard' ? 'dashboard' : 'chart';
-    return `${baseFilename}_${timestamp}`;
+    return `dashboard_${timestamp}`;
   };
 
   // Handle export operations
@@ -60,25 +58,17 @@ const ExportButton = ({
     try {
       const exportFilename = generateFilename(format);
       
-      if (type === 'dashboard') {
-        if (format === 'PNG') {
-          await exportService.exportDashboardAsPNG(element, exportFilename);
-        } else if (format === 'PDF') {
-          await exportService.exportDashboardAsPDF(element, {
-            filename: exportFilename,
-            title: title || 'Dashboard Export',
-            includeFilters: true,
-            chartsPerPage: 4, // Updated to 4 charts per page
-            dashboardContext,
-            rawData
-          });
-        }
-      } else {
-        if (format === 'PNG') {
-          await exportService.exportChartAsPNG(element, exportFilename);
-        } else if (format === 'PDF') {
-          await exportService.exportChartAsPDF(element, exportFilename);
-        }
+      if (format === 'PNG') {
+        await exportService.exportDashboardAsPNG(element, exportFilename);
+      } else if (format === 'PDF') {
+        await exportService.exportDashboardAsPDF(element, {
+          filename: exportFilename,
+          title: title || 'Dashboard Export',
+          includeFilters: true,
+          chartsPerPage: 4,
+          dashboardContext,
+          rawData
+        });
       }
       
       setExportStatus(`${format} export completed!`);
@@ -173,7 +163,7 @@ const ExportButton = ({
                 <div>
                   <div className="font-medium">Export as PDF</div>
                   <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                    {type === 'dashboard' ? 'Multi-page document' : 'Printable document'}
+                    Multi-page document
                   </div>
                 </div>
               </button>
