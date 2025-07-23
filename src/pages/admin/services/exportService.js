@@ -83,6 +83,10 @@ class ExportService {
       this.isExporting = true;
       console.log('📊 Exporting dashboard as PDF:', filename);
 
+      // Debug logging
+      console.log('PDF Export - rawData:', rawData ? `${rawData.length} records` : 'undefined');
+      console.log('PDF Export - dashboardContext:', dashboardContext);
+
       // Find all chart tiles
       const chartTiles = dashboardElement.querySelectorAll('[data-tile-id]');
       console.log(`Found ${chartTiles.length} chart tiles to export`);
@@ -994,20 +998,45 @@ class ExportService {
   }
 
   async _addScoreDistributionSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
-    const { rawData } = context;
+    const { rawData, dashboardContext } = context;
     const columnGap = 15;
     const chartHeight = height * 0.85;
     const rightColumnX = x + chartWidth + columnGap;
 
+    // Debug logging
+    console.log('Score Distribution Export - rawData:', rawData ? `${rawData.length} records` : 'undefined');
+    console.log('Score Distribution Export - dashboardContext:', dashboardContext);
+
+    // Ensure we have data to work with
+    if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+      console.warn('No rawData available for Score Distribution export');
+      // Add chart in left column only
+      await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+      // Add error message in stats area
+      pdf.setFontSize(10);
+      pdf.setTextColor(255, 0, 0);
+      pdf.text('Export failed - rawData is not defined', x, y + chartHeight + 20);
+      return;
+    }
+
+    // Apply the same filtering logic as the chart component
+    const filteredData = this._applyChartFiltering(rawData, 'score-distribution', dashboardContext);
+    console.log('Score Distribution - filteredData:', filteredData ? `${filteredData.length} records` : 'undefined');
+
+    // Process the filtered data using the same logic as ScoreDistributionChart
+    const chartData = this._processScoreDistributionData(filteredData);
+    console.log('Score Distribution - chartData:', chartData);
+
     // Add chart in left column
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
 
-    // Add statistics below the chart
+    // Add statistics below the chart using processed chart data
     const statsY = y + chartHeight + 6;
-    await this._addScoreDistributionHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+    await this._addScoreDistributionHorizontalStats(pdf, x, statsY, chartWidth, chartData, tileElement);
 
-    // Add details in right column
-    await this._addScoreDistributionDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+    // Add details in right column using processed chart data
+    await this._addScoreDistributionDetailsList(pdf, rightColumnX, y, infoWidth, height, chartData, tileElement);
   }
 
   async _addTimeDistributionSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
@@ -1981,32 +2010,60 @@ class ExportService {
     return y;
   }
 
-  async _addScoreDistributionHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
-    if (!rawData || !Array.isArray(rawData)) return;
+  async _addScoreDistributionHorizontalStats(pdf, x, y, width, dataSource, tileElement = null) {
+    if (!dataSource) return;
 
-    // Process rawData to calculate score distribution statistics
-    const scoreRanges = [
-      { min: 0, max: 20, label: '0-20%', count: 0 },
-      { min: 21, max: 40, label: '21-40%', count: 0 },
-      { min: 41, max: 60, label: '41-60%', count: 0 },
-      { min: 61, max: 80, label: '61-80%', count: 0 },
-      { min: 81, max: 100, label: '81-100%', count: 0 }
-    ];
+    // Handle both processed chart data and raw data
+    let scoreRanges, totalRecords, scoreSum;
 
-    let totalRecords = 0;
-    let scoreSum = 0;
+    if (Array.isArray(dataSource) && dataSource.length > 0 && dataSource[0]?.range) {
+      // Using processed chart data from _processScoreDistributionData
+      scoreRanges = dataSource.map(item => ({
+        min: item.min,
+        max: item.max,
+        label: item.range || item.id,
+        count: item.count
+      }));
+      totalRecords = scoreRanges.reduce((sum, range) => sum + range.count, 0);
+      // Calculate average from the ranges (approximation) - ranges are already in percentage form
+      scoreSum = scoreRanges.reduce((sum, range) => {
+        const midpoint = (range.min + range.max) / 2;
+        return sum + (midpoint * range.count);
+      }, 0);
+    } else if (Array.isArray(dataSource) && dataSource.length > 0) {
+      // Fallback to raw data processing with correct logic matching chart component
+      scoreRanges = [
+        { min: 0, max: 20, label: '0-20%', count: 0 },
+        { min: 21, max: 40, label: '21-40%', count: 0 },
+        { min: 41, max: 60, label: '41-60%', count: 0 },
+        { min: 61, max: 80, label: '61-80%', count: 0 },
+        { min: 81, max: 100, label: '81-100%', count: 0 }
+      ];
 
-    rawData.forEach(record => {
-      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      scoreSum += score;
-      totalRecords++;
+      totalRecords = 0;
+      scoreSum = 0;
 
-      scoreRanges.forEach(range => {
-        if (score >= range.min && score <= range.max) {
-          range.count++;
+      dataSource.forEach(record => {
+        const score = (parseFloat(record.score_value) || 0) * 100; // Convert to percentage like chart
+        scoreSum += score;
+        totalRecords++;
+
+        // Use same logic as chart component
+        if (score <= 20) {
+          scoreRanges[0].count++;
+        } else if (score <= 40) {
+          scoreRanges[1].count++;
+        } else if (score <= 60) {
+          scoreRanges[2].count++;
+        } else if (score <= 80) {
+          scoreRanges[3].count++;
+        } else {
+          scoreRanges[4].count++;
         }
       });
-    });
+    } else {
+      return; // No valid data
+    }
 
     const averageScore = totalRecords > 0 ? scoreSum / totalRecords : 0;
     const highPerformers = scoreRanges[4].count; // 81-100%
@@ -2044,7 +2101,7 @@ class ExportService {
 
     const stats = [
       { label: 'Total Records:', value: `${totalRecords}` },
-      { label: 'Average Score:', value: `${(averageScore * 100).toFixed(1)}%` },
+      { label: 'Average Score:', value: `${averageScore.toFixed(1)}%` },
       { label: 'High Performers:', value: `${highPerformers} (${((highPerformers/totalRecords)*100).toFixed(1)}%)` },
       { label: 'Most Common Range:', value: mostCommonRange.label },
       { label: 'Range Count:', value: `${mostCommonRange.count} records` }
@@ -2060,29 +2117,67 @@ class ExportService {
     });
   }
 
-  async _addScoreDistributionDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
-    if (!rawData || !Array.isArray(rawData)) return;
+  async _addScoreDistributionDetailsList(pdf, x, y, width, height, dataSource, tileElement = null) {
+    if (!dataSource) return;
 
-    // Same processing as horizontal stats
-    const scoreRanges = [
-      { min: 0, max: 20, label: '0-20%', count: 0, records: [] },
-      { min: 21, max: 40, label: '21-40%', count: 0, records: [] },
-      { min: 41, max: 60, label: '41-60%', count: 0, records: [] },
-      { min: 61, max: 80, label: '61-80%', count: 0, records: [] },
-      { min: 81, max: 100, label: '81-100%', count: 0, records: [] }
-    ];
+    // Handle both processed chart data and raw data
+    let scoreRanges;
 
-    rawData.forEach(record => {
-      const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      scoreRanges.forEach(range => {
-        if (score >= range.min && score <= range.max) {
-          range.count++;
-          range.records.push(record);
+    if (Array.isArray(dataSource) && dataSource.length > 0 && dataSource[0]?.range) {
+      // Using processed chart data from _processScoreDistributionData
+      scoreRanges = dataSource.map(item => ({
+        min: item.min,
+        max: item.max,
+        label: item.range || item.id,
+        count: item.count,
+        percentage: item.percentage || '0.0'
+      }));
+    } else if (Array.isArray(dataSource) && dataSource.length > 0) {
+      // Fallback to raw data processing with correct logic matching chart component
+      scoreRanges = [
+        { min: 0, max: 20, label: '0-20%', count: 0, records: [] },
+        { min: 21, max: 40, label: '21-40%', count: 0, records: [] },
+        { min: 41, max: 60, label: '41-60%', count: 0, records: [] },
+        { min: 61, max: 80, label: '61-80%', count: 0, records: [] },
+        { min: 81, max: 100, label: '81-100%', count: 0, records: [] }
+      ];
+
+      const totalRecords = dataSource.length;
+      dataSource.forEach(record => {
+        const score = (parseFloat(record.score_value) || 0) * 100; // Convert to percentage like chart
+
+        // Use same logic as chart component
+        let targetRange = null;
+        if (score <= 20) {
+          targetRange = scoreRanges[0];
+        } else if (score <= 40) {
+          targetRange = scoreRanges[1];
+        } else if (score <= 60) {
+          targetRange = scoreRanges[2];
+        } else if (score <= 80) {
+          targetRange = scoreRanges[3];
+        } else {
+          targetRange = scoreRanges[4];
+        }
+
+        if (targetRange) {
+          targetRange.count++;
+          if (targetRange.records) {
+            targetRange.records.push(record);
+          }
         }
       });
-    });
 
-    const totalRecords = rawData.length;
+      // Calculate percentages
+      scoreRanges.forEach(range => {
+        range.percentage = totalRecords > 0 ? ((range.count / totalRecords) * 100).toFixed(1) : '0.0';
+      });
+    } else {
+      return; // No valid data
+    }
+
+    // Calculate total records from the score ranges
+    const totalRecords = scoreRanges.reduce((sum, range) => sum + range.count, 0);
 
     const tightLineHeight = 5;
     const padding = 4;
@@ -5039,6 +5134,142 @@ class ExportService {
     }
 
     return `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
+  }
+
+  // Apply chart filtering using the same logic as dashboard components
+  _applyChartFiltering(rawData, chartId, dashboardContext) {
+    if (!rawData || !Array.isArray(rawData) || !dashboardContext) {
+      return rawData || [];
+    }
+
+    // Import the filtering logic from dashboardFilters.js
+    // For now, implement basic filtering logic here
+    let filteredData = [...rawData];
+
+    // Apply supervisor filter
+    if (dashboardContext.supervisor) {
+      const supervisorValue = typeof dashboardContext.supervisor === 'object'
+        ? dashboardContext.supervisor.fullName || dashboardContext.supervisor.supervisor
+        : dashboardContext.supervisor;
+
+      filteredData = filteredData.filter(result =>
+        result.supervisor === supervisorValue
+      );
+    }
+
+    // Apply market filter
+    if (dashboardContext.market) {
+      const marketValue = typeof dashboardContext.market === 'object'
+        ? dashboardContext.market.fullName || dashboardContext.market.id
+        : dashboardContext.market;
+
+      filteredData = filteredData.filter(result =>
+        result.market === marketValue
+      );
+    }
+
+    // Apply score range filter
+    if (dashboardContext.scoreRange) {
+      const { min, max } = dashboardContext.scoreRange;
+      filteredData = filteredData.filter(result => {
+        const score = (parseFloat(result.score_value) || 0) * 100;
+        return score >= min && score <= max;
+      });
+    }
+
+    // Add more filters as needed...
+
+    return filteredData;
+  }
+
+  // Process Score Distribution data using the same logic as ScoreDistributionChart
+  _processScoreDistributionData(filteredData) {
+    if (!filteredData || filteredData.length === 0) return [];
+
+    // Define score ranges exactly like the chart component
+    const ranges = [
+      { label: '0-20%', min: 0, max: 20, count: 0 },
+      { label: '21-40%', min: 21, max: 40, count: 0 },
+      { label: '41-60%', min: 41, max: 60, count: 0 },
+      { label: '61-80%', min: 61, max: 80, count: 0 },
+      { label: '81-100%', min: 81, max: 100, count: 0 }
+    ];
+
+    // Count scores in each range using the same logic as the chart
+    filteredData.forEach(result => {
+      const score = (parseFloat(result.score_value) || 0) * 100; // Convert to percentage
+
+      // Find the appropriate range for this score using same logic as chart
+      let targetRange = null;
+      if (score <= 20) {
+        targetRange = ranges[0]; // 0-20%
+      } else if (score <= 40) {
+        targetRange = ranges[1]; // 21-40%
+      } else if (score <= 60) {
+        targetRange = ranges[2]; // 41-60%
+      } else if (score <= 80) {
+        targetRange = ranges[3]; // 61-80%
+      } else {
+        targetRange = ranges[4]; // 81-100%
+      }
+
+      if (targetRange) {
+        targetRange.count++;
+      }
+    });
+
+    return ranges.map(range => ({
+      id: range.label,
+      range: range.label,
+      count: range.count,
+      percentage: filteredData.length > 0 ? ((range.count / filteredData.length) * 100).toFixed(1) : 0,
+      min: range.min,
+      max: range.max
+    }));
+  }
+
+  // Helper method to extract processed data from chart components
+  _extractChartData(tileElement, chartType) {
+    try {
+      // Look for chart data in various ways depending on chart type
+      switch (chartType) {
+        case 'score-distribution':
+          return this._extractScoreDistributionData(tileElement);
+        case 'time-distribution':
+          return this._extractTimeDistributionData(tileElement);
+        case 'supervisor-performance':
+          return this._extractSupervisorPerformanceData(tileElement);
+        // Add more chart types as needed
+        default:
+          console.warn(`Chart data extraction not implemented for type: ${chartType}`);
+          return null;
+      }
+    } catch (error) {
+      console.error(`Error extracting chart data for ${chartType}:`, error);
+      return null;
+    }
+  }
+
+  // Extract Score Distribution chart data
+  _extractScoreDistributionData(tileElement) {
+    // Try to find the chart component's data
+    // Look for data attributes or React component state
+    const chartContainer = tileElement.querySelector('.dashboard-tile-content');
+    if (!chartContainer) return null;
+
+    // For now, return null to fall back to raw data processing
+    // This will be enhanced to extract actual React component data
+    return null;
+  }
+
+  // Extract Time Distribution chart data
+  _extractTimeDistributionData(tileElement) {
+    return null; // Placeholder
+  }
+
+  // Extract Supervisor Performance chart data
+  _extractSupervisorPerformanceData(tileElement) {
+    return null; // Placeholder
   }
 
   // Helper method to get chart title
