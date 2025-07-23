@@ -64,6 +64,8 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       boxShadow: state.isFocused ? '0 0 0 1px var(--color-primary)' : provided.boxShadow,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
       color: isDark ? '#f8fafc' : provided.color,
+      fontSize: '12px',
+      minHeight: '28px',
       '&:hover': {
         borderColor: 'var(--color-primary)'
       }
@@ -71,6 +73,7 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     menu: (provided) => ({
       ...provided,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
+      fontSize: '12px',
     }),
     option: (provided, state) => ({
       ...provided,
@@ -78,21 +81,27 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
         ? isDark ? '#334155' : provided.backgroundColor
         : isDark ? '#1e293b' : provided.backgroundColor,
       color: isDark ? '#f8fafc' : provided.color,
+      fontSize: '12px',
+      padding: '6px 12px',
       '&:hover': {
         backgroundColor: isDark ? '#475569' : '#f3f4f6',
       }
     }),
     multiValue: (provided) => ({
       ...provided,
-      backgroundColor: isDark ? '#475569' : '#e5e7eb'
+      backgroundColor: isDark ? '#475569' : '#e5e7eb',
+      fontSize: '11px',
     }),
     multiValueLabel: (provided) => ({
       ...provided,
-      color: isDark ? '#f8fafc' : '#374151'
+      color: isDark ? '#f8fafc' : '#374151',
+      fontSize: '11px',
+      padding: '2px 6px',
     }),
     multiValueRemove: (provided) => ({
       ...provided,
       color: isDark ? '#cbd5e1' : '#6b7280',
+      fontSize: '11px',
       '&:hover': {
         backgroundColor: isDark ? '#64748b' : '#d1d5db',
         color: isDark ? '#f8fafc' : '#1f2937'
@@ -101,10 +110,12 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     input: (provided) => ({
       ...provided,
       color: isDark ? '#f8fafc' : provided.color,
+      fontSize: '12px',
     }),
     placeholder: (provided) => ({
       ...provided,
       color: isDark ? '#94a3b8' : provided.color,
+      fontSize: '12px',
     }),
     singleValue: (provided) => ({
       ...provided,

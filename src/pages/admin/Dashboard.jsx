@@ -11,6 +11,7 @@ import TileLibraryButton from './components/TileLibraryButton';
 import DashboardManagerDropdown from './components/DashboardManagerDropdown';
 import ExportButton from './components/ExportButton';
 import ExportModal from './components/ExportModal';
+import MultiSelect from './components/Filters/MultiSelect';
 import { DashboardProvider } from './contexts/DashboardContext';
 import DrillDownBreadcrumbs from './components/DrillDownBreadcrumbs';
 // Removed old complex hook - now using simplified useDashboards
@@ -83,7 +84,11 @@ const Dashboard = () => {
       startDate: null,
       endDate: null
     },
-    quickPreset: 'last_month'
+    quickPreset: 'last_month',
+    markets: [],
+    supervisors: [],
+    ldaps: [],
+    quizTypes: []
   });
 
   // UI state - simplified (removed complex configuration management)
@@ -542,18 +547,32 @@ const Dashboard = () => {
 
   // Get effective filters for a tile (tile-specific or global)
   const getEffectiveFilters = (tileId, filtersSource = globalFilters) => {
-    if (tileFilters[tileId]) {
-      return tileFilters[tileId];
-    }
-
-    // Return global filters as default
-    return {
+    // Start with global filters as base
+    const baseFilters = {
       dateRange: filtersSource.dateRange,
-      supervisors: [],
-      markets: [],
+      supervisors: filtersSource.supervisors || [],
+      markets: filtersSource.markets || [],
+      ldaps: filtersSource.ldaps || [],
+      quizTypes: filtersSource.quizTypes || [],
       scoreRange: { min: 0, max: 100 },
       timeRange: { min: 0, max: 500 } // Changed to minutes
     };
+
+    // If tile has custom filters, merge them with global filters
+    // Global filters take precedence (applied first)
+    if (tileFilters[tileId]) {
+      return {
+        ...tileFilters[tileId],
+        // Global filters override tile-specific ones
+        supervisors: filtersSource.supervisors?.length > 0 ? filtersSource.supervisors : tileFilters[tileId].supervisors || [],
+        markets: filtersSource.markets?.length > 0 ? filtersSource.markets : tileFilters[tileId].markets || [],
+        ldaps: filtersSource.ldaps?.length > 0 ? filtersSource.ldaps : tileFilters[tileId].ldaps || [],
+        quizTypes: filtersSource.quizTypes?.length > 0 ? filtersSource.quizTypes : tileFilters[tileId].quizTypes || [],
+        dateRange: filtersSource.dateRange
+      };
+    }
+
+    return baseFilters;
   };
 
   // Apply filters to data for a specific tile
@@ -606,6 +625,20 @@ const Dashboard = () => {
       // Markets filter
       if (filters.markets && filters.markets.length > 0) {
         if (!filters.markets.includes(result.market)) {
+          return false;
+        }
+      }
+
+      // LDAP filter
+      if (filters.ldaps && filters.ldaps.length > 0) {
+        if (!filters.ldaps.includes(result.ldap)) {
+          return false;
+        }
+      }
+
+      // Quiz Type filter
+      if (filters.quizTypes && filters.quizTypes.length > 0) {
+        if (!filters.quizTypes.includes(result.quiz_type)) {
           return false;
         }
       }
@@ -691,74 +724,154 @@ const Dashboard = () => {
               />
               </div>
 
-              {/* Quick Filter on the right */}
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col">
-                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Quick Filter
-                  </label>
-                  <select
-                    value={globalFilters.quickPreset || 'last-30-days'}
-                    onChange={(e) => {
-                      const preset = e.target.value;
-                      let newFilters = { ...globalFilters, quickPreset: preset };
-                      
-                      // Apply preset date ranges
-                      const now = new Date();
-                      switch (preset) {
-                        case 'today':
-                          newFilters.dateRange = 'today';
-                          break;
-                        case 'yesterday':
-                          newFilters.dateRange = 'yesterday';
-                          break;
-                        case 'last-7-days':
-                          newFilters.dateRange = 'last-7-days';
-                          break;
-                        case 'last-30-days':
-                          newFilters.dateRange = 'last-30-days';
-                          break;
-                        case 'this-month':
-                          newFilters.dateRange = 'this-month';
-                          break;
-                        case 'this-year':
-                          newFilters.dateRange = 'this-year';
-                          break;
-                        default:
-                          break;
-                      }
-                      setGlobalFilters(newFilters);
-                    }}
-                    className="block w-32 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
-                  >
-                    <option value="today">Today</option>
-                    <option value="yesterday">Yesterday</option>
-                    <option value="last-7-days">Last 7 Days</option>
-                    <option value="last-30-days">Last 30 Days</option>
-                    <option value="this-month">This Month</option>
-                    <option value="this-year">This Year</option>
-                  </select>
+              {/* Global Filters */}
+              <div className="flex flex-col gap-3">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Global Filters
+                </label>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* Time Period Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      Time Period
+                    </label>
+                    <div className="w-32">
+                      <select
+                        value={globalFilters.quickPreset || 'last-30-days'}
+                        onChange={(e) => {
+                          const preset = e.target.value;
+                          let newFilters = { ...globalFilters, quickPreset: preset };
+                          
+                          // Apply preset date ranges
+                          switch (preset) {
+                            case 'today':
+                              newFilters.dateRange = 'today';
+                              break;
+                            case 'yesterday':
+                              newFilters.dateRange = 'yesterday';
+                              break;
+                            case 'last-7-days':
+                              newFilters.dateRange = 'last-7-days';
+                              break;
+                            case 'last-30-days':
+                              newFilters.dateRange = 'last-30-days';
+                              break;
+                            case 'this-month':
+                              newFilters.dateRange = 'this-month';
+                              break;
+                            case 'this-year':
+                              newFilters.dateRange = 'this-year';
+                              break;
+                            default:
+                              break;
+                          }
+                          setGlobalFilters(newFilters);
+                        }}
+                        className="block w-full h-7 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-3 py-1 text-xs"
+                      >
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="last-7-days">Last 7 Days</option>
+                        <option value="last-30-days">Last 30 Days</option>
+                        <option value="this-month">This Month</option>
+                        <option value="this-year">This Year</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Market Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      Market
+                    </label>
+                    <div className="w-40">
+                      <MultiSelect
+                        type="markets"
+                        value={globalFilters.markets || []}
+                        onChange={(value) => setGlobalFilters({ ...globalFilters, markets: value || [] })}
+                        hideLabel={true}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Supervisor Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      Supervisor
+                    </label>
+                    <div className="w-40">
+                      <MultiSelect
+                        type="supervisors"
+                        value={globalFilters.supervisors || []}
+                        onChange={(value) => setGlobalFilters({ ...globalFilters, supervisors: value || [] })}
+                        hideLabel={true}
+                      />
+                    </div>
+                  </div>
+
+                  {/* LDAP Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      LDAP
+                    </label>
+                    <div className="w-40">
+                      <MultiSelect
+                        type="ldaps"
+                        value={globalFilters.ldaps || []}
+                        onChange={(value) => setGlobalFilters({ ...globalFilters, ldaps: value || [] })}
+                        hideLabel={true}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quiz Type Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      Quiz Type
+                    </label>
+                    <div className="w-40">
+                      <MultiSelect
+                        type="quizTypes"
+                        value={globalFilters.quizTypes || []}
+                        onChange={(value) => setGlobalFilters({ ...globalFilters, quizTypes: value || [] })}
+                        hideLabel={true}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Reset Button */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 opacity-0">
+                      Reset
+                    </label>
+                    <button
+                      onClick={() => {
+                        const dashboardFilters = activeDashboard?.filters || {};
+                        setGlobalFilters({ 
+                          ...dashboardFilters, 
+                          quickPreset: 'last-30-days',
+                          markets: [],
+                          supervisors: [],
+                          ldaps: [],
+                          quizTypes: []
+                        });
+                      }}
+                      className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
+                      style={{
+                        backgroundColor: 'var(--primary-color)',
+                        '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = 'var(--primary-dark)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'var(--primary-color)';
+                      }}
+                    >
+                      Reset
+                    </button>
+                  </div>
                 </div>
-                
-                <button
-                  onClick={() => {
-                    const dashboardFilters = activeDashboard?.filters || {};
-                    setGlobalFilters({ ...dashboardFilters, quickPreset: 'last-30-days' });
-                  }}
-                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
-                  style={{
-                    backgroundColor: 'var(--primary-color)',
-                    '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'var(--primary-dark)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'var(--primary-color)';
-                  }}
-                >
-                  Reset
-                </button>
               </div>
             </div>
             
