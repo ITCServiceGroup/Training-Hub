@@ -118,7 +118,7 @@ class ExportService {
         pdf.setFontSize(16);
         pdf.setFont('helvetica', 'bold');
         const chartTitle = this._getChartTitle(tile);
-        pdf.text(`Chart ${i + 1}: ${chartTitle}`, margin, margin);
+        pdf.text(chartTitle, margin, margin);
 
         // Calculate layout for 2-column design: chart left, detailed info right
         const chartWidth = contentWidth * 0.50; // 60% for chart (increased from 55%)
@@ -127,7 +127,7 @@ class ExportService {
         const chartHeight = contentHeight - 50; // Reduced height to leave space for overall statistics
 
         try {
-          await this._addTwoColumnChartToPDF(pdf, tile, margin, margin + 25, chartWidth, infoWidth, chartHeight, {
+          await this._addTwoColumnChartToPDF(pdf, tile, margin, margin + 12, chartWidth, infoWidth, chartHeight, {
             dashboardContext,
             rawData
           });
@@ -135,7 +135,7 @@ class ExportService {
           console.warn(`Failed to export chart ${i + 1}:`, error);
           // Add error placeholder
           pdf.setFontSize(12);
-          pdf.text(`Chart ${i + 1}: Export failed - ${error.message}`, margin, margin + 50);
+          pdf.text(`Export failed - ${error.message}`, margin, margin + 25);
         }
       }
 
@@ -561,8 +561,21 @@ class ExportService {
 
   async _addTwoColumnChartToPDF(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
     const chartTitle = this._getChartTitle(tileElement);
+    const chartType = this._getChartType(tileElement);
     const columnGap = 15; // Gap between chart and info columns
     const infoX = x + chartWidth + columnGap;
+
+    // Special layout for Top/Bottom Performers
+    if (chartType === 'top-bottom-performers') {
+      await this._addTopBottomPerformersSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
+
+    // Special layout for Supervisor Performance
+    if (chartType === 'supervisor-performance') {
+      await this._addSupervisorPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context);
+      return;
+    }
 
     // Add chart in left column
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, height * 0.9);
@@ -574,8 +587,8 @@ class ExportService {
   async _addDetailedChartInfo(pdf, tileElement, chartTitle, x, y, width, height, context = {}) {
     const { dashboardContext, rawData } = context;
     let currentY = y;
-    const lineHeight = 12;
-    const sectionSpacing = 20;
+    const lineHeight = 5;
+    const sectionSpacing = 4;
 
     // Set font for info section
     pdf.setFontSize(10);
@@ -593,7 +606,8 @@ class ExportService {
     } else if (chartType === 'time-distribution') {
       currentY = await this._addTimeDistributionDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
     } else if (chartType === 'top-bottom-performers') {
-      currentY = await this._addTopBottomPerformersDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
+      // Top/Bottom Performers uses a special layout - handled in chart positioning
+      return currentY;
     } else if (chartType === 'test-completion-trend') {
       currentY = await this._addTestCompletionTrendDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
     } else if (chartType === 'category-performance') {
@@ -604,31 +618,46 @@ class ExportService {
       currentY = await this._addTopPerformersDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
     } else if (chartType === 'recent-activity') {
       currentY = await this._addRecentActivityDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
+    } else if (chartType === 'pass-fail-rate') {
+      currentY = await this._addPassFailRateDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
     } else {
       // Generic chart info
       currentY = await this._addGenericChartDetails(pdf, x, currentY, width, rawData, lineHeight, sectionSpacing);
     }
   }
 
-  async _addSupervisorPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
-    let currentY = y;
+  async _addSupervisorPerformanceHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
 
-    // Calculate overall stats from raw quiz results data
-    if (!rawData || !Array.isArray(rawData)) {
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('No data available for detailed analysis', x, currentY);
-      return currentY + lineHeight;
-    }
+    // Enhanced anonymization function (matches chart component)
+    const anonymizeName = (ldap) => {
+      let hash = 0;
+      for (let i = 0; i < ldap.length; i++) {
+        const char = ldap.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      hash = Math.abs(hash);
+      const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+      const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+      const prefixIndex = hash % prefixes.length;
+      const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+      return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+    };
 
-    // Group data by supervisor
-    const supervisorGroups = {};
+    // Detect anonymization state from the chart component
+    const shouldAnonymize = this._detectAnonymizationState(tileElement);
+
+    // Calculate basic statistics
+    const minTestsRequired = 1;
+    const userGroups = {};
+
     rawData.forEach(record => {
       const supervisor = record.supervisor;
       if (!supervisor) return;
 
-      if (!supervisorGroups[supervisor]) {
-        supervisorGroups[supervisor] = {
+      if (!userGroups[supervisor]) {
+        userGroups[supervisor] = {
           name: supervisor,
           scores: [],
           count: 0
@@ -636,22 +665,18 @@ class ExportService {
       }
 
       const score = parseFloat(record.score_value) || 0;
-      supervisorGroups[supervisor].scores.push(score);
-      supervisorGroups[supervisor].count++;
+      userGroups[supervisor].scores.push(score);
+      userGroups[supervisor].count++;
     });
 
     // Calculate supervisor statistics
-    const supervisors = Object.values(supervisorGroups).map(group => {
+    const supervisors = Object.values(userGroups).map(group => {
       const averageScore = group.scores.length > 0
         ? (group.scores.reduce((sum, score) => sum + score, 0) / group.scores.length) * 100
         : 0;
 
-      // Extract initials from name
-      const initials = group.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
-
       return {
         name: group.name,
-        initials: initials,
         averageScore: averageScore,
         testsSupervised: group.count,
         scores: group.scores
@@ -668,60 +693,158 @@ class ExportService {
 
     // Use tighter line spacing
     const tightLineHeight = 5;
+    const padding = 4; // Consistent with other sections
 
-    // FIXED LAYOUT: Match the actual chart positioning from _addTwoColumnChartToPDF
-    // Chart is at (x, y) with chartWidth
-    // Since height parameter is not available, use reasonable estimate for chart height
+    // Overall Statistics under the graph (single column with title)
+    const statsWidth = width;
+    const statsLineHeight = 6;
+    const headerHeight = 12; // Space for "Overall Statistics:" title
+    const statsContentHeight = 5 * statsLineHeight; // 5 stat lines
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
 
-    // LEFT COLUMN - Overall Statistics positioned directly under the chart
-    // Calculate the actual left margin (where the chart starts)
-    const margin = 40; // Standard PDF margin
-    const leftX = margin; // Start at left margin, same as chart
-    let leftY = y + 100; // Position closer to the chart bottom
+    // Draw border for stats section
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, statsWidth, statsHeight);
 
-
-
-    pdf.setFontSize(12);
+    let currentStatsY = y + padding;
+    
+    // Add "Overall Statistics:" title
+    pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Overall Statistics:', leftX, leftY);
-    leftY += tightLineHeight + 3;
+    pdf.text('Overall Statistics:', x + 4, currentStatsY);
+    currentStatsY += tightLineHeight + 3;
 
-    pdf.setFontSize(10);
+    // Add underline for section header
+    pdf.line(x + 4, currentStatsY - 2, x + statsWidth - 4, currentStatsY - 2);
+
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
-    // Create a more horizontal layout for the left column
+    // Single column stats with bold labels and normal values
     const stats = [
-      `Total Supervisors: ${totalSupervisors}`,
-      `Total Tests: ${totalTests}`,
-      `Overall Average: ${overallAvg.toFixed(1)}%`,
-      `Top Performer: ${topPerformer.name || 'N/A'}`,
-      `Top Score: ${(topPerformer.averageScore || 0).toFixed(1)}%`
+      { label: 'Total Supervisors:', value: `${totalSupervisors}` },
+      { label: 'Total Tests:', value: `${totalTests}` },
+      { label: 'Overall Average:', value: `${overallAvg.toFixed(1)}%` },
+      { label: 'Top Performer:', value: shouldAnonymize ? anonymizeName(topPerformer.name || 'N/A') : (topPerformer.name || 'N/A') },
+      { label: 'Top Score:', value: `${(topPerformer.averageScore || 0).toFixed(1)}%` }
     ];
 
-    // Display stats in a more compact format
     stats.forEach(stat => {
-      pdf.text(stat, leftX, leftY);
-      leftY += tightLineHeight;
+      // Bold label
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(stat.label, x + 4, currentStatsY);
+      
+      // Normal value
+      pdf.setFont('helvetica', 'normal');
+      const labelWidth = pdf.getTextWidth(stat.label);
+      pdf.text(stat.value, x + 4 + labelWidth + 2, currentStatsY);
+      
+      currentStatsY += statsLineHeight;
+    });
+  }
+
+  async _addSupervisorPerformanceDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Enhanced anonymization function (matches chart component)
+    const anonymizeName = (ldap) => {
+      let hash = 0;
+      for (let i = 0; i < ldap.length; i++) {
+        const char = ldap.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      hash = Math.abs(hash);
+      const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+      const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+      const prefixIndex = hash % prefixes.length;
+      const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+      return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+    };
+
+    // Detect anonymization state from the chart component
+    const shouldAnonymize = this._detectAnonymizationState(tileElement);
+
+    // Calculate basic statistics (same as horizontal stats)
+    const userGroups = {};
+    rawData.forEach(record => {
+      const supervisor = record.supervisor;
+      if (!supervisor) return;
+
+      if (!userGroups[supervisor]) {
+        userGroups[supervisor] = {
+          name: supervisor,
+          scores: [],
+          count: 0
+        };
+      }
+
+      const score = parseFloat(record.score_value) || 0;
+      userGroups[supervisor].scores.push(score);
+      userGroups[supervisor].count++;
     });
 
-    // RIGHT COLUMN - Supervisor Details (moved closer to chart)
-    const columnGap = width * 0.01; // Very small gap between columns
-    // Need to calculate chartWidth the same way as in the main function
-    const chartWidth = width * 0.50; // 50% to match main layout
-    const rightColumnWidth = width * 0.50; // Right column is 50% of total width
-    const rightColumnStart = x + chartWidth + columnGap;
-    const rightX = rightColumnStart - (width * 0.25); // Force text much further left
-    let rightY = y; // Start at same level as chart
+    const supervisors = Object.values(userGroups).map(group => {
+      const averageScore = group.scores.length > 0
+        ? (group.scores.reduce((sum, score) => sum + score, 0) / group.scores.length) * 100
+        : 0;
 
-    pdf.setFontSize(12);
+      return {
+        name: group.name,
+        averageScore: averageScore,
+        testsSupervised: group.count,
+        scores: group.scores
+      };
+    }).sort((a, b) => b.averageScore - a.averageScore);
+
+    const totalSupervisors = supervisors.length;
+    const totalTests = supervisors.reduce((sum, sup) => sum + sup.testsSupervised, 0);
+    const overallAvg = supervisors.length > 0
+      ? supervisors.reduce((sum, sup) => sum + sup.averageScore, 0) / supervisors.length
+      : 0;
+
+    const tightLineHeight = 5;
+    const padding = 4;
+
+    // Supervisor Details in single-box two-column layout
+    const maxSupervisorsToShow = Math.min(supervisors.length, 10);
+    const supervisorsPerColumn = Math.ceil(maxSupervisorsToShow / 2);
+    const supervisorHeight = (tightLineHeight + 1) + (5 * tightLineHeight) + 2; // Name line + 5 info lines + gap
+    const detailsContentHeight = (supervisorsPerColumn * supervisorHeight) + 15; // Header space
+    const detailsSectionHeight = detailsContentHeight + padding - 2;
+
+    // Single border around the entire supervisor details section
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+
+    // Section header
+    let currentY = y + padding;
+
+    // Section header for supervisor details
+    pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Supervisor Details:', rightX, rightY);
-    rightY += tightLineHeight + 3;
+    pdf.text('Supervisor Details:', x + 4, currentY);
+    currentY += tightLineHeight + 3;
 
-    pdf.setFontSize(10);
+    // Add underline for section header
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
-    supervisors.forEach((supervisor, index) => {
+    // Two-column layout for supervisors (up to 10)
+    const colWidth = (width - 20) / 2; // Two equal columns with margins
+    const leftColX = x + 8;
+    const rightColX = x + 8 + colWidth + 4; // Small gap between columns
+
+    const supervisorsToShow = supervisors.slice(0, maxSupervisorsToShow);
+    let leftColY = currentY;
+    let rightColY = currentY;
+
+    supervisorsToShow.forEach((supervisor, index) => {
       const ranking = index + 1;
       const vsAverage = (supervisor.averageScore - overallAvg).toFixed(1);
       const vsAverageText = vsAverage >= 0 ? `+${vsAverage}%` : `${vsAverage}%`;
@@ -733,27 +856,55 @@ class ExportService {
       else if (supervisor.averageScore >= 70) performance = 'Good';
       else if (supervisor.averageScore >= 60) performance = 'Satisfactory';
 
-      const supervisorDetails = [
-        `${supervisor.name}`,
-        `  Average Score: ${supervisor.averageScore.toFixed(1)}%`,
-        `  Tests Supervised: ${supervisor.testsSupervised}`,
+      // Determine which column to use (alternating: 1,3,5,7,9 in left; 2,4,6,8,10 in right)
+      const isLeftColumn = (index % 2 === 0);
+      const colX = isLeftColumn ? leftColX : rightColX;
+      let colY = isLeftColumn ? leftColY : rightColY;
+
+      // Bold name and ranking with color coding
+      pdf.setFont('helvetica', 'bold');
+      if (ranking <= 2) {
+        pdf.setTextColor(0, 120, 0); // Dark green for top 2
+      } else {
+        pdf.setTextColor(0, 0, 0); // Black for others
+      }
+      const displayName = shouldAnonymize ? anonymizeName(supervisor.name) : supervisor.name;
+      pdf.text(`#${ranking}: ${displayName}`, colX, colY + 2);
+      colY += tightLineHeight + 1;
+
+      // Regular font for details
+      pdf.setTextColor(0, 0, 0); // Reset to black
+      pdf.setFont('helvetica', 'normal');
+      
+      const supervisorInfo = [
+        `  Average: ${supervisor.averageScore.toFixed(1)}%`,
+        `  Tests: ${supervisor.testsSupervised}`,
         `  Performance: ${performance}`,
-        `  Ranking: #${ranking} of ${totalSupervisors}`,
-        `  vs all supervisors: ${vsAverageText} vs average`,
-        `  Supervised ${testsPercentage}% of all tests`,
-        ''
+        `  vs Average: ${vsAverageText}`,
+        `  Coverage: ${testsPercentage}%`
       ];
 
-      supervisorDetails.forEach(detail => {
-        if (detail.trim()) {
-          pdf.text(detail, rightX, rightY);
-        }
-        rightY += tightLineHeight;
+      supervisorInfo.forEach(info => {
+        pdf.text(info, colX, colY);
+        colY += tightLineHeight;
       });
-    });
 
-    // Return the maximum Y position used by either column
-    return Math.max(leftY, rightY);
+      // Small gap between supervisors
+      colY += 2;
+
+      // Update column Y positions
+      if (isLeftColumn) {
+        leftColY = colY;
+      } else {
+        rightColY = colY;
+      }
+    });
+  }
+
+  async _addSupervisorPerformanceDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    // This function is now bypassed by the special layout system
+    // Supervisor Performance uses _addSupervisorPerformanceSpecialLayout instead
+    return y;
   }
 
   async _addSupervisorEffectivenessDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
@@ -1157,6 +1308,471 @@ class ExportService {
     return currentY;
   }
 
+  async _addTopBottomPerformersSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85; // Keep chart large, reduce stats area
+    const statsAreaHeight = height * 0.15; // Smaller area below chart for horizontal stats
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column (reduced height)
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add horizontal summary statistics below the chart
+    const statsY = y + chartHeight + 10;
+    await this._addTopBottomPerformersHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add detailed performer lists in right column
+    await this._addTopBottomPerformersDetailedLists(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addSupervisorPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
+    const { rawData } = context;
+    const columnGap = 15;
+    const chartHeight = height * 0.85; // Keep chart large, reduce stats area
+    const rightColumnX = x + chartWidth + columnGap;
+
+    // Add chart in left column (reduced height)
+    await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
+
+    // Add overall statistics below the chart
+    const statsY = y + chartHeight + 10;
+    await this._addSupervisorPerformanceHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+
+    // Add supervisor details in right column
+    await this._addSupervisorPerformanceDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+  }
+
+  async _addTopBottomPerformersHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    // Enhanced anonymization function (matches chart component)
+    const anonymizeName = (ldap) => {
+      let hash = 0;
+      for (let i = 0; i < ldap.length; i++) {
+        const char = ldap.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      hash = Math.abs(hash);
+      const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+      const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+      const prefixIndex = hash % prefixes.length;
+      const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+      return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+    };
+
+    // Detect anonymization state from the chart component
+    const shouldAnonymize = this._detectAnonymizationState(tileElement);
+
+    const padding = 4; // Internal padding for text
+    
+    // Calculate basic statistics first
+    const minTestsRequired = 1;
+    const userGroups = {};
+
+    console.log('📊 PDF Export (Horizontal Stats): Processing', rawData.length, 'records with anonymization:', shouldAnonymize);
+
+    rawData.forEach(record => {
+      const userName = record.ldap || record.userName || 'Anonymous';
+      const displayName = shouldAnonymize ? anonymizeName(userName) : userName;
+      
+      if (!userGroups[userName]) {
+        userGroups[userName] = {
+          name: displayName,
+          scores: [],
+          supervisor: record.supervisor || 'Unknown',
+          market: record.market || 'Unknown'
+        };
+      }
+      userGroups[userName].scores.push(parseFloat(record.score_value) || 0);
+    });
+
+    const qualifiedUsers = Object.values(userGroups)
+      .filter(user => user.scores.length >= minTestsRequired)
+      .map(user => {
+        const averageScore = user.scores.reduce((sum, score) => sum + score, 0) / user.scores.length * 100;
+        return {
+          name: user.name,
+          averageScore: averageScore,
+          testsCompleted: user.scores.length,
+          supervisor: user.supervisor,
+          market: user.market
+        };
+      })
+      .sort((a, b) => b.averageScore - a.averageScore);
+
+    const topPerformers = qualifiedUsers.slice(0, 5);
+    const totalQualified = qualifiedUsers.length;
+    const topAverage = topPerformers.length > 0
+      ? topPerformers.reduce((sum, user) => sum + user.averageScore, 0) / topPerformers.length
+      : 0;
+    const scoreRange = qualifiedUsers.length > 0
+      ? `${qualifiedUsers[qualifiedUsers.length - 1].averageScore.toFixed(1)}% - ${qualifiedUsers[0].averageScore.toFixed(1)}%`
+      : 'N/A';
+
+    // Setup layout calculations
+    const colWidth = (width - (padding * 2)) / 3; // Account for padding
+    const lineHeight = 6;
+    const startY = y + padding; // Add top padding
+    
+    pdf.setFontSize(8); // Slightly smaller to prevent overflow
+    pdf.setFont('helvetica', 'normal');
+
+    // Column 1 - structured with label/value pairs
+    const col1Stats = [
+      { label: 'Total Performers:', value: `${topPerformers.length}` },
+      { label: 'Qualified Users:', value: `${totalQualified}` },
+      { label: 'Min Tests Required:', value: `${minTestsRequired}` }
+    ];
+
+    // Column 2 - will wrap if needed
+    const col2Stats = [
+      { label: 'Average Score:', value: `${topAverage.toFixed(1)}%` },
+      { label: 'Score Range:', value: scoreRange },
+      { label: 'Total Records:', value: `${rawData.length}` }
+    ];
+
+    // Column 3 - will wrap if needed
+    const col3Stats = [
+      { label: 'Top Performer:', value: topPerformers[0]?.name || 'N/A' },
+      { label: 'Top Score:', value: `${topPerformers[0]?.averageScore.toFixed(1) || '0'}%` },
+      { label: 'Analysis:', value: 'Performance Rankings' }
+    ];
+
+    const allColumns = [col1Stats, col2Stats, col3Stats];
+
+    // Calculate the actual height needed by measuring text wrapping
+    let maxColumnHeight = 0;
+    
+    allColumns.forEach((columnStats, colIndex) => {
+      let columnHeight = 0;
+      const availableWidth = colWidth - 6; // Leave some margin
+      
+      columnStats.forEach(stat => {
+        // Calculate if this stat will wrap
+        pdf.setFont('helvetica', 'bold');
+        const labelWidth = pdf.getTextWidth(stat.label);
+        pdf.setFont('helvetica', 'normal');
+        const valueMaxWidth = availableWidth - labelWidth - 2;
+        const valueWidth = pdf.getTextWidth(stat.value);
+        
+        if (valueWidth <= valueMaxWidth) {
+          // Single line
+          columnHeight += lineHeight;
+        } else {
+          // Two lines (label + wrapped value)
+          columnHeight += lineHeight * 2;
+        }
+      });
+      
+      maxColumnHeight = Math.max(maxColumnHeight, columnHeight);
+    });
+
+    // Dynamic height calculation with minimal padding
+    const statsHeight = maxColumnHeight + (padding * 2) - 4; // Add padding but reduce excess buffer
+    
+    // Draw border with calculated height
+    pdf.setDrawColor(200, 200, 200); // Light gray border
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, statsHeight);
+
+    // Add vertical dividers between columns with proper positioning
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.3);
+    for (let i = 1; i < 3; i++) {
+      const dividerX = x + padding + (i * colWidth);
+      pdf.line(dividerX, y, dividerX, y + statsHeight - 2);
+    }
+
+    // Render columns with proper padding and text wrapping
+    allColumns.forEach((columnStats, colIndex) => {
+      let colY = startY;
+      const colX = x + padding + (colIndex * colWidth) + 2; // Additional small margin from divider
+      
+      columnStats.forEach(stat => {
+        // Calculate available width for this column
+        let availableWidth = colWidth - 6; // Leave some margin
+        
+        // Bold label - always on first line
+        pdf.setFont('helvetica', 'bold');
+        const labelWidth = pdf.getTextWidth(stat.label);
+        pdf.text(stat.label, colX, colY);
+        
+        // Check if value fits on same line
+        pdf.setFont('helvetica', 'normal');
+        const valueStartX = colX + labelWidth + 2;
+        const valueMaxWidth = availableWidth - labelWidth - 2;
+        const valueWidth = pdf.getTextWidth(stat.value);
+        
+        if (valueWidth <= valueMaxWidth) {
+          // Value fits on same line
+          pdf.text(stat.value, valueStartX, colY);
+          colY += lineHeight;
+        } else {
+          // Value doesn't fit, wrap to next line
+          colY += lineHeight; // Move to next line
+          pdf.text(stat.value, colX, colY); // Start value at left margin of column
+          colY += lineHeight;
+        }
+      });
+    });
+  }
+
+  // Helper method to detect anonymization state from chart component
+  _detectAnonymizationState(tileElement) {
+    if (!tileElement) return false;
+
+    // Method 1: Look for the anonymization toggle button and check its title/text
+    const anonymizeButton = tileElement.querySelector('button[title*="Anonymize"], button[title*="Show real names"]');
+    if (anonymizeButton) {
+      const title = anonymizeButton.getAttribute('title') || '';
+      const buttonText = anonymizeButton.textContent || '';
+
+      // If title says "Show real names" or button text says "Anonymous", then anonymization is ON
+      const isAnonymized = title.includes('Show real names') || buttonText.includes('Anonymous');
+      console.log('📊 PDF Export: Detected anonymization state from button:', isAnonymized, { title, buttonText });
+      return isAnonymized;
+    }
+
+    // Method 2: Fallback - check if any displayed names in the chart follow anonymization pattern
+    const chartLabels = tileElement.querySelectorAll('text, .nivo-bar-label, .recharts-text');
+    for (const label of chartLabels) {
+      const text = label.textContent || '';
+      if (text.match(/^[A-Z][a-z]+-\d+$/)) {
+        console.log('📊 PDF Export: Detected anonymization from chart labels:', true);
+        return true; // Found anonymized name pattern
+      }
+    }
+
+    console.log('📊 PDF Export: No anonymization detected, using real names');
+    return false; // Default to not anonymized
+  }
+
+  async _addTopBottomPerformersDetailedLists(pdf, x, y, width, height, rawData, tileElement = null) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    const lineHeight = 4;
+    const sectionSpacing = 6;
+    let currentY = y;
+
+    // Enhanced anonymization function (matches chart component)
+    const anonymizeName = (ldap) => {
+      // Create a stable hash from the LDAP for consistent anonymization
+      let hash = 0;
+      for (let i = 0; i < ldap.length; i++) {
+        const char = ldap.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+      }
+      
+      // Convert hash to positive number
+      hash = Math.abs(hash);
+      
+      // Generate anonymous identifier
+      const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+      const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+      
+      const prefixIndex = hash % prefixes.length;
+      const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+      
+      return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+    };
+
+    // Detect anonymization state from the chart component
+    const shouldAnonymize = this._detectAnonymizationState(tileElement);
+
+    // Enhanced data processing with tooltip-like information
+    const minTestsRequired = 1;
+    const userGroups = {};
+
+    console.log('📊 PDF Export: Processing', rawData.length, 'records with anonymization:', shouldAnonymize);
+
+    rawData.forEach(record => {
+      const userName = record.ldap || record.userName || 'Anonymous';
+      const displayName = shouldAnonymize ? anonymizeName(userName) : userName;
+
+      if (!userGroups[userName]) {
+        userGroups[userName] = {
+          name: displayName,
+          originalName: userName,
+          scores: [],
+          supervisor: record.supervisor || 'Unknown',
+          market: record.market || 'Unknown',
+          totalTests: 0
+        };
+      }
+      const score = parseFloat(record.score_value) || 0;
+      userGroups[userName].scores.push(score);
+      userGroups[userName].totalTests++;
+    });
+
+    const qualifiedUsers = Object.values(userGroups)
+      .filter(user => user.scores.length >= minTestsRequired)
+      .map(user => {
+        const scores = user.scores.map(s => s * 100); // Convert to percentage
+        const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+        const bestScore = Math.max(...scores);
+        const worstScore = Math.min(...scores);
+        
+        // Calculate consistency (100 - coefficient of variation)
+        const mean = averageScore;
+        const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+        const standardDeviation = Math.sqrt(variance);
+        const coefficientOfVariation = mean > 0 ? (standardDeviation / mean) * 100 : 0;
+        const consistency = Math.max(0, 100 - coefficientOfVariation);
+
+        // Simple trend calculation (improving/declining/stable)
+        let trend = 'stable';
+        if (scores.length >= 3) {
+          const firstHalf = scores.slice(0, Math.floor(scores.length / 2));
+          const secondHalf = scores.slice(Math.floor(scores.length / 2));
+          const firstAvg = firstHalf.reduce((sum, s) => sum + s, 0) / firstHalf.length;
+          const secondAvg = secondHalf.reduce((sum, s) => sum + s, 0) / secondHalf.length;
+          
+          if (secondAvg > firstAvg + 5) trend = 'improving';
+          else if (secondAvg < firstAvg - 5) trend = 'declining';
+        }
+
+        return {
+          name: user.name,
+          averageScore: averageScore,
+          bestScore: bestScore,
+          worstScore: worstScore,
+          consistency: consistency,
+          testsCompleted: user.scores.length,
+          totalTests: user.totalTests,
+          supervisor: user.supervisor,
+          market: user.market,
+          trend: trend
+        };
+      })
+      .sort((a, b) => b.averageScore - a.averageScore);
+
+    const topPerformers = qualifiedUsers.slice(0, 5);
+    const bottomPerformers = qualifiedUsers.slice(-5).reverse();
+
+    // Split right column into two: Top 5 on left, Bottom 5 on right
+    const leftColWidth = width * 0.48;
+    const rightColWidth = width * 0.48;
+    const colGap = width * 0.04;
+    const rightColX = x + leftColWidth + colGap;
+
+    // Calculate dynamic height based on actual content
+    const padding = 4; // Reduced padding to match horizontal stats
+    const headerHeight = lineHeight + 3 + 2; // Header + underline space
+    const performerHeight = (lineHeight + 1) + (6 * lineHeight) + 2; // Name line + 6 info lines + gap
+    const calculatedContentHeight = headerHeight + (Math.max(topPerformers.length, bottomPerformers.length) * performerHeight);
+    const sectionHeight = calculatedContentHeight + padding - 2; // Minimal padding with tighter fit
+
+    // Left column border (Top 5 Performers) - dynamic height
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252); // Very light blue-gray background
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, currentY - 5, leftColWidth, sectionHeight, 'FD'); // Fill and Draw
+
+    // Right column border (Bottom 5 Performers) - dynamic height
+    pdf.rect(rightColX, currentY - 5, rightColWidth, sectionHeight, 'FD');
+
+    // Header separator lines
+    pdf.setDrawColor(120, 120, 120);
+    pdf.setLineWidth(0.8);
+
+    // Top 5 Performers (Left side)
+    let topCurrentY = currentY;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Top 5 Performers:', x + 4, topCurrentY);
+    topCurrentY += lineHeight + 3;
+
+    // Add underline for section header
+    pdf.line(x + 4, topCurrentY - 2, x + leftColWidth - 4, topCurrentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    topPerformers.forEach((performer, index) => {
+      const ranking = index + 1;
+
+      // Bold name and ranking with color coding
+      pdf.setFont('helvetica', 'bold');
+      if (ranking <= 2) {
+        pdf.setTextColor(0, 120, 0); // Dark green for top 2
+      } else {
+        pdf.setTextColor(0, 0, 0); // Black for others
+      }
+      pdf.text(`#${ranking}: ${performer.name}`, x + 4, topCurrentY + 2);
+      topCurrentY += lineHeight + 1;
+
+      // Regular font for details
+      pdf.setTextColor(0, 0, 0); // Reset to black
+      pdf.setFont('helvetica', 'normal');
+      const performerInfo = [
+        `  Average: ${performer.averageScore.toFixed(1)}%`,
+        `  Best: ${performer.bestScore.toFixed(1)}%`,
+        `  Worst: ${performer.worstScore.toFixed(1)}%`,
+        `  Supervisor: ${performer.supervisor}`,
+        `  Market: ${performer.market}`,
+        `  Trend: ${performer.trend}`
+      ];
+
+      performerInfo.forEach(info => {
+        pdf.text(info, x + 4, topCurrentY);
+        topCurrentY += lineHeight;
+      });
+
+      // Small gap between performers
+      topCurrentY += 2;
+    });
+
+    // Bottom 5 Performers (Right side)
+    let bottomCurrentY = currentY;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Bottom 5 Performers:', rightColX + 4, bottomCurrentY);
+    bottomCurrentY += lineHeight + 3;
+
+    // Add underline for section header
+    pdf.line(rightColX + 4, bottomCurrentY - 2, rightColX + rightColWidth - 4, bottomCurrentY - 2);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    bottomPerformers.forEach((performer, index) => {
+      const ranking = index + 1; // Bottom performers numbered 1-5
+
+      // Bold name and ranking with color coding
+      pdf.setFont('helvetica', 'bold');
+      if (ranking <= 2) {
+        pdf.setTextColor(150, 0, 0); // Dark red for bottom 2
+      } else {
+        pdf.setTextColor(0, 0, 0); // Black for others
+      }
+      pdf.text(`#${ranking}: ${performer.name}`, rightColX + 4, bottomCurrentY + 2);
+      bottomCurrentY += lineHeight + 1;
+
+      // Regular font for details
+      pdf.setTextColor(0, 0, 0); // Reset to black
+      pdf.setFont('helvetica', 'normal');
+      const performerInfo = [
+        `  Average: ${performer.averageScore.toFixed(1)}%`,
+        `  Best: ${performer.bestScore.toFixed(1)}%`,
+        `  Worst: ${performer.worstScore.toFixed(1)}%`,
+        `  Supervisor: ${performer.supervisor}`,
+        `  Market: ${performer.market}`,
+        `  Trend: ${performer.trend}`
+      ];
+
+      performerInfo.forEach(info => {
+        pdf.text(info, rightColX + 4, bottomCurrentY);
+        bottomCurrentY += lineHeight;
+      });
+
+      // Small gap between performers
+      bottomCurrentY += 2;
+    });
+  }
+
   async _addTopBottomPerformersDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
@@ -1167,8 +1783,8 @@ class ExportService {
       return currentY + lineHeight;
     }
 
-    // Filter users with minimum test requirement (e.g., 2 tests)
-    const minTestsRequired = 2;
+    // Filter users with minimum test requirement (e.g., 1 test)
+    const minTestsRequired = 1;
     const userGroups = {};
 
     rawData.forEach(record => {
@@ -1198,8 +1814,8 @@ class ExportService {
       })
       .sort((a, b) => b.averageScore - a.averageScore);
 
-    const topPerformers = qualifiedUsers.slice(0, 10);
-    const bottomPerformers = qualifiedUsers.slice(-10).reverse();
+    const topPerformers = qualifiedUsers.slice(0, 5);
+    const bottomPerformers = qualifiedUsers.slice(-5).reverse();
 
     const totalQualified = qualifiedUsers.length;
     const topAverage = topPerformers.length > 0
@@ -1712,6 +2328,154 @@ class ExportService {
     return currentY;
   }
 
+  async _addPassFailRateDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+    let currentY = y;
+
+    // Overall Statistics Header
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Pass/Fail Rate Analysis:', x, currentY);
+    currentY += lineHeight + 2;
+
+    if (!rawData || !Array.isArray(rawData)) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('No data available for pass/fail analysis', x, currentY);
+      return currentY + lineHeight;
+    }
+
+    // Analyze thresholds in the dataset
+    const thresholds = rawData
+      .map(result => result.passing_threshold || 70)
+      .filter((threshold, index, arr) => arr.indexOf(threshold) === index);
+
+    // Calculate pass/fail counts using actual quiz thresholds
+    let passCount = 0;
+    let failCount = 0;
+    const passDetails = [];
+    const failDetails = [];
+
+    rawData.forEach((result) => {
+      const score = parseFloat(result.score_value) || 0;
+      const threshold = (result.passing_threshold || 70) / 100; // Convert to decimal
+      
+      if (score >= threshold) {
+        passCount++;
+        passDetails.push({
+          score: score,
+          threshold: result.passing_threshold || 70,
+          user: result.ldap || 'Unknown',
+          quizType: result.quiz_type || 'Unknown'
+        });
+      } else {
+        failCount++;
+        failDetails.push({
+          score: score,
+          threshold: result.passing_threshold || 70,
+          user: result.ldap || 'Unknown',
+          quizType: result.quiz_type || 'Unknown'
+        });
+      }
+    });
+
+    const total = passCount + failCount;
+    const passPercentage = total > 0 ? ((passCount / total) * 100).toFixed(1) : '0';
+    const failPercentage = total > 0 ? ((failCount / total) * 100).toFixed(1) : '0';
+
+    // Create threshold context for display
+    const thresholdLabel = thresholds.length > 1 
+      ? `${Math.min(...thresholds)}%-${Math.max(...thresholds)}%`
+      : `${thresholds[0]}%`;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    // General Chart Information
+    const generalInfo = [
+      `Total Tests: ${total}`,
+      `Pass/Fail Threshold: ${thresholdLabel}`,
+      `Overall Pass Rate: ${passPercentage}%`,
+      `Overall Fail Rate: ${failPercentage}%`
+    ];
+
+    generalInfo.forEach(info => {
+      pdf.text(info, x, currentY);
+      currentY += lineHeight;
+    });
+
+    currentY += sectionSpacing;
+
+    // Pass Breakdown Section
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Pass Breakdown:', x, currentY);
+    currentY += lineHeight + 2;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    if (passCount > 0) {
+      // Calculate pass statistics
+      const passScores = passDetails.map(p => p.score * 100); // Convert to percentage for display
+      const avgPassScore = passScores.length > 0 ? (passScores.reduce((sum, s) => sum + s, 0) / passScores.length).toFixed(1) : '0';
+      const highestPassScore = passScores.length > 0 ? Math.max(...passScores).toFixed(1) : '0';
+      const lowestPassScore = passScores.length > 0 ? Math.min(...passScores).toFixed(1) : '0';
+
+      const passBreakdownInfo = [
+        `Count: ${passCount} tests`,
+        `Percentage: ${passPercentage}% of all tests`,
+        `Average Score: ${avgPassScore}%`,
+        `Score Range: ${lowestPassScore}% - ${highestPassScore}%`,
+        `Status: Meeting or exceeding ${thresholdLabel} threshold`
+      ];
+
+      passBreakdownInfo.forEach(info => {
+        pdf.text(info, x, currentY);
+        currentY += lineHeight;
+      });
+    } else {
+      pdf.text('No passing tests found', x, currentY);
+      currentY += lineHeight;
+    }
+
+    currentY += sectionSpacing;
+
+    // Fail Breakdown Section
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Fail Breakdown:', x, currentY);
+    currentY += lineHeight + 2;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    if (failCount > 0) {
+      // Calculate fail statistics
+      const failScores = failDetails.map(f => f.score * 100); // Convert to percentage for display
+      const avgFailScore = failScores.length > 0 ? (failScores.reduce((sum, s) => sum + s, 0) / failScores.length).toFixed(1) : '0';
+      const highestFailScore = failScores.length > 0 ? Math.max(...failScores).toFixed(1) : '0';
+      const lowestFailScore = failScores.length > 0 ? Math.min(...failScores).toFixed(1) : '0';
+
+      const failBreakdownInfo = [
+        `Count: ${failCount} tests`,
+        `Percentage: ${failPercentage}% of all tests`,
+        `Average Score: ${avgFailScore}%`,
+        `Score Range: ${lowestFailScore}% - ${highestFailScore}%`,
+        `Status: Below ${thresholdLabel} threshold`
+      ];
+
+      failBreakdownInfo.forEach(info => {
+        pdf.text(info, x, currentY);
+        currentY += lineHeight;
+      });
+    } else {
+      pdf.text('No failing tests found', x, currentY);
+      currentY += lineHeight;
+    }
+
+    return currentY;
+  }
+
   async _addGenericChartDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
@@ -1995,12 +2759,34 @@ class ExportService {
         const passRate = ((scores.filter(s => s >= 0.7).length / scores.length) * 100).toFixed(1);
 
         if (chartTitle.toLowerCase().includes('pass') && chartTitle.toLowerCase().includes('fail')) {
-          // Pass/Fail Rate specific statistics (simplified)
-          const passCount = scores.filter(s => s >= 0.7).length;
-          const failCount = scores.filter(s => s < 0.7).length;
+          // Pass/Fail Rate specific statistics using actual quiz thresholds
+          const thresholds = rawData
+            .map(result => result.passing_threshold || 70)
+            .filter((threshold, index, arr) => arr.indexOf(threshold) === index);
+
+          let passCount = 0;
+          let failCount = 0;
+
+          // Calculate pass/fail using actual thresholds from each quiz result
+          rawData.forEach((result) => {
+            const score = parseFloat(result.score_value) || 0;
+            const threshold = (result.passing_threshold || 70) / 100; // Convert to decimal
+            
+            if (score >= threshold) {
+              passCount++;
+            } else {
+              failCount++;
+            }
+          });
+
           const total = passCount + failCount;
           const passPercentage = total > 0 ? ((passCount / total) * 100).toFixed(1) : 0;
           const failPercentage = total > 0 ? ((failCount / total) * 100).toFixed(1) : 0;
+
+          // Create threshold display
+          const thresholdLabel = thresholds.length > 1 
+            ? `${Math.min(...thresholds)}%-${Math.max(...thresholds)}%`
+            : `${thresholds[0]}%`;
 
           stats.push(
             { label: 'Pass Rate', value: `${passPercentage}%` },
@@ -2008,7 +2794,7 @@ class ExportService {
             { label: 'Pass Count', value: `${passCount}` },
             { label: 'Fail Count', value: `${failCount}` },
             { label: 'Total Tests', value: `${total}` },
-            { label: 'Threshold', value: `70%` }
+            { label: 'Threshold', value: thresholdLabel }
           );
         } else if (chartTitle.toLowerCase().includes('supervisor')) {
           // Supervisor Performance specific statistics (simplified)
