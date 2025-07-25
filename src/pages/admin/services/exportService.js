@@ -1069,8 +1069,19 @@ class ExportService {
     const statsY = y + chartHeight + 6;
     await this._addTestCompletionTrendHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
 
-    // Add details in right column
-    await this._addTestCompletionTrendDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+    // Add three separate boxes in right column: Aggregate, Individual, Cohort
+    const boxHeight = height / 3 - 5; // Divide height into 3 boxes with small gaps
+    
+    // Aggregate box
+    await this._addScoreTrendAggregateBox(pdf, rightColumnX, y, infoWidth, boxHeight, rawData, tileElement);
+    
+    // Individual box
+    const individualY = y + boxHeight + 5;
+    await this._addScoreTrendIndividualBox(pdf, rightColumnX, individualY, infoWidth, boxHeight, rawData, tileElement);
+    
+    // Cohort box
+    const cohortY = individualY + boxHeight + 5;
+    await this._addScoreTrendCohortBox(pdf, rightColumnX, cohortY, infoWidth, boxHeight, rawData, tileElement);
   }
 
   async _addCategoryPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
@@ -1154,8 +1165,23 @@ class ExportService {
     const statsY = y + chartHeight + 6;
     await this._addPassFailRateHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
 
-    // Add details in right column
-    await this._addPassFailRateDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+    // Calculate box heights and positions for right column
+    const detailsHeight = this._calculatePassFailDetailsHeight(rawData);
+    const distributionHeight = this._calculatePerformanceDistributionHeight(rawData);
+    const riskHeight = this._calculateRiskIndicatorsHeight();
+    
+    let rightColumnY = y;
+    
+    // Add details box at top of right column
+    await this._addPassFailRateDetailsList(pdf, rightColumnX, rightColumnY, infoWidth, detailsHeight, rawData, tileElement);
+    rightColumnY += detailsHeight + 8;
+    
+    // Add Performance Distribution box
+    await this._addPassFailPerformanceDistribution(pdf, rightColumnX, rightColumnY, infoWidth, distributionHeight, rawData);
+    rightColumnY += distributionHeight + 8;
+    
+    // Add Risk Indicators box
+    await this._addPassFailRiskIndicators(pdf, rightColumnX, rightColumnY, infoWidth, riskHeight, rawData);
   }
 
   async _addTimeVsScoreSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
@@ -2564,6 +2590,7 @@ class ExportService {
     rawData.forEach(record => {
       const date = record.completion_date || record.date || new Date().toISOString().split('T')[0];
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      const threshold = (record.passing_threshold || 70) / 100; // Convert to decimal, use actual threshold
       
       if (!dateGroups[date]) {
         dateGroups[date] = { count: 0, totalScore: 0, passed: 0 };
@@ -2571,11 +2598,11 @@ class ExportService {
       
       dateGroups[date].count++;
       dateGroups[date].totalScore += score;
-      if (score >= 0.7) dateGroups[date].passed++;
+      if (score >= threshold) dateGroups[date].passed++;
       
       totalTests++;
       totalScore += score;
-      if (score >= 0.7) passedTests++;
+      if (score >= threshold) passedTests++;
     });
 
     const dates = Object.keys(dateGroups).sort();
@@ -2604,6 +2631,9 @@ class ExportService {
     currentY += tightLineHeight + 3;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
@@ -2725,6 +2755,141 @@ class ExportService {
         rightColY = colY;
       }
     });
+  }
+
+  async _addScoreTrendAggregateBox(pdf, x, y, width, height, rawData, tileElement = null) {
+    // Create Aggregate box
+    const padding = 4;
+    const headerHeight = 12;
+    
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, height);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Aggregate:', x + 4, currentY);
+    currentY += 8;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    
+    // Add aggregate stats content
+    if (rawData && Array.isArray(rawData) && rawData.length > 0) {
+      const totalTests = rawData.length;
+      const totalScore = rawData.reduce((sum, r) => sum + (parseFloat(r.score_value) || 0), 0);
+      const avgScore = totalTests > 0 ? (totalScore / totalTests * 100).toFixed(1) : '0.0';
+      const passedTests = rawData.filter(r => {
+        const score = parseFloat(r.score_value) || 0;
+        const threshold = (r.passing_threshold || 70) / 100;
+        return score >= threshold;
+      }).length;
+      const passRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : '0.0';
+
+      pdf.text(`Total Tests: ${totalTests}`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`Average Score: ${avgScore}%`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`Pass Rate: ${passRate}%`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`Passed: ${passedTests}`, x + 4, currentY);
+    }
+  }
+
+  async _addScoreTrendIndividualBox(pdf, x, y, width, height, rawData, tileElement = null) {
+    // Create Individual box
+    const padding = 4;
+    
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, height);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Individual:', x + 4, currentY);
+    currentY += 8;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    
+    // Add individual performance data
+    if (rawData && Array.isArray(rawData) && rawData.length > 0) {
+      const uniqueUsers = [...new Set(rawData.map(r => r.user_name || r.name || 'Unknown'))];
+      const topUser = rawData.reduce((best, current) => {
+        const currentScore = parseFloat(current.score_value) || 0;
+        const bestScore = parseFloat(best.score_value) || 0;
+        return currentScore > bestScore ? current : best;
+      });
+      
+      pdf.text(`Total Users: ${uniqueUsers.length}`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`Top Performer:`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`${topUser.user_name || topUser.name || 'Unknown'}`, x + 6, currentY);
+      currentY += 6;
+      pdf.text(`Score: ${((parseFloat(topUser.score_value) || 0) * 100).toFixed(1)}%`, x + 6, currentY);
+    }
+  }
+
+  async _addScoreTrendCohortBox(pdf, x, y, width, height, rawData, tileElement = null) {
+    // Create Cohort box
+    const padding = 4;
+    
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, height);
+
+    let currentY = y + padding;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Cohort:', x + 4, currentY);
+    currentY += 8;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    
+    // Add cohort analysis
+    if (rawData && Array.isArray(rawData) && rawData.length > 0) {
+      const cohorts = {};
+      rawData.forEach(record => {
+        const cohort = record.cohort || record.group || record.department || 'General';
+        if (!cohorts[cohort]) {
+          cohorts[cohort] = { count: 0, totalScore: 0 };
+        }
+        cohorts[cohort].count++;
+        cohorts[cohort].totalScore += (parseFloat(record.score_value) || 0);
+      });
+
+      const cohortCount = Object.keys(cohorts).length;
+      const topCohort = Object.entries(cohorts).reduce((best, [name, data]) => {
+        const avgScore = data.count > 0 ? data.totalScore / data.count : 0;
+        const bestAvg = best.data.count > 0 ? best.data.totalScore / best.data.count : 0;
+        return avgScore > bestAvg ? { name, data } : best;
+      }, { name: 'Unknown', data: { count: 0, totalScore: 0 } });
+
+      pdf.text(`Total Cohorts: ${cohortCount}`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`Top Cohort:`, x + 4, currentY);
+      currentY += 6;
+      pdf.text(`${topCohort.name}`, x + 6, currentY);
+      currentY += 6;
+      const topAvg = topCohort.data.count > 0 ? (topCohort.data.totalScore / topCohort.data.count * 100).toFixed(1) : '0.0';
+      pdf.text(`Avg: ${topAvg}%`, x + 6, currentY);
+    }
   }
 
   async _addTestCompletionTrendDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
@@ -3509,6 +3674,9 @@ class ExportService {
     currentY += tightLineHeight + 3;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
@@ -4385,10 +4553,11 @@ class ExportService {
 
     rawData.forEach(record => {
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      const threshold = (record.passing_threshold || 70) / 100; // Convert to decimal, use actual threshold
       totalTests++;
       totalScore += score;
       
-      if (score >= 0.7) {
+      if (score >= threshold) {
         passedTests++;
       } else {
         failedTests++;
@@ -4398,7 +4567,13 @@ class ExportService {
     const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
     const failRate = totalTests > 0 ? (failedTests / totalTests) * 100 : 0;
     const averageScore = totalTests > 0 ? (totalScore / totalTests) * 100 : 0;
-    const passThreshold = 70;
+    
+    // Calculate the actual threshold(s) used in the dataset
+    const thresholds = rawData.map(record => record.passing_threshold || 70);
+    const uniqueThresholds = [...new Set(thresholds)];
+    const passThreshold = uniqueThresholds.length === 1 
+      ? uniqueThresholds[0] 
+      : `${Math.min(...uniqueThresholds)}-${Math.max(...uniqueThresholds)}`;
 
     // Standard horizontal stats layout
     const padding = 4;
@@ -4420,6 +4595,9 @@ class ExportService {
     currentY += tightLineHeight + 3;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+
+    // Add padding below the dividing line
+    currentY += 3;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
@@ -4445,37 +4623,42 @@ class ExportService {
   async _addPassFailRateDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
     if (!rawData || !Array.isArray(rawData)) return;
 
-    // Same processing as horizontal stats
-    const scoreRanges = [
-      { min: 0, max: 0.3, label: 'Poor (0-30%)', count: 0, type: 'fail' },
-      { min: 0.31, max: 0.49, label: 'Below Average (31-49%)', count: 0, type: 'fail' },
-      { min: 0.5, max: 0.69, label: 'Average (50-69%)', count: 0, type: 'fail' },
-      { min: 0.7, max: 0.84, label: 'Good (70-84%)', count: 0, type: 'pass' },
-      { min: 0.85, max: 1.0, label: 'Excellent (85-100%)', count: 0, type: 'pass' }
-    ];
+    // Calculate pass/fail counts using actual thresholds
+    let passCount = 0;
+    let failCount = 0;
+    const passDetails = [];
+    const failDetails = [];
 
     rawData.forEach(record => {
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      scoreRanges.forEach(range => {
-        if (score >= range.min && score <= range.max) {
-          range.count++;
-        }
-      });
+      const threshold = (record.passing_threshold || 70) / 100; // Convert to decimal
+      
+      if (score >= threshold) {
+        passCount++;
+        passDetails.push({
+          score: score,
+          threshold: record.passing_threshold || 70,
+          user: record.user_name || record.name || 'Unknown'
+        });
+      } else {
+        failCount++;
+        failDetails.push({
+          score: score,
+          threshold: record.passing_threshold || 70,
+          user: record.user_name || record.name || 'Unknown'
+        });
+      }
     });
 
     const totalRecords = rawData.length;
 
     const tightLineHeight = 5;
     const padding = 4;
-    const rangesPerColumn = Math.ceil(scoreRanges.length / 2);
-    const rangeHeight = (tightLineHeight + 1) + (4 * tightLineHeight) + 2;
-    const detailsContentHeight = (rangesPerColumn * rangeHeight) + 15;
-    const detailsSectionHeight = detailsContentHeight + padding - 2;
 
     pdf.setDrawColor(180, 180, 180);
     pdf.setFillColor(248, 250, 252);
     pdf.setLineWidth(0.5);
-    pdf.rect(x, y - 5, width, detailsSectionHeight, 'FD');
+    pdf.rect(x, y - 5, width, height, 'FD');
 
     let currentY = y + padding;
 
@@ -4496,44 +4679,50 @@ class ExportService {
     let leftColY = currentY;
     let rightColY = currentY;
 
-    scoreRanges.forEach((range, index) => {
-      const isLeftColumn = (index % 2 === 0);
-      const colX = isLeftColumn ? leftColX : rightColX;
-      let colY = isLeftColumn ? leftColY : rightColY;
+    // Display Pass section (left column)
+    const passPercentage = totalRecords > 0 ? (passCount / totalRecords) * 100 : 0;
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(0, 120, 0); // Green for pass
+    pdf.text('PASSED Results:', leftColX, leftColY + 2);
+    leftColY += tightLineHeight + 1;
 
-      const percentage = totalRecords > 0 ? (range.count / totalRecords) * 100 : 0;
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    const passInfo = [
+      `  Count: ${passCount}`,
+      `  Percentage: ${passPercentage.toFixed(1)}%`,
+      `  Status: PASS`,
+      `  Impact: Positive`
+    ];
 
-      pdf.setFont('helvetica', 'bold');
-      if (range.type === 'pass') {
-        pdf.setTextColor(0, 120, 0);
-      } else {
-        pdf.setTextColor(120, 0, 0);
-      }
-      pdf.text(`${range.label}`, colX, colY + 2);
-      colY += tightLineHeight + 1;
+    passInfo.forEach(info => {
+      pdf.text(info, leftColX, leftColY);
+      leftColY += tightLineHeight;
+    });
 
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFont('helvetica', 'normal');
-      
-      const rangeInfo = [
-        `  Count: ${range.count}`,
-        `  Percentage: ${percentage.toFixed(1)}%`,
-        `  Status: ${range.type.toUpperCase()}`,
-        `  Impact: ${range.type === 'pass' ? 'Positive' : 'Needs Improvement'}`
-      ];
+    // Display Fail section (right column)
+    const failPercentage = totalRecords > 0 ? (failCount / totalRecords) * 100 : 0;
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(120, 0, 0); // Red for fail
+    pdf.text('FAILED Results:', rightColX, rightColY + 2);
+    rightColY += tightLineHeight + 1;
 
-      rangeInfo.forEach(info => {
-        pdf.text(info, colX, colY);
-        colY += tightLineHeight;
-      });
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    const failInfo = [
+      `  Count: ${failCount}`,
+      `  Percentage: ${failPercentage.toFixed(1)}%`,
+      `  Status: FAIL`,
+      `  Impact: Needs Improvement`
+    ];
 
-      colY += 2;
-
-      if (isLeftColumn) {
-        leftColY = colY;
-      } else {
-        rightColY = colY;
-      }
+    failInfo.forEach(info => {
+      pdf.text(info, rightColX, rightColY);
+      rightColY += tightLineHeight;
     });
   }
 
@@ -5302,6 +5491,419 @@ class ExportService {
   // Helper method to compress canvas
   _compressCanvas(canvas, quality = 0.7) {
     return canvas.toDataURL('image/jpeg', quality);
+  }
+
+  // Helper functions for Pass/Fail Rate layout calculations
+  _calculatePassFailDetailsHeight(rawData) {
+    if (!rawData || !Array.isArray(rawData)) return 60;
+    
+    const tightLineHeight = 5;
+    const padding = 4;
+    
+    // Title line + spacing + divider line
+    const headerHeight = tightLineHeight + 3 + 2;
+    
+    // Each section: header + 1 spacing + 4 info lines
+    const sectionContentHeight = (tightLineHeight + 1) + (4 * tightLineHeight);
+    
+    // Total content height (both sections are in columns, so use max height)
+    const contentHeight = sectionContentHeight + 2; // +2 for section header positioning
+    
+    return headerHeight + contentHeight + (padding * 2);
+  }
+
+  _calculatePerformanceDistributionHeight(rawData) {
+    const headerHeight = 12; // Title + divider line (reduced)
+    const sectionHeaderHeight = 6; // Column headers
+    const statsLineHeight = 5; // Each stat line
+    const userLineHeight = 4; // Each user name line  
+    const paddingHeight = 8; // Top and bottom padding
+    
+    // Calculate how many close to pass users there are
+    let closeToPassUserCount = 0;
+    if (rawData && Array.isArray(rawData)) {
+      const closeToPassUsers = [];
+      rawData.forEach(record => {
+        let score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+        
+        // Parse score from score_text if needed
+        if (score === 0 && record.score_text) {
+          const percentMatch = record.score_text.match(/\((\d+\.?\d*)%\)/);
+          if (percentMatch) {
+            score = parseFloat(percentMatch[1]);
+          }
+        } else if (score <= 1) {
+          score = score * 100;
+        }
+        
+        const threshold = record.passing_threshold || 70;
+        const userName = record.ldap || record.user_name || record.name || 'Unknown';
+        
+        if (score < threshold && score >= (threshold - 10)) {
+          closeToPassUsers.push(userName);
+        }
+      });
+      
+      closeToPassUserCount = [...new Set(closeToPassUsers)].length; // Remove duplicates
+    }
+    
+    // Calculate actual content heights:
+    // Left column: header + 2 passed stat lines
+    const leftColumnHeight = sectionHeaderHeight + (2 * statsLineHeight);
+    
+    // Middle column: header + 4 failed stat lines  
+    const middleColumnHeight = sectionHeaderHeight + (4 * statsLineHeight);
+    
+    // Right column: header (with count inline) + user names
+    const rightColumnHeight = sectionHeaderHeight + (closeToPassUserCount * userLineHeight);
+    
+    // Use the tallest column content
+    const maxColumnHeight = Math.max(leftColumnHeight, middleColumnHeight, rightColumnHeight);
+    
+    return headerHeight + maxColumnHeight + paddingHeight;
+  }
+
+  _calculateRiskIndicatorsHeight() {
+    const headerHeight = 12; // Title + divider line
+    const sectionHeaderHeight = 6; // Column headers
+    const userLineHeight = 4; // Each user name line
+    const paddingHeight = 8;
+    
+    // Each column shows header + up to 3 user names
+    const maxUsersPerColumn = 3;
+    const columnContentHeight = sectionHeaderHeight + (maxUsersPerColumn * userLineHeight);
+    
+    return headerHeight + columnContentHeight + paddingHeight;
+  }
+
+  async _addPassFailPerformanceDistribution(pdf, x, y, width, height, rawData) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    const padding = 4;
+    
+    // Draw box with matching background
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, height, 'FD');
+
+    let currentY = y + padding;
+    
+    // Header
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Performance Distribution:', x + 4, currentY);
+    currentY += 8;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    // Calculate score range breakdowns with dynamic thresholds and track close to pass users
+    let range0to30 = 0, range30to50 = 0, range50to70 = 0, rangeBelowThreshold = 0;
+    let rangeThresholdTo90 = 0, range90to100 = 0, closeToPassingCount = 0;
+    const closeToPassUsers = [];
+    
+    // Get threshold info for dynamic labeling
+    const thresholds = rawData.map(record => record.passing_threshold || 70);
+    const uniqueThresholds = [...new Set(thresholds)];
+    const avgThreshold = uniqueThresholds.length === 1 ? uniqueThresholds[0] : Math.round(thresholds.reduce((a, b) => a + b, 0) / thresholds.length);
+    
+    rawData.forEach(record => {
+      let score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      // Parse score from score_text if needed
+      if (score === 0 && record.score_text) {
+        const percentMatch = record.score_text.match(/\((\d+\.?\d*)%\)/);
+        if (percentMatch) {
+          score = parseFloat(percentMatch[1]);
+        }
+      } else if (score <= 1) {
+        // Convert decimal to percentage
+        score = score * 100;
+      }
+      
+      const threshold = record.passing_threshold || 70;
+      const userName = record.ldap || record.user_name || record.name || 'Unknown';
+      
+      if (score < 30) {
+        range0to30++;
+      } else if (score < 50) {
+        range30to50++;
+      } else if (score < 70) {
+        range50to70++;
+      } else if (score < threshold) {
+        rangeBelowThreshold++;
+      } else if (score < 90) {
+        rangeThresholdTo90++;
+      } else {
+        range90to100++;
+      }
+      
+      // Close to passing: within 10% of threshold but below it
+      if (score < threshold && score >= (threshold - 10)) {
+        closeToPassingCount++;
+        closeToPassUsers.push(userName);
+      }
+    });
+
+    // Setup 3-column layout
+    const colWidth = (width - 28) / 3; // Adjust for 3 columns with spacing
+    const leftColX = x + 8;
+    const middleColX = x + 8 + colWidth + 6;
+    const rightColX = x + 8 + (colWidth * 2) + 12;
+    
+    let leftColY = currentY;
+    let middleColY = currentY;
+    let rightColY = currentY;
+
+    // Left column - PASSED test ranges
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(0, 120, 0); // Green for pass
+    pdf.text('PASSED Results:', leftColX, leftColY + 2);
+    leftColY += 6;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    const passedStats = [
+      { label: `${avgThreshold}-90%:`, value: `${rangeThresholdTo90} tests` },
+      { label: '90-100%:', value: `${range90to100} tests` }
+    ];
+
+    passedStats.forEach(stat => {
+      pdf.text(`  ${stat.label}`, leftColX, leftColY);
+      const labelWidth = pdf.getTextWidth(`  ${stat.label}`);
+      pdf.text(stat.value, leftColX + labelWidth + 2, leftColY);
+      leftColY += 5;
+    });
+
+    // Middle column - FAILED test ranges
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(120, 0, 0); // Red for fail
+    pdf.text('FAILED Results:', middleColX, middleColY + 2);
+    middleColY += 6;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    const thresholdLabel = uniqueThresholds.length === 1 
+      ? `70-${uniqueThresholds[0]}%:` 
+      : `70-Threshold:`;
+
+    const failedStats = [
+      { label: '0-30%:', value: `${range0to30} tests` },
+      { label: '30-50%:', value: `${range30to50} tests` },
+      { label: '50-70%:', value: `${range50to70} tests` },
+      { label: thresholdLabel, value: `${rangeBelowThreshold} tests` }
+    ];
+
+    failedStats.forEach(stat => {
+      pdf.text(`  ${stat.label}`, middleColX, middleColY);
+      const labelWidth = pdf.getTextWidth(`  ${stat.label}`);
+      pdf.text(stat.value, middleColX + labelWidth + 2, middleColY);
+      middleColY += 5;
+    });
+
+    // Right column - Close to Pass users with LDAP names
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(255, 140, 0); // Orange for close to pass
+    pdf.text(`Close to Pass: (${closeToPassingCount})`, rightColX, rightColY + 2);
+    rightColY += 6;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    // List LDAP names of close to pass users
+    if (closeToPassUsers.length > 0) {
+      // Remove duplicates and sort
+      const uniqueUsers = [...new Set(closeToPassUsers)].sort();
+      
+      uniqueUsers.forEach(userName => {
+        pdf.text(`  ${userName}`, rightColX, rightColY);
+        rightColY += 4;
+      });
+    }
+  }
+
+  async _addPassFailRiskIndicators(pdf, x, y, width, height, rawData) {
+    if (!rawData || !Array.isArray(rawData)) return;
+
+    const padding = 4;
+    
+    // Draw box with matching background
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y - 2, width, height, 'FD');
+
+    let currentY = y + padding;
+    
+    // Header
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Risk Indicators:', x + 4, currentY);
+    currentY += 8;
+
+    pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
+    currentY += 3;
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
+    // Calculate risk indicators using best performance per user
+    const userBestPerformance = {};
+    
+    // Debug: Log raw data to understand structure
+    console.log('🔍 Risk Indicators Debug - Raw Data Count:', rawData?.length || 0);
+    if (rawData && rawData.length > 0) {
+      console.log('🔍 First record structure:', rawData[0]);
+      console.log('🔍 Sample scores:', rawData.slice(0, 3).map(r => ({
+        score_value: r.score_value,
+        score: r.score,
+        score_text: r.score_text,
+        passing_threshold: r.passing_threshold,
+        user_name: r.user_name,
+        name: r.name,
+        ldap: r.ldap
+      })));
+    }
+    
+    // Step 1: Group by user and find their best performance
+    rawData.forEach(record => {
+      const userName = record.ldap || record.user_name || record.name || 'Unknown';
+      let score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
+      
+      // If score is 0, try to parse from score_text field like "15.83/25 (63.32%)"
+      if (score === 0 && record.score_text) {
+        const percentMatch = record.score_text.match(/\((\d+\.?\d*)%\)/);
+        if (percentMatch) {
+          score = parseFloat(percentMatch[1]) / 100; // Convert percentage to decimal
+        }
+      }
+      
+      const threshold = (record.passing_threshold || 70) / 100;
+      
+      // Handle both decimal (0.65) and percentage (65) score formats
+      if (score > 1) {
+        // Score is likely already a percentage, convert to decimal
+        score = score / 100;
+      }
+      
+      // Store the best (highest) score for each user
+      if (!userBestPerformance[userName] || score > userBestPerformance[userName].score) {
+        userBestPerformance[userName] = {
+          userName,
+          score,
+          threshold,
+          scorePercent: score * 100,
+          thresholdPercent: threshold * 100,
+          passed: score >= threshold
+        };
+      }
+    });
+
+    let atRiskCount = 0;
+    let improvementCandidatesCount = 0;
+    let highPerformersCount = 0;
+    const atRiskUsers = [];
+    const improvementCandidateUsers = [];
+    const highPerformerUsers = [];
+
+    // Debug: Log user best performance data
+    console.log('🔍 User Best Performance Count:', Object.keys(userBestPerformance).length);
+    console.log('🔍 Sample User Best Performance:', Object.values(userBestPerformance).slice(0, 3));
+
+    // Step 2: Categorize users based on their best performance
+    Object.values(userBestPerformance).forEach(userBest => {
+      const { score, threshold, scorePercent, thresholdPercent, passed, userName } = userBest;
+      
+      // High Performers: Best score >= (threshold + 5%)
+      const highPerformerThreshold = threshold + 0.05;
+      if (score >= highPerformerThreshold) {
+        console.log(`✅ High Performer: ${userName} - Score: ${scorePercent.toFixed(1)}%, Threshold+5%: ${(highPerformerThreshold*100).toFixed(1)}%`);
+        highPerformersCount++;
+        highPerformerUsers.push({ userName, score: scorePercent });
+      }
+      // At-Risk: Best score < 40% OR (best score < 50% of threshold)
+      else if (score < 0.4 || score < (threshold * 0.5)) {
+        console.log(`⚠️ At-Risk: ${userName} - Score: ${scorePercent.toFixed(1)}%, Threshold: ${thresholdPercent.toFixed(1)}%`);
+        atRiskCount++;
+        atRiskUsers.push({ userName, score: scorePercent });
+      }
+      // Improvement Candidates: Failed but within 15% of threshold
+      else if (!passed && scorePercent >= (thresholdPercent - 15)) {
+        console.log(`📈 Improvement Candidate: ${userName} - Score: ${scorePercent.toFixed(1)}%, Threshold: ${thresholdPercent.toFixed(1)}%`);
+        improvementCandidatesCount++;
+        improvementCandidateUsers.push({ userName, score: scorePercent });
+      } else {
+        console.log(`➡️ Uncategorized: ${userName} - Score: ${scorePercent.toFixed(1)}%, Threshold: ${thresholdPercent.toFixed(1)}%, Passed: ${passed}`);
+      }
+    });
+
+    // Sort users by score for each category (best scores first for top performers)
+    atRiskUsers.sort((a, b) => b.score - a.score); // Highest scores first (least at-risk)
+    improvementCandidateUsers.sort((a, b) => b.score - a.score); // Closest to passing first
+    highPerformerUsers.sort((a, b) => b.score - a.score); // Highest performers first
+
+    console.log('🔍 Final Counts - At-Risk:', atRiskCount, 'Improvement:', improvementCandidatesCount, 'High Performers:', highPerformersCount);
+
+    // Setup 3-column layout
+    const colWidth = (width - 28) / 3; // Adjust for 3 columns with spacing
+    const leftColX = x + 8;
+    const middleColX = x + 8 + colWidth + 6;
+    const rightColX = x + 8 + (colWidth * 2) + 12;
+    
+    let leftColY = currentY;
+    let middleColY = currentY;
+    let rightColY = currentY;
+
+    // Left column - At-Risk Employees
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(120, 0, 0); // Red for at-risk
+    pdf.text(`At-Risk: (${atRiskCount})`, leftColX, leftColY + 2);
+    leftColY += 6;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    // List top 3 at-risk users
+    atRiskUsers.slice(0, 3).forEach(user => {
+      pdf.text(`  ${user.userName}`, leftColX, leftColY);
+      leftColY += 4;
+    });
+
+    // Middle column - Improvement Candidates
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(255, 140, 0); // Orange for improvement candidates
+    pdf.text(`Needs Improvement: (${improvementCandidatesCount})`, middleColX, middleColY + 2);
+    middleColY += 6;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    // List top 3 improvement candidate users
+    improvementCandidateUsers.slice(0, 3).forEach(user => {
+      pdf.text(`  ${user.userName}`, middleColX, middleColY);
+      middleColY += 4;
+    });
+
+    // Right column - High Performers
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(0, 120, 0); // Green for high performers
+    pdf.text(`High Performers: (${highPerformersCount})`, rightColX, rightColY + 2);
+    rightColY += 6;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFont('helvetica', 'normal');
+    
+    // List top 3 high performer users
+    highPerformerUsers.slice(0, 3).forEach(user => {
+      pdf.text(`  ${user.userName}`, rightColX, rightColY);
+      rightColY += 4;
+    });
   }
 
   _addPDFFooter(pdf) {
