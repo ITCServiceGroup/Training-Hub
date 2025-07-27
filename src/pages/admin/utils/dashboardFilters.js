@@ -51,6 +51,11 @@ export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter)
         const resultDate = new Date(result.date_of_test);
         const startDate = new Date(timeRange.startDate);
         const endDate = new Date(timeRange.endDate);
+        
+        // Set time boundaries to ensure full day coverage
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        
         passesFilter = passesFilter && (resultDate >= startDate && resultDate <= endDate);
       }
 
@@ -94,7 +99,7 @@ export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter)
     const { classification } = combinedFilters.passFailClassification;
     filteredData = filteredData.filter(result => {
       const score = parseFloat(result.score_value) || 0;
-      const thresholdDecimal = (result.passing_threshold || 70) / 100; // Convert percentage to decimal for comparison
+      const thresholdDecimal = (result.passing_score || 0.7); // Use passing_score field (already in decimal format)
       
       if (classification === 'pass') {
         return score >= thresholdDecimal;
@@ -105,7 +110,7 @@ export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter)
     });
   }
 
-  // Apply quiz type filter
+  // Apply quiz type filter (single quiz type from drill-down)
   if (combinedFilters.quizType) {
     const quizTypeValue = typeof combinedFilters.quizType === 'object'
       ? combinedFilters.quizType.fullName || combinedFilters.quizType
@@ -114,6 +119,49 @@ export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter)
     filteredData = filteredData.filter(result =>
       result.quiz_type === quizTypeValue
     );
+  }
+
+  // Apply global quiz types filter (multiple quiz types from global filters)
+  if (combinedFilters.quizTypes && Array.isArray(combinedFilters.quizTypes) && combinedFilters.quizTypes.length > 0) {
+    filteredData = filteredData.filter(result =>
+      combinedFilters.quizTypes.includes(result.quiz_type)
+    );
+  }
+
+  // Apply global markets filter
+  if (combinedFilters.markets && Array.isArray(combinedFilters.markets) && combinedFilters.markets.length > 0) {
+    filteredData = filteredData.filter(result =>
+      combinedFilters.markets.includes(result.market)
+    );
+  }
+
+  // Apply global supervisors filter
+  if (combinedFilters.supervisors && Array.isArray(combinedFilters.supervisors) && combinedFilters.supervisors.length > 0) {
+    filteredData = filteredData.filter(result =>
+      combinedFilters.supervisors.includes(result.supervisor)
+    );
+  }
+
+  // Apply global ldaps filter
+  if (combinedFilters.ldaps && Array.isArray(combinedFilters.ldaps) && combinedFilters.ldaps.length > 0) {
+    filteredData = filteredData.filter(result =>
+      combinedFilters.ldaps.includes(result.ldap)
+    );
+  }
+
+  // Apply global date range filter
+  if (combinedFilters.dateRange && combinedFilters.dateRange.startDate && combinedFilters.dateRange.endDate) {
+    const startDate = new Date(combinedFilters.dateRange.startDate);
+    const endDate = new Date(combinedFilters.dateRange.endDate);
+    
+    // Set time boundaries to ensure full day coverage
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+    
+    filteredData = filteredData.filter(result => {
+      const resultDate = new Date(result.date_of_test);
+      return resultDate >= startDate && resultDate <= endDate;
+    });
   }
 
   // Apply question filter (this would typically be used for question-level analysis)

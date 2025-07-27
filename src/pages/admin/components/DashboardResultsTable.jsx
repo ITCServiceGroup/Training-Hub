@@ -33,9 +33,11 @@ const DashboardResultsTable = ({
         aVal = new Date(aVal);
         bVal = new Date(bVal);
       } else if (sortField === 'score_text') {
-        // Extract numeric value from percentage strings like "85%"
-        aVal = parseFloat(aVal?.replace('%', '')) || 0;
-        bVal = parseFloat(bVal?.replace('%', '')) || 0;
+        // Extract percentage value from score_text format like "16/50 (28%)" or "85%"
+        const aMatch = aVal?.match(/\((\d+(?:\.\d+)?%)?\)|(\d+(?:\.\d+)?)%/);
+        const bMatch = bVal?.match(/\((\d+(?:\.\d+)?%)?\)|(\d+(?:\.\d+)?)%/);
+        aVal = aMatch ? parseFloat((aMatch[1] || aMatch[2] || '0').replace('%', '')) : 0;
+        bVal = bMatch ? parseFloat((bMatch[1] || bMatch[2] || '0').replace('%', '')) : 0;
       } else if (sortField === 'time_taken') {
         aVal = parseInt(aVal) || 0;
         bVal = parseInt(bVal) || 0;

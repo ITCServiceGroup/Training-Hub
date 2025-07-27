@@ -118,11 +118,25 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       });
     });
 
-    // Only show users with multiple attempts and sort by date
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-    return Object.entries(userGroups)
-      .filter(([user, attempts]) => attempts.length >= 2)
-      .slice(0, 6) // Show top 6 users for readability
+    // Only show users with 2+ attempts to display a meaningful trend
+    // Individual mode requires multiple data points to show progression
+    const colors = [
+      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4',
+      '#f97316', '#84cc16', '#ec4899', '#6366f1', '#14b8a6', '#f59e0b'
+    ];
+    const eligibleUsers = Object.entries(userGroups)
+      .filter(([user, attempts]) => attempts.length >= 2); // Must have 2+ attempts for trend analysis
+    
+    console.log('Individual mode eligible users:', {
+      totalUsers: Object.keys(userGroups).length,
+      usersWithOneAttempt: Object.entries(userGroups).filter(([user, attempts]) => attempts.length === 1).length,
+      usersWithTwoOrMore: eligibleUsers.length,
+      userDetails: eligibleUsers.map(([user, attempts]) => ({ user, attemptCount: attempts.length }))
+    });
+    
+    return eligibleUsers
+      .sort(([userA, attemptsA], [userB, attemptsB]) => attemptsB.length - attemptsA.length) // Sort by number of attempts (most active first)
+      .slice(0, 12) // Show up to 12 users (increased from 6 for better visibility)
       .map(([user, attempts], index) => {
         const displayName = anonymizeName(user);
         const truncatedName = displayName.length > 15 ? displayName.substring(0, 15) + '...' : displayName;
@@ -206,16 +220,27 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
   const chartData = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return [];
 
+    console.log('ScoreTrendChart processing data:', {
+      mode: analysisMode,
+      filteredDataCount: filteredData.length,
+      brushSelection: brushSelection.timeRange
+    });
+
     switch (analysisMode) {
       case 'individual':
-        return processIndividualData(filteredData);
+        const individualData = processIndividualData(filteredData);
+        console.log('Individual mode data:', {
+          seriesCount: individualData.length,
+          totalDataPoints: individualData.reduce((sum, series) => sum + series.data.length, 0)
+        });
+        return individualData;
       case 'cohort':
         return processCohortData(filteredData);
       case 'aggregate':
       default:
         return processAggregateData(filteredData);
     }
-  }, [filteredData, analysisMode, anonymizeNames, processAggregateData, processIndividualData, processCohortData]);
+  }, [filteredData, analysisMode, anonymizeNames, processAggregateData, processIndividualData, processCohortData, brushSelection]);
 
   // Convert pixel position to date
   const pixelToDate = useCallback((pixelX, chartWidth, dataPoints) => {
@@ -229,9 +254,16 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     const sortedDates = dataPoints.map(p => new Date(p.x)).sort((a, b) => a - b);
     const minDate = sortedDates[0];
     const maxDate = sortedDates[sortedDates.length - 1];
+    
+    // Add padding to ensure we can select beyond the last data point
+    // This allows brush selection to capture "today" even if it's at the very edge
     const timeDiff = maxDate.getTime() - minDate.getTime();
+    const paddingTime = timeDiff * 0.05; // Add 5% padding to the time range
+    
+    const extendedMaxDate = new Date(maxDate.getTime() + paddingTime);
+    const extendedTimeDiff = extendedMaxDate.getTime() - minDate.getTime();
 
-    return new Date(minDate.getTime() + (timeDiff * ratio));
+    return new Date(minDate.getTime() + (extendedTimeDiff * ratio));
   }, []);
 
   // Handle mouse events for brush selection
@@ -266,16 +298,58 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
     // Only create selection if drag distance is significant
     if (Math.abs(endX - startX) > 10) {
-      const dataPoints = chartData[0]?.data || [];
-      const startDate = pixelToDate(startX, rect.width, dataPoints);
-      const endDate = pixelToDate(endX, rect.width, dataPoints);
+      // Get all data points from all series for accurate date range calculation
+      let allDataPoints = [];
+      if (analysisMode === 'individual' || analysisMode === 'cohort') {
+        // For individual/cohort modes, combine data points from all series
+        chartData.forEach(series => {
+          if (series.data && Array.isArray(series.data)) {
+            allDataPoints.push(...series.data);
+          }
+        });
+        // Remove duplicates and sort by date
+        const uniqueDates = [...new Set(allDataPoints.map(p => p.x))];
+        allDataPoints = uniqueDates.map(x => ({ x })).sort((a, b) => new Date(a.x) - new Date(b.x));
+      } else {
+        // For aggregate mode, use the single series
+        allDataPoints = chartData[0]?.data || [];
+      }
+      
+      let startDate = pixelToDate(startX, rect.width, allDataPoints);
+      let endDate = pixelToDate(endX, rect.width, allDataPoints);
+
+      // Check if user dragged to the very right edge - if so, extend to "today"
+      const rightEdgeThreshold = rect.width - 50; // Within 50px of right edge
+      if (endX >= rightEdgeThreshold) {
+        // Extend to today's date
+        endDate = new Date();
+        console.log('Extended brush selection to today due to edge drag:', endDate.toISOString().split('T')[0]);
+      }
 
       if (startDate && endDate) {
+        // Add a small buffer to ensure we capture edge cases
+        // Sometimes brush selection can be slightly off due to pixel-to-date conversion
+        const bufferedStartDate = new Date(startDate);
+        bufferedStartDate.setHours(0, 0, 0, 0); // Start of day
+        
+        const bufferedEndDate = new Date(endDate);
+        bufferedEndDate.setHours(23, 59, 59, 999); // End of day
+        
         const timeRange = createTimeRangeFilter(
-          startDate.toISOString().split('T')[0],
-          endDate.toISOString().split('T')[0],
+          bufferedStartDate.toISOString().split('T')[0],
+          bufferedEndDate.toISOString().split('T')[0],
           `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
         );
+
+        console.log('Brush selection created:', {
+          originalStartDate: startDate.toISOString().split('T')[0],
+          originalEndDate: endDate.toISOString().split('T')[0],
+          bufferedStartDate: bufferedStartDate.toISOString().split('T')[0],
+          bufferedEndDate: bufferedEndDate.toISOString().split('T')[0],
+          endX,
+          rightEdgeThreshold: rect.width - 50,
+          wasExtendedToToday: endX >= (rect.width - 50)
+        });
 
         // Apply the brush selection
         applyBrushSelection(timeRange, 'score-trend');
@@ -301,10 +375,87 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     );
   }
 
-  if (chartData.length === 0 || chartData[0].data.length === 0) {
+  if (chartData.length === 0 || (chartData[0] && chartData[0].data.length === 0)) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-slate-500 dark:text-slate-400">No data available</div>
+      <div className="h-full w-full relative">
+        {/* Clear brush button - always show when there's a brush selection */}
+        {brushSelection.timeRange && brushSelection.sourceChart === 'score-trend' && (
+          <button
+            onClick={handleClearBrush}
+            className="absolute top-2 right-2 z-10 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Clear Selection
+          </button>
+        )}
+
+        {/* Analysis Mode Controls */}
+        <div className="top-2 left-1 z-10 flex gap-1">
+          <button
+            onClick={() => setAnalysisMode('aggregate')}
+            className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+              analysisMode === 'aggregate'
+                ? isDark ? 'bg-blue-700 text-blue-200' : 'bg-blue-100 text-blue-700'
+                : isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            title="Show overall trends"
+          >
+            <FaUsers size={10} />
+            Aggregate
+          </button>
+
+          <button
+            onClick={() => setAnalysisMode('individual')}
+            className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+              analysisMode === 'individual'
+                ? isDark ? 'bg-green-700 text-green-200' : 'bg-green-100 text-green-700'
+                : isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            title="Show individual learning curves"
+          >
+            <FaUser size={10} />
+            Individual
+          </button>
+
+          <button
+            onClick={() => setAnalysisMode('cohort')}
+            className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+              analysisMode === 'cohort'
+                ? isDark ? 'bg-purple-700 text-purple-200' : 'bg-purple-100 text-purple-700'
+                : isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            title="Show cohort performance"
+          >
+            <FaChartLine size={10} />
+            Cohort
+          </button>
+          
+          {/* Anonymization toggle - only show in individual mode */}
+          {analysisMode === 'individual' && (
+            <button
+              onClick={() => setAnonymizeNames(!anonymizeNames)}
+              className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                isDark 
+                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+              title={anonymizeNames ? 'Show real names' : 'Anonymize names'}
+            >
+              {anonymizeNames ? <FaEyeSlash size={10} /> : <FaEye size={10} />}
+              {anonymizeNames ? 'Anonymous' : 'Names'}
+            </button>
+          )}
+        </div>
+
+        <div className="h-full flex flex-col items-center justify-center">
+          <div className="text-slate-500 dark:text-slate-400 text-center">
+            <div>No data available</div>
+            {analysisMode === 'individual' && (
+              <div className="text-sm mt-1 text-slate-400 dark:text-slate-500">
+                (to identify an individual trend, 2 or more results are required for a given time range)
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   }

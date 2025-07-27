@@ -937,6 +937,7 @@ const Dashboard = () => {
         data={stableDataRef.current || []}
         loading={loading}
         onViewPDF={handleViewPDF}
+        globalFilters={globalFilters}
       />
 
       {/* Filter Popover */}

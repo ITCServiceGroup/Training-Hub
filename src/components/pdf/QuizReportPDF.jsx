@@ -8,6 +8,7 @@ import QuizHeader from './QuizHeader';
 import QuizScoreSection from './QuizScoreSection';
 import QuizQuestionSection from './QuizQuestionSection';
 import QuizFooter from './QuizFooter';
+// Removed complex dynamic pagination - using simple fixed approach instead
 
 // Note: Using built-in fonts to avoid CSP issues with external font loading
 
@@ -30,6 +31,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
+    minHeight: 0, // Prevent flex from forcing content overflow
   },
 
   // Compact page layout
@@ -45,6 +47,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
     flexShrink: 0,
+    minHeight: 40, // Ensure minimum footer height
   },
 });
 
@@ -84,12 +87,22 @@ const QuizReportPDF = ({
   const passingScore = quiz.passing_score || 70;
   const passed = safeScore.percentage >= passingScore;
 
-  // Split questions into groups of 5 for efficient page usage
-  const questionsPerPage = 5;
+  // SIMPLE FIXED APPROACH: Fixed questions per page
+  // This guarantees no blank pages or question splitting
+  // ADJUST THIS NUMBER if needed: 2 = very safe, 3 = balanced, 4 = might be tight
+  const questionsPerPage = 3;
   const questionPages = [];
+  
   for (let i = 0; i < quiz.questions.length; i += questionsPerPage) {
     questionPages.push(quiz.questions.slice(i, i + questionsPerPage));
   }
+  
+  console.log('PDF Pagination (Fixed):', {
+    totalQuestions: quiz.questions.length,
+    questionsPerPage: questionsPerPage,
+    totalPages: questionPages.length,
+    pageBreakdown: questionPages.map((page, index) => `Page ${index + 1}: ${page.length} questions`)
+  });
 
   const totalPages = 1 + questionPages.length;
 
@@ -120,25 +133,30 @@ const QuizReportPDF = ({
         </View>
       </Page>
 
-      {/* Question Analysis Pages - 5 questions per page */}
-      {questionPages.map((questionsGroup, pageIndex) => (
-        <Page key={pageIndex} size="A4" style={styles.page}>
-          <View style={styles.content}>
-            <QuizQuestionSection
-              questions={questionsGroup}
-              selectedAnswers={safeSelectedAnswers}
-              startIndex={pageIndex * questionsPerPage}
-              isPractice={isPractice}
-              showSectionTitle={false}
-              totalQuestions={quiz.questions.length}
-            />
-          </View>
+      {/* Question Analysis Pages - Fixed 3 questions per page */}
+      {questionPages.map((questionsGroup, pageIndex) => {
+        // Simple calculation: pageIndex * questionsPerPage
+        const startIndex = pageIndex * questionsPerPage;
+        
+        return (
+          <Page key={pageIndex} size="A4" style={styles.page} wrap={false}>
+            <View style={styles.content}>
+              <QuizQuestionSection
+                questions={questionsGroup}
+                selectedAnswers={safeSelectedAnswers}
+                startIndex={startIndex}
+                isPractice={isPractice}
+                showSectionTitle={false}
+                totalQuestions={quiz.questions.length}
+              />
+            </View>
 
-          <View style={styles.pageFooter}>
-            <QuizFooter pageNumber={pageIndex + 2} totalPages={totalPages} />
-          </View>
-        </Page>
-      ))}
+            <View style={styles.pageFooter}>
+              <QuizFooter pageNumber={pageIndex + 2} totalPages={totalPages} />
+            </View>
+          </Page>
+        );
+      })}
     </Document>
   );
 };

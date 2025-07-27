@@ -2,11 +2,12 @@ import { View, Text, StyleSheet } from '@react-pdf/renderer';
 import { isAnswerCorrect } from '../../utils/pdfGenerator';
 
 const styles = StyleSheet.create({
-  // Main container - optimized for 5 questions per page
+  // Main container - flexible for dynamic question count per page
   questionContainer: {
     flex: 1,
     paddingTop: 5,
     minHeight: 0, // Allow shrinking
+    flexDirection: 'column', // Ensure vertical stacking
   },
 
   // Very compact section header
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Very compact question card - designed to fit 5 per page
+  // Dynamic question card - adapts to content size
   questionCard: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 8,
     marginBottom: 6,
-    maxHeight: 130, // Strict height limit to ensure 5 fit
+    // Removed maxHeight constraint to allow dynamic sizing
   },
   questionCardCorrect: {
     borderLeftWidth: 3,
@@ -97,20 +98,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 
-  // Very compact question text
+  // Improved question text sizing for readability
   questionText: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
     color: '#1a202c',
     lineHeight: 1.3,
-    marginBottom: 6,
+    marginBottom: 8,
   },
 
-  // Very compact response sections
+  // Improved response sections with better spacing
   responseRow: {
     flexDirection: 'row',
-    marginBottom: 5,
-    gap: 8,
+    marginBottom: 8,
+    gap: 10,
   },
   responseColumn: {
     flex: 1,
@@ -124,13 +125,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   responseBox: {
-    padding: 5,
+    padding: 6,
     borderRadius: 3,
     borderWidth: 1,
+    minHeight: 20, // Ensure adequate space for content
+    flexWrap: 'wrap', // Allow text wrapping
   },
   responseText: {
-    fontSize: 8,
-    lineHeight: 1.2,
+    fontSize: 9,
+    lineHeight: 1.4, // Slightly increased for bullet points
+    whiteSpace: 'pre-line', // Preserve line breaks
   },
 
   // Response styling
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
     color: '#2f855a',
   },
 
-  // Compact explanation section
+  // Improved explanation section with flexible height
   explanationSection: {
     backgroundColor: '#f7fafc',
     borderWidth: 1,
@@ -164,8 +168,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: '#4299e1',
     borderRadius: 4,
-    padding: 10,
-    marginTop: 8,
+    padding: 12,
+    marginTop: 10,
   },
   explanationHeader: {
     fontSize: 9,
@@ -208,7 +212,8 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
         return answer === true ? 'True' : 'False';
       case 'check_all_that_apply':
         if (Array.isArray(answer) && answer.length > 0) {
-          return answer.map(idx => question.options?.[idx] ?? 'Invalid Index').join(', ');
+          // Format as bullet points for better readability
+          return answer.map(idx => `• ${question.options?.[idx] ?? 'Invalid Index'}`).join('\n');
         }
         return 'No Selection';
       default:
@@ -224,7 +229,8 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
         return question.correct_answer === true ? 'True' : 'False';
       case 'check_all_that_apply':
         if (Array.isArray(question.correct_answer)) {
-          return question.correct_answer.map(idx => question.options?.[idx] ?? 'Invalid Index').join(', ');
+          // Format as bullet points for better readability
+          return question.correct_answer.map(idx => `• ${question.options?.[idx] ?? 'Invalid Index'}`).join('\n');
         }
         return 'N/A';
       default:
@@ -233,7 +239,7 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
   };
 
   return (
-    <View style={styles.questionContainer}>
+    <View style={styles.questionContainer} wrap={false}>
       {showSectionTitle && (
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Question Analysis</Text>
@@ -254,6 +260,7 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
               styles.questionCard,
               correct ? styles.questionCardCorrect : styles.questionCardIncorrect
             ]}
+            wrap={false}
           >
             {/* Compact Question Header */}
             <View style={styles.questionHeader}>
