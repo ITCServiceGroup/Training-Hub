@@ -1,37 +1,39 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { ResponsiveRadar } from '@nivo/radar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
-import EnhancedTooltip from './EnhancedTooltip';
+import { filterDataForChart } from '../../utils/dashboardFilters';
 
 const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
   const { isDark } = useTheme();
-  const { getFiltersForChart, shouldFilterChart, drillDown, applyHoverFilter } = useDashboardFilters();
+  const { getFiltersForChart, shouldFilterChart, drillDown } = useDashboardFilters();
+
+  // Track data changes and drill down state to control animations
+  const prevDataRef = useRef(null);
+  const prevFiltersRef = useRef(null);
+  const shouldAnimate = useRef(false);
+
+  useEffect(() => {
+    const filters = getFiltersForChart('supervisor-effectiveness');
+    const filtersChanged = prevFiltersRef.current !== null && 
+      JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters);
+    const dataChanged = prevDataRef.current !== null && 
+      JSON.stringify(prevDataRef.current) !== JSON.stringify(data);
+
+    // Animate if this is a filter change (drill down) or data change, but not on initial mount
+    shouldAnimate.current = filtersChanged || dataChanged;
+    
+    prevDataRef.current = data;
+    prevFiltersRef.current = filters;
+  }, [data, getFiltersForChart]);
 
   // Filter data for this chart (includes hover filters from other charts, excludes own hover)
   const chartFilteredData = useMemo(() => {
     const filters = getFiltersForChart('supervisor-effectiveness');
     const shouldFilter = shouldFilterChart('supervisor-effectiveness');
-
-    if (!shouldFilter) return data;
-
-    return data.filter(result => {
-      // Note: Supervisor filters are intentionally ignored for this chart
-      // since it's designed to show multiple supervisors for comparison
-      if (filters.market && result.market !== filters.market) return false;
-      if (filters.timeRange) {
-        const resultDate = new Date(result.date_of_test);
-        const startDate = new Date(filters.timeRange.startDate);
-        const endDate = new Date(filters.timeRange.endDate);
-        if (resultDate < startDate || resultDate > endDate) return false;
-      }
-      if (filters.scoreRange) {
-        const score = parseFloat(result.score_value) * 100;
-        if (score < filters.scoreRange.min || score > filters.scoreRange.max) return false;
-      }
-      if (filters.quizType && result.quiz_type !== filters.quizType) return false;
-      return true;
-    });
+    
+    // Use standard filtering utility - includes supervisor filters for drill-down from other charts
+    return filterDataForChart(data, filters, 'supervisor-effectiveness', shouldFilter);
   }, [data, getFiltersForChart, shouldFilterChart]);
 
   // Process data by supervisor with multiple effectiveness metrics
@@ -180,7 +182,6 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
       </div>
 
         <ResponsiveRadar
-        key={`radar-${radarKeys.join('-')}`}
         data={dataToUse}
         keys={radarKeys}
         indexBy="metric"
@@ -200,7 +201,7 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
         enableDotLabel={false}
         fillOpacity={0.1}
         blendMode="multiply"
-        animate={true}
+        animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}
         isInteractive={true}

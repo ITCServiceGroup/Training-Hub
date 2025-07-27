@@ -193,18 +193,13 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
         }
       }));
     } else {
-      // Only apply hover filter if there's no existing drill-down or cross-filter for this type
-      // This ensures drill-down filters are preserved during hover
+      // Only update the specific hover filter type, preserving others
+      // This ensures multiple hover filters can coexist
       updateDashboardState(prev => ({
         ...prev,
         hoverFilters: {
-          supervisor: type === 'supervisor' ? value : null,
-          market: type === 'market' ? value : null,
-          timeRange: type === 'timeRange' ? value : null,
-          scoreRange: type === 'scoreRange' ? value : null,
-          passFailClassification: type === 'passFailClassification' ? value : null,
-          quizType: type === 'quizType' ? value : null,
-          question: type === 'question' ? value : null,
+          ...prev.hoverFilters,
+          [type]: value,
           sourceChart
         }
       }));
@@ -558,6 +553,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
       market: drillDownState.market || crossFilters.market,
       timeRange: combinedTimeRange,
       scoreRange: drillDownState.scoreRange || crossFilters.scoreRange,
+      passFailClassification: drillDownState.passFailClassification || crossFilters.passFailClassification,
       quizType: drillDownState.quizType || crossFilters.quizType,
       question: drillDownState.question || crossFilters.question,
       isDrillDown: drillLevel > 0,

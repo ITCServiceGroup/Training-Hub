@@ -6,19 +6,20 @@
  * Filter data based on drill-down and cross-filter state
  * @param {Array} data - Raw quiz results data
  * @param {Object} combinedFilters - Combined drill-down and cross-filter state
- * @param {string} chartId - ID of the chart requesting filtered data
+ * @param {string} _chartId - ID of the chart requesting filtered data (currently unused)
  * @param {boolean} shouldFilter - Whether this chart should be filtered
+ * @param {Array} excludeFilters - Optional array of filter types to exclude (e.g., ['supervisor'])
  * @returns {Array} Filtered data
  */
-export const filterDataForChart = (data, combinedFilters, chartId, shouldFilter) => {
+export const filterDataForChart = (data, combinedFilters, _chartId, shouldFilter, excludeFilters = []) => {
   if (!data || data.length === 0 || !shouldFilter) {
     return data;
   }
 
   let filteredData = [...data];
 
-  // Apply supervisor filter
-  if (combinedFilters.supervisor) {
+  // Apply supervisor filter (unless excluded)
+  if (combinedFilters.supervisor && !excludeFilters.includes('supervisor')) {
     const supervisorValue = typeof combinedFilters.supervisor === 'object' 
       ? combinedFilters.supervisor.fullName || combinedFilters.supervisor.supervisor
       : combinedFilters.supervisor;
