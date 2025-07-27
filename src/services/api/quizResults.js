@@ -97,78 +97,140 @@ class QuizResultsService extends BaseService {
 
       // If quiz metadata was requested, fetch it separately
       if (includeQuizMetadata && data && data.length > 0) {
-        try {
-          // First try to use quiz_id if available
-          const quizIds = [...new Set(data.map(result => result.quiz_id).filter(Boolean))];
-          // If no quiz_id, try to match by quiz_type (title)
-          if (quizIds.length === 0) {
-            const quizTypes = [...new Set(data.map(result => result.quiz_type).filter(Boolean))];
-            
-            if (quizTypes.length > 0) {
-              // Fetch quiz metadata by matching titles
-              const { data: quizData, error: quizError } = await supabase
-                .from('v2_quizzes')
-                .select('id, title, passing_score')
-                .in('title', quizTypes);
-
-              if (!quizError && quizData) {
-                // Create a lookup map for quiz metadata by title
-                const quizMap = {};
-                quizData.forEach(quiz => {
-                  quizMap[quiz.title] = quiz;
-                });
-
-                // Merge quiz metadata into results using quiz_type
-                const enrichedData = data.map(result => ({
-                  ...result,
-                  quiz_title: result.quiz_type,
-                  passing_threshold: quizMap[result.quiz_type]?.passing_score || 0.7, // Default to 70% if missing
-                }));
-                
-                return enrichedData;
-              }
-            }
-          } else {
-            // Original logic for quiz_id
-            const { data: quizData, error: quizError } = await supabase
-              .from('v2_quizzes')
-              .select('id, title, passing_score')
-              .in('id', quizIds);
-
-            if (!quizError && quizData) {
-              // Create a lookup map for quiz metadata
-              const quizMap = {};
-              quizData.forEach(quiz => {
-                quizMap[quiz.id] = quiz;
-              });
-
-              // Merge quiz metadata into results
-              const enrichedData = data.map(result => ({
-                ...result,
-                quiz_title: quizMap[result.quiz_id]?.title || null,
-                passing_threshold: quizMap[result.quiz_id]?.passing_score || 0.7, // Default to 70% if missing
-              }));
-              
-              return enrichedData;
-            }
-          }
-          
-        } catch (quizError) {
-          console.warn('Failed to fetch quiz metadata, using defaults:', quizError);
-        }
-
-        // Fallback: add default passing threshold without quiz metadata
-        return data.map(result => ({
-          ...result,
-          quiz_title: null,
-          passing_threshold: 0.7 // Default to 70%
-        }));
+        return await this.enrichWithQuizMetadata(data);
       }
 
       return data;
     } catch (error) {
       console.error('Error fetching filtered results:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Enrich quiz results with metadata from v2_quizzes table
+   * @param {Array} data - Raw quiz results data
+   * @returns {Promise<Array>} - Enriched quiz results with metadata
+   */
+  async enrichWithQuizMetadata(data) {
+    try {
+      console.log('QuizResults: Starting metadata enrichment for', data.length, 'records');
+      
+      // Step 1: Get all unique quiz_ids (non-null)
+      const quizIds = [...new Set(data.map(result => result.quiz_id).filter(Boolean))];
+      console.log('QuizResults: Found', quizIds.length, 'unique quiz IDs:', quizIds);
+      
+      // Step 2: Fetch quiz metadata by ID
+      let quizMap = {};
+      if (quizIds.length > 0) {
+        const { data: quizData, error: quizError } = await supabase
+          .from('v2_quizzes')
+          .select('id, title, passing_score')
+          .in('id', quizIds);
+
+        if (!quizError && quizData) {
+          console.log('QuizResults: Retrieved quiz metadata:', quizData);
+          quizData.forEach(quiz => {
+            let passingScore = parseFloat(quiz.passing_score) || 0.7;
+            // If passing_score is stored as percentage (80), convert to decimal (0.8)
+            if (passingScore > 1) {
+              passingScore = passingScore / 100;
+            }
+            quizMap[quiz.id] = {
+              title: quiz.title,
+              passing_score: passingScore // Ensure decimal format
+            };
+          });
+        } else {
+          console.error('QuizResults: Error fetching quiz metadata by ID:', quizError);
+        }
+      }
+
+      // Step 3: For records without quiz_id, try to match by quiz_type (title)
+      const recordsWithoutQuizId = data.filter(result => !result.quiz_id);
+      if (recordsWithoutQuizId.length > 0) {
+        const quizTypes = [...new Set(recordsWithoutQuizId.map(result => result.quiz_type).filter(Boolean))];
+        console.log('QuizResults: Found', recordsWithoutQuizId.length, 'records without quiz_id, trying to match', quizTypes.length, 'quiz types');
+
+        if (quizTypes.length > 0) {
+          const { data: quizDataByTitle, error: titleError } = await supabase
+            .from('v2_quizzes')
+            .select('id, title, passing_score')
+            .in('title', quizTypes);
+
+          if (!titleError && quizDataByTitle) {
+            console.log('QuizResults: Retrieved quiz metadata by title:', quizDataByTitle);
+            quizDataByTitle.forEach(quiz => {
+              let passingScore = parseFloat(quiz.passing_score) || 0.7;
+              // If passing_score is stored as percentage (80), convert to decimal (0.8)
+              if (passingScore > 1) {
+                passingScore = passingScore / 100;
+              }
+              quizMap[`title_${quiz.title}`] = {
+                title: quiz.title,
+                passing_score: passingScore // Ensure decimal format
+              };
+            });
+          }
+        }
+      }
+
+      console.log('QuizResults: Final quiz metadata map:', quizMap);
+
+      // Step 4: Enrich all records with metadata
+      const enrichedData = data.map((result, index) => {
+        let quizMetadata = null;
+        
+        // Try to match by quiz_id first
+        if (result.quiz_id && quizMap[result.quiz_id]) {
+          quizMetadata = quizMap[result.quiz_id];
+        }
+        // Fallback to title matching
+        else if (result.quiz_type && quizMap[`title_${result.quiz_type}`]) {
+          quizMetadata = quizMap[`title_${result.quiz_type}`];
+        }
+
+        const enriched = {
+          ...result,
+          quiz_title: quizMetadata?.title || result.quiz_type || 'Unknown Quiz',
+          passing_score: quizMetadata?.passing_score || 0.7, // Clean decimal format
+          has_quiz_metadata: !!quizMetadata
+        };
+
+        // Debug first few records
+        if (index < 3) {
+          console.log(`QuizResults: Record ${index + 1} enriched:`, {
+            quiz_id: result.quiz_id,
+            quiz_type: result.quiz_type,
+            found_metadata: !!quizMetadata,
+            final_passing_score: enriched.passing_score,
+            quiz_title: enriched.quiz_title
+          });
+        }
+
+        return enriched;
+      });
+
+      // Step 5: Summary statistics
+      const stats = {
+        total_records: enrichedData.length,
+        with_metadata: enrichedData.filter(r => r.has_quiz_metadata).length,
+        without_metadata: enrichedData.filter(r => !r.has_quiz_metadata).length,
+        unique_quizzes: [...new Set(enrichedData.map(r => r.quiz_title))].length
+      };
+      console.log('QuizResults: Enrichment complete:', stats);
+
+      return enrichedData;
+    } catch (error) {
+      console.error('QuizResults: Error during metadata enrichment:', error);
+      
+      // Fallback: return data with defaults
+      return data.map(result => ({
+        ...result,
+        quiz_title: result.quiz_type || 'Unknown Quiz',
+        passing_score: 0.7, // Default 70%
+        has_quiz_metadata: false
+      }));
     }
   }
 

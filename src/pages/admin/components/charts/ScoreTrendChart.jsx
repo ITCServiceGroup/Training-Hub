@@ -642,7 +642,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
                   title="Individual Performance"
                   data={data}
                   icon={true}
-                  color={point.serieColor}
+                  color={point.seriesColor}
                   trend={trend}
                   additionalInfo={additionalInfo || `${userAttempts.length} total attempts`}
                 />

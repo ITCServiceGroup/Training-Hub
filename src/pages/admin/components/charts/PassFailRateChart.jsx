@@ -30,58 +30,108 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
     }
   }, [data, getFiltersForChart, shouldFilterChart]);
 
-  // Process data for pass/fail analysis using quiz-specific thresholds
+  // Process data for pass/fail analysis using clean quiz-specific thresholds
   const chartData = useMemo(() => {
     if (!chartFilteredData || chartFilteredData.length === 0) return [];
 
-    let passCount = 0;
-    let failCount = 0;
-
-    // Analyze thresholds in the dataset for context
-    const thresholds = chartFilteredData
-      .map(result => result.passing_threshold || 70) // Keep as percentage for display
-      .filter((threshold, index, arr) => arr.indexOf(threshold) === index);
-
-    chartFilteredData.forEach((result) => {
-      const score = parseFloat(result.score_value) || 0;
-      // Convert threshold to decimal format (0-1) to match score format
-      const thresholdDecimal = (result.passing_threshold || 70) / 100; // Convert percentage to decimal
+    console.log('PassFailRateChart: Analyzing', chartFilteredData.length, 'records');
+    
+    // Analyze quiz breakdown
+    const quizBreakdown = {};
+    chartFilteredData.forEach(record => {
+      const quizTitle = record.quiz_title || 'Unknown Quiz';
+      if (!quizBreakdown[quizTitle]) {
+        quizBreakdown[quizTitle] = {
+          total: 0,
+          pass: 0,
+          fail: 0,
+          passing_score: record.passing_score || 0.7,
+          has_metadata: record.has_quiz_metadata || false
+        };
+      }
       
-      if (score >= thresholdDecimal) {
-        passCount++;
+      const quiz = quizBreakdown[quizTitle];
+      quiz.total++;
+      
+      // Simple pass/fail calculation: score_value >= passing_score (both decimal 0-1)
+      const score = parseFloat(record.score_value) || 0;
+      const passingScore = record.passing_score || 0.7;
+      const isPassing = score >= passingScore;
+      
+      if (isPassing) {
+        quiz.pass++;
       } else {
-        failCount++;
+        quiz.fail++;
       }
     });
 
-    const total = passCount + failCount;
-    if (total === 0) return [];
+    console.log('PassFailRateChart: Quiz breakdown:', quizBreakdown);
 
-    // Create threshold context for display
+    // Calculate overall totals
+    let totalPass = 0;
+    let totalFail = 0;
+    
+    Object.values(quizBreakdown).forEach(quiz => {
+      totalPass += quiz.pass;
+      totalFail += quiz.fail;
+    });
+
+    const grandTotal = totalPass + totalFail;
+    if (grandTotal === 0) return [];
+
+    // Determine if we have multiple quizzes
+    const uniqueQuizzes = Object.keys(quizBreakdown);
+    const isMultiQuiz = uniqueQuizzes.length > 1;
+
+    // Create display label for thresholds
+    const thresholds = [...new Set(Object.values(quizBreakdown).map(q => Math.round(q.passing_score * 100)))];
     const thresholdLabel = thresholds.length > 1 
       ? `${Math.min(...thresholds)}%-${Math.max(...thresholds)}%`
       : `${thresholds[0]}%`;
 
-    const chartData = [
+    // Store quiz breakdown for multi-quiz display
+    const quizStats = Object.entries(quizBreakdown).map(([title, stats]) => ({
+      title,
+      passRate: ((stats.pass / stats.total) * 100).toFixed(1),
+      total: stats.total,
+      pass: stats.pass,
+      fail: stats.fail,
+      threshold: Math.round(stats.passing_score * 100),
+      hasMetadata: stats.has_metadata
+    }));
+
+    console.log('PassFailRateChart: Final results:', {
+      totalPass,
+      totalFail,
+      grandTotal,
+      isMultiQuiz,
+      quizStats
+    });
+
+    const chartDataResult = [
       {
         id: 'pass',
         label: 'Pass',
-        value: passCount,
-        percentage: ((passCount / total) * 100).toFixed(1),
+        value: totalPass,
+        percentage: ((totalPass / grandTotal) * 100).toFixed(1),
         color: '#10b981', // Green
-        thresholdLabel
+        thresholdLabel,
+        isMultiQuiz,
+        quizStats
       },
       {
         id: 'fail',
-        label: 'Fail',
-        value: failCount,
-        percentage: ((failCount / total) * 100).toFixed(1),
+        label: 'Fail', 
+        value: totalFail,
+        percentage: ((totalFail / grandTotal) * 100).toFixed(1),
         color: '#ef4444', // Red
-        thresholdLabel
+        thresholdLabel,
+        isMultiQuiz,
+        quizStats
       }
     ].filter(item => item.value > 0);
 
-    return chartData;
+    return chartDataResult;
   }, [chartFilteredData]);
 
   if (loading) {
@@ -103,6 +153,10 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
   const passData = chartData.find(d => d.id === 'pass');
   const passRate = passData?.percentage || '0';
   const total = chartData.reduce((sum, d) => sum + d.value, 0);
+  
+  // Extract multi-quiz information
+  const isMultiQuiz = passData?.isMultiQuiz || false;
+  const quizStats = passData?.quizStats || [];
 
   // Handle pass/fail segment click for drill-down
   const handleSegmentClick = (segment) => {
@@ -128,14 +182,39 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
   return (
     <div className="h-full w-full relative">
       {/* Pass Rate Summary */}
-      <div className="absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2">
-        <div className="text-xs text-slate-600 dark:text-slate-400">Pass Rate</div>
+      <div className="absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2 max-w-xs">
+        <div className="text-xs text-slate-600 dark:text-slate-400">
+          {isMultiQuiz ? 'Overall Pass Rate' : 'Pass Rate'}
+        </div>
         <div className={`text-lg font-bold ${parseFloat(passRate) >= 80 ? 'text-green-600' : parseFloat(passRate) >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
           {passRate}%
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400">
           {total} total tests
         </div>
+        
+        {/* Multi-quiz breakdown */}
+        {isMultiQuiz && quizStats.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+            <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">
+              Aggregated from {quizStats.length} quiz{quizStats.length !== 1 ? 'es' : ''}:
+            </div>
+            {quizStats.map((quiz, index) => (
+              <div key={index} className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                <div className="font-medium truncate" title={quiz.title}>
+                  {quiz.title}
+                </div>
+                <div className="flex justify-between">
+                  <span>{quiz.passRate}% pass rate</span>
+                  <span>{quiz.threshold}% threshold</span>
+                </div>
+                <div className="text-slate-400 dark:text-slate-500">
+                  {quiz.pass}/{quiz.total} passing
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <ResponsivePie

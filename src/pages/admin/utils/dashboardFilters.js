@@ -288,19 +288,31 @@ export const getChartDrillDownActions = (chartType) => {
  * @returns {Object} Pass/fail classification filter object
  */
 export const createPassFailClassificationFilter = (classification, data = []) => {
-  // Analyze the thresholds in the dataset to provide context
-  const thresholds = data
-    .map(result => result.passing_threshold || 70) // Default to 70% if missing
-    .filter((threshold, index, arr) => arr.indexOf(threshold) === index) // Get unique values
-    .sort((a, b) => a - b);
+  // Analyze the clean passing scores in the dataset (should all be decimal 0-1)
+  const passingScores = [...new Set(data
+    .map(result => result.passing_score || 0.7) // Default to 70% (decimal)
+    .map(score => Math.round(score * 100)) // Convert to percentage for display
+  )].sort((a, b) => a - b);
   
-  const minThreshold = thresholds.length > 0 ? Math.min(...thresholds) : 70;
-  const maxThreshold = thresholds.length > 0 ? Math.max(...thresholds) : 70;
+  const minThreshold = passingScores.length > 0 ? Math.min(...passingScores) : 70;
+  const maxThreshold = passingScores.length > 0 ? Math.max(...passingScores) : 70;
   
-  // Create descriptive label based on threshold range (thresholds are already percentages)
-  const thresholdLabel = thresholds.length > 1 
+  // Create descriptive label based on threshold range
+  const thresholdLabel = passingScores.length > 1 
     ? `${minThreshold}%-${maxThreshold}%`
     : `${minThreshold}%`;
+  
+  // Get unique quiz titles for context
+  const affectedQuizzes = [...new Set(data.map(result => result.quiz_title).filter(Boolean))];
+  
+  // Simple pass/fail calculation using clean passing_score field
+  const matchingResults = data.filter(result => {
+    const score = parseFloat(result.score_value) || 0;
+    const passingScore = result.passing_score || 0.7; // Clean decimal format
+    const isPassing = score >= passingScore;
+    
+    return classification === 'pass' ? isPassing : !isPassing;
+  });
   
   return {
     classification,
@@ -308,11 +320,8 @@ export const createPassFailClassificationFilter = (classification, data = []) =>
       ? `Passing Results (Thresholds: ${thresholdLabel})`
       : `Failing Results (Thresholds: ${thresholdLabel})`,
     thresholdRange: thresholdLabel,
-    affectedQuizzes: [...new Set(data.map(result => result.quiz_title).filter(Boolean))],
-    count: data.filter(result => {
-      const score = parseFloat(result.score_value) || 0;
-      const thresholdDecimal = (result.passing_threshold || 70) / 100; // Convert percentage to decimal for comparison
-      return classification === 'pass' ? score >= thresholdDecimal : score < thresholdDecimal;
-    }).length
+    affectedQuizzes,
+    isMultiQuiz: affectedQuizzes.length > 1,
+    count: matchingResults.length
   };
 };
