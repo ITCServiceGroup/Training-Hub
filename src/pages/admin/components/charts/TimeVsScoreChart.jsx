@@ -367,6 +367,7 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
           ).toFixed(1);
 
           const data = [
+            { label: 'Username', value: node.data.ldap },
             { label: 'Score', value: `${node.data.y.toFixed(1)}%` },
             { label: 'Time Taken', value: `${node.data.x.toFixed(1)} min` },
             { label: 'Efficiency', value: `${efficiency} pts/min` },

@@ -109,7 +109,7 @@ class ExportService {
       const contentHeight = pageHeight - (margin * 2);
 
       // Add title page with context
-      await this._addTitlePage(pdf, title, chartTiles.length, { dashboardContext, rawData });
+      await this._addTitlePage(pdf, title, Array.from(chartTiles), { dashboardContext, rawData });
 
       // Process charts one per page for maximum size and readability
       for (let i = 0; i < chartTiles.length; i++) {
@@ -404,84 +404,131 @@ class ExportService {
     });
   }
 
-  async _addTitlePage(pdf, title, chartCount, context = {}) {
+  async _addTitlePage(pdf, title, chartTiles, context = {}) {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const centerX = pageWidth / 2;
 
-    // Main Title
+    // Main Title - moved up
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(title, centerX, 60, { align: 'center' });
+    pdf.text(title, centerX, 40, { align: 'center' });
 
-    // Subtitle
+    // Subtitle - moved up and closer
     pdf.setFontSize(16);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Analytics Dashboard Report', centerX, 80, { align: 'center' });
+    pdf.text('Analytics Dashboard Report', centerX, 60, { align: 'center' });
 
-    // Chart count
-    pdf.setFontSize(14);
-    pdf.text(`${chartCount} Charts Included`, centerX, 100, { align: 'center' });
+    // Generated date - moved under subtitle
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Generated: ${new Date().toLocaleString()}`, centerX, 75, { align: 'center' });
 
-    // Report Information Box
-    const boxY = 120;
-    const boxHeight = 80;
-    const boxWidth = 160;
+    // Removed chart count from here - will be in Report Details section
+
+    // Extract chart names and filter information
+    const chartNames = chartTiles.map(tile => {
+      // Try to get chart title from various possible locations
+      const titleElement = tile.querySelector('h3, h4, .chart-title, [data-chart-title]');
+      if (titleElement) {
+        return titleElement.textContent.trim();
+      }
+      // Fallback to a generic name if no title found
+      return `Chart ${chartTiles.indexOf(tile) + 1}`;
+    });
+
+    const filterInfo = this._extractCurrentFilters(context);
+
+    // Calculate two-column layout - optimized for content visibility
+    const boxY = 90; // Positioned after the generated date
+    const boxWidth = 280; // Increased slightly to accommodate full text
+    const maxItems = Math.max(chartNames.length, filterInfo.length);
+    const boxHeight = Math.min(
+      35 + (maxItems * 6), // Reduced spacing: 35 base + 6px per item (was 8px)
+      140 // Increased max height slightly to accommodate more content
+    );
     const boxX = centerX - (boxWidth / 2);
 
-    // Draw box
+    // Column dimensions - optimized for text display
+    const columnWidth = (boxWidth - 16) / 2; // 16px total for margins and gap
+    const leftColumnX = boxX + 8;
+    const rightColumnX = boxX + 8 + columnWidth + 8; // 8px gap between columns
+
+    // Draw main box
     pdf.setDrawColor(200, 200, 200);
     pdf.rect(boxX, boxY, boxWidth, boxHeight);
 
-    // Report details
-    pdf.setFontSize(12);
+    // Draw vertical divider between columns
+    pdf.line(boxX + boxWidth/2, boxY, boxX + boxWidth/2, boxY + boxHeight);
+
+    // Left Column - Charts
+    pdf.setFontSize(10);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Report Details', centerX, boxY + 15, { align: 'center' });
+    pdf.text(`${chartNames.length} Charts Included`, leftColumnX + columnWidth/2, boxY + 12, { align: 'center' });
 
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-
-    const details = [
-      `Generated: ${new Date().toLocaleString()}`,
-      `Format: PDF Dashboard Export`,
-      `Layout: 1 Chart per Page (Full Size)`,
-      `Quality: High Resolution`,
-      `Statistics: Included`
-    ];
-
-    details.forEach((detail, index) => {
-      pdf.text(detail, centerX, boxY + 30 + (index * 10), { align: 'center' });
+    pdf.setFontSize(8);
+    // Show more charts with tighter spacing
+    const maxChartsToShow = Math.min(chartNames.length, 15);
+    chartNames.slice(0, maxChartsToShow).forEach((chartName, index) => {
+      // Only truncate if absolutely necessary (much more generous)
+      let displayName = chartName;
+      if (chartName.length > 35) {
+        displayName = chartName.substring(0, 32) + '...';
+      }
+      pdf.text(displayName, leftColumnX + 2, boxY + 22 + (index * 6), { align: 'left' });
     });
 
-    // Active Filters Section (if available)
-    const filtersY = boxY + boxHeight + 30;
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Applied Filters', centerX, filtersY, { align: 'center' });
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-
-    // Try to extract current filter information from the dashboard
-    const filterInfo = this._extractCurrentFilters(context);
-
-    if (filterInfo.length > 0) {
-      filterInfo.forEach((filter, index) => {
-        pdf.text(filter, centerX, filtersY + 15 + (index * 10), { align: 'center' });
-      });
-    } else {
-      pdf.text('No filters applied - showing all data', centerX, filtersY + 15, { align: 'center' });
+    // Show "and X more" if there are more charts
+    if (chartNames.length > maxChartsToShow) {
+      pdf.text(`and ${chartNames.length - maxChartsToShow} more...`, leftColumnX + 2, boxY + 22 + (maxChartsToShow * 6), { align: 'left' });
     }
 
-    // Footer note
+    // Right Column - Applied Filters
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Applied Filters', rightColumnX + columnWidth/2, boxY + 12, { align: 'center' });
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    if (filterInfo.length > 0) {
+      // Show more filters with tighter spacing
+      const maxFiltersToShow = Math.min(filterInfo.length, 15);
+      filterInfo.slice(0, maxFiltersToShow).forEach((filter, index) => {
+        // Only truncate if absolutely necessary (much more generous)
+        let displayFilter = filter;
+        if (filter.length > 40) {
+          displayFilter = filter.substring(0, 37) + '...';
+        }
+        pdf.text(displayFilter, rightColumnX + 2, boxY + 22 + (index * 6), { align: 'left' });
+      });
+
+      // Show "and X more" if there are more filters
+      if (filterInfo.length > maxFiltersToShow) {
+        pdf.text(`and ${filterInfo.length - maxFiltersToShow} more...`, rightColumnX + 2, boxY + 22 + (maxFiltersToShow * 6), { align: 'left' });
+      }
+    } else {
+      pdf.text('No filters applied', rightColumnX + 2, boxY + 22, { align: 'left' });
+    }
+
+    // Footer note - positioned after the Report Details box
+    const footerStartY = boxY + boxHeight + 40; // Position footer below the box with some spacing
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'italic');
-    pdf.text(
-      'This report contains interactive dashboard data exported for analysis and reporting purposes.',
-      centerX,
-      pageHeight - 30,
-      { align: 'center' }
-    );
+
+    const footerLines = [
+      'This report contains interactive dashboard data exported',
+      'for analysis and reporting purposes.'
+    ];
+
+    footerLines.forEach((line, index) => {
+      pdf.text(
+        line,
+        centerX,
+        footerStartY + (index * 10),
+        { align: 'center' }
+      );
+    });
   }
 
   _extractCurrentFilters(context = {}) {
@@ -1193,8 +1240,8 @@ class ExportService {
     // Add chart in left column
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
 
-    // Add statistics below the chart
-    const statsY = y + chartHeight + 6;
+    // Add statistics below the chart (moved closer)
+    const statsY = y + chartHeight - 9;
     await this._addTimeVsScoreHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
 
     // Add details in right column
@@ -1259,21 +1306,105 @@ class ExportService {
     const correlation = n > 1 ? 
       (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY)) : 0;
 
-    const avgTime = sumX / n;
+    const avgTimeInSeconds = sumX / n;
+    const avgTime = avgTimeInSeconds / 60; // Convert to minutes
     const avgScore = (sumY / n) * 100;
-    const fastTests = validRecords.filter(r => parseFloat(r.time_taken) < avgTime).length;
+    const fastTests = validRecords.filter(r => parseFloat(r.time_taken) < avgTimeInSeconds).length;
     const slowTests = n - fastTests;
     const efficiencyScore = validRecords.filter(r => 
-      parseFloat(r.time_taken) <= avgTime && parseFloat(r.score_value) >= 0.8
+      parseFloat(r.time_taken) <= avgTimeInSeconds && parseFloat(r.score_value) >= 0.8
     ).length;
 
-    // Standard horizontal stats layout
-    const padding = 4;
-    const tightLineHeight = 5;
-    const statsLineHeight = 6;
-    const headerHeight = 12;
-    const statsContentHeight = 5 * statsLineHeight;
-    const statsHeight = headerHeight + statsContentHeight + (padding * 2) - 1;
+    // Create detailed correlation explanation based on value FIRST
+    const correlationValue = correlation || 0;
+    const absCorr = Math.abs(correlationValue);
+    let correlationExplanation = '';
+    let detailedExplanation = [];
+
+    if (absCorr >= 0.7) {
+      if (correlationValue > 0) {
+        correlationExplanation = ' (Strong positive)';
+        detailedExplanation = [
+          '- Strong relationship: more time = higher scores',
+          '- Students benefit significantly from taking time',
+          '- May indicate test is challenging or requires',
+          '  careful thought and analysis',
+          '- Consider if time pressure is appropriate'
+        ];
+      } else {
+        correlationExplanation = ' (Strong negative)';
+        detailedExplanation = [
+          '- Strong relationship: more time = lower scores',
+          '- Students who work quickly perform better',
+          '- May indicate test is too time-pressured',
+          '- Or that struggling students take longer',
+          '- Review test design and time allocation'
+        ];
+      }
+    } else if (absCorr >= 0.4) {
+      if (correlationValue > 0) {
+        correlationExplanation = ' (Moderate positive)';
+        detailedExplanation = [
+          '- Moderate relationship: more time tends to',
+          '  improve scores',
+          '- Students generally benefit from taking time',
+          '- Test allows for thoughtful consideration',
+          '- Good balance of challenge and time'
+        ];
+      } else {
+        correlationExplanation = ' (Moderate negative)';
+        detailedExplanation = [
+          '- Moderate relationship: more time tends to',
+          '  decrease scores',
+          '- Students who work efficiently perform better',
+          '- May indicate some time pressure effects',
+          '- Consider reviewing time constraints'
+        ];
+      }
+    } else if (absCorr >= 0.2) {
+      if (correlationValue > 0) {
+        correlationExplanation = ' (Weak positive)';
+        detailedExplanation = [
+          '- Slight relationship: more time may help',
+          '  some students',
+          '- Mixed results across test-takers',
+          '- Individual differences in test-taking style',
+          '- Generally well-balanced assessment'
+        ];
+      } else {
+        correlationExplanation = ' (Weak negative)';
+        detailedExplanation = [
+          '- Slight relationship: more time may hurt',
+          '  some students',
+          '- Mixed results across test-takers',
+          '- Possible mild time pressure effects',
+          '- Generally acceptable for most assessments'
+        ];
+      }
+    } else {
+      correlationExplanation = ' (No correlation)';
+      detailedExplanation = [
+        '- Practically no relationship between time',
+        '  spent and test scores',
+        '- Students who take more time don\'t score',
+        '  significantly differently than those who',
+        '  work quickly',
+        '- This is often ideal for assessments -',
+        '  indicates the test isn\'t too time-pressured',
+        '  or too easy',
+        '- Performance is based on',
+        '  knowledge/competency rather than speed'
+      ];
+    }
+
+    // 2-column layout with reduced spacing (now that we have detailedExplanation defined)
+    const padding = 3;
+    const tightLineHeight = 4;
+    const statsLineHeight = 4.5;
+    const headerHeight = 10;
+    const maxExplanationLines = Math.max(5, detailedExplanation.length);
+    const statsContentHeight = Math.max(3 * statsLineHeight, maxExplanationLines * statsLineHeight);
+    const statsHeight = headerHeight + statsContentHeight + (padding * 2);
 
     pdf.setDrawColor(200, 200, 200);
     pdf.setLineWidth(0.5);
@@ -1284,31 +1415,48 @@ class ExportService {
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Time vs Score Analysis:', x + 4, currentY);
-    currentY += tightLineHeight + 3;
+    currentY += tightLineHeight + 2;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
 
-    // Add padding below the dividing line
-    currentY += 3;
+    // Add minimal padding below the dividing line
+    currentY += 2;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
-    const stats = [
-      { label: 'Correlation Coefficient:', value: `${(correlation || 0).toFixed(3)}` },
-      { label: 'Average Time:', value: `${avgTime.toFixed(1)} min` },
-      { label: 'Average Score:', value: `${avgScore.toFixed(1)}%` },
-      { label: 'Efficient Tests:', value: `${efficiencyScore}/${n} (${((efficiencyScore/n)*100).toFixed(1)}%)` },
-      { label: 'Time Distribution:', value: `${fastTests} fast, ${slowTests} slow` }
+    // Define column layout
+    const leftColWidth = width * 0.45;
+    const rightColWidth = width * 0.5;
+    const leftColX = x + 4;
+    const rightColX = x + leftColWidth + 8;
+    
+    // Left column: Basic statistics
+    const leftColY = currentY;
+    const basicStats = [
+      { label: 'Correlation Coefficient:', value: ` ${correlationValue.toFixed(3)}${correlationExplanation}` },
+      { label: 'Average Time: ', value: `${avgTime.toFixed(1)} min` },
+      { label: 'Average Score: ', value: `${avgScore.toFixed(1)}%` }
     ];
 
-    stats.forEach(stat => {
+    // Left column with original spacing
+    const leftLineHeight = 6; // Original line height for left column
+    let leftCurrentY = leftColY;
+    basicStats.forEach(stat => {
       pdf.setFont('helvetica', 'bold');
-      pdf.text(stat.label, x + 4, currentY);
+      pdf.text(stat.label, leftColX, leftCurrentY);
       pdf.setFont('helvetica', 'normal');
       const labelWidth = pdf.getTextWidth(stat.label);
-      pdf.text(stat.value, x + 4 + labelWidth + 2, currentY);
-      currentY += statsLineHeight;
+      pdf.text(stat.value, leftColX + labelWidth + 2, leftCurrentY);
+      leftCurrentY += leftLineHeight;
+    });
+
+    // Right column: Detailed explanation (keep compact spacing)
+    let rightCurrentY = leftColY;
+    pdf.setFont('helvetica', 'normal');
+    detailedExplanation.forEach(line => {
+      pdf.text(line, rightColX, rightCurrentY);
+      rightCurrentY += statsLineHeight; // Keep compact spacing for explanations
     });
   }
 
@@ -1317,23 +1465,68 @@ class ExportService {
 
     const validRecords = rawData.filter(record => 
       record.score_value != null && record.time_taken != null
-    ).slice(0, 10);
+    );
 
     if (validRecords.length === 0) return;
 
-    // Sort by efficiency (high score, low time)
+    // Get unique quiz types to determine if multiple tests are involved
+    const uniqueQuizTypes = [...new Set(rawData.map(r => r.quiz_type).filter(Boolean))];
+    const testDisplayText = uniqueQuizTypes.length === 1 
+      ? uniqueQuizTypes[0] 
+      : `${uniqueQuizTypes.length} Tests`;
+
+    // Sort by efficiency with green zone priority (passing + fast performers first)
     const detailRecords = validRecords.map(record => {
-      const score = parseFloat(record.score_value) * 100;
-      const time = parseFloat(record.time_taken);
-      const efficiency = time > 0 ? score / time : 0;
+      // Handle score format - could be decimal (0.8) or percentage (80)
+      let score = parseFloat(record.score_value) || 0;
+      if (score <= 1) {
+        score = score * 100; // Convert decimal to percentage
+      }
+      
+      const timeInSeconds = parseFloat(record.time_taken);
+      const timeInMinutes = timeInSeconds / 60; // Convert seconds to minutes
+      const threshold = record.passing_threshold || 70; // Use actual threshold, default to 70%
+      const passed = score >= threshold;
+      
+      // Define green zone criteria (like chart's optimal quadrant)
+      const isHighScore = score >= 90; // High score threshold
+      const isFastTime = timeInMinutes <= 15; // Fast time threshold (15 minutes)
+      const isGreenZone = passed && isHighScore && isFastTime;
+      
+      // Calculate efficiency with priority weighting
+      let efficiency = 0;
+      if (timeInMinutes > 0) {
+        if (passed) {
+          efficiency = score / timeInMinutes; // Normal efficiency for passing results
+          if (isGreenZone) {
+            efficiency += 1000; // Boost green zone performers to top
+          }
+        } else {
+          efficiency = -1 * (threshold - score) / timeInMinutes; // Negative efficiency for failing results
+        }
+      }
+      
       return {
-        user: record.user_name || record.user_id || 'Unknown',
+        user: record.ldap || record.user_name || record.user_id || 'Unknown',
         score: score,
-        time: time,
+        time: timeInMinutes,
         efficiency: efficiency,
-        test: record.test_name || 'Test'
+        passed: passed,
+        isGreenZone: isGreenZone,
+        threshold: threshold,
+        test: record.quiz_type || record.test_name || 'Unknown Test'
       };
-    }).sort((a, b) => b.efficiency - a.efficiency);
+    }).sort((a, b) => {
+      // Priority order: Green zone first, then other passing, then failing
+      if (a.isGreenZone !== b.isGreenZone) {
+        return b.isGreenZone - a.isGreenZone; // Green zone first
+      }
+      if (a.passed !== b.passed) {
+        return b.passed - a.passed; // Then other passing results
+      }
+      // Within each group, sort by efficiency
+      return b.efficiency - a.efficiency;
+    }).slice(0, 10); // Take top 10 AFTER sorting
 
     const tightLineHeight = 5;
     const padding = 4;
@@ -1374,23 +1567,34 @@ class ExportService {
       let colY = isLeftColumn ? leftColY : rightColY;
 
       pdf.setFont('helvetica', 'bold');
-      if (record.efficiency >= 5) {
-        pdf.setTextColor(0, 120, 0);
-      } else if (record.efficiency >= 3) {
-        pdf.setTextColor(255, 140, 0);
+      // Color and status based on green zone, passing, or failing
+      let statusText;
+      if (record.isGreenZone) {
+        pdf.setTextColor(0, 150, 0); // Bright green for green zone
+        statusText = 'PASS';
+      } else if (record.passed) {
+        pdf.setTextColor(0, 100, 0); // Medium green for other passing
+        statusText = 'PASS';
       } else {
-        pdf.setTextColor(180, 0, 0);
+        pdf.setTextColor(180, 0, 0); // Red for failing
+        statusText = 'FAIL';
       }
-      pdf.text(`#${ranking}: ${record.user}`, colX, colY + 2);
+      
+      pdf.text(`#${ranking}: ${record.user} (${statusText})`, colX, colY + 2);
       colY += tightLineHeight + 1;
 
       pdf.setTextColor(0, 0, 0);
       pdf.setFont('helvetica', 'normal');
       
+      // Clean up efficiency display for green zone (remove the +1000 boost)
+      const displayEfficiency = record.isGreenZone ? 
+        (record.efficiency - 1000).toFixed(2) : 
+        record.efficiency.toFixed(2);
+      
       const recordInfo = [
-        `  Score: ${record.score.toFixed(1)}%`,
+        `  Score: ${record.score.toFixed(1)}%${record.passed ? ' (PASSED)' : ' (FAILED)'}`,
         `  Time: ${record.time.toFixed(1)} min`,
-        `  Efficiency: ${record.efficiency.toFixed(2)}`,
+        `  Efficiency: ${displayEfficiency}`,
         `  Test: ${record.test.substring(0, 20)}${record.test.length > 20 ? '...' : ''}`
       ];
 
