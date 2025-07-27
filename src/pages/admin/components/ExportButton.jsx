@@ -6,9 +6,10 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { BiDownload, BiImage, BiFile, BiLoader } from 'react-icons/bi';
+import { BiDownload, BiImage, BiFile, BiLoader, BiCloud } from 'react-icons/bi';
 import { useTheme } from '../../../contexts/ThemeContext';
 import exportService from '../services/exportService';
+import appsScriptExportService from '../../../services/appsScriptExport';
 
 const ExportButton = ({
   targetElement = null,
@@ -46,7 +47,9 @@ const ExportButton = ({
   // Handle export operations
   const handleExport = async (format) => {
     const element = getTargetElement();
-    if (!element) {
+    
+    // Google Sheets export doesn't need DOM element
+    if (format !== 'SHEETS' && !element) {
       setExportStatus('No element found to export');
       return;
     }
@@ -69,6 +72,38 @@ const ExportButton = ({
           dashboardContext,
           rawData
         });
+      } else if (format === 'SHEETS') {
+        // Handle Google Sheets export
+        if (!rawData) {
+          throw new Error('No data available for Google Sheets export');
+        }
+        
+        const result = await appsScriptExportService.exportToGoogleSheets(rawData, {
+          dashboardName: title || 'Training Hub Dashboard',
+          includeFilters: true,
+          filters: dashboardContext?.filters || {},
+          metadata: {
+            exportType: 'Dashboard Export',
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        // Show success message with Drive link
+        setExportStatus(
+          <span>
+            ✅ Export sent to Google Drive! 
+            <a 
+              href="https://drive.google.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="ml-2 underline hover:text-blue-500"
+            >
+              Open Google Drive
+            </a>
+          </span>
+        );
+        setTimeout(() => setExportStatus(''), 8000);
+        return; // Skip the generic success message
       }
       
       setExportStatus(`${format} export completed!`);
@@ -123,7 +158,7 @@ const ExportButton = ({
 
         {showDropdown && !isExporting && (
           <div className={`
-            absolute top-full left-0 mt-1 w-48 rounded-lg shadow-lg border z-50
+            absolute top-full left-0 mt-1 w-60 rounded-lg shadow-lg border z-50
             ${isDark 
               ? 'bg-slate-800 border-slate-600' 
               : 'bg-white border-slate-200'
@@ -167,6 +202,27 @@ const ExportButton = ({
                   </div>
                 </div>
               </button>
+
+              {rawData && appsScriptExportService.isConfigured() && (
+                <button
+                  onClick={() => handleExport('SHEETS')}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2 text-left transition-colors
+                    ${isDark 
+                      ? 'hover:bg-slate-700 text-white' 
+                      : 'hover:bg-slate-50 text-slate-700'
+                    }
+                  `}
+                >
+                  <BiCloud size={16} />
+                  <div>
+                    <div className="font-medium">Export to Google Sheets</div>
+                    <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Save data to Google Drive
+                    </div>
+                  </div>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -232,6 +288,25 @@ const ExportButton = ({
           <BiFile size={iconSizes[size]} />
           PDF
         </button>
+
+        {rawData && appsScriptExportService.isConfigured() && (
+          <button
+            onClick={() => handleExport('SHEETS')}
+            disabled={isExporting}
+            className={`
+              flex items-center gap-2 rounded transition-colors
+              ${sizeClasses[size]}
+              ${isDark 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-green-500 hover:bg-green-600 text-white'
+              }
+              ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+          >
+            <BiCloud size={iconSizes[size]} />
+            Sheets
+          </button>
+        )}
 
         {/* Status message */}
         {exportStatus && (
@@ -310,6 +385,22 @@ const ExportButton = ({
                 <BiFile size={14} />
                 PDF
               </button>
+
+              {rawData && appsScriptExportService.isConfigured() && (
+                <button
+                  onClick={() => handleExport('SHEETS')}
+                  className={`
+                    w-full flex items-center gap-2 px-3 py-2 text-left transition-colors
+                    ${isDark 
+                      ? 'hover:bg-slate-700 text-white' 
+                      : 'hover:bg-slate-50 text-slate-700'
+                    }
+                  `}
+                >
+                  <BiCloud size={14} />
+                  Sheets
+                </button>
+              )}
             </div>
           </div>
         )}
