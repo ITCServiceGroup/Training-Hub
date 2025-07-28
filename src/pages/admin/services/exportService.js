@@ -484,10 +484,10 @@ class ExportService {
       pdf.text(`and ${chartNames.length - maxChartsToShow} more...`, leftColumnX + 2, boxY + 22 + (maxChartsToShow * 6), { align: 'left' });
     }
 
-    // Right Column - Applied Filters
+    // Right Column - Report Data Content
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Applied Filters', rightColumnX + columnWidth/2, boxY + 12, { align: 'center' });
+    pdf.text('Report Data Content', rightColumnX + columnWidth/2, boxY + 12, { align: 'center' });
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
@@ -549,6 +549,28 @@ class ExportService {
           }
         }
 
+        // Add specific filter selections with proper counts and names
+        if (globalFilters.supervisors && globalFilters.supervisors.length > 0) {
+          filters.push(`Supervisors: ${globalFilters.supervisors.length}`);
+          globalFilters.supervisors.forEach(supervisor => {
+            filters.push(`  • ${supervisor}`);
+          });
+        }
+
+        if (globalFilters.markets && globalFilters.markets.length > 0) {
+          filters.push(`Markets: ${globalFilters.markets.length}`);
+          globalFilters.markets.forEach(market => {
+            filters.push(`  • ${market}`);
+          });
+        }
+
+        if (globalFilters.quizTypes && globalFilters.quizTypes.length > 0) {
+          filters.push(`Quiz Types: ${globalFilters.quizTypes.length}`);
+          globalFilters.quizTypes.forEach(quizType => {
+            filters.push(`  • ${quizType}`);
+          });
+        }
+
         // Add configuration info
         if (configuration) {
           filters.push(`Configuration: ${configuration.name || 'Default'}`);
@@ -585,14 +607,34 @@ class ExportService {
           }
         }
 
-        // Add unique counts
-        const supervisors = [...new Set(rawData.map(r => r.supervisor).filter(Boolean))];
-        const markets = [...new Set(rawData.map(r => r.market).filter(Boolean))];
-        const quizTypes = [...new Set(rawData.map(r => r.quiz_type).filter(Boolean))];
+        // Always show what data is contained in the report
+        if (rawData && Array.isArray(rawData)) {
+          // Show actual data content from the report
+          const supervisors = [...new Set(rawData.map(r => r.supervisor).filter(Boolean))].sort();
+          const markets = [...new Set(rawData.map(r => r.market).filter(Boolean))].sort();
+          const quizTypes = [...new Set(rawData.map(r => r.quiz_type).filter(Boolean))].sort();
 
-        if (supervisors.length > 0) filters.push(`Supervisors: ${supervisors.length}`);
-        if (markets.length > 0) filters.push(`Markets: ${markets.length}`);
-        if (quizTypes.length > 0) filters.push(`Quiz Types: ${quizTypes.length}`);
+          if (supervisors.length > 0) {
+            filters.push(`Supervisors: ${supervisors.length}`);
+            supervisors.forEach(supervisor => {
+              filters.push(`  • ${supervisor}`);
+            });
+          }
+
+          if (markets.length > 0) {
+            filters.push(`Markets: ${markets.length}`);
+            markets.forEach(market => {
+              filters.push(`  • ${market}`);
+            });
+          }
+
+          if (quizTypes.length > 0) {
+            filters.push(`Quiz Types: ${quizTypes.length}`);
+            quizTypes.forEach(quizType => {
+              filters.push(`  • ${quizType}`);
+            });
+          }
+        }
       }
 
       // If no specific filters found, add generic info
