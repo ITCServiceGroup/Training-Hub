@@ -1485,7 +1485,9 @@ class ExportService {
       
       const timeInSeconds = parseFloat(record.time_taken);
       const timeInMinutes = timeInSeconds / 60; // Convert seconds to minutes
-      const threshold = record.passing_threshold || 70; // Use actual threshold, default to 70%
+      if (!record.passing_score) return; // Skip records without threshold
+      const threshold = record.passing_score; // Use only actual threshold
+      if (!threshold) return null; // Skip records without valid threshold
       const passed = score >= threshold;
       
       // Define green zone criteria (like chart's optimal quadrant)
@@ -1516,7 +1518,7 @@ class ExportService {
         threshold: threshold,
         test: record.quiz_type || record.test_name || 'Unknown Test'
       };
-    }).sort((a, b) => {
+    }).filter(record => record !== null).sort((a, b) => {
       // Priority order: Green zone first, then other passing, then failing
       if (a.isGreenZone !== b.isGreenZone) {
         return b.isGreenZone - a.isGreenZone; // Green zone first
@@ -1630,7 +1632,10 @@ class ExportService {
         };
       }
       questionGroups[questionId].attempts++;
-      if (record.is_correct || (parseFloat(record.score_value) || 0) >= 0.8) {
+      // Use actual quiz-specific passing score for determining correctness
+      const score = parseFloat(record.score_value) || 0;
+      const isCorrectByScore = record.passing_score && score >= record.passing_score;
+      if (record.is_correct || isCorrectByScore) {
         questionGroups[questionId].correct++;
       }
       questionGroups[questionId].totalTime += parseFloat(record.time_taken) || 0;
@@ -1714,7 +1719,10 @@ class ExportService {
         };
       }
       questionGroups[questionId].attempts++;
-      if (record.is_correct || (parseFloat(record.score_value) || 0) >= 0.8) {
+      // Use actual quiz-specific passing score for determining correctness
+      const score = parseFloat(record.score_value) || 0;
+      const isCorrectByScore = record.passing_score && score >= record.passing_score;
+      if (record.is_correct || isCorrectByScore) {
         questionGroups[questionId].correct++;
       }
       questionGroups[questionId].totalTime += parseFloat(record.time_taken) || 0;
@@ -2054,7 +2062,10 @@ class ExportService {
       supervisorGroups[supervisor].scores.push(parseFloat(record.score_value) || 0);
       supervisorGroups[supervisor].count++;
       supervisorGroups[supervisor].totalTime += parseFloat(record.time_taken) || 0;
-      if ((parseFloat(record.score_value) || 0) >= 0.7) supervisorGroups[supervisor].passCount++;
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && (parseFloat(record.score_value) || 0) >= record.passing_score) {
+        supervisorGroups[supervisor].passCount++;
+      }
     });
 
     const supervisors = Object.values(supervisorGroups).map(group => {
@@ -2143,7 +2154,10 @@ class ExportService {
       supervisorGroups[supervisor].scores.push(parseFloat(record.score_value) || 0);
       supervisorGroups[supervisor].count++;
       supervisorGroups[supervisor].totalTime += parseFloat(record.time_taken) || 0;
-      if ((parseFloat(record.score_value) || 0) >= 0.7) supervisorGroups[supervisor].passCount++;
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && (parseFloat(record.score_value) || 0) >= record.passing_score) {
+        supervisorGroups[supervisor].passCount++;
+      }
     });
 
     const supervisors = Object.values(supervisorGroups).slice(0, 10).map(group => {
@@ -2794,7 +2808,8 @@ class ExportService {
     rawData.forEach(record => {
       const date = record.completion_date || record.date || new Date().toISOString().split('T')[0];
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      const threshold = (record.passing_threshold || 70) / 100; // Convert to decimal, use actual threshold
+      if (!record.passing_score) return; // Skip records without threshold
+      const threshold = record.passing_score; // Already in decimal format
       
       if (!dateGroups[date]) {
         dateGroups[date] = { count: 0, totalScore: 0, passed: 0 };
@@ -2875,7 +2890,10 @@ class ExportService {
       
       dateGroups[date].count++;
       dateGroups[date].totalScore += score;
-      if (score >= 0.7) dateGroups[date].passed++;
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && score >= record.passing_score) {
+        dateGroups[date].passed++;
+      }
       dateGroups[date].records.push(record);
     });
 
@@ -2997,7 +3015,8 @@ class ExportService {
       const avgScore = totalTests > 0 ? (totalScore / totalTests * 100).toFixed(1) : '0.0';
       const passedTests = rawData.filter(r => {
         const score = parseFloat(r.score_value) || 0;
-        const threshold = (r.passing_threshold || 70) / 100;
+        if (!r.passing_score) return false; // Skip records without threshold
+        const threshold = r.passing_score; // Already in decimal format
         return score >= threshold;
       }).length;
       const passRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : '0.0';
@@ -3221,17 +3240,21 @@ class ExportService {
     let totalScore = 0;
 
     rawData.forEach(record => {
-      const category = record.category || record.test_category || 'Unknown';
+      const category = record.quiz_type || record.category || record.test_category || 'Unknown';
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      
+
       if (!categoryGroups[category]) {
         categoryGroups[category] = { count: 0, totalScore: 0, passed: 0 };
       }
-      
+
       categoryGroups[category].count++;
       categoryGroups[category].totalScore += score;
-      if (score >= 0.7) categoryGroups[category].passed++;
-      
+
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && score >= record.passing_score) {
+        categoryGroups[category].passed++;
+      }
+
       totalTests++;
       totalScore += score;
     });
@@ -3266,7 +3289,7 @@ class ExportService {
     
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Category Performance Stats:', x + 4, currentY);
+    pdf.text('Quiz Type Performance Stats:', x + 4, currentY);
     currentY += tightLineHeight + 3;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
@@ -3278,11 +3301,11 @@ class ExportService {
     pdf.setFont('helvetica', 'normal');
 
     const stats = [
-      { label: 'Total Categories:', value: `${totalCategories}` },
+      { label: 'Total Quiz Types:', value: `${totalCategories}` },
       { label: 'Overall Average:', value: `${overallAvg.toFixed(1)}%` },
-      { label: 'Top Category:', value: topCategory.name || 'N/A' },
+      { label: 'Top Quiz Type:', value: topCategory.name || 'N/A' },
       { label: 'Top Score:', value: `${(topCategory.avgScore || 0).toFixed(1)}%` },
-      { label: 'Avg Tests/Category:', value: `${avgTestsPerCategory.toFixed(1)}` }
+      { label: 'Avg Tests/Type:', value: `${avgTestsPerCategory.toFixed(1)}` }
     ];
 
     stats.forEach(stat => {
@@ -3301,16 +3324,21 @@ class ExportService {
     // Same processing as horizontal stats
     const categoryGroups = {};
     rawData.forEach(record => {
-      const category = record.category || record.test_category || 'Unknown';
+      const category = record.quiz_type || record.category || record.test_category || 'Unknown';
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      
+
       if (!categoryGroups[category]) {
         categoryGroups[category] = { count: 0, totalScore: 0, passed: 0, records: [] };
       }
-      
+
       categoryGroups[category].count++;
       categoryGroups[category].totalScore += score;
-      if (score >= 0.7) categoryGroups[category].passed++;
+
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && score >= record.passing_score) {
+        categoryGroups[category].passed++;
+      }
+
       categoryGroups[category].records.push(record);
     });
 
@@ -3340,7 +3368,7 @@ class ExportService {
 
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Category Performance Details:', x + 4, currentY);
+    pdf.text('Quiz Type Performance Details:', x + 4, currentY);
     currentY += tightLineHeight + 3;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
@@ -3948,7 +3976,10 @@ class ExportService {
       
       marketGroups[market].count++;
       marketGroups[market].totalScore += score;
-      if (score >= 0.7) marketGroups[market].passed++;
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && score >= record.passing_score) {
+        marketGroups[market].passed++;
+      }
       
       totalTests++;
       totalScore += score;
@@ -4028,7 +4059,10 @@ class ExportService {
       
       marketGroups[market].count++;
       marketGroups[market].totalScore += score;
-      if (score >= 0.7) marketGroups[market].passed++;
+      // Use actual quiz-specific passing score instead of hardcoded 0.7
+      if (record.passing_score && score >= record.passing_score) {
+        marketGroups[market].passed++;
+      }
       marketGroups[market].records.push(record);
     });
 
@@ -4867,7 +4901,8 @@ class ExportService {
 
     rawData.forEach(record => {
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      const threshold = (record.passing_threshold || 70) / 100; // Convert to decimal, use actual threshold
+      if (!record.passing_score) return; // Skip records without threshold
+      const threshold = record.passing_score; // Already in decimal format
       totalTests++;
       totalScore += score;
       
@@ -4883,10 +4918,10 @@ class ExportService {
     const averageScore = totalTests > 0 ? (totalScore / totalTests) * 100 : 0;
     
     // Calculate the actual threshold(s) used in the dataset
-    const thresholds = rawData.map(record => record.passing_threshold || 70);
+    const thresholds = rawData.map(record => record.passing_score).filter(t => t != null);
     const uniqueThresholds = [...new Set(thresholds)];
-    const passThreshold = uniqueThresholds.length === 1 
-      ? uniqueThresholds[0] 
+    const passThreshold = uniqueThresholds.length === 1
+      ? uniqueThresholds[0]
       : `${Math.min(...uniqueThresholds)}-${Math.max(...uniqueThresholds)}`;
 
     // Standard horizontal stats layout
@@ -4945,20 +4980,21 @@ class ExportService {
 
     rawData.forEach(record => {
       const score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
-      const threshold = (record.passing_threshold || 70) / 100; // Convert to decimal
-      
+      if (!record.passing_score) return; // Skip records without threshold
+      const threshold = record.passing_score; // Already in decimal format
+
       if (score >= threshold) {
         passCount++;
         passDetails.push({
           score: score,
-          threshold: record.passing_threshold || 70,
+          threshold: record.passing_score * 100, // Convert to percentage for display
           user: record.user_name || record.name || 'Unknown'
         });
       } else {
         failCount++;
         failDetails.push({
           score: score,
-          threshold: record.passing_threshold || 70,
+          threshold: record.passing_score * 100, // Convert to percentage for display
           user: record.user_name || record.name || 'Unknown'
         });
       }
@@ -5064,7 +5100,8 @@ class ExportService {
 
     // Analyze thresholds in the dataset
     const thresholds = rawData
-      .map(result => result.passing_threshold || 70)
+      .map(result => result.passing_score)
+      .filter(t => t != null)
       .filter((threshold, index, arr) => arr.indexOf(threshold) === index);
 
     // Calculate pass/fail counts using actual quiz thresholds
@@ -5075,13 +5112,14 @@ class ExportService {
 
     rawData.forEach((result) => {
       const score = parseFloat(result.score_value) || 0;
-      const threshold = (result.passing_threshold || 70) / 100; // Convert to decimal
-      
+      if (!result.passing_score) return; // Skip records without threshold
+      const threshold = result.passing_score; // Already in decimal format
+
       if (score >= threshold) {
         passCount++;
         passDetails.push({
           score: score,
-          threshold: result.passing_threshold || 70,
+          threshold: result.passing_score * 100, // Convert to percentage for display
           user: result.ldap || 'Unknown',
           quizType: result.quiz_type || 'Unknown'
         });
@@ -5089,7 +5127,7 @@ class ExportService {
         failCount++;
         failDetails.push({
           score: score,
-          threshold: result.passing_threshold || 70,
+          threshold: result.passing_score * 100, // Convert to percentage for display
           user: result.ldap || 'Unknown',
           quizType: result.quiz_type || 'Unknown'
         });
@@ -5489,12 +5527,18 @@ class ExportService {
         const avgScore = (scores.reduce((sum, s) => sum + s, 0) / scores.length * 100).toFixed(1);
         const maxScore = (Math.max(...scores) * 100).toFixed(1);
         const minScore = (Math.min(...scores) * 100).toFixed(1);
-        const passRate = ((scores.filter(s => s >= 0.7).length / scores.length) * 100).toFixed(1);
+        // Calculate pass rate using actual quiz-specific passing scores
+        const passedCount = rawData.filter(r => {
+          const score = parseFloat(r.score_value) || 0;
+          return r.passing_score && score >= r.passing_score;
+        }).length;
+        const passRate = rawData.length > 0 ? ((passedCount / rawData.length) * 100).toFixed(1) : '0.0';
 
         if (chartTitle.toLowerCase().includes('pass') && chartTitle.toLowerCase().includes('fail')) {
           // Pass/Fail Rate specific statistics using actual quiz thresholds
           const thresholds = rawData
-            .map(result => result.passing_threshold || 70)
+            .map(result => result.passing_score)
+            .filter(t => t != null)
             .filter((threshold, index, arr) => arr.indexOf(threshold) === index);
 
           let passCount = 0;
@@ -5503,8 +5547,9 @@ class ExportService {
           // Calculate pass/fail using actual thresholds from each quiz result
           rawData.forEach((result) => {
             const score = parseFloat(result.score_value) || 0;
-            const threshold = (result.passing_threshold || 70) / 100; // Convert to decimal
-            
+            if (!result.passing_score) return; // Skip records without threshold
+            const threshold = result.passing_score; // Already in decimal format
+
             if (score >= threshold) {
               passCount++;
             } else {
@@ -5849,10 +5894,11 @@ class ExportService {
         } else if (score <= 1) {
           score = score * 100;
         }
-        
-        const threshold = record.passing_threshold || 70;
+
+        if (!record.passing_score) return; // Skip records without threshold
+        const threshold = record.passing_score * 100; // Convert to percentage for comparison
         const userName = record.ldap || record.user_name || record.name || 'Unknown';
-        
+
         if (score < threshold && score >= (threshold - 10)) {
           closeToPassUsers.push(userName);
         }
@@ -5921,9 +5967,9 @@ class ExportService {
     const closeToPassUsers = [];
     
     // Get threshold info for dynamic labeling
-    const thresholds = rawData.map(record => record.passing_threshold || 70);
+    const thresholds = rawData.map(record => record.passing_score).filter(t => t != null);
     const uniqueThresholds = [...new Set(thresholds)];
-    const avgThreshold = uniqueThresholds.length === 1 ? uniqueThresholds[0] : Math.round(thresholds.reduce((a, b) => a + b, 0) / thresholds.length);
+    const avgThreshold = uniqueThresholds.length === 1 ? uniqueThresholds[0] * 100 : Math.round(thresholds.reduce((a, b) => a + b, 0) / thresholds.length * 100);
     
     rawData.forEach(record => {
       let score = parseFloat(record.score_value) || parseFloat(record.score) || 0;
@@ -5938,10 +5984,11 @@ class ExportService {
         // Convert decimal to percentage
         score = score * 100;
       }
-      
-      const threshold = record.passing_threshold || 70;
+
+      if (!record.passing_score) return; // Skip records without threshold
+      const threshold = record.passing_score * 100; // Convert to percentage
       const userName = record.ldap || record.user_name || record.name || 'Unknown';
-      
+
       if (score < 30) {
         range0to30++;
       } else if (score < 50) {
@@ -5955,7 +6002,7 @@ class ExportService {
       } else {
         range90to100++;
       }
-      
+
       // Close to passing: within 10% of threshold but below it
       if (score < threshold && score >= (threshold - 10)) {
         closeToPassingCount++;
@@ -6078,7 +6125,7 @@ class ExportService {
         score_value: r.score_value,
         score: r.score,
         score_text: r.score_text,
-        passing_threshold: r.passing_threshold,
+        passing_score: r.passing_score,
         user_name: r.user_name,
         name: r.name,
         ldap: r.ldap
@@ -6097,8 +6144,9 @@ class ExportService {
           score = parseFloat(percentMatch[1]) / 100; // Convert percentage to decimal
         }
       }
-      
-      const threshold = (record.passing_threshold || 70) / 100;
+
+      if (!record.passing_score) return; // Skip records without threshold
+      const threshold = record.passing_score; // Already in decimal format
       
       // Handle both decimal (0.65) and percentage (65) score formats
       if (score > 1) {

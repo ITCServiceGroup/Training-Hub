@@ -45,7 +45,7 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
           total: 0,
           pass: 0,
           fail: 0,
-          passing_score: record.passing_score || 0.7,
+          passing_score: record.passing_score || null,
           has_metadata: record.has_quiz_metadata || false
         };
       }
@@ -55,7 +55,8 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
       
       // Simple pass/fail calculation: score_value >= passing_score (both decimal 0-1)
       const score = parseFloat(record.score_value) || 0;
-      const passingScore = record.passing_score || 0.7;
+      const passingScore = record.passing_score;
+      if (passingScore == null) return; // Skip records without threshold
       const isPassing = score >= passingScore;
       
       if (isPassing) {
@@ -84,7 +85,7 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
     const isMultiQuiz = uniqueQuizzes.length > 1;
 
     // Create display label for thresholds
-    const thresholds = [...new Set(Object.values(quizBreakdown).map(q => Math.round(q.passing_score * 100)))];
+    const thresholds = [...new Set(Object.values(quizBreakdown).map(q => Math.round(q.passing_score * 100)).filter(t => !isNaN(t)))];
     const thresholdLabel = thresholds.length > 1 
       ? `${Math.min(...thresholds)}%-${Math.max(...thresholds)}%`
       : `${thresholds[0]}%`;
@@ -239,6 +240,7 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
               borderRadius: 6,
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+              zIndex: 9999,
             },
           },
         }}

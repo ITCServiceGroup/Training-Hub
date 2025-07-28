@@ -440,3 +440,23 @@ label { /* Uncommented custom CSS */
   background: #374151 !important;
   color: #9ca3af !important;
 }
+
+/* React Grid Layout Z-Index Fix for Tooltips */
+/* Target React Grid Layout items when they contain active tooltips */
+.react-grid-item:hover,
+.react-grid-item:has(div[style*="position: absolute"][style*="pointer-events: none"]) {
+  z-index: 1000 !important;
+}
+
+/* Fallback: Ensure all Nivo chart tooltips have maximum z-index */
+div[data-testid="tooltip"],
+div[style*="position: absolute"][style*="pointer-events: none"],
+.nivo-tooltip,
+div[style*="background"][style*="border-radius"][style*="box-shadow"][style*="position: absolute"] {
+  z-index: 10000 !important;
+}
+
+/* Additional fallback: Target grid items on hover to lift their stacking context */
+.react-grid-layout .react-grid-item:hover {
+  z-index: 999 !important;
+}

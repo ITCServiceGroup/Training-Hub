@@ -63,23 +63,35 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
       const quizType = result.quiz_type || 'Unknown';
       if (!quizTypeGroups[quizType]) {
         quizTypeGroups[quizType] = {
-          scores: [],
-          times: [],
+          records: [],
           count: 0
         };
       }
       
-      quizTypeGroups[quizType].scores.push(parseFloat(result.score_value) || 0);
-      quizTypeGroups[quizType].times.push(parseInt(result.time_taken) || 0);
+      quizTypeGroups[quizType].records.push(result);
       quizTypeGroups[quizType].count++;
     });
 
     // Calculate averages and format for chart
     const quizTypeData = Object.entries(quizTypeGroups)
       .map(([quizType, group]) => {
-        const avgScore = group.scores.reduce((sum, score) => sum + score, 0) / group.scores.length;
-        const avgTime = group.times.reduce((sum, time) => sum + time, 0) / group.times.length;
-        const passRate = group.scores.filter(score => score >= 0.7).length / group.scores.length;
+        // Only process records with valid thresholds
+        const validRecords = group.records.filter(r => r.passing_score != null);
+        if (validRecords.length === 0) return null;
+        
+        const scores = validRecords.map(r => parseFloat(r.score_value) || 0);
+        const times = validRecords.map(r => parseInt(r.time_taken) || 0);
+        
+        const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+        const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+        
+        // Calculate pass rate using actual thresholds
+        const passedCount = validRecords.filter(r => {
+          const score = parseFloat(r.score_value) || 0;
+          const threshold = r.passing_score; // Already in decimal format
+          return score >= threshold;
+        }).length;
+        const passRate = passedCount / validRecords.length;
         
         return {
           quizType: quizType.length > 20 ? quizType.substring(0, 20) + '...' : quizType,
@@ -87,10 +99,11 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
           averageScore: (avgScore * 100).toFixed(1),
           averageTime: Math.round(avgTime / 60), // Convert to minutes
           passRate: (passRate * 100).toFixed(1),
-          count: group.count,
+          count: validRecords.length,
           difficulty: avgScore < 0.6 ? 'Hard' : avgScore < 0.8 ? 'Medium' : 'Easy'
         };
       })
+      .filter(item => item !== null)
       .sort((a, b) => parseFloat(b.averageScore) - parseFloat(a.averageScore))
       .slice(0, 10); // Show top 10 quiz types
 
@@ -197,6 +210,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
               borderRadius: 6,
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+              zIndex: 9999,
             },
           },
         }}

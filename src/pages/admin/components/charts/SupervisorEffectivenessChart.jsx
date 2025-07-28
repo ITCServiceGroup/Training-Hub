@@ -47,15 +47,13 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
       const supervisor = result.supervisor || 'Unknown';
       if (!supervisorGroups[supervisor]) {
         supervisorGroups[supervisor] = {
-          scores: [],
-          times: [],
+          records: [],
           users: new Set(),
           count: 0
         };
       }
 
-      supervisorGroups[supervisor].scores.push(parseFloat(result.score_value) || 0);
-      supervisorGroups[supervisor].times.push(parseInt(result.time_taken) || 0);
+      supervisorGroups[supervisor].records.push(result);
       supervisorGroups[supervisor].users.add(result.ldap);
       supervisorGroups[supervisor].count++;
     });
@@ -63,14 +61,28 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
     // Calculate effectiveness metrics for each supervisor
     const supervisorData = Object.entries(supervisorGroups)
       .map(([supervisor, group]) => {
-        const avgScore = group.scores.reduce((sum, score) => sum + score, 0) / group.scores.length;
-        const avgTime = group.times.reduce((sum, time) => sum + time, 0) / group.times.length;
-        const passRate = group.scores.filter(score => score >= 0.7).length / group.scores.length;
+        // Only process records with valid thresholds
+        const validRecords = group.records.filter(r => r.passing_score != null);
+        if (validRecords.length === 0) return null;
+        
+        const scores = validRecords.map(r => parseFloat(r.score_value) || 0);
+        const times = validRecords.map(r => parseInt(r.time_taken) || 0);
+        
+        const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+        const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+        
+        // Calculate pass rate using actual thresholds
+        const passedCount = validRecords.filter(r => {
+          const score = parseFloat(r.score_value) || 0;
+          const threshold = r.passing_score; // Already in decimal format
+          return score >= threshold;
+        }).length;
+        const passRate = passedCount / validRecords.length;
         const teamSize = group.users.size;
         const testsPerUser = group.count / teamSize;
 
         // Calculate consistency (lower standard deviation = higher consistency)
-        const scoreVariance = group.scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / group.scores.length;
+        const scoreVariance = scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / scores.length;
         const consistency = Math.max(0, 1 - Math.sqrt(scoreVariance));
 
         // Calculate efficiency (good scores in reasonable time)
@@ -97,11 +109,12 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
             passRate: (passRate * 100).toFixed(1),
             teamSize,
             testsPerUser: testsPerUser.toFixed(1),
-            count: group.count,
+            count: validRecords.length,
             consistency: (consistency * 100).toFixed(1)
           }
         };
       })
+      .filter(item => item !== null) // Remove null items before sorting
       .sort((a, b) => parseFloat(b.metrics['Avg Score']) - parseFloat(a.metrics['Avg Score']))
       .slice(0, 5); // Show top 5 supervisors for readability
 
@@ -221,7 +234,8 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
               border: `2px solid ${isDark ? '#475569' : '#e2e8f0'}`,
               padding: '12px',
               minWidth: '280px',
-              maxWidth: '350px'
+              maxWidth: '350px',
+              zIndex: 9999,
             },
           },
           grid: {

@@ -34,7 +34,11 @@ const DashboardTile = ({
       className={`h-full min-h-[320px] bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      style={{ minHeight: '320px' }}
+      style={{ 
+        minHeight: '320px',
+        position: 'relative',
+        zIndex: isHovered ? 1000 : 1
+      }}
     >
       {/* Tile Header */}
       <div className="dashboard-tile-header flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-600">
@@ -74,7 +78,7 @@ const DashboardTile = ({
       </div>
 
       {/* Tile Content */}
-      <div className="dashboard-tile-content p-4 h-[calc(100%-4rem)]">
+      <div className="dashboard-tile-content p-4 h-[calc(100%-4rem)] relative">
         {error ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="text-red-500 dark:text-red-400 mb-2">

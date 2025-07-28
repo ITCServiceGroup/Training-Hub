@@ -46,10 +46,14 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
         };
       }
       
+      const score = parseFloat(result.score_value) || 0;
+      const threshold = result.passing_score;
+      const passed = threshold != null ? score >= threshold : false;
+      
       userQuizGroups[key].attempts.push({
-        score: parseFloat(result.score_value) || 0,
+        score: score,
         date: result.date_of_test,
-        passed: (parseFloat(result.score_value) || 0) >= 0.7
+        passed: passed
       });
     });
 
@@ -313,6 +317,7 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
               borderRadius: 6,
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+              zIndex: 9999,
             },
           },
         }}
