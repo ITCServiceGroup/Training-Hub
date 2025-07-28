@@ -1116,19 +1116,19 @@ class ExportService {
     const statsY = y + chartHeight + 6;
     await this._addTestCompletionTrendHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
 
-    // Add three separate boxes in right column: Aggregate, Individual, Cohort
-    const boxHeight = height / 3 - 5; // Divide height into 3 boxes with small gaps
+    // Add three separate boxes in right column: Aggregate, Individual, Cohort with dynamic heights
+    const boxGap = 5;
     
-    // Aggregate box
-    await this._addScoreTrendAggregateBox(pdf, rightColumnX, y, infoWidth, boxHeight, rawData, tileElement);
+    // Aggregate box - calculate its own height
+    const aggregateHeight = await this._addScoreTrendAggregateBox(pdf, rightColumnX, y, infoWidth, 0, rawData, tileElement);
     
-    // Individual box
-    const individualY = y + boxHeight + 5;
-    await this._addScoreTrendIndividualBox(pdf, rightColumnX, individualY, infoWidth, boxHeight, rawData, tileElement);
+    // Individual box - positioned after aggregate box
+    const individualY = y + aggregateHeight + boxGap;
+    const individualHeight = await this._addScoreTrendIndividualBox(pdf, rightColumnX, individualY, infoWidth, 0, rawData, tileElement);
     
-    // Cohort box
-    const cohortY = individualY + boxHeight + 5;
-    await this._addScoreTrendCohortBox(pdf, rightColumnX, cohortY, infoWidth, boxHeight, rawData, tileElement);
+    // Cohort box - positioned after individual box
+    const cohortY = individualY + individualHeight + boxGap;
+    await this._addScoreTrendCohortBox(pdf, rightColumnX, cohortY, infoWidth, 0, rawData, tileElement);
   }
 
   async _addCategoryPerformanceSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
@@ -2962,23 +2962,30 @@ class ExportService {
   }
 
   async _addScoreTrendAggregateBox(pdf, x, y, width, height, rawData, tileElement = null) {
-    // Create Aggregate box
+    // Create Aggregate box with dynamic height
     const padding = 4;
-    const headerHeight = 12;
+    const lineHeight = 5; // Reduced from 6 to 5
+    const headerHeight = 7; // Reduced from 8 to 7
+    const dividerSpacing = 2; // Reduced from 3 to 2
     
-    pdf.setDrawColor(200, 200, 200);
+    // Calculate dynamic height based on content (added trend lines)
+    const contentLines = 6; // Total Tests, Average Score, Pass Rate, Passed, Recent Trend, Best Period
+    const boxHeight = padding + headerHeight + dividerSpacing + (contentLines * lineHeight) + padding;
+    
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
     pdf.setLineWidth(0.5);
-    pdf.rect(x, y - 2, width, height);
+    pdf.rect(x, y - 2, width, boxHeight, 'FD');
 
     let currentY = y + padding;
     
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Aggregate:', x + 4, currentY);
-    currentY += 8;
+    currentY += headerHeight;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
-    currentY += 3;
+    currentY += dividerSpacing;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
@@ -2995,73 +3002,174 @@ class ExportService {
       }).length;
       const passRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : '0.0';
 
+      // Trend Analysis - Parse dates and calculate trends
+      let trendText = 'Insufficient data';
+      let bestPeriodText = 'N/A';
+      
+      try {
+        // Filter records with valid dates and group by month
+        const recordsWithDates = rawData.filter(r => r.date_of_test).map(r => ({
+          ...r,
+          date: new Date(r.date_of_test),
+          score: parseFloat(r.score_value) || 0
+        })).filter(r => !isNaN(r.date.getTime())).sort((a, b) => a.date - b.date);
+
+        if (recordsWithDates.length >= 10) { // Need sufficient data for meaningful trends
+          const now = new Date();
+          const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+          const sixtyDaysAgo = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
+
+          // Recent period (last 30 days)
+          const recentRecords = recordsWithDates.filter(r => r.date >= thirtyDaysAgo);
+          // Previous period (30-60 days ago)
+          const previousRecords = recordsWithDates.filter(r => r.date >= sixtyDaysAgo && r.date < thirtyDaysAgo);
+
+          if (recentRecords.length >= 3 && previousRecords.length >= 3) {
+            const recentAvg = (recentRecords.reduce((sum, r) => sum + r.score, 0) / recentRecords.length) * 100;
+            const previousAvg = (previousRecords.reduce((sum, r) => sum + r.score, 0) / previousRecords.length) * 100;
+            const trendChange = recentAvg - previousAvg;
+            
+            const trendIcon = trendChange > 2 ? '↗' : trendChange < -2 ? '↘' : '→';
+            if (Math.abs(trendChange) > 2) {
+              const changeValue = trendChange > 0 ? `+${trendChange.toFixed(1)}%` : `${trendChange.toFixed(1)}%`;
+              trendText = `${trendIcon} ${changeValue}`;
+            } else {
+              trendText = `${trendIcon} stable`;
+            }
+          }
+
+          // Find best performing month
+          const monthlyGroups = {};
+          recordsWithDates.forEach(r => {
+            const monthKey = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`;
+            if (!monthlyGroups[monthKey]) {
+              monthlyGroups[monthKey] = { scores: [], month: r.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) };
+            }
+            monthlyGroups[monthKey].scores.push(r.score);
+          });
+
+          // Find month with highest average (need at least 3 tests)
+          let bestAvg = 0;
+          let bestMonth = '';
+          Object.values(monthlyGroups).forEach(group => {
+            if (group.scores.length >= 3) {
+              const avg = (group.scores.reduce((sum, s) => sum + s, 0) / group.scores.length) * 100;
+              if (avg > bestAvg) {
+                bestAvg = avg;
+                bestMonth = group.month;
+              }
+            }
+          });
+
+          if (bestMonth) {
+            bestPeriodText = `${bestMonth} (${bestAvg.toFixed(1)}%)`;
+          }
+        }
+      } catch (error) {
+        // Fallback to default text if date parsing fails
+        trendText = 'Data unavailable';
+        bestPeriodText = 'N/A';
+      }
+
       pdf.text(`Total Tests: ${totalTests}`, x + 4, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       pdf.text(`Average Score: ${avgScore}%`, x + 4, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       pdf.text(`Pass Rate: ${passRate}%`, x + 4, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       pdf.text(`Passed: ${passedTests}`, x + 4, currentY);
+      currentY += lineHeight;
+      pdf.text(`Recent Trend: ${trendText}`, x + 4, currentY);
+      currentY += lineHeight;
+      pdf.text(`Best Period: ${bestPeriodText}`, x + 4, currentY);
     }
+    
+    return boxHeight; // Return the height for positioning next box
   }
 
   async _addScoreTrendIndividualBox(pdf, x, y, width, height, rawData, tileElement = null) {
-    // Create Individual box
+    // Create Individual box with dynamic height
     const padding = 4;
+    const lineHeight = 5; // Reduced from 6 to 5
+    const headerHeight = 7; // Reduced from 8 to 7
+    const dividerSpacing = 2; // Reduced from 3 to 2
     
-    pdf.setDrawColor(200, 200, 200);
+    // Calculate dynamic height based on content
+    const contentLines = 4; // Total Users, Top Performer:, Name, Score
+    const boxHeight = padding + headerHeight + dividerSpacing + (contentLines * lineHeight) + padding;
+    
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
     pdf.setLineWidth(0.5);
-    pdf.rect(x, y - 2, width, height);
+    pdf.rect(x, y - 2, width, boxHeight, 'FD');
 
     let currentY = y + padding;
     
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Individual:', x + 4, currentY);
-    currentY += 8;
+    currentY += headerHeight;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
-    currentY += 3;
+    currentY += dividerSpacing;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
     
     // Add individual performance data
     if (rawData && Array.isArray(rawData) && rawData.length > 0) {
-      const uniqueUsers = [...new Set(rawData.map(r => r.user_name || r.name || 'Unknown'))];
+      // Get unique users using multiple possible user identifier fields
+      const uniqueUsers = [...new Set(rawData.map(r => 
+        r.ldap || r.user_name || r.name || r.user_id || 'Unknown'
+      ))].filter(user => user !== 'Unknown');
+      
+      // Find top performer with highest score
       const topUser = rawData.reduce((best, current) => {
         const currentScore = parseFloat(current.score_value) || 0;
         const bestScore = parseFloat(best.score_value) || 0;
         return currentScore > bestScore ? current : best;
       });
       
+      // Get top performer name using same logic as unique users
+      const topPerformerName = topUser.ldap || topUser.user_name || topUser.name || topUser.user_id || 'Unknown';
+      
       pdf.text(`Total Users: ${uniqueUsers.length}`, x + 4, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       pdf.text(`Top Performer:`, x + 4, currentY);
-      currentY += 6;
-      pdf.text(`${topUser.user_name || topUser.name || 'Unknown'}`, x + 6, currentY);
-      currentY += 6;
+      currentY += lineHeight;
+      pdf.text(`${topPerformerName}`, x + 6, currentY);
+      currentY += lineHeight;
       pdf.text(`Score: ${((parseFloat(topUser.score_value) || 0) * 100).toFixed(1)}%`, x + 6, currentY);
     }
+    
+    return boxHeight; // Return the height for positioning next box
   }
 
   async _addScoreTrendCohortBox(pdf, x, y, width, height, rawData, tileElement = null) {
-    // Create Cohort box
+    // Create Cohort box with dynamic height
     const padding = 4;
+    const lineHeight = 6;
+    const headerHeight = 8;
+    const dividerSpacing = 3;
     
-    pdf.setDrawColor(200, 200, 200);
+    // Calculate dynamic height based on content
+    const contentLines = 4; // Total Cohorts, Top Cohort:, Name, Avg
+    const boxHeight = padding + headerHeight + dividerSpacing + (contentLines * lineHeight) + padding;
+    
+    pdf.setDrawColor(180, 180, 180);
+    pdf.setFillColor(248, 250, 252);
     pdf.setLineWidth(0.5);
-    pdf.rect(x, y - 2, width, height);
+    pdf.rect(x, y - 2, width, boxHeight, 'FD');
 
     let currentY = y + padding;
     
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Cohort:', x + 4, currentY);
-    currentY += 8;
+    currentY += headerHeight;
 
     pdf.line(x + 4, currentY - 2, x + width - 4, currentY - 2);
-    currentY += 3;
+    currentY += dividerSpacing;
 
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
@@ -3086,14 +3194,16 @@ class ExportService {
       }, { name: 'Unknown', data: { count: 0, totalScore: 0 } });
 
       pdf.text(`Total Cohorts: ${cohortCount}`, x + 4, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       pdf.text(`Top Cohort:`, x + 4, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       pdf.text(`${topCohort.name}`, x + 6, currentY);
-      currentY += 6;
+      currentY += lineHeight;
       const topAvg = topCohort.data.count > 0 ? (topCohort.data.totalScore / topCohort.data.count * 100).toFixed(1) : '0.0';
       pdf.text(`Avg: ${topAvg}%`, x + 6, currentY);
     }
+    
+    return boxHeight; // Return the height for positioning next box
   }
 
   async _addTestCompletionTrendDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
