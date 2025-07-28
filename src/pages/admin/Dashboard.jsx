@@ -502,7 +502,7 @@ const Dashboard = () => {
         case 'market-results':
           return <MarketResultsChart data={tileData} loading={isInitialLoad} />;
         case 'time-vs-score':
-          return <TimeVsScoreChart data={tileData} loading={isInitialLoad} />;
+          return <TimeVsScoreChart data={tileData} loading={isInitialLoad} globalFilters={globalFilters} />;
         case 'pass-fail-rate':
           return <PassFailRateChart data={tileData} loading={isInitialLoad} />;
         case 'quiz-type-performance':

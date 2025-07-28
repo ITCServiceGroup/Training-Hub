@@ -1232,7 +1232,7 @@ class ExportService {
   }
 
   async _addTimeVsScoreSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
-    const { rawData } = context;
+    const { rawData, dashboardContext } = context;
     const columnGap = 15;
     const chartHeight = height * 0.85;
     const rightColumnX = x + chartWidth + columnGap;
@@ -1240,12 +1240,12 @@ class ExportService {
     // Add chart in left column
     await this._addChartImageToPDF(pdf, tileElement, x, y, chartWidth, chartHeight);
 
-    // Add statistics below the chart (moved closer)
-    const statsY = y + chartHeight - 9;
-    await this._addTimeVsScoreHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement);
+    // Add statistics below the chart (moved lower)
+    const statsY = y + chartHeight + 6;
+    await this._addTimeVsScoreHorizontalStats(pdf, x, statsY, chartWidth, rawData, tileElement, dashboardContext);
 
     // Add details in right column
-    await this._addTimeVsScoreDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
+    await this._addTimeVsScoreDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement, dashboardContext);
   }
 
   async _addQuestionAnalyticsSpecialLayout(pdf, tileElement, x, y, chartWidth, infoWidth, height, context = {}) {
@@ -1282,7 +1282,7 @@ class ExportService {
     await this._addRetakeAnalysisDetailsList(pdf, rightColumnX, y, infoWidth, height, rawData, tileElement);
   }
 
-  async _addTimeVsScoreHorizontalStats(pdf, x, y, width, rawData, tileElement = null) {
+  async _addTimeVsScoreHorizontalStats(pdf, x, y, width, rawData, tileElement = null, dashboardContext = null) {
     if (!rawData || !Array.isArray(rawData)) return;
 
     // Process rawData to calculate time vs score correlation statistics
@@ -1425,18 +1425,86 @@ class ExportService {
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
 
+    // Calculate dynamic thresholds BEFORE using them in basicStats
+    // Calculate dynamic score threshold based on actual pass thresholds in data
+    const passThresholds = validRecords
+      .map(record => record.passing_score)
+      .filter(threshold => threshold != null && threshold > 0);
+
+    let dynamicScoreThreshold = 90; // Default fallback
+    if (passThresholds.length > 0) {
+      // Calculate average of UNIQUE thresholds (not weighted by frequency)
+      const uniqueThresholds = [...new Set(passThresholds)];
+      const avgThreshold = uniqueThresholds.reduce((sum, threshold) => sum + threshold, 0) / uniqueThresholds.length;
+      const avgThresholdPercent = avgThreshold <= 1 ? avgThreshold * 100 : avgThreshold;
+      dynamicScoreThreshold = Math.round(avgThresholdPercent / 5) * 5; // Round to nearest 5
+    }
+
+    // Calculate dynamic time threshold based on actual quiz time limits (50% of average)
+    const timeLimits = validRecords
+      .map(record => record.time_limit)
+      .filter(limit => limit != null && limit > 0);
+
+    let dynamicTimeThreshold = 15; // Default fallback (15 minutes)
+
+    // Check if we're filtering by a specific quiz (using dashboard context like the chart)
+    let currentQuizFilter = null;
+
+    // Check dashboard context for quiz filter (same logic as TimeVsScoreChart)
+    if (dashboardContext && dashboardContext.filters) {
+      const globalFilters = dashboardContext.filters;
+
+      // Debug logging
+      console.log('PDF Export - Dashboard Context Filters:', globalFilters);
+      console.log('PDF Export - Quiz Types Filter:', globalFilters.quizTypes);
+
+      // Check global filters (selected from filter dropdowns)
+      // Only show quiz-specific thresholds when exactly one quiz is selected
+      if (globalFilters.quizTypes && Array.isArray(globalFilters.quizTypes) && globalFilters.quizTypes.length === 1) {
+        currentQuizFilter = globalFilters.quizTypes[0];
+        console.log('PDF Export - Current Quiz Filter:', currentQuizFilter);
+      }
+    }
+
+    // Fallback: if no dashboard context, check if exactly one quiz type is present in the data
+    if (!currentQuizFilter) {
+      const uniqueQuizTypes = [...new Set(validRecords.map(r => r.quiz_type).filter(Boolean))];
+      if (uniqueQuizTypes.length === 1) {
+        currentQuizFilter = uniqueQuizTypes[0];
+      }
+    }
+
+    if (currentQuizFilter && timeLimits.length > 0) {
+      // If filtering by specific quiz, use that quiz's time limit
+      const quizRecords = validRecords.filter(record => record.quiz_type === currentQuizFilter);
+      if (quizRecords.length > 0 && quizRecords[0].time_limit) {
+        const quizTimeLimit = quizRecords[0].time_limit;
+        dynamicTimeThreshold = Math.round((quizTimeLimit / 60) * 0.5); // 50% of quiz time limit
+        console.log(`PDF Export - Using specific quiz time limit: ${quizTimeLimit}s (${quizTimeLimit/60} min) -> threshold: ${dynamicTimeThreshold} min`);
+      }
+    } else if (timeLimits.length > 0) {
+      // For multiple quizzes, use average of UNIQUE time limits
+      const uniqueTimeLimits = [...new Set(timeLimits)];
+      const avgTimeLimit = uniqueTimeLimits.reduce((sum, limit) => sum + limit, 0) / uniqueTimeLimits.length;
+      // Use 50% of average time limit as threshold
+      dynamicTimeThreshold = Math.round((avgTimeLimit / 60) * 0.5); // Convert to minutes and take 50%
+      console.log(`PDF Export - Using average time limit: ${avgTimeLimit}s (${avgTimeLimit/60} min) -> threshold: ${dynamicTimeThreshold} min`);
+    }
+
     // Define column layout
     const leftColWidth = width * 0.45;
     const rightColWidth = width * 0.5;
     const leftColX = x + 4;
     const rightColX = x + leftColWidth + 8;
-    
+
     // Left column: Basic statistics
     const leftColY = currentY;
     const basicStats = [
       { label: 'Correlation Coefficient:', value: ` ${correlationValue.toFixed(3)}${correlationExplanation}` },
       { label: 'Average Time: ', value: `${avgTime.toFixed(1)} min` },
-      { label: 'Average Score: ', value: `${avgScore.toFixed(1)}%` }
+      { label: 'Average Score: ', value: `${avgScore.toFixed(1)}%` },
+      { label: 'Green Zone Score: ', value: `${dynamicScoreThreshold}%` },
+      { label: 'Green Zone Time: ', value: `${dynamicTimeThreshold} min` }
     ];
 
     // Left column with original spacing
@@ -1460,7 +1528,7 @@ class ExportService {
     });
   }
 
-  async _addTimeVsScoreDetailsList(pdf, x, y, width, height, rawData, tileElement = null) {
+  async _addTimeVsScoreDetailsList(pdf, x, y, width, height, rawData, tileElement = null, dashboardContext = null) {
     if (!rawData || !Array.isArray(rawData)) return;
 
     const validRecords = rawData.filter(record => 
@@ -1469,11 +1537,64 @@ class ExportService {
 
     if (validRecords.length === 0) return;
 
-    // Get unique quiz types to determine if multiple tests are involved
-    const uniqueQuizTypes = [...new Set(rawData.map(r => r.quiz_type).filter(Boolean))];
-    const testDisplayText = uniqueQuizTypes.length === 1 
-      ? uniqueQuizTypes[0] 
-      : `${uniqueQuizTypes.length} Tests`;
+    // Calculate dynamic thresholds BEFORE using them in detailRecords
+    // Calculate dynamic score threshold based on actual pass thresholds in data
+    const passThresholds = validRecords
+      .map(record => record.passing_score)
+      .filter(threshold => threshold != null && threshold > 0);
+
+    let dynamicScoreThreshold = 90; // Default fallback
+    if (passThresholds.length > 0) {
+      // Calculate average of UNIQUE thresholds (not weighted by frequency)
+      const uniqueThresholds = [...new Set(passThresholds)];
+      const avgThreshold = uniqueThresholds.reduce((sum, threshold) => sum + threshold, 0) / uniqueThresholds.length;
+      const avgThresholdPercent = avgThreshold <= 1 ? avgThreshold * 100 : avgThreshold;
+      dynamicScoreThreshold = Math.round(avgThresholdPercent / 5) * 5; // Round to nearest 5
+    }
+
+    // Calculate dynamic time threshold based on actual quiz time limits (50% of average)
+    const timeLimits = validRecords
+      .map(record => record.time_limit)
+      .filter(limit => limit != null && limit > 0);
+
+    let dynamicTimeThreshold = 15; // Default fallback (15 minutes)
+
+    // Check if we're filtering by a specific quiz (using dashboard context like the chart)
+    let currentQuizFilter = null;
+
+    // Check dashboard context for quiz filter (same logic as TimeVsScoreChart)
+    if (dashboardContext && dashboardContext.filters) {
+      const globalFilters = dashboardContext.filters;
+
+      // Check global filters (selected from filter dropdowns)
+      // Only show quiz-specific thresholds when exactly one quiz is selected
+      if (globalFilters.quizTypes && Array.isArray(globalFilters.quizTypes) && globalFilters.quizTypes.length === 1) {
+        currentQuizFilter = globalFilters.quizTypes[0];
+      }
+    }
+
+    // Fallback: if no dashboard context, check if exactly one quiz type is present in the data
+    if (!currentQuizFilter) {
+      const uniqueQuizTypes = [...new Set(validRecords.map(r => r.quiz_type).filter(Boolean))];
+      if (uniqueQuizTypes.length === 1) {
+        currentQuizFilter = uniqueQuizTypes[0];
+      }
+    }
+
+    if (currentQuizFilter && timeLimits.length > 0) {
+      // If filtering by specific quiz, use that quiz's time limit
+      const quizRecords = validRecords.filter(record => record.quiz_type === currentQuizFilter);
+      if (quizRecords.length > 0 && quizRecords[0].time_limit) {
+        const quizTimeLimit = quizRecords[0].time_limit;
+        dynamicTimeThreshold = Math.round((quizTimeLimit / 60) * 0.5); // 50% of quiz time limit
+      }
+    } else if (timeLimits.length > 0) {
+      // For multiple quizzes, use average of UNIQUE time limits
+      const uniqueTimeLimits = [...new Set(timeLimits)];
+      const avgTimeLimit = uniqueTimeLimits.reduce((sum, limit) => sum + limit, 0) / uniqueTimeLimits.length;
+      // Use 50% of average time limit as threshold
+      dynamicTimeThreshold = Math.round((avgTimeLimit / 60) * 0.5); // Convert to minutes and take 50%
+    }
 
     // Sort by efficiency with green zone priority (passing + fast performers first)
     const detailRecords = validRecords.map(record => {
@@ -1482,17 +1603,17 @@ class ExportService {
       if (score <= 1) {
         score = score * 100; // Convert decimal to percentage
       }
-      
+
       const timeInSeconds = parseFloat(record.time_taken);
       const timeInMinutes = timeInSeconds / 60; // Convert seconds to minutes
       if (!record.passing_score) return; // Skip records without threshold
       const threshold = record.passing_score; // Use only actual threshold
       if (!threshold) return null; // Skip records without valid threshold
       const passed = score >= threshold;
-      
-      // Define green zone criteria (like chart's optimal quadrant)
-      const isHighScore = score >= 90; // High score threshold
-      const isFastTime = timeInMinutes <= 15; // Fast time threshold (15 minutes)
+
+      // Define green zone criteria using dynamic thresholds based on actual quiz settings
+      const isHighScore = score >= dynamicScoreThreshold; // Dynamic score threshold
+      const isFastTime = timeInMinutes <= dynamicTimeThreshold; // Dynamic time threshold (50% of quiz limits)
       const isGreenZone = passed && isHighScore && isFastTime;
       
       // Calculate efficiency with priority weighting

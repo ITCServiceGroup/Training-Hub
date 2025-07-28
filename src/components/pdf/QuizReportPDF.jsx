@@ -87,21 +87,48 @@ const QuizReportPDF = ({
   const passingScore = quiz.passing_score || 70;
   const passed = safeScore.percentage >= passingScore;
 
-  // SIMPLE FIXED APPROACH: Fixed questions per page
-  // This guarantees no blank pages or question splitting
-  // ADJUST THIS NUMBER if needed: 2 = very safe, 3 = balanced, 4 = might be tight
-  const questionsPerPage = 3;
+  // DYNAMIC APPROACH: Adjust questions per page based on explanations
+  // Debug: Log question structure to identify potential issues
+  console.log('🔍 PDF Debug - Quiz questions structure:', {
+    totalQuestions: quiz.questions.length,
+    sampleQuestion: quiz.questions[0],
+    questionFields: quiz.questions[0] ? Object.keys(quiz.questions[0]) : [],
+    explanationSample: quiz.questions.slice(0, 3).map(q => ({
+      id: q.id,
+      hasExplanation: !!q.explanation,
+      explanationLength: q.explanation?.length || 0,
+      explanationContent: q.explanation?.substring(0, 50) + '...'
+    }))
+  });
+
+  // Check if any questions have explanations
+  const hasExplanations = quiz.questions.some(question =>
+    question.explanation && question.explanation.trim().length > 0
+  );
+
+  console.log('🔍 PDF Debug - Explanation detection:', {
+    hasExplanations,
+    questionsWithExplanations: quiz.questions.filter(q => q.explanation && q.explanation.trim().length > 0).length,
+    questionsWithoutExplanations: quiz.questions.filter(q => !q.explanation || q.explanation.trim().length === 0).length
+  });
+
+  // Set questions per page based on explanation presence
+  // 3 questions per page when explanations exist (current behavior)
+  // 4 questions per page when no explanations (more efficient use of space)
+  const questionsPerPage = hasExplanations ? 3 : 4;
   const questionPages = [];
-  
+
   for (let i = 0; i < quiz.questions.length; i += questionsPerPage) {
     questionPages.push(quiz.questions.slice(i, i + questionsPerPage));
   }
-  
-  console.log('PDF Pagination (Fixed):', {
+
+  console.log('🔍 PDF Pagination (Dynamic):', {
     totalQuestions: quiz.questions.length,
+    hasExplanations: hasExplanations,
     questionsPerPage: questionsPerPage,
     totalPages: questionPages.length,
-    pageBreakdown: questionPages.map((page, index) => `Page ${index + 1}: ${page.length} questions`)
+    pageBreakdown: questionPages.map((page, index) => `Page ${index + 1}: ${page.length} questions`),
+    logic: hasExplanations ? 'Found explanations → 3 per page' : 'No explanations → 4 per page'
   });
 
   const totalPages = 1 + questionPages.length;
@@ -133,7 +160,7 @@ const QuizReportPDF = ({
         </View>
       </Page>
 
-      {/* Question Analysis Pages - Fixed 3 questions per page */}
+      {/* Question Analysis Pages - Dynamic questions per page (3 with explanations, 4 without) */}
       {questionPages.map((questionsGroup, pageIndex) => {
         // Simple calculation: pageIndex * questionsPerPage
         const startIndex = pageIndex * questionsPerPage;

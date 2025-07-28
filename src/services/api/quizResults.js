@@ -125,7 +125,7 @@ class QuizResultsService extends BaseService {
       if (quizIds.length > 0) {
         const { data: quizData, error: quizError } = await supabase
           .from('v2_quizzes')
-          .select('id, title, passing_score')
+          .select('id, title, passing_score, time_limit')
           .in('id', quizIds);
 
         if (!quizError && quizData) {
@@ -138,7 +138,8 @@ class QuizResultsService extends BaseService {
             }
             quizMap[quiz.id] = {
               title: quiz.title,
-              passing_score: passingScore // Ensure decimal format
+              passing_score: passingScore, // Ensure decimal format
+              time_limit: quiz.time_limit // Time limit in seconds
             };
           });
         } else {
@@ -155,7 +156,7 @@ class QuizResultsService extends BaseService {
         if (quizTypes.length > 0) {
           const { data: quizDataByTitle, error: titleError } = await supabase
             .from('v2_quizzes')
-            .select('id, title, passing_score')
+            .select('id, title, passing_score, time_limit')
             .in('title', quizTypes);
 
           if (!titleError && quizDataByTitle) {
@@ -168,7 +169,8 @@ class QuizResultsService extends BaseService {
               }
               quizMap[`title_${quiz.title}`] = {
                 title: quiz.title,
-                passing_score: passingScore // Ensure decimal format
+                passing_score: passingScore, // Ensure decimal format
+                time_limit: quiz.time_limit // Time limit in seconds
               };
             });
           }
@@ -194,6 +196,7 @@ class QuizResultsService extends BaseService {
           ...result,
           quiz_title: quizMetadata?.title || result.quiz_type || 'Unknown Quiz',
           passing_score: quizMetadata?.passing_score || 0.7, // Clean decimal format
+          time_limit: quizMetadata?.time_limit || null, // Time limit in seconds
           has_quiz_metadata: !!quizMetadata
         };
 
@@ -204,6 +207,7 @@ class QuizResultsService extends BaseService {
             quiz_type: result.quiz_type,
             found_metadata: !!quizMetadata,
             final_passing_score: enriched.passing_score,
+            final_time_limit: enriched.time_limit,
             quiz_title: enriched.quiz_title
           });
         }

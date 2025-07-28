@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ResponsiveScatterPlot } from '@nivo/scatterplot';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
@@ -6,27 +6,147 @@ import EnhancedTooltip from './EnhancedTooltip';
 import { FaExpand, FaCompress } from 'react-icons/fa';
 import { filterDataForChart } from '../../utils/dashboardFilters';
 
-const TimeVsScoreChart = ({ data = [], loading = false }) => {
+const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { getFiltersForChart, getCombinedFilters, shouldFilterChart } = useDashboardFilters();
+
+  // Calculate dynamic score threshold based on actual pass thresholds in data
+  const calculateDefaultScoreThreshold = useCallback((data) => {
+    if (!data || data.length === 0) {
+      return 90; // Fallback to 90% if no data
+    }
+
+    // Extract pass thresholds from the data
+    const passThresholds = data
+      .map(result => result.passing_score)
+      .filter(threshold => threshold != null && threshold > 0);
+
+    if (passThresholds.length === 0) {
+      return 90; // Fallback if no thresholds found
+    }
+
+    // Get unique thresholds and calculate their simple average
+    // This gives us the simple average: (80% + 90%) / 2 = 85%
+    const uniqueThresholds = [...new Set(passThresholds)];
+    const avgThreshold = uniqueThresholds.reduce((sum, threshold) => sum + threshold, 0) / uniqueThresholds.length;
+    const avgThresholdPercent = avgThreshold <= 1 ? avgThreshold * 100 : avgThreshold;
+
+    // Round to nearest 5 for cleaner UI
+    return Math.round(avgThresholdPercent / 5) * 5;
+  }, []);
+
+  // Calculate dynamic time threshold based on actual quiz time limits (50% of average)
+  const calculateDefaultTimeThreshold = useCallback((data) => {
+    if (!data || data.length === 0) {
+      return 15; // Fallback to 15 minutes if no data
+    }
+
+    // Extract time limits from the data (in seconds)
+    const timeLimits = data
+      .map(result => result.time_limit)
+      .filter(limit => limit != null && limit > 0);
+
+    if (timeLimits.length === 0) {
+      return 15; // Fallback if no time limits found
+    }
+
+    // Get unique time limits and calculate their simple average
+    const uniqueTimeLimits = [...new Set(timeLimits)];
+    const avgTimeLimit = uniqueTimeLimits.reduce((sum, limit) => sum + limit, 0) / uniqueTimeLimits.length;
+
+    // Convert to minutes and take 50% as the threshold
+    const avgTimeLimitMinutes = avgTimeLimit / 60;
+    const halfTimeMinutes = avgTimeLimitMinutes * 0.5;
+
+    // Round to nearest whole minute, minimum 1 minute
+    return Math.max(1, Math.round(halfTimeMinutes));
+  }, []);
+
+  // Set session flag to indicate navigation and handle page refresh detection
+  useEffect(() => {
+    sessionStorage.setItem('timeVsScoreChart_hasNavigated', 'true');
+
+    // Clear session flag on page refresh (beforeunload)
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('timeVsScoreChart_hasNavigated');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Don't remove the session flag here - we want it to persist for navigation
+    };
+  }, []);
 
   // Efficiency quadrant analysis
   const [showQuadrants, setShowQuadrants] = useState(true);
   const [quadrantThresholds, setQuadrantThresholds] = useState(() => {
     const saved = localStorage.getItem('timeVsScoreChart_quadrantThresholds');
-    if (saved) {
+    const sessionFlag = sessionStorage.getItem('timeVsScoreChart_hasNavigated');
+
+    if (saved && sessionFlag) {
+      // This is navigation (not a fresh page load), restore saved values
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          isCustom: parsed.isCustom || false // Preserve custom flag
+        };
       } catch (e) {
         console.warn('Failed to parse saved quadrant thresholds:', e);
       }
     }
+
+    // This is a fresh page load or no saved data, use dynamic defaults
     return {
-      scoreThreshold: 90, // 90% score threshold
-      timeThreshold: 15   // 15 minutes time threshold
+      scoreThreshold: calculateDefaultScoreThreshold(data), // Dynamic threshold based on actual pass thresholds
+      timeThreshold: calculateDefaultTimeThreshold(data),   // Dynamic threshold based on actual time limits (50%)
+      isCustom: false     // Track if user has manually set the threshold
     };
   });
+
+  // Update score threshold when data changes (only if not custom and not during navigation)
+  useEffect(() => {
+    const sessionFlag = sessionStorage.getItem('timeVsScoreChart_hasNavigated');
+    const isNavigation = sessionFlag && !quadrantThresholds.isCustom;
+
+    // Only update thresholds if:
+    // 1. Not custom (user hasn't manually set them)
+    // 2. We have data
+    // 3. This is either a fresh page load OR the thresholds actually changed
+    if (!quadrantThresholds.isCustom && data && data.length > 0) {
+      // Use the original data (not filtered) for threshold calculation
+      // This ensures we get the full picture of all available tests
+      const newDefaultScoreThreshold = calculateDefaultScoreThreshold(data);
+      const newDefaultTimeThreshold = calculateDefaultTimeThreshold(data);
+
+      // If this is navigation, only update if the thresholds significantly changed
+      // (indicating different data set), otherwise preserve user's session values
+      const scoreThresholdChanged = Math.abs(newDefaultScoreThreshold - quadrantThresholds.scoreThreshold) >= 5;
+      const timeThresholdChanged = Math.abs(newDefaultTimeThreshold - quadrantThresholds.timeThreshold) >= 2; // 2 minute threshold
+
+      if (!isNavigation || scoreThresholdChanged || timeThresholdChanged) {
+        const updates = {};
+
+        if (newDefaultScoreThreshold !== quadrantThresholds.scoreThreshold) {
+          updates.scoreThreshold = newDefaultScoreThreshold;
+        }
+
+        if (newDefaultTimeThreshold !== quadrantThresholds.timeThreshold) {
+          updates.timeThreshold = newDefaultTimeThreshold;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          setQuadrantThresholds(prev => ({
+            ...prev,
+            ...updates
+          }));
+        }
+      }
+    }
+  }, [data, calculateDefaultScoreThreshold, calculateDefaultTimeThreshold, quadrantThresholds.isCustom, quadrantThresholds.scoreThreshold, quadrantThresholds.timeThreshold]);
 
   // Save quadrant thresholds to localStorage when they change
   useEffect(() => {
@@ -40,6 +160,113 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
     return filterDataForChart(data, filters, 'time-vs-score', shouldFilter);
   }, [data, getFiltersForChart, shouldFilterChart]);
 
+  // Calculate quiz-specific thresholds when filtering by quiz type
+  const getQuizSpecificThresholds = useCallback((quizType, data) => {
+    if (!quizType || !data || data.length === 0) {
+      return null;
+    }
+
+    // Find records for this specific quiz
+    const quizRecords = data.filter(record => record.quiz_type === quizType);
+    if (quizRecords.length === 0) {
+      return null;
+    }
+
+    // Get the quiz settings from the first record (they should all be the same for this quiz)
+    const sampleRecord = quizRecords[0];
+    const passingScore = sampleRecord.passing_score;
+    const timeLimit = sampleRecord.time_limit;
+
+    let scoreThreshold = 90; // Fallback
+    if (passingScore != null && passingScore > 0) {
+      const passingScorePercent = passingScore <= 1 ? passingScore * 100 : passingScore;
+      scoreThreshold = Math.round(passingScorePercent / 5) * 5; // Round to nearest 5
+    }
+
+    let timeThreshold = 15; // Fallback
+    if (timeLimit != null && timeLimit > 0) {
+      const timeLimitMinutes = timeLimit / 60;
+      const halfTimeMinutes = timeLimitMinutes * 0.5;
+      timeThreshold = Math.max(1, Math.round(halfTimeMinutes));
+    }
+
+    return {
+      scoreThreshold,
+      timeThreshold,
+      quizType,
+      isQuizSpecific: true
+    };
+  }, []);
+
+  // Check if we're filtering by a specific quiz and get its thresholds
+  const currentQuizFilter = useMemo(() => {
+    // Check drill-down filters (hover/click from other charts)
+    const drillDownFilters = getFiltersForChart('time-vs-score');
+    if (drillDownFilters.quizType) {
+      return drillDownFilters.quizType;
+    }
+
+    // Check global filters (selected from filter dropdowns)
+    // Only show quiz-specific thresholds when exactly one quiz is selected
+    if (globalFilters.quizTypes && Array.isArray(globalFilters.quizTypes) && globalFilters.quizTypes.length === 1) {
+      return globalFilters.quizTypes[0];
+    }
+
+    return null;
+  }, [getFiltersForChart, globalFilters]);
+
+  const quizSpecificThresholds = useMemo(() => {
+    if (currentQuizFilter) {
+      return getQuizSpecificThresholds(currentQuizFilter, data);
+    }
+    return null;
+  }, [currentQuizFilter, data, getQuizSpecificThresholds]);
+
+  // Get effective thresholds (quiz-specific when filtering, otherwise user's settings)
+  const effectiveThresholds = useMemo(() => {
+    if (quizSpecificThresholds) {
+      return {
+        scoreThreshold: quizSpecificThresholds.scoreThreshold,
+        timeThreshold: quizSpecificThresholds.timeThreshold,
+        isCustom: quadrantThresholds.isCustom,
+        isQuizSpecific: true,
+        quizType: quizSpecificThresholds.quizType
+      };
+    }
+    return {
+      ...quadrantThresholds,
+      isQuizSpecific: false
+    };
+  }, [quizSpecificThresholds, quadrantThresholds]);
+
+  // Calculate the maximum time limit for X-axis scaling
+  const maxTimeLimit = useMemo(() => {
+    if (!data || data.length === 0) {
+      return 30; // Default fallback (30 minutes)
+    }
+
+    // Get time limits from the data (in seconds)
+    const timeLimits = data
+      .map(result => result.time_limit)
+      .filter(limit => limit != null && limit > 0);
+
+    if (timeLimits.length === 0) {
+      return 30; // Fallback if no time limits found
+    }
+
+    // If filtering by specific quiz, use that quiz's time limit
+    if (currentQuizFilter) {
+      const quizRecords = data.filter(record => record.quiz_type === currentQuizFilter);
+      if (quizRecords.length > 0 && quizRecords[0].time_limit) {
+        return Math.ceil(quizRecords[0].time_limit / 60); // Convert to minutes and round up
+      }
+    }
+
+    // For multiple quizzes, use the longest time limit
+    const maxTimeLimitSeconds = Math.max(...timeLimits);
+    return Math.ceil(maxTimeLimitSeconds / 60); // Convert to minutes and round up
+  }, [data, currentQuizFilter]);
+
   // Process data for scatter plot with quadrant analysis
   const chartData = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return [];
@@ -52,8 +279,8 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
         const scorePercent = parseFloat(result.score_value) * 100;
 
         // Classify into efficiency quadrants
-        const isHighScore = scorePercent >= quadrantThresholds.scoreThreshold;
-        const isFastTime = timeMinutes <= quadrantThresholds.timeThreshold;
+        const isHighScore = scorePercent >= effectiveThresholds.scoreThreshold;
+        const isFastTime = timeMinutes <= effectiveThresholds.timeThreshold;
 
         let quadrant, color, efficiency;
         if (isHighScore && isFastTime) {
@@ -90,7 +317,7 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
       .slice(0, 200); // Limit for performance
 
     return [{ id: 'time_vs_score', data: scatterData }];
-  }, [filteredData, quadrantThresholds]);
+  }, [filteredData, effectiveThresholds]);
 
   // Calculate quadrant statistics
   const quadrantStats = useMemo(() => {
@@ -150,19 +377,34 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
 
         {showQuadrants && (
           <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-600 px-1 h-7 overflow-hidden">
+            {effectiveThresholds.isQuizSpecific && (
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium mr-1">
+                {effectiveThresholds.quizType}:
+              </span>
+            )}
             <div className="flex items-center gap-1">
               <span className="text-xs text-slate-600 dark:text-slate-400">Score:</span>
               <input
                 type="number"
-                value={quadrantThresholds.scoreThreshold}
+                value={effectiveThresholds.scoreThreshold}
                 onChange={(e) => setQuadrantThresholds(prev => ({
                   ...prev,
-                  scoreThreshold: parseInt(e.target.value) || 90
+                  scoreThreshold: parseInt(e.target.value) || 90,
+                  isCustom: true // Mark as custom when user manually changes it
                 }))}
-                className="w-12 text-xs px-1 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                disabled={effectiveThresholds.isQuizSpecific}
+                className={`w-12 text-xs px-1 py-0.5 border border-slate-300 dark:border-slate-600 rounded text-slate-700 dark:text-slate-300 ${
+                  effectiveThresholds.isQuizSpecific
+                    ? 'bg-slate-100 dark:bg-slate-600 cursor-not-allowed'
+                    : 'bg-white dark:bg-slate-700'
+                }`}
                 style={{ marginTop: '16px' }}
                 min="0"
                 max="100"
+                title={effectiveThresholds.isQuizSpecific
+                  ? `Score threshold for ${effectiveThresholds.quizType} (${effectiveThresholds.scoreThreshold}% - quiz specific)`
+                  : `Score threshold for green zone (current: ${effectiveThresholds.scoreThreshold}%, calculated default: ${calculateDefaultScoreThreshold(data)}% based on pass thresholds)`
+                }
               />
               <span className="text-xs text-slate-600 dark:text-slate-400">%</span>
             </div>
@@ -171,18 +413,47 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
               <span className="text-xs text-slate-600 dark:text-slate-400">Time:</span>
               <input
                 type="number"
-                value={quadrantThresholds.timeThreshold}
+                value={effectiveThresholds.timeThreshold}
                 onChange={(e) => setQuadrantThresholds(prev => ({
                   ...prev,
-                  timeThreshold: parseInt(e.target.value) || 15
+                  timeThreshold: parseInt(e.target.value) || 15,
+                  isCustom: true // Mark as custom when user manually changes it
                 }))}
-                className="w-12 text-xs px-1 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                disabled={effectiveThresholds.isQuizSpecific}
+                className={`w-12 text-xs px-1 py-0.5 border border-slate-300 dark:border-slate-600 rounded text-slate-700 dark:text-slate-300 ${
+                  effectiveThresholds.isQuizSpecific
+                    ? 'bg-slate-100 dark:bg-slate-600 cursor-not-allowed'
+                    : 'bg-white dark:bg-slate-700'
+                }`}
                 style={{ marginTop: '16px' }}
                 min="1"
-                max="30"
+                max="60"
+                title={effectiveThresholds.isQuizSpecific
+                  ? `Time threshold for ${effectiveThresholds.quizType} (${effectiveThresholds.timeThreshold} min - 50% of quiz time limit)`
+                  : `Time threshold for green zone (current: ${effectiveThresholds.timeThreshold} min, calculated default: ${calculateDefaultTimeThreshold(data)} min based on 50% of quiz time limits)`
+                }
               />
               <span className="text-xs text-slate-600 dark:text-slate-400">min</span>
             </div>
+
+            {!effectiveThresholds.isQuizSpecific && quadrantThresholds.isCustom && (
+              <button
+                onClick={() => {
+                  // Clear session flag to allow dynamic updates
+                  sessionStorage.removeItem('timeVsScoreChart_hasNavigated');
+                  setQuadrantThresholds(prev => ({
+                    ...prev,
+                    scoreThreshold: calculateDefaultScoreThreshold(data),
+                    timeThreshold: calculateDefaultTimeThreshold(data),
+                    isCustom: false
+                  }));
+                }}
+                className="text-xs px-1 py-0.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
+                title="Reset to dynamic thresholds based on quiz settings"
+              >
+                Reset
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -192,7 +463,7 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
       <ResponsiveScatterPlot
         data={chartData}
         margin={{ top: 50, right: 30, bottom: 50, left: 60 }}
-        xScale={{ type: 'linear', min: 0, max: 'auto' }}
+        xScale={{ type: 'linear', min: 0, max: maxTimeLimit }}
         yScale={{ type: 'linear', min: 0, max: 100 }}
         blendMode="multiply"
         nodeSize={8}
@@ -202,8 +473,8 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
           'axes',
           // Custom quadrant layer
           showQuadrants && (({ xScale, yScale, innerWidth, innerHeight }) => {
-            const timeThreshold = quadrantThresholds.timeThreshold;
-            const scoreThreshold = quadrantThresholds.scoreThreshold;
+            const timeThreshold = effectiveThresholds.timeThreshold;
+            const scoreThreshold = effectiveThresholds.scoreThreshold;
 
             const xPos = xScale(timeThreshold);
             const yPos = yScale(scoreThreshold);
@@ -344,13 +615,14 @@ const TimeVsScoreChart = ({ data = [], loading = false }) => {
           // Calculate efficiency score (higher score in less time = more efficient)
           const efficiency = (node.data.y / node.data.x).toFixed(1);
 
-          // Determine performance category
+          // Determine performance category using dynamic threshold
           let performanceCategory = 'Average';
           let timeCategory = 'Normal';
 
-          if (node.data.y >= 90) performanceCategory = 'Excellent';
-          else if (node.data.y >= 80) performanceCategory = 'Good';
-          else if (node.data.y >= 70) performanceCategory = 'Fair';
+          const dynamicThreshold = effectiveThresholds.scoreThreshold;
+          if (node.data.y >= dynamicThreshold) performanceCategory = 'Excellent';
+          else if (node.data.y >= dynamicThreshold - 10) performanceCategory = 'Good';
+          else if (node.data.y >= dynamicThreshold - 20) performanceCategory = 'Fair';
           else performanceCategory = 'Needs Improvement';
 
           if (node.data.x <= 5) timeCategory = 'Very Fast';
