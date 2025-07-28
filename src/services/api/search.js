@@ -48,6 +48,43 @@ class SearchService {
   }
 
   /**
+   * Search across quiz-related content (sections, categories, and quizzes)
+   * @param {string} query - Search query
+   * @returns {Promise<Object>} - Search results grouped by type
+   */
+  async searchQuizzes(query) {
+    if (!query || query.trim() === '') {
+      return {
+        sections: [],
+        categories: [],
+        quizzes: []
+      };
+    }
+
+    try {
+      // Run all searches in parallel for better performance
+      const [
+        sectionsResults,
+        categoriesResults,
+        quizzesResults
+      ] = await Promise.all([
+        this.searchSections(query),
+        this.searchCategories(query),
+        this.searchQuizzesByTitleAndDescription(query)
+      ]);
+
+      return {
+        sections: sectionsResults,
+        categories: categoriesResults,
+        quizzes: quizzesResults
+      };
+    } catch (error) {
+      console.error('Error searching quiz content:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Search sections by name and description
    * @param {string} query - Search query
    * @returns {Promise<Array>} - Matching sections
@@ -271,6 +308,119 @@ class SearchService {
       return processedData;
     } catch (error) {
       console.error('Error searching study guide content:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Search quizzes by title and description
+   * @param {string} query - Search query
+   * @returns {Promise<Array>} - Matching quizzes with category and section info
+   */
+  async searchQuizzesByTitleAndDescription(query) {
+    try {
+      // First get all quizzes that match the search query
+      const { data: quizzes, error } = await supabase
+        .from('v2_quizzes')
+        .select('*')
+        .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+        .is('archived_at', null)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!quizzes || quizzes.length === 0) {
+        return [];
+      }
+
+      // Extract all unique category IDs from all quizzes
+      const allCategoryIds = quizzes.reduce((acc, quiz) => {
+        const ids = typeof quiz.category_ids === 'string' 
+          ? JSON.parse(quiz.category_ids) 
+          : quiz.category_ids || [];
+        return [...new Set([...acc, ...ids])];
+      }, []);
+
+      // Fetch category and section data if we have category IDs
+      let categoriesMap = {};
+      let sectionsMap = {};
+      
+      if (allCategoryIds.length > 0) {
+        // Fetch all relevant categories including section_id
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('v2_categories')
+          .select('id, name, description, section_id')
+          .in('id', allCategoryIds);
+
+        if (categoriesError) throw categoriesError;
+
+        // Extract unique section IDs from categories
+        const allSectionIds = [...new Set(categoriesData.map(cat => cat.section_id).filter(Boolean))];
+
+        // Fetch relevant sections
+        if (allSectionIds.length > 0) {
+          const { data: sectionsData, error: sectionsError } = await supabase
+            .from('v2_sections')
+            .select('id, name, description')
+            .in('id', allSectionIds);
+
+          if (sectionsError) throw sectionsError;
+          sectionsMap = sectionsData.reduce((map, section) => {
+            map[section.id] = section;
+            return map;
+          }, {});
+        }
+        
+        // Create a map for categories for quick lookup
+        categoriesMap = categoriesData.reduce((map, category) => {
+          map[category.id] = {
+            ...category,
+            section: sectionsMap[category.section_id] || null // Embed section info
+          };
+          return map;
+        }, {});
+      }
+
+      // Get question counts for each quiz
+      const quizIds = quizzes.map(quiz => quiz.id);
+      let questionCountMap = {};
+      
+      if (quizIds.length > 0) {
+        const { data: quizQuestionCounts, error: countError } = await supabase
+          .from('v2_quiz_questions')
+          .select('quiz_id')
+          .in('quiz_id', quizIds);
+
+        if (countError) {
+          console.warn('Could not count quiz questions:', countError.message);
+        } else if (quizQuestionCounts) {
+          quizQuestionCounts.forEach(relation => {
+            questionCountMap[relation.quiz_id] = (questionCountMap[relation.quiz_id] || 0) + 1;
+          });
+        }
+      }
+
+      // Transform the data to match the expected format
+      const processedQuizzes = quizzes.map(quiz => {
+        const categoryIds = typeof quiz.category_ids === 'string'
+          ? JSON.parse(quiz.category_ids)
+          : quiz.category_ids || [];
+
+        // Map category IDs to full category objects with section info
+        const categories = categoryIds.map(categoryId => categoriesMap[categoryId]).filter(Boolean);
+
+        return {
+          ...quiz,
+          categories,
+          questionCount: questionCountMap[quiz.id] || 0
+        };
+      });
+
+      return processedQuizzes;
+    } catch (error) {
+      console.error('Error searching quizzes:', error.message);
       return [];
     }
   }

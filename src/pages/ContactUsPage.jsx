@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -6,6 +6,10 @@ const ContactUsPage = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   const [formData, setFormData] = useState({
     name: '',

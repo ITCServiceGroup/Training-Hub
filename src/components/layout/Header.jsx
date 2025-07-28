@@ -120,7 +120,7 @@ const Header = () => {
                   to="/quiz"
                   className="inline-block text-white no-underline font-medium hover:bg-primary-dark hover:text-white hover:no-underline px-3 py-2 rounded-md transition-colors"
                 >
-                  Quizzes
+                  Quiz
                 </Link>
               </li>
               {isAuthenticated ? (

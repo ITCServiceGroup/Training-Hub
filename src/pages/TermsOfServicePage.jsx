@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const TermsOfServicePage = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8">

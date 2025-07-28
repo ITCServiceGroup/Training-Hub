@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { FaTimes } from 'react-icons/fa';
 import { quizzesService } from '../services/api/quizzes';
 import { sectionsService } from '../services/api/sections';
+import { searchService } from '../services/api/search';
 import QuizTaker from '../components/quiz/QuizTaker';
 import SectionGrid from '../components/SectionGrid';
 import CategoryGrid from '../components/CategoryGrid';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import QuizSearchResults from '../components/QuizSearchResults';
 import { groupBy } from 'lodash'; // Assuming lodash is available, or implement a simple groupBy
 
 const QuizPage = () => {
@@ -21,10 +24,13 @@ const QuizPage = () => {
   const [quizCounts, setQuizCounts] = useState({});
   const [localAccessCode, setLocalAccessCode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingSections, setIsLoadingSections] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [error, setError] = useState(null);
+  const searchInputRef = useRef(null);
 
   // Load sections with categories (for proper ordering and category counts)
   useEffect(() => {
@@ -147,15 +153,63 @@ const QuizPage = () => {
     }
   };
 
-  // Filter quizzes based on search query first
+  // Handler for search
+  const handleSearch = useCallback(async (query) => {
+    if (!query || query.trim() === '') {
+      setSearchResults(null);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await searchService.searchQuizzes(query);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching quiz content:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Debounce search to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
+
+  // Clear search results when navigating
+  useEffect(() => {
+    setSearchResults(null);
+    setSearchQuery('');
+  }, [sectionId, categoryId, quizId]);
+
+  // Handle clearing search
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults(null);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
+  // Filter quizzes based on search query only when not using global search
   const filteredQuizzes = useMemo(() => {
-    return searchQuery
+    // If we have search results from global search, don't filter locally
+    if (searchResults && searchQuery) {
+      return quizzes;
+    }
+    
+    // Otherwise, filter locally if there's a search query but no global results
+    return searchQuery && !searchResults
       ? quizzes.filter(quiz =>
           quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           quiz.description?.toLowerCase().includes(searchQuery.toLowerCase())
         )
       : quizzes;
-  }, [quizzes, searchQuery]);
+  }, [quizzes, searchQuery, searchResults]);
 
   // Group filtered quizzes by Section -> Category
   const groupedQuizzes = useMemo(() => {
@@ -204,11 +258,11 @@ const QuizPage = () => {
   // If we have a quiz ID or access code, show the QuizTaker
   if (quizId || accessCode) {
     return (
-      <div className="py-2 w-full">
-        <div className="mb-1 flex flex-col gap-1">
+      <div className="py-2 w-full flex flex-col flex-1">
+        <div className="py-3 px-8">
           <div className="flex items-center gap-2">
             <Link to="/quiz" className="no-underline">
-              <h2 className={`text-3xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
+              <h2 className={`text-3xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0 hover:opacity-90 transition-opacity`} style={{marginTop: '-14px'}}>Quizzes</h2>
             </Link>
           </div>
         </div>
@@ -222,27 +276,65 @@ const QuizPage = () => {
 
   // Otherwise show the quiz list and access code entry
   return (
-    <div className="py-2 w-full">
-      <div className="mb-1 flex flex-col gap-1">
+    <div className="py-2 w-full flex flex-col flex-1">
+      <div className="py-3 px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/quiz" className="no-underline">
-              <h2 className={`text-3xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0 hover:opacity-90 transition-opacity`}>Quizzes</h2>
+              <h2 className={`text-3xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0 hover:opacity-90 transition-opacity`} style={{marginTop: '-14px'}}>Quizzes</h2>
             </Link>
           </div>
-          <div className="flex items-center max-w-md w-full">
+          <div className="flex items-center max-w-md w-full relative">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search quizzes..."
+              placeholder="Search sections, categories, and quizzes..."
               className={`py-2 px-3 border rounded text-sm w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-200 text-slate-900'}`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {searchQuery && (
+              <button
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary/80 transition-colors`}
+                onClick={handleClearSearch}
+                aria-label="Clear search"
+              >
+                <FaTimes size={14} />
+              </button>
+            )}
+            {isSearching && (
+              <div className={`absolute ${searchQuery ? 'right-8' : 'right-3'} top-1/2 -translate-y-1/2`}>
+                <div className={`w-4 h-4 rounded-full border-2 ${isDark ? 'border-gray-700 border-t-primary' : 'border-gray-200 border-t-primary'} animate-spin`}></div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Access Code Entry - More compact */}
+      {/* Search Results */}
+      {searchResults && searchQuery ? (
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Search Results for "{searchQuery}"
+            </h2>
+            <button
+              onClick={handleClearSearch}
+              className={`px-3 py-1 text-sm rounded bg-secondary hover:bg-secondary/80 text-white transition-colors`}
+            >
+              Clear Search
+            </button>
+          </div>
+          <QuizSearchResults
+            results={searchResults}
+            isLoading={isSearching}
+            searchQuery={searchQuery}
+            onResultClick={handleClearSearch}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Access Code Entry - More compact */}
       <div className="max-w-2xl mx-auto mb-6 mt-4">
         <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'} rounded-lg p-5 border`}>
           <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
@@ -277,24 +369,21 @@ const QuizPage = () => {
         </div>
       )}
 
-      {/* Practice Quizzes Section - Hierarchical Navigation */}
-      <div className="mb-6">
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-primary-light' : 'text-primary-dark'} mb-3`}>Practice Quizzes</h2>
-
-        {!sectionId ? (
+      {/* Main content area with conditional rendering based on navigation state */}
+      {!sectionId ? (
           /* Section view (no section selected) */
-          <div>
-            <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start practicing.</p>
+          <div className="px-8">
+            <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to view the practice quiz categories.</p>
             <SectionGrid
               sections={sections}
               isLoading={isLoadingSections}
-              searchQuery={searchQuery}
+              searchQuery={searchResults ? '' : searchQuery}
               navigationPath="quiz"
             />
           </div>
         ) : !categoryId ? (
           /* Category view (section selected, no category selected) */
-          <div>
+          <div className="px-8">
             <div className="flex items-center gap-2 mb-4">
               <button
                 onClick={() => navigate('/quiz')}
@@ -308,7 +397,7 @@ const QuizPage = () => {
               categories={categories}
               sectionId={sectionId}
               isLoading={isLoadingCategories}
-              searchQuery={searchQuery}
+              searchQuery={searchResults ? '' : searchQuery}
               navigationPath="quiz"
               quizCounts={quizCounts}
             />
@@ -391,10 +480,9 @@ const QuizPage = () => {
             )}
           </div>
         )}
-      </div>
 
-      {/* Access Code Entry - Removed from here */}
-
+        </>
+      )}
     </div>
   );
 };

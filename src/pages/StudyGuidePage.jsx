@@ -343,7 +343,7 @@ const StudyGuidePage = () => {
 
   return (
     <div className="py-2 w-full flex flex-col flex-1">
-      <div className="mb-1 px-8">
+      <div className="py-3 px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Link to="/study" className="no-underline">
