@@ -306,8 +306,8 @@ packetLossTemplate.innerHTML = `
             <li>Total Packets: <span id="packetsSent">--</span></li>
             <li>Packets Lost: <span id="packetsLost">--</span></li>
             <li>Loss Percentage: <span id="lossPercentage">--</span></li>
-            <li>Average Latency: <span id="avgLatency">--</span> ms</li>
-            <li>Jitter: <span id="jitter">--</span> ms</li>
+            <li>Average Latency: <span id="avgLatency">-- ms</span></li>
+            <li>Jitter: <span id="jitter">-- ms</span></li>
           </ul>
         </div>
         <div class="visualization" id="packetVisual">
@@ -430,8 +430,8 @@ class PacketLossAnalyzerElement extends HTMLElement {
     this.packetsSentSpan.textContent = packetCount;
     this.packetsLostSpan.textContent = lostPackets;
     this.lossPercentageSpan.textContent = `${lossPercentage.toFixed(1)}%`;
-    this.avgLatencySpan.textContent = avgLatency;
-    this.jitterSpan.textContent = jitter;
+    this.avgLatencySpan.textContent = `${avgLatency} ms`;
+    this.jitterSpan.textContent = `${jitter} ms`;
 
     // Update Visualization
     this.updateVisualization(packetStatuses);
