@@ -342,7 +342,7 @@ const StudyGuides = () => {
     if (!selectedStudyGuide) return;
     try {
       // Optimistically update UI
-      const newSectionsData = sectionsData.map(section => {
+      const newSectionsData = sectionsData?.map(section => {
         if (section.v2_categories) {
           return {
             ...section,
@@ -364,7 +364,7 @@ const StudyGuides = () => {
       setStudyGuides(prev => prev.filter(guide => guide.id !== selectedStudyGuide.id));
 
       // Update context
-      optimisticallyUpdateSectionsOrder(newSectionsData);
+      if (newSectionsData) optimisticallyUpdateSectionsOrder(newSectionsData);
 
       // Make API call
       await studyGuidesService.delete(selectedStudyGuide.id);
@@ -465,7 +465,7 @@ const StudyGuides = () => {
         setStudyGuides(prev => [...prev, newGuide]);
 
         // Update context with temporary ID
-        const tempSectionsData = sectionsData.map(section => {
+        const tempSectionsData = sectionsData?.map(section => {
           if (section.v2_categories) {
             return {
               ...section,
@@ -482,7 +482,7 @@ const StudyGuides = () => {
           }
           return section;
         });
-        optimisticallyUpdateSectionsOrder(tempSectionsData);
+        if (tempSectionsData) optimisticallyUpdateSectionsOrder(tempSectionsData);
 
         // Make API call
         savedGuide = await studyGuidesService.create({
@@ -497,7 +497,7 @@ const StudyGuides = () => {
         ));
 
         // Update context with real ID
-        const finalSectionsData = sectionsData.map(section => {
+        const finalSectionsData = sectionsData?.map(section => {
           if (section.v2_categories) {
             return {
               ...section,
@@ -516,7 +516,7 @@ const StudyGuides = () => {
           }
           return section;
         });
-        optimisticallyUpdateSectionsOrder(finalSectionsData);
+        if (finalSectionsData) optimisticallyUpdateSectionsOrder(finalSectionsData);
 
         // Only exit if shouldExit is true
         if (shouldExit) {
@@ -545,7 +545,7 @@ const StudyGuides = () => {
         ));
 
         // Update context
-        const newSectionsData = sectionsData.map(section => {
+        const newSectionsData = sectionsData?.map(section => {
           if (section.v2_categories) {
             return {
               ...section,
@@ -564,7 +564,7 @@ const StudyGuides = () => {
           }
           return section;
         });
-        optimisticallyUpdateSectionsOrder(newSectionsData);
+        if (newSectionsData) optimisticallyUpdateSectionsOrder(newSectionsData);
 
         // Make API call
         savedGuide = await studyGuidesService.update(selectedStudyGuide.id, dataToSaveApi);
@@ -640,7 +640,7 @@ const StudyGuides = () => {
       ));
 
       // Update context
-      const newSectionsData = sectionsData.map(section => {
+      const newSectionsData = sectionsData?.map(section => {
         if (section.v2_categories) {
           return {
             ...section,
@@ -659,7 +659,7 @@ const StudyGuides = () => {
         }
         return section;
       });
-      optimisticallyUpdateSectionsOrder(newSectionsData);
+      if (newSectionsData) optimisticallyUpdateSectionsOrder(newSectionsData);
 
       // Make API call
       await studyGuidesService.update(guideId, { description });
@@ -673,7 +673,7 @@ const StudyGuides = () => {
   const handleCopySelect = (targetCategoryId) => {
     // Find the category name for the confirmation dialog
     let categoryName = "the selected category";
-    sectionsData.forEach(section => {
+    sectionsData?.forEach(section => {
       if (section.v2_categories) {
         section.v2_categories.forEach(category => {
           if (category.id === targetCategoryId) {
@@ -705,7 +705,7 @@ const StudyGuides = () => {
         setStudyGuides(prev => [...prev, copiedGuide].sort((a, b) => a.display_order - b.display_order));
 
         // Update context
-        const newSectionsData = sectionsData.map(section => {
+        const newSectionsData = sectionsData?.map(section => {
           if (section.v2_categories) {
             return {
               ...section,
@@ -723,7 +723,7 @@ const StudyGuides = () => {
           }
           return section;
         });
-        optimisticallyUpdateSectionsOrder(newSectionsData);
+        if (newSectionsData) optimisticallyUpdateSectionsOrder(newSectionsData);
       }
 
       // Set success message
@@ -752,7 +752,7 @@ const StudyGuides = () => {
   const handleMoveSelect = (targetCategoryId) => {
     // Find the category name for the confirmation dialog
     let categoryName = "the selected category";
-    sectionsData.forEach(section => {
+    sectionsData?.forEach(section => {
       if (section.v2_categories) {
         section.v2_categories.forEach(category => {
           if (category.id === targetCategoryId) {
@@ -783,7 +783,7 @@ const StudyGuides = () => {
       setStudyGuides(prev => prev.filter(guide => guide.id !== guideToAction.id));
 
       // Update context
-      const newSectionsData = sectionsData.map(section => {
+      const newSectionsData = sectionsData?.map(section => {
         if (section.v2_categories) {
           return {
             ...section,
@@ -809,7 +809,7 @@ const StudyGuides = () => {
         }
         return section;
       });
-      optimisticallyUpdateSectionsOrder(newSectionsData);
+      if (newSectionsData) optimisticallyUpdateSectionsOrder(newSectionsData);
 
       // Set success message
       setSuccessMessage(`Study guide "${guideToAction.title}" has been successfully moved to ${selectedTargetCategoryName}.`);
@@ -908,7 +908,7 @@ const StudyGuides = () => {
                 setStudyGuides(updatedGuides);
 
                 // Update context
-                const newSectionsData = sectionsData.map(section => {
+                const newSectionsData = sectionsData?.map(section => {
                   if (section.v2_categories) {
                     return {
                       ...section,
@@ -925,7 +925,7 @@ const StudyGuides = () => {
                   }
                   return section;
                 });
-                optimisticallyUpdateSectionsOrder(newSectionsData);
+                if (newSectionsData) optimisticallyUpdateSectionsOrder(newSectionsData);
 
                 // Make API call
                 const updatesWithCategory = updates.map(update => ({

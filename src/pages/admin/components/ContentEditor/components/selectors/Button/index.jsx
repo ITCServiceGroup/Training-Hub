@@ -201,7 +201,7 @@ export const Button = ({
       onMouseLeave={(e) => {
         e.currentTarget.style.background = buttonBackground;
         e.currentTarget.style.color = `rgba(${Object.values(themeColor)})`;
-        e.currentTarget.style.borderColor = buttonStyle === 'outline' ? `rgba(${Object.values(background)})` : 'transparent';
+        e.currentTarget.style.borderColor = buttonStyle === 'outline' ? `rgba(${Object.values(themeBackground)})` : 'transparent';
       }}
     >
       {text}
