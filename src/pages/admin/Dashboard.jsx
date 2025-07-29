@@ -276,12 +276,8 @@ const Dashboard = () => {
 
   // Global filters state (initialized from preset or saved layout)
   const [globalFilters, setGlobalFilters] = useState({
-    dateRange: {
-      preset: 'last_month',
-      startDate: null,
-      endDate: null
-    },
-    quickPreset: 'last_month',
+    dateRange: 'last-30-days',
+    quickPreset: 'last-30-days',
     markets: [],
     supervisors: [],
     ldaps: [],
@@ -572,6 +568,9 @@ const Dashboard = () => {
     loadFallbackTileOrder();
   }, [activeDashboard, tileOrder.length]);
 
+  // Add a forced refresh trigger for when filters change but useEffect doesn't fire
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
   // Fetch dashboard data based on global filters
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -580,6 +579,8 @@ const Dashboard = () => {
         console.log('🚫 Skipping data fetch during layout operation');
         return;
       }
+      
+      console.log('🔄 Fetching dashboard data with filters:', globalFilters);
       
       try {
         setLoading(true);
@@ -607,6 +608,7 @@ const Dashboard = () => {
               sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
               return { startDate: sevenDaysAgo.toISOString().split('T')[0], endDate: todayStr };
             case 'last-30-days':
+            case 'last_month': // Handle legacy format
               const thirtyDaysAgo = new Date(today);
               thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
               return { startDate: thirtyDaysAgo.toISOString().split('T')[0], endDate: todayStr };
@@ -632,6 +634,8 @@ const Dashboard = () => {
         };
         
         const dateRange = getDateRange(globalFilters.dateRange);
+        console.log('📅 Computed date range:', dateRange);
+        
         const filterParams = {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
@@ -667,7 +671,7 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
-  }, [globalFilters, isInitialLoad]);
+  }, [globalFilters, isInitialLoad, refreshTrigger]);
 
 
 
@@ -981,68 +985,81 @@ const Dashboard = () => {
                       <SingleSelect
                         value={globalFilters.quickPreset || 'last-30-days'}
                         onChange={(preset) => {
-                          let newFilters = { ...globalFilters, quickPreset: preset };
+                          console.log('🔄 Time period filter changed to:', preset);
                           
-                          // Apply preset date ranges
-                          switch (preset) {
-                            case 'today':
-                              newFilters.dateRange = 'today';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'yesterday':
-                              newFilters.dateRange = 'yesterday';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'last-7-days':
-                              newFilters.dateRange = 'last-7-days';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'last-30-days':
-                              newFilters.dateRange = 'last-30-days';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'this-month':
-                              newFilters.dateRange = 'this-month';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'this-quarter':
-                              newFilters.dateRange = 'this-quarter';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'this-year':
-                              newFilters.dateRange = 'this-year';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'all-time':
-                              newFilters.dateRange = 'all-time';
-                              // Clear any custom date range properties
-                              delete newFilters.startDate;
-                              delete newFilters.endDate;
-                              break;
-                            case 'custom':
-                              newFilters.dateRange = {
-                                startDate: null,
-                                endDate: null
-                              };
-                              break;
-                            default:
-                              break;
-                          }
-                          setGlobalFilters(newFilters);
+                          // Use functional update to ensure we have the latest state
+                          setGlobalFilters(prevFilters => {
+                            let newFilters = { ...prevFilters, quickPreset: preset };
+                            
+                            // Apply preset date ranges
+                            switch (preset) {
+                              case 'today':
+                                newFilters.dateRange = 'today';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'yesterday':
+                                newFilters.dateRange = 'yesterday';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'last-7-days':
+                                newFilters.dateRange = 'last-7-days';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'last-30-days':
+                                newFilters.dateRange = 'last-30-days';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'this-month':
+                                newFilters.dateRange = 'this-month';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'this-quarter':
+                                newFilters.dateRange = 'this-quarter';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'this-year':
+                                newFilters.dateRange = 'this-year';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'all-time':
+                                newFilters.dateRange = 'all-time';
+                                // Clear any custom date range properties
+                                delete newFilters.startDate;
+                                delete newFilters.endDate;
+                                break;
+                              case 'custom':
+                                newFilters.dateRange = {
+                                  startDate: null,
+                                  endDate: null
+                                };
+                                break;
+                              default:
+                                break;
+                            }
+                            
+                            console.log('📝 Updated filters:', newFilters);
+                            
+                            // Force a refresh to ensure data is fetched
+                            setTimeout(() => {
+                              setRefreshTrigger(prev => prev + 1);
+                            }, 100);
+                            
+                            return newFilters;
+                          });
                         }}
                         options={[
                           { value: 'today', label: 'Today' },
@@ -1072,34 +1089,41 @@ const Dashboard = () => {
                           value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
                             ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
                             : []}
-                          onChange={(selectedDates, dateStr) => {
-                            if (selectedDates.length === 2) {
-                              setGlobalFilters({
-                                ...globalFilters,
-                                dateRange: {
+                          onChange={(selectedDates) => {
+                            console.log('📅 Custom date range changed:', selectedDates);
+                            
+                            // Use functional update to ensure we have the latest state
+                            setGlobalFilters(prevFilters => {
+                              let newFilters = { ...prevFilters };
+                              
+                              if (selectedDates.length === 2) {
+                                newFilters.dateRange = {
                                   startDate: selectedDates[0].toISOString().split('T')[0],
                                   endDate: selectedDates[1].toISOString().split('T')[0]
-                                }
-                              });
-                            } else if (selectedDates.length === 1) {
-                              // First date selected, clear end date
-                              setGlobalFilters({
-                                ...globalFilters,
-                                dateRange: {
+                                };
+                              } else if (selectedDates.length === 1) {
+                                // First date selected, clear end date
+                                newFilters.dateRange = {
                                   startDate: selectedDates[0].toISOString().split('T')[0],
                                   endDate: null
-                                }
-                              });
-                            } else if (selectedDates.length === 0) {
-                              // Clear both dates
-                              setGlobalFilters({
-                                ...globalFilters,
-                                dateRange: {
+                                };
+                              } else if (selectedDates.length === 0) {
+                                // Clear both dates
+                                newFilters.dateRange = {
                                   startDate: null,
                                   endDate: null
-                                }
-                              });
-                            }
+                                };
+                              }
+                              
+                              console.log('📝 Updated filters from date picker:', newFilters);
+                              
+                              // Force a refresh to ensure data is fetched
+                              setTimeout(() => {
+                                setRefreshTrigger(prev => prev + 1);
+                              }, 100);
+                              
+                              return newFilters;
+                            });
                           }}
                           placeholder="Select date range"
                           className="flatpickr-input"
@@ -1136,7 +1160,11 @@ const Dashboard = () => {
                       <MultiSelect
                         type="markets"
                         value={globalFilters.markets || []}
-                        onChange={(value) => setGlobalFilters({ ...globalFilters, markets: value || [] })}
+                        onChange={(value) => {
+                          console.log('🔄 Markets filter changed:', value);
+                          setGlobalFilters(prevFilters => ({ ...prevFilters, markets: value || [] }));
+                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                        }}
                         hideLabel={true}
                       />
                     </div>
@@ -1151,7 +1179,11 @@ const Dashboard = () => {
                       <MultiSelect
                         type="supervisors"
                         value={globalFilters.supervisors || []}
-                        onChange={(value) => setGlobalFilters({ ...globalFilters, supervisors: value || [] })}
+                        onChange={(value) => {
+                          console.log('🔄 Supervisors filter changed:', value);
+                          setGlobalFilters(prevFilters => ({ ...prevFilters, supervisors: value || [] }));
+                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                        }}
                         hideLabel={true}
                       />
                     </div>
@@ -1166,7 +1198,11 @@ const Dashboard = () => {
                       <MultiSelect
                         type="ldaps"
                         value={globalFilters.ldaps || []}
-                        onChange={(value) => setGlobalFilters({ ...globalFilters, ldaps: value || [] })}
+                        onChange={(value) => {
+                          console.log('🔄 LDAP filter changed:', value);
+                          setGlobalFilters(prevFilters => ({ ...prevFilters, ldaps: value || [] }));
+                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                        }}
                         hideLabel={true}
                       />
                     </div>
@@ -1181,7 +1217,11 @@ const Dashboard = () => {
                       <MultiSelect
                         type="quizTypes"
                         value={globalFilters.quizTypes || []}
-                        onChange={(value) => setGlobalFilters({ ...globalFilters, quizTypes: value || [] })}
+                        onChange={(value) => {
+                          console.log('🔄 Quiz Types filter changed:', value);
+                          setGlobalFilters(prevFilters => ({ ...prevFilters, quizTypes: value || [] }));
+                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                        }}
                         hideLabel={true}
                       />
                     </div>
@@ -1194,14 +1234,29 @@ const Dashboard = () => {
                     </label>
                     <button
                       onClick={() => {
-                        const dashboardFilters = activeDashboard?.filters || {};
-                        setGlobalFilters({ 
-                          ...dashboardFilters, 
-                          quickPreset: 'last-30-days',
-                          markets: [],
-                          supervisors: [],
-                          ldaps: [],
-                          quizTypes: []
+                        console.log('🔄 Resetting filters');
+                        
+                        // Use functional update to ensure we have the latest state
+                        setGlobalFilters(prevFilters => {
+                          const dashboardFilters = activeDashboard?.filters || {};
+                          const newFilters = { 
+                            ...dashboardFilters, 
+                            dateRange: 'last-30-days',
+                            quickPreset: 'last-30-days',
+                            markets: [],
+                            supervisors: [],
+                            ldaps: [],
+                            quizTypes: []
+                          };
+                          
+                          console.log('📝 Reset filters to:', newFilters);
+                          
+                          // Force a refresh to ensure data is fetched
+                          setTimeout(() => {
+                            setRefreshTrigger(prev => prev + 1);
+                          }, 100);
+                          
+                          return newFilters;
                         });
                       }}
                       className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
@@ -1233,10 +1288,24 @@ const Dashboard = () => {
 
           <GlobalFilters
             filters={globalFilters}
-            onFiltersChange={setGlobalFilters}
+            onFiltersChange={(newFilters) => {
+              console.log('🔄 GlobalFilters component changed filters:', newFilters);
+              setGlobalFilters(newFilters);
+              
+              // Force a refresh to ensure data is fetched
+              setTimeout(() => {
+                setRefreshTrigger(prev => prev + 1);
+              }, 100);
+            }}
             onReset={() => {
+              console.log('🔄 GlobalFilters component reset');
               const dashboardFilters = activeDashboard?.filters || {};
               setGlobalFilters(dashboardFilters);
+              
+              // Force a refresh to ensure data is fetched
+              setTimeout(() => {
+                setRefreshTrigger(prev => prev + 1);
+              }, 100);
             }}
           />
         </div>

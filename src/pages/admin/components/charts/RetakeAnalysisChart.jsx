@@ -5,7 +5,8 @@ import { useDashboardFilters } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 
 const RetakeAnalysisChart = ({ data = [], loading = false }) => {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { getFiltersForChart, shouldFilterChart } = useDashboardFilters();
 
   // Filter data for this chart (includes hover filters from other charts, excludes own hover)
@@ -88,12 +89,12 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
 
     // Create nodes
     const nodes = [
-      // Attempt nodes
+      // Attempt nodes (ordered as desired: 1st, 2nd, 3rd, 4th+)
       { id: 'First Attempt', color: '#3b82f6' },
       { id: 'Second Attempt', color: '#f59e0b' },
       { id: 'Third Attempt', color: '#ef4444' },
       { id: 'Fourth+ Attempt', color: '#dc2626' },
-      
+
       // Outcome nodes
       { id: 'Pass - 1st Try', color: '#10b981' },
       { id: 'Pass - 2nd Try', color: '#059669' },
@@ -103,7 +104,7 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
       { id: 'Fail - 2nd Try', color: '#ef4444' },
       { id: 'Fail - 3rd Try', color: '#dc2626' },
       { id: 'Fail - 4th+ Try', color: '#b91c1c' },
-      
+
       // Final outcomes
       { id: 'Eventually Passed', color: '#10b981' },
       { id: 'Never Passed', color: '#ef4444' }
@@ -290,15 +291,20 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
           modifiers: [['darker', 0.8]],
         }}
         linkOpacity={isDark ? 0.8 : 0.5}
-        linkHoverOthersOpacity={isDark ? 0.2 : 0.1}
+        linkHoverOthersOpacity={isDark ? 0.4 : 0.1}
         linkContract={3}
         enableLinkGradient={true}
+        linkColor={{
+          from: 'source.color',
+          modifiers: isDark ? [['brighter', 1.5]] : []
+        }}
+        linkBlendMode={isDark ? 'screen' : 'normal'}
         labelPosition="outside"
         labelOrientation="horizontal"
         labelPadding={20}
         labelTextColor={{
           from: 'color',
-          modifiers: isDark ? [['brighter', 3]] : [['darker', 1]]
+          modifiers: isDark ? [['brighter', 5]] : [['darker', 1]]
         }}
         animate={true}
         motionStiffness={140}
