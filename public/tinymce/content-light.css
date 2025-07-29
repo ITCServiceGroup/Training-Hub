@@ -36,10 +36,10 @@ img[class*="img-border-"] {
 }
 
 /* --- Text Color Overrides (Light Mode Viewing) --- */
-/* Override dark mode inline styles with light equivalents */
-[style*="color: #C2E0F4"], [style*="color: #c2e0f4"] { color: #34495E !important; } /* Light Blue -> Navy Blue */
+/* Override dark mode inline styles with light equivalents - SCOPED TO TINYMCE ONLY */
+.mce-content-body [style*="color: #C2E0F4"], .mce-content-body [style*="color: #c2e0f4"] { color: #34495E !important; } /* Light Blue -> Navy Blue */
 /* Black (#000000) inline style doesn't need override in light mode */
-[style*="color: #FFFFFF"], [style*="color: #ffffff"] { color: #000000 !important; } /* White -> Black */
-[style*="color: #ECF0F1"], [style*="color: #ecf0f1"] { color: #7E8C8D !important; } /* Light Gray -> Dark Gray */
-[style*="color: #CED4D9"], [style*="color: #ced4d9"] { color: #95A5A6 !important; } /* Medium Gray -> Gray */
+.mce-content-body [style*="color: #FFFFFF"], .mce-content-body [style*="color: #ffffff"] { color: #000000 !important; } /* White -> Black */
+.mce-content-body [style*="color: #ECF0F1"], .mce-content-body [style*="color: #ecf0f1"] { color: #7E8C8D !important; } /* Light Gray -> Dark Gray */
+.mce-content-body [style*="color: #CED4D9"], .mce-content-body [style*="color: #ced4d9"] { color: #95A5A6 !important; } /* Medium Gray -> Gray */
 /* Add other non-swapping dark colors if they become unreadable in light mode */

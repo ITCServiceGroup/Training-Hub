@@ -78,13 +78,18 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     option: (provided, state) => ({
       ...provided,
       backgroundColor: state.isFocused
-        ? isDark ? '#334155' : provided.backgroundColor
+        ? 'var(--color-primary)'
+        : state.isSelected
+        ? 'var(--color-primary)'
         : isDark ? '#1e293b' : provided.backgroundColor,
-      color: isDark ? '#f8fafc' : provided.color,
+      color: state.isFocused || state.isSelected
+        ? 'white'
+        : isDark ? '#f8fafc' : provided.color,
       fontSize: '12px',
       padding: '6px 12px',
       '&:hover': {
-        backgroundColor: isDark ? '#475569' : '#f3f4f6',
+        backgroundColor: 'var(--color-primary)',
+        color: 'white'
       }
     }),
     multiValue: (provided) => ({

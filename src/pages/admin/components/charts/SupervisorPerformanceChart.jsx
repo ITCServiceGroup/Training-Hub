@@ -127,7 +127,7 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
           background: 'transparent',
           text: {
             fontSize: 12,
-            fill: isDark ? '#e2e8f0' : '#475569',
+            fill: isDark ? '#ffffff' : '#475569',
           },
           axis: {
             domain: {
@@ -139,7 +139,7 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
             legend: {
               text: {
                 fontSize: 12,
-                fill: isDark ? '#e2e8f0' : '#475569',
+                fill: isDark ? '#ffffff' : '#475569',
               },
             },
             ticks: {
@@ -149,7 +149,7 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
               },
               text: {
                 fontSize: 11,
-                fill: isDark ? '#e2e8f0' : '#475569',
+                fill: isDark ? '#ffffff' : '#475569',
               },
             },
           },
@@ -196,10 +196,7 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
         enableLabel={true}
         labelSkipWidth={12}
         labelSkipHeight={12}
-        labelTextColor={{
-          from: 'color',
-          modifiers: [['darker', 1.6]],
-        }}
+        labelTextColor={isDark ? '#ffffff' : '#000000'}
         animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}

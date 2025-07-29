@@ -6,12 +6,209 @@ import { quizResultsService } from '../../services/api/quizResults';
 import DashboardTile from './components/DashboardTile';
 import TileFilterPopover from './components/TileFilterPopover';
 import GlobalFilters from './components/GlobalFilters';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/themes/light.css';
+
+// Custom styles for Flatpickr theme integration
+const flatpickrThemeStyles = `
+  .flatpickr-calendar {
+    font-family: inherit;
+    border-radius: 0.5rem !important;
+    overflow: hidden !important;
+  }
+  
+  /* Header background - all possible containers */
+  .flatpickr-months,
+  .flatpickr-months .flatpickr-month,
+  .flatpickr-month,
+  .flatpickr-months > span {
+    background-color: var(--primary-color) !important;
+    background: var(--primary-color) !important;
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+  }
+  
+  /* Month header container - ensure all elements get theme color */
+  .flatpickr-month,
+  .flatpickr-months .flatpickr-month,
+  .flatpickr-months span.flatpickr-month {
+    background-color: var(--primary-color) !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+  }
+  
+  /* Current month text and year */
+  .flatpickr-current-month,
+  .flatpickr-current-month .flatpickr-monthDropdown-months,
+  .flatpickr-current-month .cur-year,
+  .flatpickr-current-month input.cur-year[readonly] {
+    color: white !important;
+    background-color: transparent !important;
+    border: none !important;
+  }
+  
+  /* Navigation arrows */
+  .flatpickr-prev-month,
+  .flatpickr-next-month {
+    color: white !important;
+    fill: white !important;
+  }
+  
+  .flatpickr-prev-month:hover,
+  .flatpickr-next-month:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+    fill: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  /* Navigation arrow SVGs */
+  .flatpickr-prev-month svg,
+  .flatpickr-next-month svg {
+    fill: white !important;
+  }
+  
+  .flatpickr-prev-month:hover svg,
+  .flatpickr-next-month:hover svg {
+    fill: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  /* Weekdays header */
+  .flatpickr-weekdays {
+    background-color: var(--primary-color) !important;
+  }
+  
+  .flatpickr-weekday {
+    color: white !important;
+    background-color: var(--primary-color) !important;
+  }
+  
+  /* Selected dates */
+  .flatpickr-day.selected,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+  }
+  
+  /* Date range styling */
+  .flatpickr-day.inRange {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: -5px 0 0 var(--primary-color), 5px 0 0 var(--primary-color) !important;
+  }
+  
+  /* Date hover effects */
+  .flatpickr-day:hover {
+    background: var(--primary-light) !important;
+    border-color: var(--primary-light) !important;
+  }
+  
+  /* Today indicator */
+  .flatpickr-day.today {
+    border-color: var(--primary-color) !important;
+  }
+  
+  .flatpickr-day.today:hover,
+  .flatpickr-day.today:focus {
+    background: var(--primary-color) !important;
+    color: white !important;
+  }
+  
+  /* Style Flatpickr input to match react-select */
+  .flatpickr-input,
+  input.flatpickr-input,
+  .date-range-wrapper input,
+  .date-range-wrapper .flatpickr-input {
+    background: white !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    transition: all 0.15s ease-in-out !important;
+    margin: 0 !important;
+    vertical-align: top !important;
+    box-sizing: border-box !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
+  }
+  
+  .flatpickr-input:hover,
+  input.flatpickr-input:hover,
+  .date-range-wrapper input:hover,
+  .date-range-wrapper .flatpickr-input:hover {
+    border-color: var(--primary-color) !important;
+  }
+  
+  .flatpickr-input:focus,
+  input.flatpickr-input:focus,
+  .date-range-wrapper input:focus,
+  .date-range-wrapper .flatpickr-input:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 1px var(--primary-color) !important;
+  }
+  
+  /* Dark mode support for input */
+  .dark .flatpickr-input,
+  .dark input.flatpickr-input,
+  .dark .date-range-wrapper input,
+  .dark .date-range-wrapper .flatpickr-input {
+    background: #1e293b !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+  }
+  
+  .dark .flatpickr-input:hover,
+  .dark .flatpickr-input:focus,
+  .dark input.flatpickr-input:hover,
+  .dark input.flatpickr-input:focus,
+  .dark .date-range-wrapper input:hover,
+  .dark .date-range-wrapper input:focus,
+  .dark .date-range-wrapper .flatpickr-input:hover,
+  .dark .date-range-wrapper .flatpickr-input:focus {
+    border-color: var(--primary-color) !important;
+  }
+  
+  /* Force alignment with react-select components */
+  .date-range-container {
+    display: flex !important;
+    align-items: flex-end !important;
+  }
+  
+  .date-range-container label {
+    text-align: left !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    align-self: flex-start !important;
+  }
+  
+  .date-range-wrapper {
+    display: flex !important;
+    align-items: center !important;
+  }
+`;
+
+// Inject custom styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = flatpickrThemeStyles;
+  if (!document.head.querySelector('style[data-flatpickr-theme]')) {
+    styleSheet.setAttribute('data-flatpickr-theme', 'true');
+    document.head.appendChild(styleSheet);
+  }
+}
 
 import TileLibraryButton from './components/TileLibraryButton';
 import DashboardManagerDropdown from './components/DashboardManagerDropdown';
 import ExportButton from './components/ExportButton';
 import ExportModal from './components/ExportModal';
 import MultiSelect from './components/Filters/MultiSelect';
+import SingleSelect from './components/Filters/SingleSelect';
 import { DashboardProvider } from './contexts/DashboardContext';
 import DrillDownBreadcrumbs from './components/DrillDownBreadcrumbs';
 // Removed old complex hook - now using simplified useDashboards
@@ -389,9 +586,55 @@ const Dashboard = () => {
         setError(null);
 
         // Convert global filters to API format
+        const getDateRange = (dateRange) => {
+          if (typeof dateRange === 'object' && dateRange.startDate && dateRange.endDate) {
+            return { startDate: dateRange.startDate, endDate: dateRange.endDate };
+          }
+          
+          const today = new Date();
+          const todayStr = today.toISOString().split('T')[0];
+          
+          switch (dateRange) {
+            case 'today':
+              return { startDate: todayStr, endDate: todayStr };
+            case 'yesterday':
+              const yesterday = new Date(today);
+              yesterday.setDate(yesterday.getDate() - 1);
+              const yesterdayStr = yesterday.toISOString().split('T')[0];
+              return { startDate: yesterdayStr, endDate: yesterdayStr };
+            case 'last-7-days':
+              const sevenDaysAgo = new Date(today);
+              sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+              return { startDate: sevenDaysAgo.toISOString().split('T')[0], endDate: todayStr };
+            case 'last-30-days':
+              const thirtyDaysAgo = new Date(today);
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              return { startDate: thirtyDaysAgo.toISOString().split('T')[0], endDate: todayStr };
+            case 'this-month':
+              const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+              return { startDate: monthStart.toISOString().split('T')[0], endDate: todayStr };
+            case 'this-quarter':
+              const currentQuarter = Math.floor(today.getMonth() / 3);
+              const quarterStart = new Date(today.getFullYear(), currentQuarter * 3, 1);
+              return { startDate: quarterStart.toISOString().split('T')[0], endDate: todayStr };
+            case 'this-year':
+              const yearStart = new Date(today.getFullYear(), 0, 1);
+              return { startDate: yearStart.toISOString().split('T')[0], endDate: todayStr };
+            case 'all-time':
+              // Return a very early date to get all records
+              return { startDate: '2000-01-01', endDate: todayStr };
+            default:
+              // Default to last 30 days
+              const defaultStart = new Date(today);
+              defaultStart.setDate(defaultStart.getDate() - 30);
+              return { startDate: defaultStart.toISOString().split('T')[0], endDate: todayStr };
+          }
+        };
+        
+        const dateRange = getDateRange(globalFilters.dateRange);
         const filterParams = {
-          startDate: globalFilters.dateRange.startDate,
-          endDate: globalFilters.dateRange.endDate,
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
           supervisors: [],
           ldaps: [],
           markets: [],
@@ -735,48 +978,154 @@ const Dashboard = () => {
                       Time Period
                     </label>
                     <div className="w-32">
-                      <select
+                      <SingleSelect
                         value={globalFilters.quickPreset || 'last-30-days'}
-                        onChange={(e) => {
-                          const preset = e.target.value;
+                        onChange={(preset) => {
                           let newFilters = { ...globalFilters, quickPreset: preset };
                           
                           // Apply preset date ranges
                           switch (preset) {
                             case 'today':
                               newFilters.dateRange = 'today';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
                               break;
                             case 'yesterday':
                               newFilters.dateRange = 'yesterday';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
                               break;
                             case 'last-7-days':
                               newFilters.dateRange = 'last-7-days';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
                               break;
                             case 'last-30-days':
                               newFilters.dateRange = 'last-30-days';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
                               break;
                             case 'this-month':
                               newFilters.dateRange = 'this-month';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
+                              break;
+                            case 'this-quarter':
+                              newFilters.dateRange = 'this-quarter';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
                               break;
                             case 'this-year':
                               newFilters.dateRange = 'this-year';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
+                              break;
+                            case 'all-time':
+                              newFilters.dateRange = 'all-time';
+                              // Clear any custom date range properties
+                              delete newFilters.startDate;
+                              delete newFilters.endDate;
+                              break;
+                            case 'custom':
+                              newFilters.dateRange = {
+                                startDate: null,
+                                endDate: null
+                              };
                               break;
                             default:
                               break;
                           }
                           setGlobalFilters(newFilters);
                         }}
-                        className="block w-full h-7 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-3 py-1 text-xs"
-                      >
-                        <option value="today">Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="last-7-days">Last 7 Days</option>
-                        <option value="last-30-days">Last 30 Days</option>
-                        <option value="this-month">This Month</option>
-                        <option value="this-year">This Year</option>
-                      </select>
+                        options={[
+                          { value: 'today', label: 'Today' },
+                          { value: 'yesterday', label: 'Yesterday' },
+                          { value: 'last-7-days', label: 'Last 7 Days' },
+                          { value: 'last-30-days', label: 'Last 30 Days' },
+                          { value: 'this-month', label: 'This Month' },
+                          { value: 'this-quarter', label: 'This Quarter' },
+                          { value: 'this-year', label: 'This Year' },
+                          { value: 'all-time', label: 'All Time' },
+                          { value: 'custom', label: 'Custom' }
+                        ]}
+                        placeholder="Select time period"
+                        className="w-full"
+                      />
                     </div>
                   </div>
+
+                  {/* Custom Date Range Picker */}
+                  {globalFilters.quickPreset === 'custom' && (
+                    <div className="flex flex-col date-range-container">
+                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Date Range
+                      </label>
+                      <div className="w-38 date-range-wrapper">
+                        <Flatpickr
+                          value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
+                            ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
+                            : []}
+                          onChange={(selectedDates, dateStr) => {
+                            if (selectedDates.length === 2) {
+                              setGlobalFilters({
+                                ...globalFilters,
+                                dateRange: {
+                                  startDate: selectedDates[0].toISOString().split('T')[0],
+                                  endDate: selectedDates[1].toISOString().split('T')[0]
+                                }
+                              });
+                            } else if (selectedDates.length === 1) {
+                              // First date selected, clear end date
+                              setGlobalFilters({
+                                ...globalFilters,
+                                dateRange: {
+                                  startDate: selectedDates[0].toISOString().split('T')[0],
+                                  endDate: null
+                                }
+                              });
+                            } else if (selectedDates.length === 0) {
+                              // Clear both dates
+                              setGlobalFilters({
+                                ...globalFilters,
+                                dateRange: {
+                                  startDate: null,
+                                  endDate: null
+                                }
+                              });
+                            }
+                          }}
+                          placeholder="Select date range"
+                          className="flatpickr-input"
+                          options={{
+                            mode: 'range',
+                            dateFormat: 'm/d/y',
+                            maxDate: 'today',
+                            clickOpens: true,
+                            allowInput: false,
+                            disableMobile: true,
+                            onReady: (selectedDates, dateStr, instance) => {
+                              instance.element.setAttribute('autocomplete', 'off');
+                              instance.element.setAttribute('readonly', 'readonly');
+                              // Set initial dates if they exist
+                              if (globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate) {
+                                instance.setDate([
+                                  new Date(globalFilters.dateRange.startDate),
+                                  new Date(globalFilters.dateRange.endDate)
+                                ], false);
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Market Filter */}
                   <div className="flex flex-col">

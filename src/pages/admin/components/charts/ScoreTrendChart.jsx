@@ -661,7 +661,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         }}
         curve="monotoneX"
         pointSize={8}
-        pointColor="#ffffff"
+        pointColor={isDark ? '#1e293b' : '#ffffff'}
         pointBorderWidth={2}
         pointBorderColor={(point) => {
           // For aggregate mode, use the fixed orange color like before

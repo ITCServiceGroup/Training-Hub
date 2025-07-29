@@ -279,7 +279,7 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
         data={sankeyData}
         margin={{ top: 50, right: 180, bottom: 50, left: 120 }}
         align="justify"
-        colors={{ scheme: 'category10' }}
+        colors={{ datum: 'color' }}
         nodeOpacity={1}
         nodeHoverOthersOpacity={0.35}
         nodeThickness={18}
@@ -289,8 +289,8 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
           from: 'color',
           modifiers: [['darker', 0.8]],
         }}
-        linkOpacity={0.5}
-        linkHoverOthersOpacity={0.1}
+        linkOpacity={isDark ? 0.8 : 0.5}
+        linkHoverOthersOpacity={isDark ? 0.2 : 0.1}
         linkContract={3}
         enableLinkGradient={true}
         labelPosition="outside"
@@ -298,17 +298,13 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
         labelPadding={20}
         labelTextColor={{
           from: 'color',
-          modifiers: [['darker', 1]],
+          modifiers: isDark ? [['brighter', 3]] : [['darker', 1]]
         }}
         animate={true}
         motionStiffness={140}
         motionDamping={13}
         theme={{
           background: 'transparent',
-          text: {
-            fontSize: 11,
-            fill: isDark ? '#e2e8f0' : '#475569',
-          },
           tooltip: {
             container: {
               background: isDark ? '#1e293b' : '#ffffff',

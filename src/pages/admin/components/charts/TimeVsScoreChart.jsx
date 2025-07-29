@@ -465,9 +465,13 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
         margin={{ top: 50, right: 30, bottom: 50, left: 60 }}
         xScale={{ type: 'linear', min: 0, max: maxTimeLimit }}
         yScale={{ type: 'linear', min: 0, max: 100 }}
-        blendMode="multiply"
+        blendMode={isDark ? "normal" : "multiply"}
         nodeSize={8}
         colors={{ datum: 'color' }}
+        enableGridX={true}
+        enableGridY={true}
+        useMesh={true}
+        debugMesh={false}
         layers={[
           'grid',
           'axes',
@@ -537,7 +541,22 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
               </g>
             );
           }),
-          'nodes',
+          // Custom nodes layer to control point colors in dark mode
+          ({ nodes, xScale, yScale }) => (
+            <g>
+              {nodes.map(node => (
+                <circle
+                  key={node.id}
+                  cx={xScale(node.data.x)}
+                  cy={yScale(node.data.y)}
+                  r={4}
+                  fill={isDark ? '#ffffff' : '#000000'}
+                  stroke="none"
+                  style={{ cursor: 'pointer' }}
+                />
+              ))}
+            </g>
+          ),
           'mesh'
         ].filter(Boolean)}
         theme={{
@@ -585,6 +604,11 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
               zIndex: 9999,
+            },
+          },
+          dots: {
+            text: {
+              fill: isDark ? '#ffffff' : '#000000',
             },
           },
         }}

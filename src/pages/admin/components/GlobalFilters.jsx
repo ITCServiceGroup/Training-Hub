@@ -103,33 +103,7 @@ const GlobalFilters = ({
       {/* Advanced Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
 
-        {/* Custom Date Range (shown when custom is selected) */}
-        {filters.quickPreset === 'custom' && (
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Start Date
-              </label>
-              <input
-                type="date"
-                value={filters.dateRange.startDate || ''}
-                onChange={(e) => handleCustomDateChange('startDate', e.target.value)}
-                className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 px-3 py-2"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                End Date
-              </label>
-              <input
-                type="date"
-                value={filters.dateRange.endDate || ''}
-                onChange={(e) => handleCustomDateChange('endDate', e.target.value)}
-                className="block w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 px-3 py-2"
-              />
-            </div>
-          </div>
-        )}
+        {/* Custom Date Range removed - now handled in main dashboard filter row */}
 
         {/* Export Button (if provided) */}
         {onExport && (

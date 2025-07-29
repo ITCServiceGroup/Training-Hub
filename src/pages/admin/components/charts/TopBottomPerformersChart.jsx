@@ -296,10 +296,7 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
         enableLabel={true}
         labelSkipWidth={12}
         labelSkipHeight={12}
-        labelTextColor={{
-          from: 'color',
-          modifiers: [['darker', 1.6]],
-        }}
+        labelTextColor={isDark ? '#ffffff' : '#000000'}
         animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}

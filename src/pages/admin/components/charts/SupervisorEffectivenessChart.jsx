@@ -5,7 +5,8 @@ import { useDashboardFilters } from '../../contexts/DashboardContext';
 import { filterDataForChart } from '../../utils/dashboardFilters';
 
 const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { getFiltersForChart, shouldFilterChart, drillDown } = useDashboardFilters();
 
   // Track data changes and drill down state to control animations
@@ -212,8 +213,8 @@ const SupervisorEffectivenessChart = ({ data = [], loading = false }) => {
         dotBorderWidth={2}
         dotBorderColor={{ from: 'color' }}
         enableDotLabel={false}
-        fillOpacity={0.1}
-        blendMode="multiply"
+        fillOpacity={isDark ? 0.25 : 0.15}
+        blendMode={isDark ? "normal" : "multiply"}
         animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}

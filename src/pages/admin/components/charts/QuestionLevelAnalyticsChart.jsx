@@ -6,7 +6,8 @@ import EnhancedTooltip from './EnhancedTooltip';
 import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
 const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const {
     getFiltersForChart,
     shouldFilterChart,

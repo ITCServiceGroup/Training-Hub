@@ -5,7 +5,8 @@ import { useDashboardFilters } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 
 const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { getFiltersForChart, shouldFilterChart, drillDown, applyHoverFilter } = useDashboardFilters();
 
   // Track data changes and drill down state to control animations
@@ -170,7 +171,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
           background: 'transparent',
           text: {
             fontSize: 12,
-            fill: isDark ? '#e2e8f0' : '#475569',
+            fill: isDark ? '#ffffff' : '#475569',
           },
           axis: {
             domain: {
@@ -182,7 +183,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
             legend: {
               text: {
                 fontSize: 12,
-                fill: isDark ? '#e2e8f0' : '#475569',
+                fill: isDark ? '#ffffff' : '#475569',
               },
             },
             ticks: {
@@ -192,7 +193,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
               },
               text: {
                 fontSize: 11,
-                fill: isDark ? '#e2e8f0' : '#475569',
+                fill: isDark ? '#ffffff' : '#475569',
               },
             },
           },
@@ -239,10 +240,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
         enableLabel={true}
         labelSkipWidth={12}
         labelSkipHeight={12}
-        labelTextColor={{
-          from: 'color',
-          modifiers: [['darker', 1.6]],
-        }}
+        labelTextColor={isDark ? '#ffffff' : '#000000'}
         animate={shouldAnimate.current}
         motionStiffness={90}
         motionDamping={15}
