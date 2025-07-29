@@ -222,7 +222,7 @@ const DashboardResultsTable = ({
                 {paginatedResults.map((result, index) => (
                   <tr
                     key={result.id || index}
-                    className={`${hoveredRow === index ? 'bg-slate-100 dark:bg-slate-600' : index % 2 === 0 ? 'bg-white dark:bg-slate-700' : 'bg-slate-50 dark:bg-slate-750'} border-b border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors`}
+                    className={`${hoveredRow === index ? 'bg-slate-100 dark:bg-slate-600' : index % 2 === 0 ? 'bg-white dark:bg-slate-700' : 'bg-slate-50 dark:bg-slate-800'} border-b border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors`}
                     onMouseEnter={() => setHoveredRow(index)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
