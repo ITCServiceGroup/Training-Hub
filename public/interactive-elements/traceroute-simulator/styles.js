@@ -300,7 +300,6 @@ export const styles = `
   }
 
   button:hover {
-    background-color: var(--primary-hover);
     filter: brightness(0.9);
   }
 
