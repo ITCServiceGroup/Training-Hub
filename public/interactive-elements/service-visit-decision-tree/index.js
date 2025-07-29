@@ -30,7 +30,7 @@ serviceVisitDecisionTreeTemplate.innerHTML = `
         --bg-color: var(--custom-primary-bg-color, #1e293b);
         --secondary-bg: var(--custom-secondary-bg-color, #334155);
         --title-color: var(--custom-title-color, #f1f5f9);
-        --text-color: #d1d5db;
+        --text-color: #e2e8f0;
         --border-color: #475569;
         --button-bg: var(--custom-button-color, #3b82f6);
         --button-text: #ffffff;
@@ -125,6 +125,7 @@ serviceVisitDecisionTreeTemplate.innerHTML = `
         margin-right: auto;
     }
 
+
     .options-container {
         display: flex;
         flex-direction: column;
@@ -215,6 +216,7 @@ serviceVisitDecisionTreeTemplate.innerHTML = `
         margin: 0;
     }
 
+
     .progress-counter {
         color: var(--text-color);
         font-size: 14px;
@@ -223,6 +225,7 @@ serviceVisitDecisionTreeTemplate.innerHTML = `
         border-radius: 4px;
         border: 1px solid var(--border-color);
     }
+
 
     .progress-list {
         list-style: none;
@@ -410,6 +413,29 @@ class ServiceVisitDecisionTreeElement extends HTMLElement {
     connectedCallback() {
         console.log('[WebComponent] ServiceVisitDecisionTree connected to DOM.');
 
+        // Check and apply theme immediately
+        this.checkAndApplyTheme();
+
+        // Listen for theme changes
+        const observer = new MutationObserver(() => {
+            this.checkAndApplyTheme();
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        // Also listen for custom theme change events
+        window.addEventListener('themeChanged', () => {
+            this.checkAndApplyTheme();
+        });
+
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
             this.initialize();
@@ -434,6 +460,31 @@ class ServiceVisitDecisionTreeElement extends HTMLElement {
         this.startDecisionTree();
 
         console.log('[WebComponent] ServiceVisitDecisionTree initialization complete');
+    }
+
+    checkAndApplyTheme() {
+        const isDarkMode = this.isDarkMode();
+        console.log(`[ServiceVisitDecisionTree] Theme detected: ${isDarkMode ? 'dark' : 'light'}`);
+
+        if (isDarkMode) {
+            this.classList.add('dark-mode');
+        } else {
+            this.classList.remove('dark-mode');
+        }
+    }
+
+    isDarkMode() {
+        // Check various ways the theme might be set
+        const bodyHasDarkClass = document.body.classList.contains('dark-mode') ||
+                                document.body.classList.contains('dark');
+        const htmlHasDarkClass = document.documentElement.classList.contains('dark-mode') ||
+                                document.documentElement.classList.contains('dark');
+        
+        // Check for data attributes
+        const bodyHasDarkAttr = document.body.getAttribute('data-theme') === 'dark';
+        const htmlHasDarkAttr = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        return bodyHasDarkClass || htmlHasDarkClass || bodyHasDarkAttr || htmlHasDarkAttr;
     }
 
     setupEventListeners() {
