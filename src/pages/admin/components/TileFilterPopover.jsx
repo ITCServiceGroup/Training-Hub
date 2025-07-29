@@ -82,12 +82,14 @@ const TileFilterPopover = ({
   return (
     <div
       ref={popoverRef}
-      className="fixed z-50 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-600 p-4 w-96"
+      className="fixed z-[9999] bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-600 p-4 w-96"
       style={{
         left: Math.min(position.x, window.innerWidth - 400 - 20),
         top: Math.min(position.y, window.innerHeight - 500 - 20),
         maxHeight: '500px',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        position: 'fixed',
+        zIndex: 9999
       }}
     >
       {/* Header */}
