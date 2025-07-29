@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
@@ -180,34 +180,50 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
     applyHoverFilter('passFailClassification', null, 'pass-fail-rate');
   };
 
+  // State for hover on info box
+  const [showDetailedInfo, setShowDetailedInfo] = useState(false);
+
   return (
     <div className="h-full w-full relative">
       {/* Pass Rate Summary */}
-      <div className="absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2 max-w-xs">
+      <div 
+        className={`absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2 cursor-pointer transition-all duration-200 hover:shadow-md ${showDetailedInfo ? 'max-w-xs' : 'w-28'}`}
+        onMouseEnter={() => setShowDetailedInfo(true)}
+        onMouseLeave={() => setShowDetailedInfo(false)}
+      >
         <div className="text-xs text-slate-600 dark:text-slate-400">
-          {isMultiQuiz ? 'Overall Pass Rate' : 'Pass Rate'}
+          {showDetailedInfo ? (isMultiQuiz ? 'Overall Pass Rate' : 'Pass Rate') : 'Pass Rate'}
         </div>
         <div className={`text-lg font-bold ${parseFloat(passRate) >= 80 ? 'text-green-600' : parseFloat(passRate) >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
           {passRate}%
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400">
-          {total} total tests
+          {showDetailedInfo ? `${total} total tests` : `${total} tests`}
         </div>
         
-        {/* Multi-quiz breakdown */}
-        {isMultiQuiz && quizStats.length > 0 && (
+        {/* Hover hint for multi-quiz */}
+        {isMultiQuiz && quizStats.length > 0 && !showDetailedInfo && (
+          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            Hover for details
+          </div>
+        )}
+        
+        {/* Multi-quiz breakdown - only show on hover */}
+        {isMultiQuiz && quizStats.length > 0 && showDetailedInfo && (
           <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
             <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">
               Aggregated from {quizStats.length} quiz{quizStats.length !== 1 ? 'es' : ''}:
             </div>
             {quizStats.map((quiz, index) => (
-              <div key={index} className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+              <div key={index} className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                 <div className="font-medium truncate" title={quiz.title}>
                   {quiz.title}
                 </div>
-                <div className="flex justify-between">
-                  <span>{quiz.passRate}% pass rate</span>
-                  <span>{quiz.threshold}% threshold</span>
+                <div>
+                  {quiz.passRate}% pass rate
+                </div>
+                <div>
+                  {quiz.threshold}% threshold
                 </div>
                 <div className="text-slate-400 dark:text-slate-500">
                   {quiz.pass}/{quiz.total} passing
