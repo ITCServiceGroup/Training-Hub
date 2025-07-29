@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { createContext } from 'react';
 import { MdDashboard, MdQuiz, MdOutlinePermMedia } from 'react-icons/md'; // Added MdOutlinePermMedia
-import { BiBook, BiBarChart } from 'react-icons/bi';
+import { BiBook } from 'react-icons/bi';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { FiSettings } from 'react-icons/fi';
 
@@ -36,7 +36,6 @@ const AdminLayout = () => {
     if (path.includes('/admin/media')) return 'media'; // Added media check
 
     if (path.includes('/admin/quizzes')) return 'quizzes';
-    if (path.includes('/admin/results')) return 'results';
     if (path.includes('/admin/settings')) return 'settings';
     return 'dashboard';
   };
@@ -53,7 +52,6 @@ const AdminLayout = () => {
       case 'media': return 'Media Library'; // Added media title
 
       case 'quizzes': return 'Quizzes Management';
-      case 'results': return 'Quiz Results';
       case 'settings': return 'Settings';
       default: return 'Admin Dashboard';
     }
@@ -112,16 +110,6 @@ const AdminLayout = () => {
                 className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
               >
                 <MdQuiz className="text-lg" /> Quizzes
-              </Link>
-            </li>
-            <li
-              className={`group cursor-pointer transition-colors ${activeTab === 'results' ? 'bg-primary' : 'hover:bg-primary'}`}
-            >
-              <Link
-                to="/admin/results"
-                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'results' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
-              >
-                <BiBarChart className="text-lg" /> Results
               </Link>
             </li>
             <li

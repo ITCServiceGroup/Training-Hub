@@ -24,7 +24,6 @@ const Header = () => {
     if (path.includes('/admin/media')) return 'Media Library';
     if (path.includes('/admin/questions')) return 'Questions Management';
     if (path.includes('/admin/quizzes')) return 'Quizzes Management';
-    if (path.includes('/admin/results')) return 'Quiz Results';
     if (path.includes('/admin/settings')) return 'Settings';
 
     return null; // Return null for non-admin pages

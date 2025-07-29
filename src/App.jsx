@@ -16,7 +16,6 @@ const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminStudyGuides = lazy(() => import('./pages/admin/StudyGuides'));
 const AdminQuizzes = lazy(() => import('./pages/admin/AdminQuizzes'));
 const QuizBuilderPage = lazy(() => import('./components/quiz-builder/QuizBuilderPage'));
-const AdminResults = lazy(() => import('./pages/admin/Results'));
 const MediaLibraryPage = lazy(() => import('./pages/admin/MediaLibraryPage'));
 
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage')); // Import SettingsPage
@@ -144,11 +143,6 @@ function App() {
                 </Suspense>
               } />
 
-              <Route path="results" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <AdminResults />
-                </Suspense>
-              } />
               <Route path="media" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <MediaLibraryPage />
