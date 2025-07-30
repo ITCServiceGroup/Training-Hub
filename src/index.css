@@ -183,12 +183,36 @@ input, textarea, select { /* Uncommented custom CSS */
   border: 1px solid #ddd;
   border-radius: var(--border-radius);
   font-size: 1rem;
+  background-color: white;
+  color: #374151;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode form elements */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #475569;
+  color: #f8fafc;
+  border-color: #64748b;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
 }
 
 label { /* Uncommented custom CSS */
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
+  color: #374151;
+  transition: color 0.3s ease;
+}
+
+/* Dark mode labels */
+.dark label {
+  color: #f8fafc;
 }
 
 .container { /* Uncommented custom CSS */
@@ -209,6 +233,7 @@ label { /* Uncommented custom CSS */
   padding: 0.75rem 1.25rem;
   margin-bottom: 1rem;
   border-radius: var(--border-radius);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .alert-success { /* Uncommented custom CSS */
@@ -229,6 +254,27 @@ label { /* Uncommented custom CSS */
 .alert-info { /* Uncommented custom CSS */
   background-color: color-mix(in srgb, var(--info-color) 10%, transparent);
   color: var(--info-color);
+}
+
+/* Dark mode alerts */
+.dark .alert-success {
+  background-color: #064e3b;
+  color: #6ee7b7;
+}
+
+.dark .alert-danger {
+  background-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+.dark .alert-warning {
+  background-color: #78350f;
+  color: #fcd34d;
+}
+
+.dark .alert-info {
+  background-color: color-mix(in srgb, var(--info-color) 20%, transparent);
+  color: #93c5fd;
 }
 
 /* Loading Screen */
@@ -295,6 +341,12 @@ label { /* Uncommented custom CSS */
   align-items: center;
   height: 100vh;
   background-color: #f5f5f5;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode login page */
+.dark .login-page {
+  background-color: #1e293b;
 }
 
 .login-card { /* Uncommented custom CSS */
