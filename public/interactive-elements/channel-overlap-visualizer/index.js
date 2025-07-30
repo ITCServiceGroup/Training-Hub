@@ -722,10 +722,10 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
         baseFreq: 5955, // Starting frequency for channel 1
         spacing: 20, // 20 MHz spacing between channels
         width: 20, // Standard 20 MHz width
-        // U-NII-5 and U-NII-7 bands require AFC for standard power (outdoor use)
-        standardPowerChannels: [1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 153, 161, 169, 177, 185, 193, 201, 209, 217, 225, 233],
-        // U-NII-6 and U-NII-8 bands (indoor only, no AFC required)
-        lowPowerIndoorChannels: [105, 113, 121, 129, 137, 145],
+        // U-NII-5 (5.925-6.425 GHz) and U-NII-7 (6.525-6.875 GHz) bands require AFC for standard power (outdoor use)
+        standardPowerChannels: [1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 121, 129, 137, 145, 153, 161, 169, 177, 185],
+        // U-NII-6 (6.425-6.525 GHz) and U-NII-8 (6.875-7.125 GHz) bands (indoor only, no AFC required)
+        lowPowerIndoorChannels: [105, 113, 193, 201, 209, 217, 225, 233],
         // All channels support very low power operation
         veryLowPowerChannels: [1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 129, 137, 145, 153, 161, 169, 177, 185, 193, 201, 209, 217, 225, 233],
         // Channel bonding support for 6GHz (802.11ax/be)
@@ -892,7 +892,8 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
 
     this.currentChannelWidth = width;
     this.widthButtons.forEach(btn => {
-      btn.classList.toggle('active', btn.id.includes(width.toString()));
+      const btnWidth = parseInt(btn.id.split('-')[1]);
+      btn.classList.toggle('active', btnWidth === width);
     });
 
     // Don't reset bonding mode - just update the display
@@ -980,8 +981,9 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
           message += `160MHz in 5GHz has limited options due to regulatory restrictions.<br>
             <strong>Only viable option:</strong> Channel 36 (spans channels 36-64).<br><br>
             <strong>💡 Reality:</strong> Most routers only offer channel 36 for 160MHz.<br>
-            <strong>🎯 Note:</strong> Requires DFS support and may switch channels automatically.<br>
-            <strong>⚠️ Important:</strong> Channel 149 cannot support 160MHz - insufficient spectrum (only 5 channels: 149-165).<br><br>`;
+            <strong>🎯 DFS Impact:</strong> Channels 52-64 are DFS channels - may auto-switch to 80MHz during radar events.<br>
+            <strong>⚠️ Important:</strong> Channel 149 cannot support 160MHz - insufficient spectrum (only 5 channels: 149-165).<br>
+            <strong>🚨 Reliability:</strong> Consider 80MHz for mission-critical applications to avoid DFS interruptions.<br><br>`;
         } else if (this.currentBand === '5' && (this.currentChannelWidth === 40 || this.currentChannelWidth === 80)) {
           // Check if any channels in current combinations require DFS
           const bandData = this.channelData[this.currentBand];
@@ -1004,11 +1006,21 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
           message += `320MHz in 6GHz combines multiple 20MHz channels (WiFi 7 feature).<br>
             First group: 16 channels (1-121), Second group: 14 channels (129-233).<br><br>
             <strong>💡 Note:</strong> Second group has fewer channels due to 7125 MHz regulatory limit.<br>
-            <strong>🎯 Reality:</strong> Requires WiFi 7 devices and optimal conditions.<br><br>`;
+            <strong>🎯 Reality:</strong> Requires WiFi 7 devices and optimal conditions.<br>
+            <strong>⚠️ AFC Reality:</strong> ALL 320MHz channels span AFC-required spectrum (U-NII-5/U-NII-7).<br>
+            <strong>📊 Power Impact:</strong> LPI-only operation severely limits 320MHz performance and range.<br><br>`;
         } else {
           message += `Each ${this.currentChannelWidth}MHz channel combines ${channelsPerGroup} adjacent 20MHz channels.<br>
             Only ${numCombinations} non-overlapping ${this.currentChannelWidth}MHz option${numCombinations > 1 ? 's' : ''} available.<br><br>
-            <strong>💡 Trade-off:</strong> ${channelsPerGroup}x faster speeds, but fewer channel options.<br><br>`;
+            <strong>💡 Trade-off:</strong> ${channelsPerGroup}x faster speeds, but fewer channel options.<br>`;
+          
+          // Add 6GHz-specific bonding warnings
+          if (this.currentBand === '6' && (this.currentChannelWidth === 80 || this.currentChannelWidth === 160)) {
+            message += `<br><strong>⚠️ 6GHz Reality:</strong> Most ${this.currentChannelWidth}MHz channels span AFC-required spectrum.<br>
+              <strong>📊 Performance Note:</strong> AFC provides optimal power; LPI-only limits range and throughput.<br>`;
+          }
+          
+          message += `<br>`;
         }
 
         message += `👆 <em>Click channels to see bonding details.</em>`;
@@ -1266,16 +1278,29 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
     // Mark channels as bonded and style them
     channelElements.forEach((el, index) => {
       el.classList.add('bonded');
+      const channelNum = parseInt(el.getAttribute('data-channel'));
+      const isDfsChannel = this.currentBand === '5' && this.channelData[this.currentBand].dfsChannels.includes(channelNum);
+      
       if (index === 0) {
         el.classList.add('primary');
-        // Style primary channel as green with full height
-        el.style.backgroundColor = '#28a745'; // Green for primary
+        // Style primary channel - orange if DFS, green if not
+        if (isDfsChannel) {
+          el.style.backgroundColor = '#ff9800'; // Orange for DFS primary
+          el.classList.add('dfs-channel');
+        } else {
+          el.style.backgroundColor = '#28a745'; // Green for non-DFS primary
+        }
         el.style.color = 'white';
         el.style.height = '180px'; // Full height for primary
       } else {
         el.classList.add('secondary');
-        // Style secondary channels as blue with reduced height
-        el.style.backgroundColor = '#007bff'; // Blue for secondary
+        // Style secondary channels - orange if DFS, blue if not
+        if (isDfsChannel) {
+          el.style.backgroundColor = '#ff9800'; // Orange for DFS secondary
+          el.classList.add('dfs-channel');
+        } else {
+          el.style.backgroundColor = '#007bff'; // Blue for non-DFS secondary
+        }
         el.style.color = 'white';
         el.style.height = '120px'; // Reduced height for secondary
       }
@@ -1790,14 +1815,60 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
         // 5GHz or 6GHz
         if (this.currentBand === '5' && data.dfsChannels.includes(channel)) {
           content += `<br><br><span style="color: var(--warning-color);">⚠️ DFS Channel</span><br>
-            Requires radar detection. May cause brief disconnections if radar is detected.`;
+            Requires radar detection. May cause brief disconnections if radar is detected.<br><br>
+            <strong>What is DFS?</strong><br>
+            DFS (Dynamic Frequency Selection) protects primary radar users like weather radar, military radar, and airport surveillance systems. WiFi devices must constantly monitor for radar signals on these channels.<br><br>
+            <strong>How Radar Detection Works:</strong><br>
+            • Initial Channel Availability Check: 1-10 minute delay on router startup<br>
+            • Continuous monitoring while transmitting<br>
+            • Immediate channel switch if radar is detected<br>
+            • 30-minute "non-occupancy period" before returning to that channel<br><br>
+            <strong>When to Use/Avoid:</strong><br>
+            • ✅ <strong>Use:</strong> High-congestion areas where non-DFS channels are saturated<br>
+            • ❌ <strong>Avoid:</strong> VoIP/voice applications, mission-critical systems, consistent performance needs<br>
+            • ❌ <strong>Avoid:</strong> Areas with high radar activity (airports, ports, weather stations)`;
         } else if (this.currentBand === '6') {
           if (data.lowPowerIndoorChannels.includes(channel)) {
-            content += `<br><br><span style="color: var(--success-color);">✅ Low Power Indoor (LPI)</span><br>
-              Indoor use only, no coordination required.`;
+            content += `<br><br><span style="color: var(--success-color);">✅ Low Power Indoor (LPI Only)</span><br>
+              Part of U-NII-6 or U-NII-8 bands - Indoor use only, no coordination required.<br><br>
+              <strong>LPI Characteristics:</strong><br>
+              • Maximum 30 dBm EIRP power output<br>
+              • Indoor-only operation (no outdoor use permitted)<br>
+              • No AFC database coordination required<br>
+              • Cannot use connectorized external antennas<br><br>
+              <strong>Channel Bonding Limitations:</strong><br>
+              • Limited LPI-only spectrum available for wide bonding<br>
+              • Most 80MHz+ channels will include AFC-required spectrum<br>
+              • Reduced power limits may impact wide channel performance<br><br>
+              <strong>Best Use Cases:</strong><br>
+              • ✅ <strong>Indoor-only deployments:</strong> Offices, homes without outdoor coverage needs<br>
+              • ✅ <strong>Privacy-focused:</strong> No location sharing or database queries required<br>
+              • ❌ <strong>Outdoor coverage:</strong> Not permitted for outdoor use<br>
+              • ❌ <strong>High-power needs:</strong> Limited to lower power output`;
           } else if (data.standardPowerChannels.includes(channel)) {
-            content += `<br><br><span style="color: var(--warning-color);">⚠️ Standard Power</span><br>
-              Requires AFC (Automated Frequency Coordination) system.`;
+            content += `<br><br><span style="color: var(--warning-color);">⚠️ Standard Power (AFC Required)</span><br>
+              Part of U-NII-5 or U-NII-7 bands. Requires AFC for standard power operation.<br><br>
+              <strong>What is AFC?</strong><br>
+              AFC is a cloud-based database system that coordinates spectrum sharing with incumbent users like weather radar, satellite communications, and fixed services. Devices must obtain permission before transmitting at standard power levels.<br><br>
+              <strong>AFC Benefits:</strong><br>
+              • Up to 63x higher power output (36 dBm EIRP vs 23 dBm LPI)<br>
+              • ~25% range increase compared to indoor LPI channels<br>
+              • Required for any outdoor 6GHz operation<br>
+              • Enables optimal 160MHz and 320MHz channel bonding performance<br><br>
+              <strong>Channel Bonding Reality:</strong><br>
+              • Most 80MHz+ bonded channels overlap with AFC-required spectrum<br>
+              • High-speed 6GHz connections (160MHz/320MHz) predominantly need AFC<br>
+              • LPI power limits may reduce performance on wide bonded channels<br><br>
+              <strong>Requirements & Complexity:</strong><br>
+              • Precise GPS coordinates required for database queries<br>
+              • Continuous internet connectivity needed<br>
+              • AFC approval can change dynamically based on incumbent activity<br>
+              • Location data shared with vendors and AFC databases (privacy concern)<br><br>
+              <strong>When to Use:</strong><br>
+              • ✅ <strong>Enterprise/Outdoor:</strong> Business deployments with proper infrastructure<br>
+              • ✅ <strong>High-speed bonding:</strong> 160MHz/320MHz channels for maximum performance<br>
+              • ❌ <strong>Consumer/Home:</strong> Often challenging to implement reliably<br>
+              • ❌ <strong>Privacy-sensitive:</strong> Environments where location sharing is problematic`;
           }
         }
       }
@@ -1808,6 +1879,10 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
 
       if (relevantCombination) {
         const isPrimary = relevantCombination.primary === channel;
+        const hasDfsChannels = this.currentBand === '5' && relevantCombination.channels.some(ch => data.dfsChannels.includes(ch));
+        const dfsChannelsInGroup = this.currentBand === '5' ? relevantCombination.channels.filter(ch => data.dfsChannels.includes(ch)) : [];
+        const isDfsChannel = this.currentBand === '5' && data.dfsChannels.includes(channel);
+        
         content += `<br><br><strong>${this.currentChannelWidth}MHz Channel Group</strong><br>`;
 
         if (isPrimary) {
@@ -1819,6 +1894,51 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
           content += `<span style="color: var(--primary-color);">📡 Secondary Channel</span><br>
             Part of ${this.currentChannelWidth}MHz group controlled by channel ${relevantCombination.primary}<br>
             <br>Cannot be used independently when bonding is active.`;
+        }
+
+        // Add comprehensive DFS information for bonded channels
+        if (hasDfsChannels && this.currentBand === '5') {
+          const nonDfsChannels = relevantCombination.channels.filter(ch => !data.dfsChannels.includes(ch));
+          const allDfs = dfsChannelsInGroup.length === relevantCombination.channels.length;
+          const mixedDfs = dfsChannelsInGroup.length > 0 && dfsChannelsInGroup.length < relevantCombination.channels.length;
+
+          if (isDfsChannel) {
+            content += `<br><br><span style="color: var(--warning-color);">⚠️ DFS Channel in Bonded Group</span><br>`;
+          }
+          
+          content += `<br><strong>5GHz Channel Bonding DFS Analysis:</strong><br>`;
+          
+          if (allDfs) {
+            content += `• <strong>All ${this.currentChannelWidth}MHz channels are DFS</strong> (${dfsChannelsInGroup.join(', ')})<br>
+              • High radar encounter probability across entire bonded channel<br>
+              • Any radar detection forces immediate channel switch<br>`;
+          } else if (mixedDfs) {
+            content += `• <strong>Mixed DFS/Non-DFS bonding:</strong> DFS channels ${dfsChannelsInGroup.join(', ')}, Non-DFS ${nonDfsChannels.join(', ')}<br>
+              • Radar on any DFS channel affects entire ${this.currentChannelWidth}MHz group<br>
+              • Cannot partially drop DFS channels - entire bond must switch<br>`;
+          }
+
+          content += `<br><strong>5GHz Channel Bonding Realities:</strong><br>
+            Unlike 6GHz where most wide channels require AFC, 5GHz offers excellent non-DFS options:<br><br>
+            • <strong>80MHz Clean Options:</strong> Channels 36 and 149 are entirely non-DFS<br>
+            • <strong>160MHz Reality:</strong> Only channel 36 viable (spans both DFS and non-DFS)<br>
+            • <strong>U-NII-4 Future:</strong> New 5850-5925 MHz band will enable clean 160MHz<br>
+            • <strong>DFS vs Non-DFS Trade-offs:</strong> More spectrum available with DFS, but reliability cost<br><br>
+            <strong>Channel Bonding Impact:</strong><br>
+            • <strong>40MHz:</strong> Channels 38, 46, 54, 62, 102, 110, 118, 126, 134, 142 include DFS<br>
+            • <strong>80MHz:</strong> Channels 52, 100, 116 are DFS-only (may switch during radar events)<br>
+            • <strong>160MHz:</strong> Channel 36 spans DFS spectrum (52-64) - auto-fallback to 80MHz<br>
+            • <strong>Wider = More Risk:</strong> Higher radar encounter probability with channel bonding<br><br>
+            <strong>Performance Implications:</strong><br>
+            • <strong>Startup Delays:</strong> 1-10 minutes for initial channel availability check<br>
+            • <strong>Forced Switches:</strong> Immediate disconnection when radar detected<br>
+            • <strong>Mesh Impact:</strong> Entire mesh may need to coordinate channel changes<br><br>
+            <strong>Strategic Recommendations:</strong><br>
+            • ✅ <strong>80MHz Non-DFS:</strong> Use channels 36 or 149 for reliable wide channels<br>
+            • ✅ <strong>High Congestion:</strong> DFS channels when non-DFS options are saturated<br>
+            • ⚠️ <strong>160MHz Users:</strong> Accept DFS risk or wait for U-NII-4 deployment<br>
+            • ❌ <strong>Mission Critical:</strong> Avoid DFS for VoIP, streaming, or business systems<br>
+            • ❌ <strong>Radar Areas:</strong> Airports, ports, weather stations have high radar activity`;
         }
       } else {
         content += `<br><br><span style="color: #666;">❌ Not available for ${this.currentChannelWidth}MHz</span><br>
