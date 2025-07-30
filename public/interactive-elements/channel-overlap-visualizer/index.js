@@ -1280,26 +1280,30 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
       el.classList.add('bonded');
       const channelNum = parseInt(el.getAttribute('data-channel'));
       const isDfsChannel = this.currentBand === '5' && this.channelData[this.currentBand].dfsChannels.includes(channelNum);
+      const isAfcChannel = this.currentBand === '6' && this.channelData[this.currentBand].standardPowerChannels.includes(channelNum);
+      const isSpecialChannel = isDfsChannel || isAfcChannel;
       
       if (index === 0) {
         el.classList.add('primary');
-        // Style primary channel - orange if DFS, green if not
-        if (isDfsChannel) {
-          el.style.backgroundColor = '#ff9800'; // Orange for DFS primary
-          el.classList.add('dfs-channel');
+        // Style primary channel - orange if DFS/AFC, green if not
+        if (isSpecialChannel) {
+          el.style.backgroundColor = '#ff9800'; // Orange for DFS/AFC primary
+          if (isDfsChannel) el.classList.add('dfs-channel');
+          if (isAfcChannel) el.classList.add('afc-channel');
         } else {
-          el.style.backgroundColor = '#28a745'; // Green for non-DFS primary
+          el.style.backgroundColor = '#28a745'; // Green for non-DFS/non-AFC primary
         }
         el.style.color = 'white';
         el.style.height = '180px'; // Full height for primary
       } else {
         el.classList.add('secondary');
-        // Style secondary channels - orange if DFS, blue if not
-        if (isDfsChannel) {
-          el.style.backgroundColor = '#ff9800'; // Orange for DFS secondary
-          el.classList.add('dfs-channel');
+        // Style secondary channels - orange if DFS/AFC, blue if not
+        if (isSpecialChannel) {
+          el.style.backgroundColor = '#ff9800'; // Orange for DFS/AFC secondary
+          if (isDfsChannel) el.classList.add('dfs-channel');
+          if (isAfcChannel) el.classList.add('afc-channel');
         } else {
-          el.style.backgroundColor = '#007bff'; // Blue for non-DFS secondary
+          el.style.backgroundColor = '#007bff'; // Blue for non-DFS/non-AFC secondary
         }
         el.style.color = 'white';
         el.style.height = '120px'; // Reduced height for secondary
@@ -1853,17 +1857,7 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
               <strong>AFC Benefits:</strong><br>
               • Up to 63x higher power output (36 dBm EIRP vs 23 dBm LPI)<br>
               • ~25% range increase compared to indoor LPI channels<br>
-              • Required for any outdoor 6GHz operation<br>
-              • Enables optimal 160MHz and 320MHz channel bonding performance<br><br>
-              <strong>Channel Bonding Reality:</strong><br>
-              • Most 80MHz+ bonded channels overlap with AFC-required spectrum<br>
-              • High-speed 6GHz connections (160MHz/320MHz) predominantly need AFC<br>
-              • LPI power limits may reduce performance on wide bonded channels<br><br>
-              <strong>Requirements & Complexity:</strong><br>
-              • Precise GPS coordinates required for database queries<br>
-              • Continuous internet connectivity needed<br>
-              • AFC approval can change dynamically based on incumbent activity<br>
-              • Location data shared with vendors and AFC databases (privacy concern)<br><br>
+              • Required for any outdoor 6GHz operation<br><br>
               <strong>When to Use:</strong><br>
               • ✅ <strong>Enterprise/Outdoor:</strong> Business deployments with proper infrastructure<br>
               • ✅ <strong>High-speed bonding:</strong> 160MHz/320MHz channels for maximum performance<br>
@@ -1939,6 +1933,68 @@ class ChannelOverlapVisualizerElement extends HTMLElement {
             • ⚠️ <strong>160MHz Users:</strong> Accept DFS risk or wait for U-NII-4 deployment<br>
             • ❌ <strong>Mission Critical:</strong> Avoid DFS for VoIP, streaming, or business systems<br>
             • ❌ <strong>Radar Areas:</strong> Airports, ports, weather stations have high radar activity`;
+        }
+
+        // Add comprehensive AFC information for bonded 6GHz channels
+        if (this.currentBand === '6') {
+          const hasAfcChannels = relevantCombination.channels.some(ch => data.standardPowerChannels.includes(ch));
+          const hasLpiChannels = relevantCombination.channels.some(ch => data.lowPowerIndoorChannels.includes(ch));
+          const afcChannelsInGroup = relevantCombination.channels.filter(ch => data.standardPowerChannels.includes(ch));
+          const lpiChannelsInGroup = relevantCombination.channels.filter(ch => data.lowPowerIndoorChannels.includes(ch));
+          const isAfcChannel = data.standardPowerChannels.includes(channel);
+          const isLpiChannel = data.lowPowerIndoorChannels.includes(channel);
+
+          if (hasAfcChannels || hasLpiChannels) {
+            if (isAfcChannel) {
+              content += `<br><br><span style="color: var(--warning-color);">⚠️ AFC Channel in Bonded Group</span><br>`;
+            } else if (isLpiChannel) {
+              content += `<br><br><span style="color: var(--success-color);">✅ LPI Channel in Bonded Group</span><br>`;
+            }
+            
+            content += `<br><strong>6GHz Channel Bonding AFC/LPI Analysis:</strong><br>`;
+            
+            const allAfc = afcChannelsInGroup.length === relevantCombination.channels.length;
+            const allLpi = lpiChannelsInGroup.length === relevantCombination.channels.length;
+            const mixed = afcChannelsInGroup.length > 0 && lpiChannelsInGroup.length > 0;
+
+            if (allAfc) {
+              content += `• <strong>All ${this.currentChannelWidth}MHz channels require AFC</strong> (${afcChannelsInGroup.join(', ')})<br>
+                • Standard Power operation available (up to 36 dBm EIRP)<br>
+                • Outdoor operation permitted with AFC approval<br>`;
+            } else if (allLpi) {
+              content += `• <strong>All ${this.currentChannelWidth}MHz channels are LPI-only</strong> (${lpiChannelsInGroup.join(', ')})<br>
+                • Low Power Indoor operation only (up to 30 dBm EIRP)<br>
+                • No AFC coordination required<br>`;
+            } else if (mixed) {
+              content += `• <strong>Mixed AFC/LPI bonding:</strong> AFC channels ${afcChannelsInGroup.join(', ')}, LPI channels ${lpiChannelsInGroup.join(', ')}<br>
+                • Entire ${this.currentChannelWidth}MHz group limited to LPI power levels<br>
+                • Cannot use Standard Power even with AFC approval<br>
+                • Indoor-only operation required for entire bonded channel<br>`;
+            }
+
+            content += `<br><strong>6GHz Channel Bonding Realities:</strong><br>
+              Unlike 5GHz with clean non-DFS options, 6GHz wide channels predominantly require AFC:<br><br>
+              • <strong>LPI-Only Options:</strong> Very limited - most 80MHz+ channels include AFC spectrum<br>
+              • <strong>160MHz/320MHz Reality:</strong> Virtually all require AFC for optimal performance<br>
+              • <strong>Mixed Bonding Limitation:</strong> LPI channels limit entire bond to indoor-only use<br>
+              • <strong>AFC vs LPI Trade-offs:</strong> Power vs simplicity, outdoor vs indoor-only<br><br>
+              <strong>Channel Bonding Impact:</strong><br>
+              • <strong>40MHz:</strong> Some clean LPI options available (105-113, 193-233 ranges)<br>
+              • <strong>80MHz:</strong> Most combinations include AFC spectrum<br>
+              • <strong>160MHz:</strong> Almost exclusively require AFC for standard power<br>
+              • <strong>320MHz:</strong> Entirely AFC-dependent for high-power operation<br><br>
+              <strong>Power & Coverage Implications:</strong><br>
+              • <strong>AFC Standard Power:</strong> Up to 63x higher power output than LPI<br>
+              • <strong>Mixed Bonding:</strong> Entire channel group limited to lowest power tier<br>
+              • <strong>Coverage Impact:</strong> ~25% range increase with AFC vs LPI power limits<br>
+              • <strong>Deployment Complexity:</strong> AFC requires GPS, internet, database coordination<br><br>
+              <strong>Strategic Recommendations:</strong><br>
+              • ✅ <strong>Enterprise/Outdoor:</strong> Use AFC channels for maximum performance and coverage<br>
+              • ✅ <strong>High-speed bonding:</strong> Accept AFC complexity for 160MHz/320MHz performance<br>
+              • ⚠️ <strong>Mixed Bonding:</strong> Avoid AFC+LPI combinations - defaults to LPI limitations<br>
+              • ❌ <strong>Consumer/Privacy:</strong> LPI channels for simple deployment without location sharing<br>
+              • ❌ <strong>Unreliable Internet:</strong> AFC requires continuous connectivity for database queries`;
+          }
         }
       } else {
         content += `<br><br><span style="color: #666;">❌ Not available for ${this.currentChannelWidth}MHz</span><br>
