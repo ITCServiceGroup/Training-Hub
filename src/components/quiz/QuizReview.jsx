@@ -59,7 +59,7 @@ const QuizReview = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Review Your Answers</h3>
 
       <div className={`p-6 ${isDark ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg space-y-4`}>

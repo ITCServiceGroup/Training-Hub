@@ -37,6 +37,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [timeTaken, setTimeTaken] = useState(0);
   const [isReviewing, setIsReviewing] = useState(false);
+  const [cameFromReview, setCameFromReview] = useState(false); // Track if user navigated back from review page
   const [score, setScore] = useState(null);
   const [accessCodeData, setAccessCodeData] = useState(null);
   const [isCurrentPracticeQuestionAnswered, setIsCurrentPracticeQuestionAnswered] = useState(false); // New state for practice mode
@@ -360,6 +361,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     setSelectedAnswers({});
     setQuizCompleted(false);
     setIsReviewing(false);
+    setCameFromReview(false); // Reset review flag when starting quiz
     if (quiz.time_limit) {
       setTimeLeft(quiz.time_limit);
     }
@@ -409,6 +411,13 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
   // Navigation
   const handleNextQuestion = () => {
+    // If user came from review page, take them back to review
+    if (cameFromReview) {
+      setCameFromReview(false); // Reset the flag
+      setIsReviewing(true);
+      return;
+    }
+
     if (currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setIsCurrentPracticeQuestionAnswered(false); // Reset for next question
@@ -428,6 +437,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       setIsCurrentPracticeQuestionAnswered(false); // Reset when going back
+      setCameFromReview(false); // Reset review flag when navigating normally
     }
   };
 
@@ -489,6 +499,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             setIsReviewing(false);
             if (typeof questionIndex === 'number') {
               setCurrentQuestionIndex(questionIndex);
+              setCameFromReview(true); // Mark that user came from review page
+            } else {
+              setCameFromReview(false); // Reset if going back to quiz without specific question
             }
           }}
           timeLeft={timeLeft}
@@ -629,7 +642,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
               onClick={handleNextQuestion}
               disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
             >
-              {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : (quiz.is_practice ? 'Finish Quiz' : 'Review Answers')}
+              {cameFromReview ? 'Review Answers' : (currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : (quiz.is_practice ? 'Finish Quiz' : 'Review Answers'))}
             </button>
           </div>
         </div>

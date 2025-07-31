@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 3,
     borderWidth: 1,
+    borderColor: '#e2e8f0', // Default border color
     minHeight: 20, // Ensure adequate space for content
     flexWrap: 'wrap', // Allow text wrapping
   },
@@ -154,7 +155,12 @@ const styles = StyleSheet.create({
   },
   correctResponseBox: {
     backgroundColor: '#f0fff4',
+    borderWidth: 1,
     borderColor: '#38a169',
+    borderRadius: 3,
+    padding: 6,
+    minHeight: 20,
+    flexWrap: 'wrap',
   },
   correctResponseText: {
     color: '#2f855a',

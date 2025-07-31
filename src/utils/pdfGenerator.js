@@ -182,7 +182,7 @@ export const buildPdfContentHtml = (quiz, selectedAnswers, score, timeTaken, lda
             </div>
 
             <!-- Correct Answer (always show) -->
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <div style="background: #f0fdf4; border: 1px solid #16a34a; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
               <div style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Correct Answer</div>
               <div style="color: #16a34a; font-size: 14px; font-weight: 500; line-height: 1.4;">${correctAnswerText}</div>
             </div>

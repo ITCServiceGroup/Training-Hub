@@ -58,11 +58,17 @@ const AdminQuizzes = () => {
 
   // Helper functions for dropdown management
   const toggleSectionSelection = (sectionId) => {
-    setSelectedSections(prev =>
-      prev.includes(sectionId)
+    setSelectedSections(prev => {
+      const newSelection = prev.includes(sectionId)
         ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    );
+        : [...prev, sectionId];
+      
+      // Clear category selections when section selection changes
+      // This ensures that categories from unselected sections are not kept selected
+      setSelectedCategories([]);
+      
+      return newSelection;
+    });
   };
 
   const toggleCategorySelection = (categoryId) => {
@@ -80,14 +86,17 @@ const AdminQuizzes = () => {
 
     quizzes.forEach(quiz => {
       quiz.categories?.forEach(category => {
-        // Add category
-        if (!categoriesMap.has(category.id)) {
-          categoriesMap.set(category.id, category);
-        }
-
         // Add section if it exists
         if (category.section && !sectionsMap.has(category.section.id)) {
           sectionsMap.set(category.section.id, category.section);
+        }
+        
+        // Add category only if no sections are selected, or if the category's section is selected
+        if (selectedSections.length === 0 || 
+            (category.section && selectedSections.includes(category.section.id))) {
+          if (!categoriesMap.has(category.id)) {
+            categoriesMap.set(category.id, category);
+          }
         }
       });
     });
@@ -96,7 +105,7 @@ const AdminQuizzes = () => {
       sections: Array.from(sectionsMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
       categories: Array.from(categoriesMap.values()).sort((a, b) => a.name.localeCompare(b.name))
     };
-  }, [quizzes]);
+  }, [quizzes, selectedSections]);
 
   // Handle sorting
   const handleSort = (field) => {
