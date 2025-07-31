@@ -15,6 +15,11 @@ import { signatureTemplateTwo } from './templates/signature-template-two.js';
 import { signatureTemplateThree } from './templates/signature-template-three.js';
 import { signatureTemplateFour } from './templates/signature-template-four.js';
 import { signatureTemplateFive } from './templates/signature-template-five.js';
+import { googleInspiredTemplateOne } from './templates/google-inspired-template-one.js';
+import { googleInspiredTemplateTwo } from './templates/google-inspired-template-two.js';
+import { googleInspiredTemplateThree } from './templates/google-inspired-template-three.js';
+import { googleInspiredTemplateFour } from './templates/google-inspired-template-four.js';
+import { googleInspiredTemplateFive } from './templates/google-inspired-template-five.js';
 
 // Export the combined array of system templates
 export const systemTemplates = [
@@ -28,7 +33,13 @@ export const systemTemplates = [
   signatureTemplateTwo,
   signatureTemplateThree,
   signatureTemplateFour,
-  signatureTemplateFive
+  signatureTemplateFive,
+  // Google Inspired Series templates (in numerical order)
+  googleInspiredTemplateOne,
+  googleInspiredTemplateTwo,
+  googleInspiredTemplateThree,
+  googleInspiredTemplateFour,
+  googleInspiredTemplateFive
 ];
 
 export default systemTemplates;
