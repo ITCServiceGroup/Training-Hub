@@ -4,8 +4,8 @@
  */
 
 export const googleInspiredTemplateFive = {
-  id: 'system-google-inspired-04',
-  name: '04 - Google Inspired Template',
+  id: 'system-google-inspired-05',
+  name: '05 - Google Inspired Template',
   description: 'Part of the Google Inspired Series - A modern template inspired by Google\'s design principles',
   category: 'Google Inspired Series',
   tags: ['google-inspired-series', 'modern', 'system'],
@@ -159,7 +159,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Click to edit this text",
+      "text": "Lorem ipsum dolor sit amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -363,7 +363,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Installation Verification &amp; Troubleshooting",
+      "text": "Lorem Ipsum Dolor &amp; Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -478,7 +478,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "A systematic guide to verifying a successful installation and diagnosing common issues encountered during setup.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -695,7 +695,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Signal &amp; Connection Verification",
+      "text": "Lorem Ipsum &amp; Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -942,7 +942,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Meter Settings: </b>Ensure your light meter (e.g., VeEx FX41xT) is set to the correct wavelength: <b>1490nm</b> for GPON or <b>1577nm</b> for XGS-PON.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore: <b>magna aliqua</b> enim ad minim veniam <b>quis nostrud</b> exercitation ullamco.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -1057,7 +1057,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Light Level Testing: The Go/No-Go Check",
+      "text": "Lorem Ipsum Dolor Sit Amet: Consectetur Adipiscing Elit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1634,7 +1634,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<span style=\"font-weight: 700;\">Inspect First: </span>Visually check the fiber connector and the port for any visible debris or smudges.",
+      "text": "<span style=\"font-weight: 700;\">Lorem Ipsum: </span>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -2097,7 +2097,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Clean Both Sides:</b> You must clean both the fiber patch cable connector AND the port/bulkhead it is plugging into. Cleaning only one side will just transfer dirt.",
+      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -2560,7 +2560,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Use the Right Tool:</b> A \"fiber cleaning pen\" is effective for both connectors and ports. 1-2 clicks is sufficient. For stubborn dirt on a connector, a CLETOP style cleaner or a lint-free wipe with fiber optic cleaning solution can be used, followed by a dry wipe.",
+      "text": "<b>Lorem Ipsum Dolor Sit:</b> Amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3023,7 +3023,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Verify Light Level:</b> After cleaning and connecting, re-test the light level to confirm it has improved or remains in the acceptable range.",
+      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3486,7 +3486,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Re-Inspect and Connect:</b> After cleaning, re-inspect to ensure it's spotless, then make the connection firmly. You should hear a \"click\" to confirm it's seated.",
+      "text": "<b>Lorem Ipsum Dolor Sit:</b> Amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3775,7 +3775,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Computers (Wi-Fi)",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4079,7 +4079,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Mobile Devices (Wi-Fi)",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4253,26 +4253,26 @@ export const googleInspiredTemplateFive = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Reading (dBm)",
-          "0-1": "Status",
-          "0-2": "<div>Action Required</div>",
-          "1-0": "&gt; -8.9 dBm",
-          "2-0": "-9.0 to -23.0 dBm",
-          "3-0": "-23.1 to -28.0 dBm",
-          "5-0": "<b>Network</b>",
-          "1-1": "High / Hot Light",
-          "2-1": "Acceptable Range",
-          "3-1": "Low Light",
-          "4-1": "No Light",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<b>STOP</b>. Contact dispatch to create an OSP ticket.<div></div><div></div><div></div>",
-          "2-2": "<div>Proceed with installation.</div><div></div>",
-          "3-2": "<div><b>STOP</b>. Contact dispatch to create an OSP ticket.</div><div></div>",
-          "4-2": "<b>STOP</b>.<b>&nbsp;</b>Contact dispatch to create an OSP ticket.<div></div>",
-          "5-2": "<div>LAN traffic is passing to the router.</div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
-          "4-0": "&lt; -28.1 dBm",
+          "0-0": "Lorem Ipsum",
+          "0-1": "Dolor Sit",
+          "0-2": "<div>Amet Consectetur</div>",
+          "1-0": "&gt; Lorem Ipsum",
+          "2-0": "Dolor Sit Amet",
+          "3-0": "Consectetur Adipiscing",
+          "5-0": "<b>Elit Sed</b>",
+          "1-1": "Magna Aliqua Enim",
+          "2-1": "Minim Veniam Quis",
+          "3-1": "Nostrud Exercitation",
+          "4-1": "Ullamco Laboris",
+          "5-1": "Nisi Ut Aliquip",
+          "6-1": "Ex Ea Commodo",
+          "1-2": "<b>Consequat</b>. Duis aute irure dolor in reprehenderit.<div></div><div></div><div></div>",
+          "2-2": "<div>Voluptate velit esse cillum dolore.</div><div></div>",
+          "3-2": "<div><b>Fugiat</b>. Nulla pariatur excepteur sint occaecat.</div><div></div>",
+          "4-2": "<b>Cupidatat</b>.<b>&nbsp;</b>Non proident sunt in culpa qui officia.<div></div>",
+          "5-2": "<div>Deserunt mollit anim id est laborum.</div>",
+          "6-2": "<div>Sed ut perspiciatis unde omnis iste natus.</div>",
+          "4-0": "&lt; Elit Sed Do",
           "6-0": "&nbsp;"
         },
         "rowCount": 5,
@@ -4385,7 +4385,7 @@ export const googleInspiredTemplateFive = {
         }
       },
       "autoConvertColors": true,
-      "text": "<b>STOP</b>.<b>&nbsp;</b>Contact dispatch to create an OSP ticket.<div></div>"
+      "text": "<b>Lorem Ipsum</b>.<b>&nbsp;</b>Dolor sit amet consectetur adipiscing elit sed do eiusmod.<div></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -4549,7 +4549,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Important Notice regarding the Activation Rapid Response process for SFU installations:\n</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit Sed Do Eiusmod Tempor Incididunt:\n</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4664,7 +4664,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "This is the most fundamental verification step. An installation cannot proceed if light levels are outside the acceptable range. A \"Loss of Signal\" (a solid red Alarm light on the ONT) is a \"stop and escalate\" issue.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4883,7 +4883,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Service &amp; Speed Test Verification",
+      "text": "Lorem Ipsum &amp; Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5036,7 +5036,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Speed Test Protocol",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5151,7 +5151,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "This is how you demonstrate the value of the service to the customer and verify that the network is performing as expected.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5454,7 +5454,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Fiber Cleaning: A Non-Negotiable Step",
+      "text": "Lorem Ipsum Dolor: Sit Amet Consectetur Adipiscing",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5534,26 +5534,26 @@ export const googleInspiredTemplateFive = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Wi-Fi Version",
-          "0-1": "Max Expected Speed",
-          "0-2": "<div>Procedure &amp; Considerations</div>",
-          "1-0": "802.11ax (Wi-Fi 6/6E)",
-          "2-0": "802.11ac (Wi-Fi 5)",
-          "3-0": "802.11n (Wi-Fi 4)",
-          "5-0": "<b>Network</b>",
-          "1-1": "500 Mbps - 1.2 Gbps",
-          "2-1": "150 - 350 Mbps",
-          "3-1": "90 Mbps",
-          "4-1": "Masonry",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Drill from <b>inside out</b>.</div><div>For loose siding, it may bend before the bit penetrates. If this happens, switch to a sharp 1/4\" bit on a high setting with light pressure.</div><div></div>",
-          "2-2": "<div>Drill from <b>outside in</b> through a <b>mortar joint</b>, not the brick or stone itself.</div><div>Use a masonry bit to penetrate the exterior, then switch to a wood bit for the interior wall.</div><div></div>",
-          "3-2": "<div>Drill from <b>inside out</b>.</div><div>Apply very light pressure when your bit reaches the stucco exterior to avoid cracking.</div><div></div>",
-          "4-2": "<div><b>Start inside out</b> with a 1/4\" bit, then <b>finish outside in</b> with a 1/2\" bit.</div>",
-          "5-2": "<div>LAN traffic is passing to the router.</div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
-          "4-0": "<b>&nbsp;Asbestos Shingles</b>",
+          "0-0": "Lorem Ipsum Dolor",
+          "0-1": "Sit Amet Consectetur",
+          "0-2": "<div>Adipiscing &amp; Elit Sed</div>",
+          "1-0": "Eiusmod Tempor (Incididunt)",
+          "2-0": "Labore Dolore (Magna)",
+          "3-0": "Aliqua Enim (Ad Minim)",
+          "5-0": "<b>Veniam Quis</b>",
+          "1-1": "Nostrud - Exercitation",
+          "2-1": "Ullamco - Laboris Nisi",
+          "3-1": "Ut Aliquip",
+          "4-1": "Ex Ea Commodo",
+          "5-1": "Consequat Duis",
+          "6-1": "Aute Irure",
+          "1-2": "<div>Dolor in <b>reprehenderit</b>.</div><div>Voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</div><div></div>",
+          "2-2": "<div>Sunt in <b>culpa qui</b> officia <b>deserunt mollit</b>, anim id est laborum.</div><div>Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</div><div></div>",
+          "3-2": "<div>Accusantium <b>doloremque</b>.</div><div>Laudantium totam rem aperiam eaque ipsa quae ab illo inventore.</div><div></div>",
+          "4-2": "<div><b>Veritatis et</b> quasi architecto <b>beatae vitae</b> dicta sunt explicabo.</div>",
+          "5-2": "<div>Nemo enim ipsam voluptatem quia voluptas.</div>",
+          "6-2": "<div>Sit aspernatur aut odit aut fugit sed quia.</div>",
+          "4-0": "<b>&nbsp;Consequuntur Magni</b>",
           "6-0": "&nbsp;"
         },
         "rowCount": 4,
@@ -5665,7 +5665,7 @@ export const googleInspiredTemplateFive = {
         }
       },
       "autoConvertColors": true,
-      "text": "90 Mbps"
+      "text": "Lorem Ipsum"
     },
     "displayName": "Table",
     "custom": {},
@@ -5825,7 +5825,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Pro-Tip: Factory Resets:</b> To perform a factory reset, press and hold the device's reset button for 10-15 seconds. If you reset a Wi-Fi 6E router, you <b>must also factory reset and re-pair any mesh extenders</b>. However, you can factory reset an individual extender and re-pair it without resetting the main router.",
+      "text": "<b>Lorem Ipsum Dolor Sit:</b> Amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam. Quis nostrud exercitation ullamco laboris <b>nisi ut aliquip ex ea commodo consequat duis aute irure dolor</b> in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5940,7 +5940,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "If you encounter a light failure during an install, you must escalate the issue to the dispatcher immediately. Once escalated, and with the customer’s approval, proceed to run the fiber cable.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6055,7 +6055,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "If the ETA is more than 30 minutes, proceed to your next scheduled job.\nIf the ETA is less than 30 minutes and the issue can be resolved before your next appointment, remain on-site and complete the installation once the light is restored.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nEnim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -6170,7 +6170,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Our primary goal is to rescue installations affected by light failures while maintaining efficiency and minimizing delays.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6285,7 +6285,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "After completing the line run, check back with the dispatcher to confirm the estimated arrival time of the PMT Team.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6868,7 +6868,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Use the Correct Tool:</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit:</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7331,7 +7331,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Perform a Hardwired Test First:</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit Amet Consectetur:</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7794,7 +7794,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Run the Test &amp; Explain:</b>",
+      "text": "<b>Lorem Ipsum Dolor &amp; Sit Amet:</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8257,7 +8257,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Set Expectations:</b>",
+      "text": "<b>Lorem Ipsum Dolor:</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8356,7 +8356,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Connect your laptop directly to the router using a <b>CAT6A Ethernet cable</b>.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor incididunt</b> ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8471,7 +8471,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "For all new installations, use the <b>Ookla SpeedTest Desktop App</b> on your work laptop. Web browsers have overhead that can limit measured speeds on multi-gig plans.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor incididunt ut labore</b> et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8586,7 +8586,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Run the test while the <b>customer is watching</b>. Explain that this result shows the maximum speed being delivered to their home.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur adipiscing elit</b> sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8701,7 +8701,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Next, run a speed test on the customer's <b>primary wireless device</b> (e.g., their smartphone).",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor incididunt</b> ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8816,7 +8816,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\">For multi-gig plans, you must use the 1<b>0G silver port </b>on the Wi-Fi 6E router to show full speeds.</li><li style=\"display: list-item; padding-left: 4px;\">The testing computer must also have a compatible multi-gig Ethernet port (e.g., 5GBASE-T or 10GBASE-T) to measure speeds above 1 Gbps accurately.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\">Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor incididunt </b>ut labore et dolore magna aliqua enim ad minim veniam.</li><li style=\"display: list-item; padding-left: 4px;\">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -8931,7 +8931,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Use the results to explain the difference between <b>wired and wireless speeds</b>. Reference the tables and information below to show them what their devices are capable of.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor incididunt ut labore</b> et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9410,7 +9410,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Perform a Wi-Fi Test:</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit Amet:</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9509,7 +9509,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Expected Maximum Speeds by Device Type",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9589,26 +9589,26 @@ export const googleInspiredTemplateFive = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Wi-Fi Version",
-          "0-1": "Max Expected Speed",
-          "0-2": "<div>Procedure &amp; Considerations</div>",
-          "1-0": "802.11ax (Wi-Fi 6/6E)",
-          "2-0": "802.11ac (Wi-Fi 5)",
-          "3-0": "802.11n (Wi-Fi 4)",
-          "5-0": "<b>Network</b>",
-          "1-1": "800 Mbps - 1.6 Gbps",
-          "2-1": "200 - 700 Mbps",
-          "3-1": "180Mbps - 270 Mbps",
-          "4-1": "Masonry",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Drill from <b>inside out</b>.</div><div>For loose siding, it may bend before the bit penetrates. If this happens, switch to a sharp 1/4\" bit on a high setting with light pressure.</div><div></div>",
-          "2-2": "<div>Drill from <b>outside in</b> through a <b>mortar joint</b>, not the brick or stone itself.</div><div>Use a masonry bit to penetrate the exterior, then switch to a wood bit for the interior wall.</div><div></div>",
-          "3-2": "<div>Drill from <b>inside out</b>.</div><div>Apply very light pressure when your bit reaches the stucco exterior to avoid cracking.</div><div></div>",
-          "4-2": "<div><b>Start inside out</b> with a 1/4\" bit, then <b>finish outside in</b> with a 1/2\" bit.</div>",
-          "5-2": "<div>LAN traffic is passing to the router.</div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
-          "4-0": "<b>&nbsp;Asbestos Shingles</b>",
+          "0-0": "Lorem Ipsum Dolor",
+          "0-1": "Sit Amet Consectetur",
+          "0-2": "<div>Adipiscing &amp; Elit Sed</div>",
+          "1-0": "Eiusmod Tempor (Do Incididunt)",
+          "2-0": "Ut Labore (Et Dolore)",
+          "3-0": "Magna Aliqua (Enim Ad)",
+          "5-0": "<b>Minim Veniam</b>",
+          "1-1": "Quis Nostrud - Exercitation",
+          "2-1": "Ullamco - Laboris Nisi",
+          "3-1": "Ut Aliquip - Ex Ea",
+          "4-1": "Commodo Consequat",
+          "5-1": "Duis Aute Irure",
+          "6-1": "Dolor Reprehenderit",
+          "1-2": "<div>Voluptate velit <b>esse cillum</b>.</div><div>Dolore eu fugiat nulla pariatur excepteur sint occaecat. Cupidatat non proident sunt in culpa qui officia.</div><div></div>",
+          "2-2": "<div>Deserunt mollit <b>anim id</b> est <b>laborum sed</b>, ut perspiciatis unde omnis.</div><div>Iste natus error sit voluptatem accusantium doloremque laudantium.</div><div></div>",
+          "3-2": "<div>Totam rem <b>aperiam eaque</b>.</div><div>Ipsa quae ab illo inventore veritatis et quasi architecto.</div><div></div>",
+          "4-2": "<div><b>Beatae vitae</b> dicta sunt <b>explicabo nemo</b> enim ipsam voluptatem.</div>",
+          "5-2": "<div>Quia voluptas sit aspernatur aut odit aut fugit.</div>",
+          "6-2": "<div>Sed quia consequuntur magni dolores eos qui ratione.</div>",
+          "4-0": "<b>&nbsp;Voluptatem Sequi</b>",
           "6-0": "&nbsp;"
         },
         "rowCount": 4,
@@ -9720,7 +9720,7 @@ export const googleInspiredTemplateFive = {
         }
       },
       "autoConvertColors": true,
-      "text": "180Mbps - 270 Mbps"
+      "text": "Lorem Ipsum - Dolor Sit Amet"
     },
     "displayName": "Table",
     "custom": {},
@@ -9786,7 +9786,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Understanding Wi-Fi Bands (2.4, 5, and 6 GHz)\n",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9901,7 +9901,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Modern routers are often tri-band, and it's helpful to explain the trade-offs to the customer:\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua:\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10016,7 +10016,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>2.4 GHz Band:</b> This band has the longest range and penetrates through walls and floors most effectively. However, it offers the slowest speeds and is most susceptible to interference from other devices (microwaves, cordless phones, etc.).</li><li style=\"display: list-item; padding-left: 4px;\"><b>5 GHz Band: </b>This band provides a great balance of speed and range. It's significantly faster than 2.4 GHz with less interference, making it ideal for most modern devices and activities like HD/4K streaming and gaming.</li><li style=\"display: list-item; padding-left: 4px;\"><b>6 GHz Band (Wi-Fi 6E):</b> This is the newest band, offering the fastest possible speeds, lowest latency, and virtually no interference from older devices. Its range is the shortest and its signal is most easily blocked by walls. It's best for new, compatible Wi-Fi 6E devices performing high-bandwidth activities like AR/VR or multi-gig file transfers when they are close to the router.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum Dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Reprehenderit In Voluptate: </b>Velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Sit Voluptatem Accusantium:</b> Doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -10131,7 +10131,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Most modern devices will automatically choose the best band (a feature called \"band steering\"), but this explains why a device's performance can vary based on its location and capabilities",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10437,7 +10437,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Initial Troubleshooting Flow",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10590,7 +10590,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "If the service isn't working as expected after installation, follow this systematic flow to diagnose the issue.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11180,7 +11180,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Check Physical Connections &amp; Third-Party Hardware</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit &amp; Amet Consectetur Adipiscing</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11279,7 +11279,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Start with the simplest potential issues before moving to device diagnostics. This includes all internal Ethernet wiring.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11758,7 +11758,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Troubleshoot the Fiber Jack (ONT)</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit Amet Consectetur</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11857,7 +11857,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Check all cables:</b> Ensure Ethernet cables are securely plugged into the correct ports (e.g., ONT to Router's WAN port). Check for physical damage.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem ipsum dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -12336,7 +12336,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Troubleshoot the Router</b>",
+      "text": "<b>Lorem Ipsum Dolor Sit Amet Consectetur</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12435,7 +12435,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Once the Fiber Jack is confirmed to be online with a good signal, focus on the router.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12550,7 +12550,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Perform a Power Cycle: </b>The first step for any unresponsive device. Unplug the ONT, wait 30 seconds, and plug it back in.\n<b>Perform a Hard Reset:</b> Use a pin to press and hold the reset button for at least 10 seconds.",
+      "text": "<b>Lorem Ipsum Dolor: </b>Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam.\n<b>Quis Nostrud Exercitation:</b> Ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -12665,7 +12665,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>A Solid Red Alarm LED </b>indicates a Loss of Signal. This is a \"stop and escalate\" issue.</li><li style=\"display: list-item; padding-left: 4px;\"><b>A Solid Green Network LED</b> (on a 4-light model) means a device is connected but not passing traffic—this points to a router or configuration issue.</li><li style=\"display: list-item; padding-left: 4px;\"><b>No light on the Optical LED</b> means no optical connection is detected.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum Dolor Sit </b>amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Enim Ad Minim Veniam</b> quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit.</li><li style=\"display: list-item; padding-left: 4px;\"><b>In voluptate velit esse</b> cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -12780,7 +12780,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Check all cables:</b> Ensure Ethernet cables are securely plugged into the correct ports (e.g., ONT to Router's WAN port). Check for physical damage.\n<b>Test and Tone Lines:</b> Use a cable tester (e.g., Klein Scout) to verify all pairs in an Ethernet line \"pass\". If a line fails, it must be repaired or replaced. Use a toner and probe to identify the correct cable; an <b>audible tone</b> from the probe indicates you have found the line connected to the toner.\n<b>Isolate the connection:</b> Plug a laptop directly into the ONT to see if the you get working internet. If you do, the problem may be with the Router, if you don't, the problem is most likely with the ONT \n<b>Isolate from 3rd Party Hardware:</b> If the customer has their own Ethernet switches, secondary routers, or Wi-Fi extenders, <b>temporarily disconnect them</b>. Connect a laptop directly to the GFiber router to see if the issue resolves. If it does, the issue lies with the customer's equipment.\n<b>Check for Interfering Software:</b> Ask the customer to temporarily <b>disable any VPN</b> or intensive antivirus software on their test device, as these can impact performance and connectivity.",
+      "text": "<b>Lorem ipsum dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.\n<b>Ullamco Laboris Nisi:</b> Ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est <b>laborum sed ut</b> perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.\n<b>Totam rem aperiam:</b> Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit. \n<b>Sed quia consequuntur:</b> Magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit <b>sed do eiusmod tempor</b> incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n<b>Duis aute irure dolor:</b> In reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui <b>officia deserunt mollit</b> anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -12895,7 +12895,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "If physical connections are solid, verify the ONT is functioning correctly.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13010,7 +13010,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Cable Grade:</b> Use <b>CAT6A</b> for multi-gig plans. For 1 Gig plans, existing wiring must be at least <b>CAT5e</b>. Older <b>CAT5</b> cable is limited to 100 Mbps and will cause a bottleneck. If existing wiring is damaged or below CAT5e, run a new line.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Termination: </b>Ensure RJ45 connectors are fully crimped and terminated to the <b>T568B</b> standard. Maintaining the twist in the wire pairs as close to the connector as possible is crucial for minimizing signal interference and ensuring performance.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum:</b> Dolor sit amet <b>consectetur</b> adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam. Quis nostrud <b>exercitation</b> ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Excepteur Sint: </b>Occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium <b>totam rem</b> aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13125,7 +13125,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Check Router LEDs:</b> A <b>solid red WAN/Internet light</b> on the Wi-Fi 6E router indicates it's not getting a connection from the Fiber Jack. Verify the cable is functioning and that the ONT is online.\n<b>Power Cycle the Router:</b> After the Fiber Jack is fully online, power cycle the router.\n<b>Perform a Factory Reset:</b> Use a pin to press and hold the reset button for at least 10 seconds.\n<b>Check for Device Reboots (in Salesforce/BSS):</b> In the Devices tab, check the router's \"Events\". Multiple unexpected \"boot\" logs can indicate a faulty router or power supply.\n<b>Verify Mesh Extender Placement (RSSI):</b> Mesh extenders are only necessary in homes with clear Wi-Fi \"dead zones\". If an extender is in use, check its Backhaul RSSI in Salesforce/BSS. The ideal range is <b>-50 to -66 dBm</b>. A signal weaker than <b>-70 dBm is considered bad</b> and will cause poor performance.",
+      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet <b>consectetur adipiscing elit</b> sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n<b>Duis Aute Irure:</b> Dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat.\n<b>Non Proident Sunt:</b> In culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error.\n<b>Sit Voluptatem Accusantium:</b> Doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.\n<b>Sed Quia Consequuntur:</b> Magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sed quia consequuntur <b>magni dolores eos</b>. Qui ratione voluptatem <b>sequi nesciunt neque</b> porro quisquam est qui dolorem.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13240,7 +13240,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "For GFiber Wi-Fi 6/6E Routers:",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13355,7 +13355,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Check Status in Salesforce/BSS:</b> In the Troubleshooting Tab, confirm the Fiber Jack's \"Last Checkin\" is recent and \"Config Status\" is \"Up to Date.\"</li><li style=\"display: list-item; padding-left: 4px;\"><b>Verify Power Adapter:</b> Especially for intermittent issues, ensure the correct power adapter is being used. A 10-Gig XGS ONT requires a <b>12.0V ⎓ 1.0A adapter</b>, which is more powerful than older models. An incorrect adapter can cause reboots.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Check LED Lights:</b> The ONT's lights are a primary diagnostic tool.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum Dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Duis Aute Irure:</b> Dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium <b>totam rem aperiam</b> eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Nemo Enim Ipsam:</b> Voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13470,7 +13470,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "An extender needs a strong signal <b>from</b> the router to work effectively. Place it about halfway between the router and the dead zone, not in the dead zone itself. Move it closer to the router or to a more open area to improve its RSSI.\nFor the best connection, use a <b>Wired Backhaul:</b> connect an Ethernet cable from a LAN port on the router to the WAN port on the extender.\nMesh networks support both \"Star\" (all extenders connect to the router) and \"Daisy Chain\" (extender connects to another extender) topologies.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod</b> tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim <b>ipsam voluptatem quia:</b> voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est.\nNisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13585,7 +13585,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "For Bring Your Own Router (BYOR):",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13700,7 +13700,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Confirm Plan:</b> Ensure the customer is on a BYOR-compatible plan in Salesforce/BSS.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Verify Physical Connection:</b> The Ethernet cable from the Fiber Jack must be plugged into the router's <b>WAN port</b> (often marked with a globe icon).</li><li style=\"display: list-item; padding-left: 4px;\"><b>Check Router Specs:</b> The customer's router must meet minimum requirements (Wi-Fi 6, Gigabit ports). For multi-gig plans, it needs a <b>5GBASE-T or 10GBASE-T WAN port</b> to get full speeds. A DSL modem/router combo will not work.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Check Link Lights:</b> Confirm the router's WAN port has a blinking link light, indicating it's receiving data from the Fiber Jack. If not, the issue may be the cable or the router itself.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Advise Customer:</b> If the Fiber Jack is confirmed to be working but the customer's router is not, advise them to contact their router's manufacturer for further support.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Ullamco Laboris Nisi:</b> Ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est <b>laborum sed ut</b> perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Totam Rem Aperiam:</b> Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Sed ut perspiciatis unde omnis iste <b>natus error sit voluptatem</b> accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Enim Ad Minim:</b> Veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Excepteur Sint Occaecat:</b> Cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,

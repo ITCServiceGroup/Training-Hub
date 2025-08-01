@@ -161,7 +161,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Click to edit this text",
+      "text": "Lorem ipsum dolor sit amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -365,7 +365,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Hardware Installation Guide",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -480,7 +480,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "The complete guide for installing the Fiber Jack (ONT), Wi-Fi 6E Router, and Mesh Extender system.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -976,7 +976,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Hardware Placement Rules",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1091,7 +1091,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Wi-Fi Best Practices",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1302,7 +1302,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Single SSID is Mandatory:</b> Configure the network with one unified Wi-Fi name. Do not split the 2.4/5/6 GHz bands.",
+      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -1511,7 +1511,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Hardware Alert: </b>This ONT is larger (~4.25\"W x 8.5\"L) and requires a <b>12.0V ⎓ 1.0A power adapter</b>. Do not use older, lower-wattage adapters.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod <b>tempor incididunt ut labore</b>. Et dolore magna aliqua ut enim ad minim.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -1626,7 +1626,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Universal Installation Guidelines",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1779,7 +1779,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Placement is Crucial:</b> Use a Wi-Fi analyzer app (like NetSpot) to find optimal, open locations for the router and mesh extenders.",
+      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -1894,7 +1894,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Set Expectations:</b> Explain to the customer that maximum speeds are achieved on a hardwired connection.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -2107,7 +2107,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Interior Wall Only:</b> All hardware must be placed on an interior wall when possible.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -2222,7 +2222,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Power Source:</b> Location must be within <b>4 feet</b> of an electrical outlet.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur <b>adipiscing elit</b> sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -2337,7 +2337,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Height:</b> Wall plates should be <b>16-18 inches</b> from the floor or aligned with other outlets.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur <b>adipiscing elit</b> sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -2452,7 +2452,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Ventilation:</b> Ensure a minimum of <b>2 inches</b> of clearance around all devices.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur <b>adipiscing elit</b> sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -2567,7 +2567,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Prohibited Areas:</b> Avoid closets, cabinets, bathrooms, kitchens, and behind doors or furniture.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -2787,7 +2787,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Fiber Jack (ONT) Installation",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3131,7 +3131,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Standard GPON ONT",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3344,7 +3344,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Light Test:</b> Use a light meter on the 1490nm wavelength setting.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -3459,7 +3459,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Drilling &amp; Mounting:</b> Drill hole from NIU, run fiber patch cable, and mount the Fiber Jack securely to a mud ring.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -3574,7 +3574,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Connection:</b> Clean the fiber connector and plug it securely into the ONT's optical port.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -3689,7 +3689,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Ethernet: </b>Connect a CAT6A cable from the ONT's \"Network\" port to the router (<b>required for multi-gig plans</b>).",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod (<b>tempor incididunt ut labore</b>).",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -3901,7 +3901,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "10-Gig XGS-PON ONT",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4114,7 +4114,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Light Test: </b>Use a light meter on the 1577nm wavelength setting.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4229,7 +4229,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Drilling &amp; Mounting:</span> Drill hole from NIU, run fiber patch cable, and mount the Fiber Jack securely to a mud ring.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4344,7 +4344,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Connection:</span> Clean the fiber connector and plug it securely into the ONT's optical port.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4459,7 +4459,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "ONT Models: GPON vs. XGS-PON",
+      "text": "Lorem Ipsum: Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4574,7 +4574,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Models: </b>GOXP330C, GOXP330H<b>\n</b>Required for all multi-gig plans (3G, 8G) and all installs in new markets.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur<b>\n</b>Adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4689,7 +4689,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Models:</b> GOGP220C, GOGP222C, GOGP220H\nUsed for plans 2 Gig and under in non-XGS areas.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing\nElit sed do eiusmod tempor incididunt ut labore et dolore magna.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4804,7 +4804,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Installation Process",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4919,7 +4919,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Installation Process",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5034,7 +5034,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Power:</b> Connect the 12V ⎓ 0.5A power adapter and turn on.",
+      "text": "<b>Lorem:</b> Ipsum dolor sit amet consectetur adipiscing elit.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5243,7 +5243,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Installation Policy: </b>Even if a customer plans to use their own router, the GFiber Wi-Fi 6E Router must be i<b>nstalled and activated first</b> for all Lifestyle Product plans. The ticket must be closed while the GFiber router is connected. At this point, the customer can then plug their own router into one of the LAN ports of the GFiber router, (the GFiber router must be in <b>bridge mode</b> for this to work) or directly into the ONT if they wish.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut <b>labore et dolore magna</b> aliqua ut enim ad minim veniam. Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur (excepteur sint occaecat cupidatat non proident sunt in <b>culpa qui officia</b> deserunt mollit anim id est laborum) sed ut perspiciatis unde omnis iste natus error.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5358,7 +5358,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Reset Button Functions <span style=\"font-weight: normal;\">(applies to both ONTs)</span>",
+      "text": "Lorem Ipsum Dolor Sit <span style=\"font-weight: normal;\">(amet consectetur adipiscing)</span>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5569,7 +5569,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Soft Reset (1 sec press): </b>Reboots the CPU without losing configuration.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5684,7 +5684,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Customer Connection: </b>The customer will have an Ethernet wall jack in their unit. The router plugs into this jack.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5799,7 +5799,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Special Cases: Centralized ONT / \"Fiber Jack Farm\"",
+      "text": "Lorem Ipsum: Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5879,25 +5879,25 @@ export const googleInspiredTemplateThree = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "LED",
-          "0-1": "Status",
-          "0-2": "Meaning",
-          "1-0": "<b>Power</b>",
-          "2-0": "<b>Alarm</b>",
-          "3-0": "<b>Optical</b>",
-          "5-0": "<b>Network</b>",
-          "1-1": "Solid Green",
-          "2-1": "Solid Red",
-          "3-1": "Solid Green",
-          "4-1": "Blinking Green",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Device is powered on.</div>",
-          "2-2": "<div>Loss of Signal (LOS). Major issue.</div>",
-          "3-2": "<div>Successfully ranged and authenticated.</div>",
-          "4-2": "<div>Ranging with OLT, not yet authenticated.</div>",
-          "5-2": "<div>LAN traffic is passing to the router.</div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor",
+          "1-0": "<b>Sit</b>",
+          "2-0": "<b>Amet</b>",
+          "3-0": "<b>Consectetur</b>",
+          "5-0": "<b>Adipiscing</b>",
+          "1-1": "Elit Sed",
+          "2-1": "Do Eiusmod",
+          "3-1": "Tempor Incididunt",
+          "4-1": "Ut Labore",
+          "5-1": "Et Dolore",
+          "6-1": "Magna Aliqua",
+          "1-2": "<div>Ut enim ad minim veniam.</div>",
+          "2-2": "<div>Quis nostrud exercitation ullamco laboris.</div>",
+          "3-2": "<div>Nisi ut aliquip ex ea commodo.</div>",
+          "4-2": "<div>Consequat duis aute irure dolor.</div>",
+          "5-2": "<div>In reprehenderit in voluptate velit.</div>",
+          "6-2": "<div>Esse cillum dolore eu fugiat nulla.</div>",
           "4-0": "&nbsp;",
           "6-0": "&nbsp;"
         },
@@ -6077,7 +6077,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "ONT LED Status Guide",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6192,7 +6192,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Hard Reset (8+ sec press): </b>Clears the ONT's configuration from the OLT and reboots.",
+      "text": "<b>Lorem Ipsum Dolor: </b>Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6307,7 +6307,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Identification: </b>If jacks are unlabeled, use a toner on the customer's in-unit Ethernet cable to identify the correct cable in the IDF/MDF room.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6422,7 +6422,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Technician Access: </b>You must gain access to the building's utility closet (IDF/MDF room) to service the ONT.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6642,7 +6642,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Router Installation",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6795,7 +6795,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "GFiber Wi-Fi 6E Router (GR6EXX0C)",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7101,7 +7101,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Specifications",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7314,7 +7314,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Placement Guidelines",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7429,7 +7429,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Place in a <b>central location</b> within the home.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur adipiscing</b> elit sed do eiusmod.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7544,7 +7544,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Position in an <b>open space</b> (e.g., shelf, TV stand), not an enclosed cabinet or closet.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur adipiscing</b> elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7659,7 +7659,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Place in the room where Wi-Fi is used most often.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7774,7 +7774,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Ensure it's in a well-ventilated area with at least 2\" of clearance.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7988,7 +7988,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Installation &amp; Configuration Steps",
+      "text": "Lorem Ipsum &amp; Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8103,7 +8103,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Bring Your Own Router (BYOR)",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8218,7 +8218,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Customer Router Minimum Specifications",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8333,7 +8333,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Wi-Fi Standard: </b>Wi-Fi 6 (802.11ax) with Dual-band or Tri-band capabilities.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8448,7 +8448,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Security: </b>WPA2 security protocols (WPA3 recommended).",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8563,7 +8563,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Ports (Multi-Gig Plans): </b>To achieve speeds over 1 Gig, the customer's router must have a <b>multi-gig WAN port</b> (e.g., 2.5G, 5G, or 10GBASE-T). A standard 1-Gig WAN port will be a bottleneck.",
+      "text": "<b>Lorem Ipsum Dolor: </b>Sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut <b>labore et dolore magna</b> aliqua ut enim ad minim veniam. Quis nostrud exercitation ullamco laboris nisi ut aliquip.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8643,25 +8643,25 @@ export const googleInspiredTemplateThree = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>Wi-Fi Standard</b>",
-          "0-1": "<div>Tri-band Wi-Fi 6E (802.11ax)</div>",
-          "0-2": "Meaning",
-          "1-0": "<b>Ports</b>",
-          "2-0": "<b>Range</b>",
-          "3-0": "<b>Security</b>",
-          "5-0": "<b>Network</b>",
-          "1-1": "1x 10G LAN (Silver), 3x 2.5G LAN",
-          "2-1": "Up to 2,000 sq. ft.",
-          "3-1": "WPA2 / WPA3",
-          "4-1": "Blinking Green",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Device is powered on.</div>",
-          "2-2": "<div>Loss of Signal (LOS). Major issue.</div>",
-          "3-2": "<div>Successfully ranged and authenticated.</div>",
-          "4-2": "<div>Ranging with OLT, not yet authenticated.</div>",
-          "5-2": "<div>LAN traffic is passing to the router.</div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>"
+          "0-0": "<b>Lorem Ipsum</b>",
+          "0-1": "<div>Dolor sit amet consectetur</div>",
+          "0-2": "Adipiscing",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "3-0": "<b>Do</b>",
+          "5-0": "<b>Eiusmod</b>",
+          "1-1": "Tempor incididunt ut labore",
+          "2-1": "Et dolore magna aliqua",
+          "3-1": "Ut enim ad minim",
+          "4-1": "Veniam Quis",
+          "5-1": "Nostrud Exercitation",
+          "6-1": "Ullamco Laboris",
+          "1-2": "<div>Nisi ut aliquip ex ea.</div>",
+          "2-2": "<div>Commodo consequat duis aute irure.</div>",
+          "3-2": "<div>Dolor in reprehenderit in voluptate.</div>",
+          "4-2": "<div>Velit esse cillum dolore eu.</div>",
+          "5-2": "<div>Fugiat nulla pariatur excepteur sint.</div>",
+          "6-2": "<div>Occaecat cupidatat non proident sunt.</div>"
         },
         "rowCount": 4,
         "columnCount": 2,
@@ -8772,7 +8772,7 @@ export const googleInspiredTemplateThree = {
         }
       },
       "autoConvertColors": true,
-      "text": "WPA2 / WPA3"
+      "text": "Lorem / Ipsum"
     },
     "displayName": "Table",
     "custom": {},
@@ -9203,7 +9203,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Connect to ONT:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9302,7 +9302,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Run a CAT6A Ethernet cable from the Fiber Jack's to the <b>silver 10G WAN</b> port on the router.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor incididunt</b> ut labore et dolore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9766,7 +9766,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Confirm Network is Active:",
+      "text": "Lorem Ipsum Dolor:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9865,7 +9865,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Once saved, wait ~60 seconds for the router's <b>Wi-Fi LED</b> to turn <b>Solid Green</b>.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor</b> incididunt ut <b>labore et dolore</b>.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10329,7 +10329,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Set Network Credentials:",
+      "text": "Lorem Ipsum Dolor:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10428,7 +10428,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "In the \"Network Settings,\" have the customer create a Wi-Fi Name (SSID) and Password. Do <b>NOT</b> split the bands unless it is absolutely necessary",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt. Ut <b>labore</b> et dolore magna aliqua ut enim ad minim veniam",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10892,7 +10892,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Configure Wi-Fi:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10991,7 +10991,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Guide the customer to log into their GFiber Portal or Mobile App.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11455,7 +11455,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Power On:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11554,7 +11554,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Connect the power adapter and wait ~3 minutes for the <b>Power</b> and <b>WAN/Internet</b> LEDs to turn <b>Solid Green</b>.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor</b> incididunt ut <b>labore et dolore</b> magna aliqua ut <b>enim ad minim</b>.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11653,7 +11653,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Incompatible Devices: </b>A cable or DSL modem-router combo unit will not work with GFiber service.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -11942,7 +11942,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Wi-Fi 6E Mesh Extender Installation",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12095,7 +12095,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "GFiber Wi-Fi 6E Mesh Extender (GE6E220C)",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur (Lorem123)",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12401,7 +12401,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Specifications",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12481,25 +12481,25 @@ export const googleInspiredTemplateThree = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>Backhaul</b>",
-          "0-1": "<div>Dedicated 4x4 6GHz wireless</div>",
-          "0-2": "Meaning",
-          "1-0": "<b>Ports</b>",
-          "2-0": "<b>Compatibility</b>",
-          "3-0": "<b>Security</b>",
-          "5-0": "<b>Network</b>",
-          "1-1": "1x 2.5G LAN, 1x 1G LAN",
-          "2-1": "Only pairs with <b>GR6EXX0C</b> router",
-          "3-1": "WPA2 / WPA3",
-          "4-1": "Blinking Green",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Device is powered on.</div>",
-          "2-2": "<div>Loss of Signal (LOS). Major issue.</div>",
-          "3-2": "<div>Successfully ranged and authenticated.</div>",
-          "4-2": "<div>Ranging with OLT, not yet authenticated.</div>",
-          "5-2": "<div>LAN traffic is passing to the router.</div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "<div>Ipsum dolor sit amet consectetur</div>",
+          "0-2": "Adipiscing",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "3-0": "<b>Do</b>",
+          "5-0": "<b>Eiusmod</b>",
+          "1-1": "Tempor incididunt ut labore",
+          "2-1": "Et dolore magna <b>aliqua ut</b> enim",
+          "3-1": "Ad minim veniam",
+          "4-1": "Quis Nostrud",
+          "5-1": "Exercitation Ullamco",
+          "6-1": "Laboris Nisi",
+          "1-2": "<div>Ut aliquip ex ea commodo.</div>",
+          "2-2": "<div>Consequat duis aute irure dolor.</div>",
+          "3-2": "<div>In reprehenderit in voluptate velit.</div>",
+          "4-2": "<div>Esse cillum dolore eu fugiat.</div>",
+          "5-2": "<div>Nulla pariatur excepteur sint occaecat.</div>",
+          "6-2": "<div>Cupidatat non proident sunt in culpa.</div>"
         },
         "rowCount": 3,
         "columnCount": 2,
@@ -12610,7 +12610,7 @@ export const googleInspiredTemplateThree = {
         }
       },
       "autoConvertColors": true,
-      "text": "Only pairs with <b>GR6EXX0C</b> router"
+      "text": "Lorem ipsum dolor sit <b>amet consectetur</b> adipiscing"
     },
     "displayName": "Table",
     "custom": {},
@@ -12775,7 +12775,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Placement Guidelines",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12890,7 +12890,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Place in a <b>central location</b> within the home.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur adipiscing</b> elit sed do eiusmod.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -13005,7 +13005,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Place the extender roughly halfway between the router and the furthest area that needs coverage. ",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore. ",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -13120,7 +13120,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Use <b>RSSI</b> and <b>speed tests</b> to find the best location.",
+      "text": "Lorem ipsum <b>dolor sit</b> amet <b>consectetur adipiscing</b> elit sed do eiusmod.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -13235,7 +13235,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Do not place it in the dead zone itself; it needs a strong signal from the router.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -13453,7 +13453,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Pairing Instructions",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13933,7 +13933,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Prerequisite:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -14032,7 +14032,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "The router's Wi-Fi must be set up first.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -14496,7 +14496,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Initial Pairing:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -14595,7 +14595,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Power on the extender within 3-6 feet of the router. Wait for its LED to turn <b>Solid White</b>.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor <b>incididunt ut labore</b>.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -15059,7 +15059,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Press WPS",
+      "text": "Lorem Ipsum",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -15158,7 +15158,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Press the WPS button on the router, then on the extender.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -15622,7 +15622,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Wait",
+      "text": "Lorem",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -15721,7 +15721,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Pairing can take <b>5-6 minutes</b>. Success is indicated by a <b>Solid Green LED</b>.",
+      "text": "Lorem ipsum dolor sit <b>amet consectetur</b> adipiscing elit sed do <b>eiusmod tempor incididunt</b>.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -16185,7 +16185,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Connect Cable:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -16284,7 +16284,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<div>Run a CAT6A Ethernet cable from a LAN port on the router to the <b>2.5G port</b> on the extender.\n</div>",
+      "text": "<div>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor</b> incididunt ut labore.\n</div>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -16477,7 +16477,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Install Only When Necessary! </b>Un-needed extenders can degrade Wi-Fi performance. They are for homes larger than ~2,000 sq. ft. or with confirmed dead spots.",
+      "text": "<b>Lorem Ipsum Dolor Sit! </b>Amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -16592,7 +16592,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "For multi-gig plans, you <b>must</b> use the <b>10G silver port</b> on the router.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur</b> adipiscing elit <b>sed do eiusmod</b> tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -16707,7 +16707,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Wired Pairing (Preferred)",
+      "text": "Lorem Ipsum Dolor (Sit Amet)",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -16822,7 +16822,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Wireless Pairing",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17302,7 +17302,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Final Placement:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17401,7 +17401,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Move the extender to its final location.\n<div>\n</div>",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing.\n<div>\n</div>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17865,7 +17865,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Power On:",
+      "text": "Lorem Ipsum:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17964,7 +17964,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<div>Power on the extender. The LED will turn <b>Solid Green</b> within <b>5-6 minutes</b>.\n</div>",
+      "text": "<div>Lorem ipsum dolor sit amet. Consectetur adipiscing <b>elit sed do</b> eiusmod <b>tempor incididunt</b>.\n</div>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -18159,7 +18159,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Final Verification &amp; Troubleshooting",
+      "text": "Lorem Ipsum Dolor &amp; Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -18505,7 +18505,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Device LED Light Quick Guide",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -18585,26 +18585,26 @@ export const googleInspiredTemplateThree = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>Power</b>",
-          "0-1": "<div>Solid Green</div>",
-          "0-2": "<div>Device is powered on.</div>",
-          "1-0": "<b>WAN</b>",
-          "2-0": "<b>WAN</b>",
-          "3-0": "<b>Wi-Fi</b>",
-          "5-0": "<b>WPS</b>",
-          "1-1": "Solid Green",
-          "2-1": "Solid Red",
-          "3-1": "Solid Green",
-          "4-1": "Solid Yellow",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Connected to internet.</div><div></div>",
-          "2-2": "<div>Connection failure. Check cable/ONT.</div><div></div>",
-          "3-2": "<div>Wi-Fi network is active.</div><div></div>",
-          "4-2": "<div>Wi-Fi is being configured.</div><div></div>",
-          "5-2": "<div>WPS pairing in progress.</div><div></div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
-          "4-0": "<b>Wi-Fi</b>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "<div>Ipsum Dolor</div>",
+          "0-2": "<div>Sit amet consectetur adipiscing.</div>",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "3-0": "<b>Do</b>",
+          "5-0": "<b>Eiusmod</b>",
+          "1-1": "Tempor Incididunt",
+          "2-1": "Ut Labore",
+          "3-1": "Et Dolore",
+          "4-1": "Magna Aliqua",
+          "5-1": "Ut Enim",
+          "6-1": "Ad Minim",
+          "1-2": "<div>Veniam quis nostrud exercitation.</div><div></div>",
+          "2-2": "<div>Ullamco laboris nisi ut aliquip.</div><div></div>",
+          "3-2": "<div>Ex ea commodo consequat duis.</div><div></div>",
+          "4-2": "<div>Aute irure dolor in reprehenderit.</div><div></div>",
+          "5-2": "<div>In voluptate velit esse cillum.</div><div></div>",
+          "6-2": "<div>Dolore eu fugiat nulla pariatur.</div>",
+          "4-0": "<b>Excepteur</b>"
         },
         "rowCount": 6,
         "columnCount": 3,
@@ -18716,7 +18716,7 @@ export const googleInspiredTemplateThree = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div>WPS pairing in progress.</div><div></div>"
+      "text": "<div>Lorem ipsum dolor sit amet.</div><div></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -18886,7 +18886,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Common Troubleshooting Steps",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19001,7 +19001,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "RSSI Testing (Extender Health)",
+      "text": "Lorem Ipsum Dolor (Sit Amet Consectetur)",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19116,7 +19116,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Firmware 1.5.4+ Changes",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19231,7 +19231,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Router (GR6EXX0C)",
+      "text": "Lorem Ipsum (Dolor123)",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19346,7 +19346,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Extender (GE6E220C)",
+      "text": "Lorem Ipsum (Dolor456)",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19426,26 +19426,26 @@ export const googleInspiredTemplateThree = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "RSSI Value",
-          "0-1": "<div>Meaning</div>",
-          "0-2": "<div>Action</div><div></div>",
-          "1-0": "&gt; -50 dBm",
-          "2-0": "-50 to -66 dBm",
-          "3-0": "&lt; -66 dBm",
-          "5-0": "<b>WPS</b>",
-          "1-1": "Too Close",
-          "2-1": "Recommended",
-          "3-1": "Too Far",
-          "4-1": "Solid Yellow",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>Move extender further from router.</div><div></div><div></div><div></div>",
-          "2-2": "<div>Optimal placement. No action needed.</div><div></div><div></div><div></div>",
-          "3-2": "<div>Move extender closer to router.</div><div></div><div></div><div></div>",
-          "4-2": "<div>Wi-Fi is being configured.</div><div></div>",
-          "5-2": "<div>WPS pairing in progress.</div><div></div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
-          "4-0": "<b>Wi-Fi</b>"
+          "0-0": "Lorem Ipsum",
+          "0-1": "<div>Dolor</div>",
+          "0-2": "<div>Sit Amet</div><div></div>",
+          "1-0": "Consectetur",
+          "2-0": "Adipiscing Elit",
+          "3-0": "Sed Do",
+          "5-0": "<b>Eiusmod</b>",
+          "1-1": "Tempor Incididunt",
+          "2-1": "Ut Labore",
+          "3-1": "Et Dolore",
+          "4-1": "Magna Aliqua",
+          "5-1": "Ut Enim",
+          "6-1": "Ad Minim",
+          "1-2": "<div>Veniam quis nostrud exercitation ullamco.</div><div></div><div></div><div></div>",
+          "2-2": "<div>Laboris nisi ut aliquip ex ea.</div><div></div><div></div><div></div>",
+          "3-2": "<div>Commodo consequat duis aute irure.</div><div></div><div></div><div></div>",
+          "4-2": "<div>Dolor in reprehenderit in voluptate.</div><div></div>",
+          "5-2": "<div>Velit esse cillum dolore eu.</div><div></div>",
+          "6-2": "<div>Fugiat nulla pariatur excepteur sint.</div>",
+          "4-0": "<b>Occaecat</b>"
         },
         "rowCount": 4,
         "columnCount": 3,
@@ -19557,7 +19557,7 @@ export const googleInspiredTemplateThree = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div>Move extender closer to router.</div><div></div><div></div><div></div>"
+      "text": "<div>Lorem ipsum dolor sit amet consectetur.</div><div></div><div></div><div></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -19623,7 +19623,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Measure the extender's backhaul signal. Aim for the \"Recommended\" range.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19703,26 +19703,26 @@ export const googleInspiredTemplateThree = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>LED</b>",
-          "0-1": "<div>Solid White</div>",
-          "0-2": "<div>Booting up, ready to pair.</div><div></div>",
-          "1-0": "<b>LED</b>",
-          "2-0": "<b>LED</b>",
-          "3-0": "<b>LED</b>",
-          "5-0": "<b>WPS</b>",
-          "1-1": "Blinking White",
-          "2-1": "Solid Green",
-          "3-1": "Solid Red",
-          "4-1": "Solid Yellow",
-          "5-1": "Blinking Green",
-          "6-1": "Solid Green",
-          "1-2": "<div>WPS pairing in progress.</div><div></div><div></div>",
-          "2-2": "<div>Paired and operational.</div><div></div><div></div>",
-          "3-2": "<div>Pairing failed or lost connection.</div><div></div><div></div>",
-          "4-2": "<div>Wi-Fi is being configured.</div><div></div>",
-          "5-2": "<div>WPS pairing in progress.</div><div></div>",
-          "6-2": "<div>LAN port connected, but no data is flowing.</div>",
-          "4-0": "<b>Wi-Fi</b>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "<div>Ipsum Dolor</div>",
+          "0-2": "<div>Sit amet consectetur adipiscing.</div><div></div>",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "3-0": "<b>Do</b>",
+          "5-0": "<b>Eiusmod</b>",
+          "1-1": "Tempor Incididunt",
+          "2-1": "Ut Labore",
+          "3-1": "Et Dolore",
+          "4-1": "Magna Aliqua",
+          "5-1": "Ut Enim",
+          "6-1": "Ad Minim",
+          "1-2": "<div>Veniam quis nostrud exercitation.</div><div></div><div></div>",
+          "2-2": "<div>Ullamco laboris nisi ut aliquip.</div><div></div><div></div>",
+          "3-2": "<div>Ex ea commodo consequat duis.</div><div></div><div></div>",
+          "4-2": "<div>Aute irure dolor in reprehenderit.</div><div></div>",
+          "5-2": "<div>In voluptate velit esse cillum.</div><div></div>",
+          "6-2": "<div>Dolore eu fugiat nulla pariatur.</div>",
+          "4-0": "<b>Excepteur</b>"
         },
         "rowCount": 4,
         "columnCount": 3,
@@ -19834,7 +19834,7 @@ export const googleInspiredTemplateThree = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div>Pairing failed or lost connection.</div><div></div><div></div>"
+      "text": "<div>Lorem ipsum dolor sit amet consectetur.</div><div></div><div></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -19900,7 +19900,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Keep it in an open area, within the 6GHz coverage of the main router.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -20015,7 +20015,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Factory Reset:</b> If you factory reset the <b>Router</b>, you MUST also factory reset any paired <b>Extenders</b>.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur <b>adipiscing elit</b> sed do eiusmod tempor incididunt ut <b>labore et dolore</b>.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -20130,7 +20130,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Connect your laptop using a <b>CAT6A cable</b>.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur adipiscing</b> elit.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -20245,7 +20245,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Hardline Speed Test",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -20360,7 +20360,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "Use the <b>Ookla SpeedTest Desktop App</b> for all installation speed tests.",
+      "text": "Lorem ipsum dolor sit <b>amet consectetur adipiscing</b> elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -20475,7 +20475,7 @@ export const googleInspiredTemplateThree = {
           }
         }
       },
-      "text": "<b>Backhaul Loss:</b> If an extender loses its connection to the router, its Wi-Fi signal will now automatically turn off.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,

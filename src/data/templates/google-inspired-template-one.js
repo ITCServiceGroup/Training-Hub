@@ -161,7 +161,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Click to edit this text",
+      "text": "Lorem ipsum dolor sit amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3581,7 +3581,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Access your tools, check into the job, and review the job ticket.",
+      "text": "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -3696,7 +3696,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "At the door, ensure your badge is visible, introduce yourself, and state your purpose.",
+      "text": "Consectetur adipisci velit sed quia non numquam eius modi tempora incidunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -3905,7 +3905,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "NIU Light Test &amp; Assessment",
+      "text": "Ut Labore Et Dolore Magna",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4020,7 +4020,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Inform the customer you'll start by accessing the gray box on the side of the house, the Network Interface Unit (NIU).",
+      "text": "Aliquam quaerat voluptatem ut enim ad minima veniam quis nostrum exercitationem ullam corporis.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4135,7 +4135,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "The meter's test channel must be set to 1490nm for GPON or 1577nm for XGS-PON.\nThe acceptable optical power level is between -9.0 dBm and -23.0 dBm.",
+      "text": "Suscipit laboriosam nisi ut aliquid ex ea commodi consequatur.\nQuis autem vel eum iure reprehenderit qui in ea voluptate velit esse.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -4250,7 +4250,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Clean the fiber jumper before inserting and testing.",
+      "text": "Quam nihil molestiae consequatur vel illum qui dolorem eum.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4365,7 +4365,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "At the NIU, use a fiber light meter to test the signal.",
+      "text": "Fugiat quo voluptas nulla pariatur at vero eos et accusamus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4480,7 +4480,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Note the light level in the installation notes in Salesforce/BSS.",
+      "text": "Et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4689,7 +4689,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Hardware Consultation &amp; Home Survey",
+      "text": "Deleniti Atque Corrupti Quos",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4804,7 +4804,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Put on boot covers. Explain the function of each piece of equipment you will install.",
+      "text": "Dolores et quas molestias excepturi sint occaecati cupiditate non provident.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -4919,7 +4919,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Perform a walk-through survey with the customer to finalize the installation plan. Ask key questions:",
+      "text": "Similique sunt in culpa qui officia deserunt mollitia animi id est laborum et dolorum fuga:",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5034,7 +5034,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "\"Where in the home do you use Wi-Fi the most?\"\n\"Do you have other services like satellite or a home phone we need to be aware of?\"\n\"Do you use the Google Home App?\" (for applicable installs)\n\"May I have your permission to check areas like closets or the garage if they provide the best wiring path?\"",
+      "text": "\"Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse?\"\n\"Quam nihil molestiae consequatur vel illum qui dolorem eum fugiat quo voluptas?\"\n\"Nulla pariatur excepteur sint occaecat cupidatat?\" (pro applicabilibus installis)\n\"At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium?\"",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -5149,7 +5149,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Identify the best locations for the Fiber Jack and Router, then assess and discuss the residential gateway placement with the customer.",
+      "text": "Et harum quidem rerum facilis est et expedita distinctio nam libero tempore cum soluta nobis est eligendi optio.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5264,7 +5264,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Identify any computers/devices that will need to be hardwired.",
+      "text": "Cumque nihil impedit quo minus id quod maxime placeat facere possimus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -5983,7 +5983,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Building the Network",
+      "text": "Omnis Voluptas Assumenda Est",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6192,7 +6192,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Wiring and Fiber Jack Installation",
+      "text": "Omnis Dolor Repellendus",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6307,7 +6307,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Run the fiber patch cable from the NIU to the designated Fiber Jack location, using discreet paths and securing the cable every 18 inches. Check for pinches.",
+      "text": "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6422,7 +6422,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "If installing into drywall, install a mud ring at 16\" from the floor or aligned with other plates.",
+      "text": "Itaque earum rerum hic tenetur a sapiente delectus ut aut reiciendis voluptatibus maiores alias consequatur.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6537,7 +6537,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Clean the fiber patch cable connector before connecting to the Fiber Jack.",
+      "text": "Aut perferendis doloribus asperiores repellat nam libero tempore cum soluta nobis.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6746,7 +6746,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Router and Mesh Extender Setup",
+      "text": "Est Eligendi Optio Cumque",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6861,7 +6861,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Run a CAT6A Ethernet cable from the Fiber Jack's LAN port to the 10G silver WAN port on the back of the Wi-Fi 6E Router.",
+      "text": "Nihil impedit quo minus id quod maxime placeat facere possimus omnis voluptas assumenda est omnis dolor repellendus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -6976,7 +6976,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Install devices on the account in Salesforce/BSS. Power on the router and wait for the Power and WAN LEDs to turn solid green (this can take up to 5 minutes).",
+      "text": "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7091,7 +7091,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "The customer's Wi-Fi SSID and password must be set up on the router first before pairing.\nFor wireless pairing, press the WPS button on the router, then the extender. Wait for the extender's light to turn solid green.\nFor wired backhaul (preferred), connect an Ethernet cable from a router LAN port to the extender's WAN port.",
+      "text": "Itaque earum rerum hic tenetur a sapiente delectus ut aut reiciendis voluptatibus maiores alias consequatur.\nAut perferendis doloribus asperiores repellat nam libero tempore cum soluta nobis est eligendi optio cumque.\nNihil impedit quo minus id quod maxime placeat facere possimus omnis voluptas assumenda est.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -7206,7 +7206,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Plug the Fiber Jack into a power outlet and turn it on.",
+      "text": "Omnis dolor repellendus temporibus autem quibusdam et aut officiis debitis.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7321,7 +7321,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Mount the Fiber Jack. Scan its serial number into Salesforce/BSS and note its location (e.g., Living Room).",
+      "text": "Aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7530,7 +7530,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "<b>Handling an Existing Fiber Jack:</b> If a functional Fiber Jack already exists, it can be reused. If it needs to be moved and the existing fiber is too short, you must run a new fiber patch cable.",
+      "text": "<b>Itaque Earum Rerum Hic:</b> Tenetur a sapiente delectus ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -7645,7 +7645,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Mesh Extender Setup (if needed):",
+      "text": "Nam Libero Tempore (si necessarium):",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8364,7 +8364,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Verifying and Empowering",
+      "text": "Cum Soluta Nobis Est",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8573,7 +8573,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Internet Demo with Customer",
+      "text": "Eligendi Optio Cumque Nihil",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8688,7 +8688,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Ask the customer to log into their GFiber account. Give them an overview of the account dashboard.",
+      "text": "Impedit quo minus id quod maxime placeat facere possimus omnis voluptas assumenda est omnis dolor repellendus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8803,7 +8803,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Confirm their account is set up for automatic billing and show them where they can manage their network settings.",
+      "text": "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8918,7 +8918,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Perform a speed test using the Ookla SpeedTest Desktop App on a hardwired connection to show the plan's maximum speed.",
+      "text": "Sint et molestiae non recusandae itaque earum rerum hic tenetur a sapiente delectus ut aut reiciendis voluptatibus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9033,7 +9033,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Run a second test on their Wi-Fi device and explain the expected differences.",
+      "text": "Maiores alias consequatur aut perferendis doloribus asperiores repellat nam libero tempore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9242,7 +9242,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Fiber Phone Demo (If Applicable)",
+      "text": "Cum Soluta Nobis Est (Si Applicabile)",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9357,7 +9357,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Verify any services that need to run on the phone line (e.g., alarm, medical alert).",
+      "text": "Eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9472,7 +9472,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Connect the Phone Box to the router's LAN port and power it on.",
+      "text": "Omnis voluptas assumenda est omnis dolor repellendus temporibus autem quibusdam et aut officiis.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9587,7 +9587,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Test for a dial tone. Test both incoming and outgoing calls.",
+      "text": "Debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9702,7 +9702,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Show the customer the setup instructions for voicemail and other features.",
+      "text": "Non recusandae itaque earum rerum hic tenetur a sapiente delectus ut aut reiciendis.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9817,7 +9817,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Crucially, test Emergency (911) by dialing 933 to verify the call connects and the address is received correctly.",
+      "text": "Voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat nam libero tempore cum soluta nobis est eligendi.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -10535,7 +10535,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Finishing Professionally",
+      "text": "Optio Cumque Nihil Impedit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10744,7 +10744,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Final Steps Checklist",
+      "text": "Quo Minus Id Quod Maxime",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10859,7 +10859,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Clean up all work locations. Remove all debris, wire clippings, dust, and packaging. Use the company-issued vacuum; never the customer's.",
+      "text": "Placeat facere possimus omnis voluptas assumenda est omnis dolor repellendus temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -10974,7 +10974,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Answer any final questions and remind the customer about the satisfaction survey they will receive via email.",
+      "text": "Saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae itaque earum rerum hic tenetur a sapiente delectus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -11089,7 +11089,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Conduct a final check for all your bags and tools before leaving.",
+      "text": "Ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -11204,7 +11204,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Complete the job by closing out the ticket in Salesforce/BSS with accurate and detailed notes. This is a mandatory final step.",
+      "text": "Nam libero tempore cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -11319,7 +11319,7 @@ export const googleInspiredTemplateOne = {
           }
         }
       },
-      "text": "Get explicit permission from the customer before drilling or cutting anywhere on the premises.",
+      "text": "Omnis voluptas assumenda est omnis dolor repellendus temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,

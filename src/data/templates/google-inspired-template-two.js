@@ -172,7 +172,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Click to edit this text",
+      "text": "Lorem ipsum dolor sit amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -376,7 +376,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "GFiber Service Plans &amp; Equipment Configurations",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -491,7 +491,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "A detailed reference for authorized Customer Premise Equipment (CPE), firmware, and key installation considerations for each GFiber service plan.\n",
+      "text": "Adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -700,7 +700,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Lifestyle Product Plans",
+      "text": "Ullamco Laboris Nisi Ut",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1101,7 +1101,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Core 1 Gig",
+      "text": "Aliquid Ex Ea",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1216,7 +1216,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "$70/Month",
+      "text": "€70/Mensis",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1523,7 +1523,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Installation Info",
+      "text": "Commodi Consequatur Vel",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1638,7 +1638,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Illum Qui Dolorem",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1718,18 +1718,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Device",
-          "0-1": "Model(s)",
-          "0-2": "Notes",
-          "1-0": "<b>ONT</b>",
-          "2-0": "<b>Router</b>",
-          "2-1": "GR6EXX0C",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "<div>GOXP330C, GOXP330H</div><div><b>OR</b> GOGP220C, GOGP220H, GOGP222C</div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "GE6E220C",
-          "3-2": "<div><b>One (1) free</b> if needed</div>"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor",
+          "1-0": "<b>Sit</b>",
+          "2-0": "<b>Amet</b>",
+          "2-1": "Consectetur",
+          "2-2": "<div>Adipiscing Elit</div>",
+          "3-0": "<b>Sed</b>",
+          "1-1": "<div>Do Eiusmod, Tempor Incididunt</div><div><b>Ut</b> Labore, Et Dolore, Magna Aliqua</div>",
+          "1-2": "<div>Ut enim ad minim veniam quis nostrud exercitation</div>",
+          "3-1": "Ullamco",
+          "3-2": "<div><b>Laboris nisi</b> ut aliquip</div>"
         },
         "rowCount": 4,
         "columnCount": 3,
@@ -1841,7 +1841,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div><b>One (1) free</b> if needed</div>"
+      "text": "<div><b>Unum (1) gratis</b> si necessarium</div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -2117,7 +2117,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Firmware",
+      "text": "Programma",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -2235,27 +2235,27 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Device",
-          "0-1": "Model",
-          "0-2": "Minimum Version",
-          "1-0": "<b>GPON ONT</b>",
-          "2-0": "<b>GPON ONT</b>",
-          "2-1": "GOGP220H",
-          "2-2": "<div>23.10.07.1</div><div></div><div></div>",
-          "3-0": "<b>XGS ONT</b>",
-          "1-1": "GOGP220C/222C<div></div>",
-          "1-2": "<div>R4.2.137.032</div><div></div><div></div>",
-          "3-1": "GOXP330C",
-          "3-2": "<div>R4.4.09.032</div><div></div>",
-          "4-0": "<b>XGS ONT</b>",
-          "4-1": "GOXP330H",
-          "4-2": "<div>V1.0.020</div>",
-          "5-0": "<b>Router</b>",
-          "5-1": "GR6EXX0C",
-          "5-2": "1.5.5",
-          "6-0": "<b>Extender</b>",
-          "6-1": "GE6E220C",
-          "6-2": "1.5.5"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor Sit",
+          "1-0": "<b>Amet</b>",
+          "2-0": "<b>Consectetur</b>",
+          "2-1": "Adipiscing",
+          "2-2": "<div>Elit Sed Do</div><div></div><div></div>",
+          "3-0": "<b>Eiusmod</b>",
+          "1-1": "Tempor Incididunt<div></div>",
+          "1-2": "<div>Ut Labore Et</div><div></div><div></div>",
+          "3-1": "Dolore",
+          "3-2": "<div>Magna Aliqua</div><div></div>",
+          "4-0": "<b>Ut Enim</b>",
+          "4-1": "Ad Minim",
+          "4-2": "<div>Veniam Quis</div>",
+          "5-0": "<b>Nostrud</b>",
+          "5-1": "Exercitation",
+          "5-2": "Ullamco",
+          "6-0": "<b>Laboris</b>",
+          "6-1": "Nisi Ut",
+          "6-2": "Aliquip"
         },
         "rowCount": 7,
         "columnCount": 3,
@@ -2367,7 +2367,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "1.5.5"
+      "text": "1.5.L"
     },
     "displayName": "Table",
     "custom": {},
@@ -2433,7 +2433,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\">Install the <b>XGS ONT</b> if Salesforce shows \"XGS PON\" network architecture.</li><li style=\"display: list-item; padding-left: 4px;\">Install a <b>GPON ONT</b> (2.5G) if the account isn't XGS-eligible.</li><li style=\"display: list-item; padding-left: 4px;\">This plan is <b>NOT</b> eligible for Priority Room Optimization or Internet Battery Backup.</li><li style=\"display: list-item; padding-left: 4px;\">Pro Install is required if the customer does not have an eligible ONT.</li><li style=\"display: list-item; padding-left: 4px;\"><b>CAT 6A Ethernet</b> is preferred for wired backhaul.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\">Installa <b>Lorem Ipsum</b> si Dolor ostendit \"Lorem Sit\" architectura amet.</li><li style=\"display: list-item; padding-left: 4px;\">Installa <b>Consectetur Adipiscing</b> (2.5L) si ratio non est Lorem-idonea.</li><li style=\"display: list-item; padding-left: 4px;\">Hoc consilium <b>NON</b> est idoneum pro Elit Sed Do vel Eiusmod Tempor Incididunt.</li><li style=\"display: list-item; padding-left: 4px;\">Ut Labore necessarium est si cliens non habet idoneum Dolore.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Magna Aliqua Ut</b> praefertur pro enim ad minim.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -2833,7 +2833,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Edge 8 Gig",
+      "text": "Margo 8 Lorem",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3044,7 +3044,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Eum Fugiat Quo",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3162,18 +3162,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Device",
-          "0-1": "Model(s)",
-          "0-2": "Notes",
-          "1-0": "<b>ONT</b>",
-          "2-0": "<b>Router</b>",
-          "2-1": "GR6EXX0C",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "<div>GOXP330C, GOXP330H</div><div><b>OR</b> GOGP220C, GOGP220H, GOGP222C</div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "GE6E220C",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor",
+          "1-0": "<b>Sit</b>",
+          "2-0": "<b>Amet</b>",
+          "2-1": "Consectetur",
+          "2-2": "<div>Adipiscing Elit</div>",
+          "3-0": "<b>Sed</b>",
+          "1-1": "<div>Do Eiusmod, Tempor Incididunt</div><div><b>Ut</b> Labore, Et Dolore, Magna Aliqua</div>",
+          "1-2": "<div>Ut enim ad minim veniam quis nostrud exercitation</div>",
+          "3-1": "Ullamco",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Laboris nisi ut</span>&nbsp;aliquip ex ea<div></div>"
         },
         "rowCount": 4,
         "columnCount": 3,
@@ -3285,7 +3285,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>"
+      "text": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Lorem ipsum dolor</span>&nbsp;sit amet consectetur<div></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -3447,7 +3447,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Firmware",
+      "text": "Voluptas Nulla",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3565,21 +3565,21 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Device",
-          "0-1": "Model",
-          "0-2": "Minimum Version",
-          "1-0": "<b>ONT</b>",
-          "2-0": "<b>ONT</b>",
-          "2-1": "GOXP330H",
-          "2-2": "<div>V1.0.020</div><div></div>",
-          "3-0": "<b>Router</b>",
-          "1-1": "GOXP330C<div></div>",
-          "1-2": "<div>R4.4.09.032</div><div></div>",
-          "3-1": "GR6EXX0C",
-          "3-2": "1.5.5<div></div>",
-          "4-0": "<b>Extender</b>",
-          "4-1": "GE6E220C",
-          "4-2": "1.5.5"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor Sit",
+          "1-0": "<b>Amet</b>",
+          "2-0": "<b>Consectetur</b>",
+          "2-1": "Adipiscing",
+          "2-2": "<div>Elit Sed</div><div></div>",
+          "3-0": "<b>Do</b>",
+          "1-1": "Eiusmod<div></div>",
+          "1-2": "<div>Tempor Incididunt</div><div></div>",
+          "3-1": "Ut Labore",
+          "3-2": "Et Dolore<div></div>",
+          "4-0": "<b>Magna</b>",
+          "4-1": "Aliqua Ut",
+          "4-2": "Enim Ad"
         },
         "rowCount": 5,
         "columnCount": 3,
@@ -3691,7 +3691,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "1.5.5"
+      "text": "1.5.I"
     },
     "displayName": "Table",
     "custom": {},
@@ -3852,7 +3852,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "$150/Month",
+      "text": "€150/Mensis",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4065,7 +4065,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Installation Info",
+      "text": "Pariatur Ut Vero Eos",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4218,7 +4218,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<b>Always install the 10 Gig Fiber Jack </b>(GOXP330C/H) for all Edge 8 Gig appointments.\nPro Install is required if the customer does not have the correct ONT or opts for the Internet Battery Backup.\n<b>CAT 6A Ethernet</b> is preferred for wired backhaul.",
+      "text": "<b>Semper installa 10 Lorem Dolor Sit </b>(LOXP330X/Y) pro omnibus Amet 8 Consectetur appointmentis.\nUt Labore necessarium est si cliens non habet correctum Dolore vel optat pro Magna Aliqua Ut Enim.\n<b>Ad Minim Veniam</b> praefertur pro quis nostrud exercitation.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -4618,7 +4618,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Home 3 Gig",
+      "text": "Domus 3 Lorem",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4829,7 +4829,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Et Accusamus Et Iusto",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4947,18 +4947,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Device",
-          "0-1": "Model(s)",
-          "0-2": "Notes",
-          "1-0": "<b>ONT</b>",
-          "2-0": "<b>Router</b>",
-          "2-1": "GR6EXX0C",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "GOXP330C / GOXP330H<div></div>",
-          "1-2": "<div>XGS PON ONT</div><div></div>",
-          "3-1": "GE6E220C",
-          "3-2": "<div><b>Up to two (2) free</b> if needed</div><div></div>"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor",
+          "1-0": "<b>Sit</b>",
+          "2-0": "<b>Amet</b>",
+          "2-1": "Consectetur",
+          "2-2": "<div>Adipiscing Elit</div>",
+          "3-0": "<b>Sed</b>",
+          "1-1": "Do Eiusmod / Tempor Incididunt<div></div>",
+          "1-2": "<div>Ut Labore Et Dolore</div><div></div>",
+          "3-1": "Magna",
+          "3-2": "<div><b>Aliqua ut enim</b> ad minim veniam</div><div></div>"
         },
         "rowCount": 4,
         "columnCount": 3,
@@ -5070,7 +5070,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div><b>Up to two (2) free</b> if needed</div><div></div>"
+      "text": "<div><b>Usque ad duo (2) gratis</b> si necessarium</div><div></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -5232,7 +5232,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Firmware",
+      "text": "Odio Dignissimos",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5350,21 +5350,21 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Device",
-          "0-1": "Model",
-          "0-2": "Minimum Version",
-          "1-0": "<b>ONT</b>",
-          "2-0": "<b>ONT</b>",
-          "2-1": "GOXP330H",
-          "2-2": "<div>V1.0.020</div><div></div>",
-          "3-0": "<b>Router</b>",
-          "1-1": "GOXP330C<div></div>",
-          "1-2": "<div>R4.4.09.032</div><div></div>",
-          "3-1": "GR6EXX0C",
-          "3-2": "1.5.5<div></div>",
-          "4-0": "<b>Extender</b>",
-          "4-1": "GE6E220C",
-          "4-2": "1.5.5"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor Sit",
+          "1-0": "<b>Amet</b>",
+          "2-0": "<b>Consectetur</b>",
+          "2-1": "Adipiscing",
+          "2-2": "<div>Elit Sed</div><div></div>",
+          "3-0": "<b>Do</b>",
+          "1-1": "Eiusmod<div></div>",
+          "1-2": "<div>Tempor Incididunt</div><div></div>",
+          "3-1": "Ut Labore",
+          "3-2": "Et Dolore<div></div>",
+          "4-0": "<b>Magna</b>",
+          "4-1": "Aliqua Ut",
+          "4-2": "Enim Ad"
         },
         "rowCount": 5,
         "columnCount": 3,
@@ -5476,7 +5476,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "1.5.5"
+      "text": "1.5.P"
     },
     "displayName": "Table",
     "custom": {},
@@ -5637,7 +5637,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "$100/Month",
+      "text": "€100/Mensis",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5850,7 +5850,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Installation Info",
+      "text": "Ducimus Qui Blanditiis",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6003,7 +6003,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Install the 10 Gig Fiber Jack (GOXP330C/H) if Salesforce shows <b>\"XGS PON\"</b> network architecture.\nPro Install is required if location is not XGS-enabled, doesn't have the correct ONT, or customer opts for Battery Backup.\n<b>CAT 6A Ethernet</b> is preferred for wired backhaul.",
+      "text": "Installa 10 Lorem Dolor Sit (LOXP330X/Y) si Ullamco ostendit <b>\"Lorem Laboris\"</b> architectura nisi.\nUt Aliquid necessarium est si locus non est Ex-habilitatus, non habet correctum Ea, vel cliens optat pro Commodi Consequatur.\n<b>Quis Autem Vel</b> praefertur pro eum iure reprehenderit.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -6118,7 +6118,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Equipment Deep Dive",
+      "text": "Praesentium Voluptatum Deleniti",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6555,7 +6555,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Legacy 8 Gig / 5 Gig / 2 Gig / 1 Gig",
+      "text": "Atque Corrupti 8 Lorem / 5 Lorem / 2 Lorem / 1 Lorem",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6766,7 +6766,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Quos Dolores Et Quas",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6884,18 +6884,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>ONT</b>",
-          "0-1": "<div>XGS or GPON based on Salesforce</div>",
-          "0-2": "Notes",
-          "1-0": "<b>Router</b>",
-          "2-0": "<b>Extender</b>",
-          "2-1": "GE6E220C",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "<div>GR6EXX0C</div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "GE6E220C",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "<div>Ipsum dolor sit amet consectetur</div>",
+          "0-2": "Adipiscing",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "2-1": "Do Eiusmod",
+          "2-2": "<div>Tempor Incididunt</div>",
+          "3-0": "<b>Ut</b>",
+          "1-1": "<div>Labore Et</div>",
+          "1-2": "<div>Dolore magna aliqua ut enim ad minim veniam</div>",
+          "3-1": "Quis Nostrud",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Exercitation ullamco</span>&nbsp;laboris nisi<div></div>"
         },
         "rowCount": 3,
         "columnCount": 2,
@@ -7006,7 +7006,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "GE6E220C"
+      "text": "LR6E220X"
     },
     "displayName": "Table",
     "custom": {},
@@ -7378,7 +7378,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Info",
+      "text": "Molestias Excepturi",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7531,7 +7531,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<b>Status: Not available for new sign-ups.</b>\nThese are being replaced by the \"Lifestyle\" product plans (Core 1 Gig, Home 3 Gig, etc.).\n<b>1 Gig</b> - $70/month\n<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">2 Gig</span> - $100/month\n<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">5 Gig</span> - $125/month\n<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">8 Gig</span> - $150/month",
+      "text": "<b>Lorem: Ipsum dolor sit amet consectetur adipiscing elit.</b>\nSed do eiusmod tempor incididunt \"Ut Labore\" et dolore magna aliqua (Ut Enim 1 Ad Minim, Veniam 3 Quis, etc.).\n<b>1 Nostrud</b> - €70/exercitation\n<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">2 Ullamco</span> - €100/laboris\n<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">5 Nisi</span> - €125/aliquid\n<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">8 Commodi</span> - €150/consequatur",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -7930,7 +7930,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Invitation 100 Meg Plan",
+      "text": "Invitatio 100 Lorem Consilium",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8141,7 +8141,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Sint Occaecati Cupiditate",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8259,18 +8259,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>ONT</b>",
-          "0-1": "<div>XGS or GPON based on Salesforce</div>",
-          "0-2": "Notes",
-          "1-0": "<b>Router</b>",
-          "2-0": "<b>Extender</b>",
-          "2-1": "None Included",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "<div>Google Wifi Point</div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "GE6E220C",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "<div>Ipsum dolor sit amet consectetur</div>",
+          "0-2": "Adipiscing",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "2-1": "Do Eiusmod",
+          "2-2": "<div>Tempor Incididunt</div>",
+          "3-0": "<b>Ut</b>",
+          "1-1": "<div>Labore Et Dolore</div>",
+          "1-2": "<div>Magna aliqua ut enim ad minim veniam quis</div>",
+          "3-1": "Nostrud",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Exercitation ullamco</span>&nbsp;laboris nisi<div></div>"
         },
         "rowCount": 3,
         "columnCount": 2,
@@ -8381,7 +8381,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "None Included"
+      "text": "Nihil Inclusum"
     },
     "displayName": "Table",
     "custom": {},
@@ -8753,7 +8753,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Info &amp; Eligibility",
+      "text": "Non Provident &amp; Similique",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8906,7 +8906,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Status:</b> Invitation only.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Eligibility:</b> Only available to current residential customers on the $0 Basic plan.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Price:</b> $30/month.</li><li style=\"display: list-item; padding-left: 4px;\">This plan is an upgrade path for existing Basic customers and is not available to the general public.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem:</b> Ipsum dolor sit amet.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Consectetur:</b> Adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua in €0 Ut Enim consilio.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Ad Minim:</b> €30/veniam.</li><li style=\"display: list-item; padding-left: 4px;\">Quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequatur quis autem vel eum iure reprehenderit qui in ea voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -9305,7 +9305,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "300 Meg Plan",
+      "text": "300 Lorem Consilium",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9516,7 +9516,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Sunt Ex Culpa Qui",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9634,18 +9634,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>ONT</b>",
-          "0-1": "<div>XGS or GPON based on Salesforce</div>",
-          "0-2": "Notes",
-          "1-0": "<b>Router</b>",
-          "2-0": "<b>Extender</b>",
-          "2-1": "None Included",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "<div>Google Wifi Point</div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "GE6E220C",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "<div>Ipsum dolor sit amet consectetur</div>",
+          "0-2": "Adipiscing",
+          "1-0": "<b>Elit</b>",
+          "2-0": "<b>Sed</b>",
+          "2-1": "Do Eiusmod",
+          "2-2": "<div>Tempor Incididunt</div>",
+          "3-0": "<b>Ut</b>",
+          "1-1": "<div>Labore Et Dolore</div>",
+          "1-2": "<div>Magna aliqua ut enim ad minim veniam quis</div>",
+          "3-1": "Nostrud",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Exercitation ullamco</span>&nbsp;laboris nisi<div></div>"
         },
         "rowCount": 3,
         "columnCount": 2,
@@ -9756,7 +9756,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div>XGS or GPON based on Salesforce</div>"
+      "text": "<div>Lorem vel Ipsum basatum in Dolor Sit</div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -10128,7 +10128,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Info &amp; Eligibility",
+      "text": "Officia Deserunt &amp; Mollitia",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10281,7 +10281,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Status:</b> Available reactively for qualifying addresses only. Not publicly advertised.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Price:</b> $30/month.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Eligibility Check:</b> Agents must use an internal dashboard to verify address eligibility.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Self-Verification Required:</b> The customer must verbally confirm they meet income requirements (&lt;$40k/year) and agree to provide documentation if requested. Agents must log this verification.</li><li style=\"display: list-item; padding-left: 4px;\">Once a customer leaves this plan, they cannot return unless they re-qualify at their address.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Excepteur:</b> Sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Et dolorum fuga et harum quidem rerum.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Facilis Est:</b> €30/et expedita.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Distinctio Nam Libero:</b> Tempore cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Omnis Voluptas Assumenda:</b> Est omnis dolor repellendus temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet (&lt;€40k/ut et) voluptates repudiandae sint et molestiae non recusandae itaque earum rerum hic tenetur a sapiente delectus. Ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</li><li style=\"display: list-item; padding-left: 4px;\">Nam libero tempore cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus omnis voluptas assumenda est omnis dolor repellendus.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -10680,7 +10680,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Free Basic",
+      "text": "Gratis Basicum",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10891,7 +10891,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Authorized Equipment",
+      "text": "Animi Id Est Laborum",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11009,18 +11009,18 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "<b>ONT</b>",
-          "0-1": "GOXP330C / GOXP330H",
-          "0-2": "Notes",
-          "1-0": "<b>Router</b>",
-          "2-0": "<b>Extender</b>",
-          "2-1": "None Included",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Extender</b>",
-          "1-1": "<div>None Included <b>(BYOR Only)</b></div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "GE6E220C",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>"
+          "0-0": "<b>Lorem</b>",
+          "0-1": "Ipsum Dolor / Sit Amet",
+          "0-2": "Consectetur",
+          "1-0": "<b>Adipiscing</b>",
+          "2-0": "<b>Elit</b>",
+          "2-1": "Sed Do",
+          "2-2": "<div>Eiusmod Tempor</div>",
+          "3-0": "<b>Incididunt</b>",
+          "1-1": "<div>Ut Labore <b>(Et Dolore)</b></div>",
+          "1-2": "<div>Magna aliqua ut enim ad minim veniam quis</div>",
+          "3-1": "Nostrud",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Exercitation ullamco</span>&nbsp;laboris nisi<div></div>"
         },
         "rowCount": 3,
         "columnCount": 2,
@@ -11131,7 +11131,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div>None Included <b>(BYOR Only)</b></div>"
+      "text": "<div>Nihil Inclusum <b>(Lorem Ipsum)</b></div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -11503,7 +11503,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Key Info &amp; Eligibility",
+      "text": "Et Dolorum Fuga &amp; Et",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11656,7 +11656,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Status:</b> Highly restricted availability.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Eligibility:</b> Only available at a specific set of addresses in Kansas City, Provo, and Austin. Address eligibility expires over time.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Sign-up Process:</b> Agents must verify address eligibility, then generate and send a custom signup URL to the customer.</li><li style=\"display: list-item; padding-left: 4px;\"><b>No Downgrades:</b> If a customer on this plan upgrades to any paid plan, they can never downgrade back to the Basic plan.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem:</b> Ipsum dolor sit amet consectetur.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Adipiscing:</b> Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua in Lorem Ipsum, Dolor Sit, et Amet Consectetur. Ut enim ad minim veniam quis nostrud exercitation.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Ullamco Laboris:</b> Nisi ut aliquid ex ea commodi consequatur quis autem, vel eum iure reprehenderit qui in ea voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Excepteur Sint:</b> Occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum et dolorum fuga et harum quidem rerum facilis est et expedita distinctio.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -11865,7 +11865,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<b>Important:</b> Standard legacy plans (1G, 2G, 5G, 8G) are being retired for new, general sign-ups. The plans below are either unavailable or require specific eligibility verification that is handled by Sales and Customer Service agents.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit (1L, 2L, 5L, 8L) sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequatur quis autem vel eum iure reprehenderit qui in ea voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -11980,7 +11980,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Lifestyle Product Plans",
+      "text": "Harum Quidem Rerum Facilis",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12417,7 +12417,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Wi-Fi 6E Router (GR6EXX0C)",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12630,20 +12630,20 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Spec",
-          "0-1": "Detail",
-          "0-2": "Notes",
-          "1-0": "<b>Wi-Fi Standard</b>",
-          "2-0": "<b>LAN/WAN Ports</b>",
-          "2-1": "<div>1x 10 Gigabit WAN (silver), 3x 2.5 Gigabit LAN</div>",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Range</b>",
-          "1-1": "<div>Tri-band (2.4 / 5 / 6 GHz) Wi-Fi 6E (802.11ax)</div><div></div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "<div>Up to 2,000 sq. ft.</div>",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>",
-          "4-0": "<b>Security</b>",
-          "4-1": "WPA2 / WPA3"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor",
+          "1-0": "<b>Sit Amet</b>",
+          "2-0": "<b>Consectetur Adipiscing</b>",
+          "2-1": "<div>Elit sed do eiusmod tempor incididunt</div>",
+          "2-2": "<div>Ut Labore Et</div>",
+          "3-0": "<b>Dolore</b>",
+          "1-1": "<div>Magna aliqua ut enim ad minim veniam</div><div></div>",
+          "1-2": "<div>Quis nostrud exercitation ullamco laboris nisi</div>",
+          "3-1": "<div>Ut aliquip ex ea commodo</div>",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Consequat duis aute</span>&nbsp;irure dolor<div></div>",
+          "4-0": "<b>Reprehenderit</b>",
+          "4-1": "Voluptate Velit"
         },
         "rowCount": 5,
         "columnCount": 2,
@@ -12754,7 +12754,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "WPA2 / WPA3"
+      "text": "Lorem / Ipsum"
     },
     "displayName": "Table",
     "custom": {},
@@ -13010,7 +13010,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Installation Rules &amp; Best Practices",
+      "text": "Et Expedita Distinctio &amp; Nam Libero",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13163,7 +13163,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "The Ethernet cable from the Fiber Jack must be connected to the silver 10G WAN port.\nIncompatible with the older pluggable ONT (GFLT210) used in some legacy 2 Gig setups.\nFor customers bringing their own router, the GR6EXX0C must still be installed first, then the customer can plug their router into it.",
+      "text": "Lorem cablum ex Dolor Sit debet esse connectum ad consectetur 10L Adipiscing portum.\nIncompatibile cum vetere elit sed Lorem (LFLT210) usato in quibusdam do eiusmod 2 Tempor setups.\nPro incididunt ut labore suum et dolore nostrud, LR6EXX0X adhuc debet esse magna aliqua primo, tunc ut enim potest ad minim suum veniam in quis.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13562,7 +13562,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Wi-Fi 6E Mesh Extender (GE6E220C)",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13775,20 +13775,20 @@ export const googleInspiredTemplateTwo = {
       ],
       "tableData": {
         "cells": {
-          "0-0": "Spec",
-          "0-1": "Detail",
-          "0-2": "Notes",
-          "1-0": "<b>Backhaul</b>",
-          "2-0": "<b>LAN Ports</b>",
-          "2-1": "<div>1x 2.5 Gigabit, 1x 1 Gigabit</div><div></div>",
-          "2-2": "<div>Wi-Fi 6E Router</div>",
-          "3-0": "<b>Compatibility</b>",
-          "1-1": "<div>Dedicated 4x4 6GHz wireless backhaul</div><div></div><div></div>",
-          "1-2": "<div>Install XGS ONT if XGS-eligible, otherwise install GPON ONT</div>",
-          "3-1": "<div>Only pairs with the GR6EXX0C router.</div><div></div>",
-          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Up to two (2) free</span>&nbsp;if needed<div></div>",
-          "4-0": "<b>Added Range</b>",
-          "4-1": "<div>Creates coverage up to 5,000 sq. ft. (with 1 extender)</div>"
+          "0-0": "Lorem",
+          "0-1": "Ipsum",
+          "0-2": "Dolor",
+          "1-0": "<b>Sit Amet</b>",
+          "2-0": "<b>Consectetur</b>",
+          "2-1": "<div>Adipiscing elit sed do eiusmod</div><div></div>",
+          "2-2": "<div>Tempor Incididunt</div>",
+          "3-0": "<b>Ut Labore</b>",
+          "1-1": "<div>Et dolore magna aliqua ut enim</div><div></div><div></div>",
+          "1-2": "<div>Ad minim veniam quis nostrud exercitation</div>",
+          "3-1": "<div>Ullamco laboris nisi ut aliquip ex ea</div><div></div>",
+          "3-2": "<span style=\"--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #ffffff; --tw-ring-color: rgb(147 197 253 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Commodo consequat</span>&nbsp;duis aute irure<div></div>",
+          "4-0": "<b>Dolor In</b>",
+          "4-1": "<div>Reprehenderit in voluptate velit esse cillum</div>"
         },
         "rowCount": 5,
         "columnCount": 2,
@@ -13899,7 +13899,7 @@ export const googleInspiredTemplateTwo = {
         }
       },
       "autoConvertColors": true,
-      "text": "<div>Creates coverage up to 5,000 sq. ft. (with 1 extender)</div>"
+      "text": "<div>Lorem ipsum usque ad 5,000 dolor sit (cum 1 consectetur)</div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -14155,7 +14155,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Installation Rules &amp; Best Practices",
+      "text": "Tempore Cum Soluta &amp; Nobis Eligendi",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -14308,7 +14308,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "Only install if needed based on home size (&gt;2,000 sq. ft.) or customer's tested need. Do not install just because the customer asks for it.\nUnneeded extenders can degrade Wi-Fi performance.\nPlace the extender roughly halfway between the router and the area with poor coverage.\nCustomers can purchase additional extenders for $85 each (max 6 per household).",
+      "text": "Tantum lorem si ipsum basatum in dolor magnitudine (&gt;2,000 sit amet.) vel consectetur testato adipiscing. Noli elit sed quia do petit eiusmod.\nTempor incididunt possunt ut labore et dolore magna.\nAliqua ut enim circiter ad minim veniam quis et nostrud cum exercitation ullamco.\nLaboris possunt nisi ut aliquid ex ea commodi pro €85 consequatur (max 6 per quis autem).",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -14423,7 +14423,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><span style=\"font-weight: normal;\">Includes the</span> Reliability Plus Suite:</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><span style=\"font-weight: normal;\">Lorem ipsum</span> Dolor Sit Amet:</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -14538,7 +14538,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Internet Battery Backup </b>is available for purchase <b>($10/month)</b>.</li><li style=\"display: list-item; padding-left: 4px;\"><b style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\">Priority Room Optimization</b><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\"> (MoCA/Ethernet Switch) is recommended.</span></li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum Dolor </b>est consectetur pro adipiscing <b>(€10/elit)</b>.</li><li style=\"display: list-item; padding-left: 4px;\"><b style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\">Sed Do Eiusmod Tempor</b><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\"> (Incididunt/Ut Labore Magna) est dolore aliqua.</span></li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -14653,7 +14653,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><span style=\"font-weight: normal;\">Includes the</span> Reliability Plus Suite:</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><span style=\"font-weight: normal;\">Aliqua ut</span> Enim Ad Minim:</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -14768,7 +14768,7 @@ export const googleInspiredTemplateTwo = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Internet Battery Backup</b> is included at no cost if the customer opts-in.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Priority Room Optimization</b> (MoCA/Ethernet Switch) is recommended.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Uptime Guarantee</b> ensures customers receive virtually uninterrupted internet connection. The Premium Service Level Agreement includes an automatic <b>25% credit </b>on the monthly bill if the average monthly uptime falls below <b>99.9%</b>.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Veniam Quis Nostrud</b> est exercitation sine ullamco si laboris nisi-ut.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Aliquid Ex Ea Commodi</b> (Consequatur/Quis Autem Vel) est eum iure.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Reprehenderit Qui</b> in ea voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt <b>25% mollit </b>anim id est laborum et dolorum fuga et harum quidem rerum facilis est <b>99.9%</b>.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,

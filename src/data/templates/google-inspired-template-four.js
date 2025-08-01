@@ -164,7 +164,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Click to edit this text",
+      "text": "Lorem ipsum dolor sit amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -368,7 +368,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Cabling &amp; Wiring Installation",
+      "text": "Lorem Ipsum &amp; Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -483,7 +483,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "A hands-on guide covering drilling, wall fishing, installing wall plates, and terminating cables for a professional installation.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -697,7 +697,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Pre-Installation Planning &amp; Safety",
+      "text": "Lorem Ipsum Dolor &amp; Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -944,7 +944,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Important: </b>If a customer requests custom cable routing beyond standard installation practices, they will need to hire a third-party contractor to complete that work.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -1156,7 +1156,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Installing Wall Plates &amp; Wall Fishing",
+      "text": "Lorem Ipsum Dolor Sit &amp; Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -1732,7 +1732,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Locate Position:</b> Use a stud finder to find a clear wall cavity. The plate should be at least 16\" from the floor or aligned with other outlets for a clean look.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -2195,7 +2195,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Attach Plate:</b> Run your cable through the opening, connect it to the appropriate wall plate (e.g., Keystone Jack for Ethernet), and screw the plate onto the cutout box.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -2658,7 +2658,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Insert Cutout Box:</b> Place the cutout box into the opening. The mounting tabs will swing out behind the drywall. Tighten the screws to pull the tabs snug against the back of the drywall, securing the ring.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3121,7 +3121,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Trace &amp; Cut:</b> Hold the cutout box against the wall and trace the inside opening. Use a jab saw to carefully cut along the traced line.",
+      "text": "<b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3258,7 +3258,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "General Safety Rules",
+      "text": "Lorem Ipsum Dolor Sit",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3373,7 +3373,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Installing a Cutout Box",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3591,7 +3591,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Terminating Ethernet Cable",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3744,7 +3744,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Terminating with an RJ45 Connector (for Patch Cables)",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4320,7 +4320,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Strip Sheath: </b>Carefully strip about 1.5\"- 2\" of the outer cable sheath to expose the twisted pairs.\n",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4783,7 +4783,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Align Wires: </b>Untwist the pairs and align them with the color code on the jack. <b>Always use the T568B standard.</b>",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt. <b>Ut labore et dolore magna aliqua.</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5246,7 +5246,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Seat Wires: </b>Press each wire into its corresponding slot. Use a punch-down tool with the \"CUT\" side facing outward to securely seat and trim the wires in one motion.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5709,7 +5709,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Inspect &amp; Finish: </b>Visually inspect for nicks or damage. Ensure the outer sheath is just inside the jack for strain relief. Snap on the dust cover.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -5808,7 +5808,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Proper termination is essential for a reliable data connection. Always test your custom cables with a Klein Scout Tester before connecting them to equipment.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6384,7 +6384,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Strip Sheath: </b>Carefully strip about 1.5\"- 2\" of the outer cable sheath to expose the twisted pairs. Untwist each pair completely down to the sheath and flatten them out.\n",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -6848,7 +6848,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Arrange Wires: </b>Arrange the wires in the <b>T568B order</b> (from left to right with the clip facing down):",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do <b>eiusmod tempor</b> incididunt ut labore et dolore magna aliqua:",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7311,7 +7311,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Trim &amp; Insert: </b>Trim the wires so they are perfectly even. Slide them carefully into the RJ45 connector, ensuring they reach the very end and remain in the correct order.",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7774,7 +7774,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Crimp &amp; Test: </b>Insert the connector into a crimping tool and squeeze firmly. Visually inspect the connection, then test the cable with a cable tester to ensure it \"Passes.\"",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7873,7 +7873,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Ethernet Cable Standards &amp; Usage",
+      "text": "Lorem Ipsum Dolor Sit &amp; Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -7988,7 +7988,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "White/Orange, Orange, White/Green, Blue, White/Blue, Green, White/Brown, Brown",
+      "text": "Lorem ipsum, dolor sit, amet consectetur, elit sed, do eiusmod, tempor incididunt, ut labore, et dolore",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -8186,7 +8186,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Drilling Best Practices",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8529,7 +8529,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Drilling Do's",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -8743,7 +8743,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Use a stud finder</b> to locate a clear wall cavity, away from studs and electrical wiring.",
+      "text": "<b>Lorem ipsum dolor</b> sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8858,7 +8858,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Use the correct bit size:</b>",
+      "text": "<b>Lorem ipsum dolor sit amet:</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -8973,7 +8973,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>1/2\"</b> for Fiber Patch Cable</li><li style=\"display: list-item; padding-left: 4px;\"><b>3/8\"</b> for Coax Cable</li><li style=\"display: list-item; padding-left: 4px;\"><b>1/4\"</b> for Cat5e/CAT6A Cable</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem</b> ipsum dolor sit amet</li><li style=\"display: list-item; padding-left: 4px;\"><b>Consectetur</b> adipiscing elit sed</li><li style=\"display: list-item; padding-left: 4px;\"><b>Eiusmod</b> tempor incididunt ut</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -9088,7 +9088,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Start inside and drill out</b> for most siding types to prevent blowout.",
+      "text": "<b>Lorem ipsum dolor sit amet</b> consectetur adipiscing elit sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9203,7 +9203,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Drill at a slight angle</b> (upward from outside, downward from inside) to prevent water intrusion.",
+      "text": "<b>Lorem ipsum dolor sit</b> amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9318,7 +9318,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Let the drill do the work.</b> Apply light, even pressure.",
+      "text": "<b>Lorem ipsum dolor sit amet.</b> Consectetur adipiscing elit sed do eiusmod.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9528,7 +9528,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Drilling Don'ts",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -9740,7 +9740,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Never drill through a foundation.</b> This can compromise the structural integrity of the home.",
+      "text": "<b>Lorem ipsum dolor sit amet consectetur.</b> Adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9855,7 +9855,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Never drill through a fireplace </b>or chimney.",
+      "text": "<b>Lorem ipsum dolor sit amet consectetur </b>adipiscing elit sed do.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -9970,7 +9970,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Avoid drilling on the front of the house</b> whenever possible.",
+      "text": "<b>Lorem ipsum dolor sit amet consectetur adipiscing</b> elit sed do eiusmod tempor.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -10085,7 +10085,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Don't force the bit</b>, especially in cold weather, as materials like vinyl can become brittle and crack.",
+      "text": "<b>Lorem ipsum dolor sit</b> amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -10200,7 +10200,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Drilling Procedures by Surface Type",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10412,7 +10412,7 @@ export const googleInspiredTemplateFour = {
         }
       },
       "autoConvertColors": false,
-      "text": "<div><b>Start inside out</b> with a 1/4\" bit, then <b>finish outside in</b> with a 1/2\" bit.</div>"
+      "text": "<div><b>Lorem ipsum dolor</b> sit amet consectetur, adipiscing <b>elit sed do eiusmod</b> tempor incididunt ut labore.</div>"
     },
     "displayName": "Table",
     "custom": {},
@@ -10572,7 +10572,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>HAZARD: </b>Asbestos is carcinogenic. Follow all vendor safety procedures and warn the customer that shingles may break.\n",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -10687,7 +10687,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Before any drilling or installation begins, a thorough assessment is crucial to ensure safety, meet customer expectations, and avoid costly errors.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -10802,7 +10802,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Roofs: </b>Technicians are <b>not allowed</b> to get on a residential roof under any circumstances.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Hazardous Materials (Asbestos):</b> If you suspect hazardous materials, <b>stop work immediately</b>. Do not drill. Inform your supervisor and follow all company/OSHA safety procedures.<b></b></li><li style=\"display: list-item; padding-left: 4px;\"><b>Rotting Wood: </b>Never drill through rotting or visibly compromised wood. Find an alternate, solid location.</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum: </b>Dolor sit amet <b>consectetur adipiscing</b> elit sed do eiusmod tempor incididunt ut labore et dolore.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Magna Aliqua Enim:</b> Ad minim veniam quis nostrud, <b>exercitation ullamco</b> laboris nisi ut aliquip ex ea commodo consequat.<b></b></li><li style=\"display: list-item; padding-left: 4px;\"><b>Duis Aute: </b>Irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -10917,7 +10917,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Confirm the Plan with the Customer:</b> Walk the proposed cable path with the customer. Get their explicit permission before proceeding.\n<b style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\">Inspect the Path: </b><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\">Visually inspect the entire path, both inside and out, for potential obstructions like utility lines, HVAC ducts, or other wiring.</span>\n<b>Plan the Exterior Route:</b> Identify the most discreet path for any exterior cable runs to minimize visual impact on the home's appearance.",
+      "text": "<b>Lorem Ipsum Dolor Sit Amet:</b> Consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n<b style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\">Enim Ad Minim: </b><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif;\">Veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor.</span>\n<b>Reprehenderit In Voluptate:</b> Velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -11132,7 +11132,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Fittings &amp; Connectors",
+      "text": "Lorem Ipsum &amp; Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11285,7 +11285,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "During an installation, you must verify all fittings on any cable related to the service. This includes Coax, Ethernet (CAT5e/6A), and Fiber Patch cables.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11400,7 +11400,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Pull wall plates and check for bad connection points (e.g., splitters, barrels).\nSwap out any fitting that is not a modern compression fitting.\nReplace any painted-over or physically damaged wall plates.\nFor Ethernet, replace any fittings that are not terminated to the T568B standard.\nFor Fiber, if the SC connector cap has been removed, damaged, or installed incorrectly, the entire run must be replaced.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.\nUt labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.\nUllamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor.\nIn reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -11515,7 +11515,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Standard Installation Procedures",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11630,7 +11630,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Ethernet (RJ45): </b>Connector not fully crimped; too much cable jacket removed at the base of the connector.</li><li style=\"display: list-item; padding-left: 4px;\"><b>CAT6A Ethernet:</b> This cable is thicker and more sensitive to termination quality. Test every run to avoid signal degradation.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Fiber Patch Cable:</b> Scratched connector tips (check with light meter), sharp bends/kinks, or an improperly seated SC connector (ensure the molded notch lines up with the mark).</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Enim Ad Minim:</b> Veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Reprehenderit In Voluptate:</b> Velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa.</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -11745,7 +11745,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Common Issues to Look For",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -11959,7 +11959,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Leveraging Existing Infrastructure",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12112,7 +12112,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Cable or Wire Panel/Cabinets",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12227,7 +12227,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "The panel acts as a central distribution point for the whole home.\nIf an Ethernet infrastructure is already in place with wall outlets in various rooms, you may only need to run a short patch cable from the outlet to the GFiber device in that room.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.\nUt labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -12342,7 +12342,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Many homes have a central wiring panel or cabinet (often called a \"smart panel\") where coax or Ethernet from a previous provider terminates. Utilizing this can minimize the amount of new cabling needed.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12559,7 +12559,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Fiber Optic Cable Handling",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12712,7 +12712,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Fiber optic cables are sensitive and require careful handling to prevent signal loss.\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12827,7 +12827,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Inspect New Cables",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -12942,7 +12942,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Before installation, you must discard a fiber cable and use a new one if you find:\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua:\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13057,7 +13057,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Sharp kinks or tight bends in the cable.\nAny visible damage to the connector tip, like a pit or scratch.\nA missing protective cap on the connector.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit.\nSed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nEnim ad minim veniam quis nostrud exercitation ullamco.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13172,7 +13172,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "When to Re-run a Fiber Cable",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13287,7 +13287,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "You must run a new fiber patch cable during an installation if:\n",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt:\n",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13402,7 +13402,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "The existing fiber line provides a low light or no light reading.\nThe pre-existing Fiber Jack needs to be relocated and the current line is inaccessible or too short.\nThe line was defective or damaged during the installation process.\nThe pre-existing path is hazardous (e.g., trip hazard, near a heat source).\nThe customer (a new resident) requests a different location from the previous install.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.\nUt labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris.\nNisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit.\nIn voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat.\nCupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13517,7 +13517,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Terminating with a Keystone Jack (for Wall Plates)",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -13632,7 +13632,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>CAT5e:</b> Minimum standard for speeds up to 1 Gbps.</li><li style=\"display: list-item; padding-left: 4px;\"><b>CAT6A:</b> Required for high-speed services like 5 Gig or 8 Gig.</li><li style=\"display: list-item; padding-left: 4px;\"><b>When to Run New Cable:</b> A new line is required if:</li></ul>",
+      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Tempor Incididunt:</b> Ut labore et dolore magna aliqua enim ad minim veniam.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Quis Nostrud Exercitation:</b> Ullamco laboris nisi ut aliquip ex ea:</li></ul>",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13747,7 +13747,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "The existing Ethernet line is not CAT5e or higher and the plan is multi-gig.\nThe existing lines show physical damage.\nThe existing lines are being actively used by a different provider.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.\nUt labore et dolore magna aliqua enim ad minim veniam quis nostrud.\nExercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -14712,7 +14712,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Wall Fishing",
+      "text": "Lorem Ipsum Dolor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -14865,7 +14865,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Wall Fishing Techniques",
+      "text": "Lorem Ipsum Dolor Sit Amet",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -15176,7 +15176,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Upper Wall Fish (from Attic)",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -15655,7 +15655,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Locate the <b>wall cavity</b> that you wish to fish the line through using your stud detector.",
+      "text": "Lorem ipsum <b>dolor sit amet</b> consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -16118,7 +16118,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Push a <b>stinger</b> through the ceiling drywall to help locate the wall cavity in the attic. <b>(at least 1 foot of stinger)</b>",
+      "text": "Lorem ipsum <b>dolor sit</b> amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore. <b>(Et dolore magna aliqua enim)</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -16581,7 +16581,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "In the attic, locate the stinger and identify the top plate of the wall cavity and drill straight down into it. <b>(make sure not to drill at an angle!)</b>",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. <b>(Enim ad minim veniam quis nostrud!)</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17044,7 +17044,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Feed <b>2 glow rods</b> down into the wall cavity to verify there are no obstructions",
+      "text": "Lorem ipsum <b>dolor sit amet</b> consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17507,7 +17507,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "After making sure the glow rods go <b>all the way to the floor</b>, attach your fiber line to the rods securely using electrical tape.",
+      "text": "Lorem ipsum dolor sit amet consectetur <b>adipiscing elit sed do eiusmod</b> tempor incididunt ut labore et dolore magna aliqua enim.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -17970,7 +17970,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Go back into the room and <b>make your cutout</b> in-line with your stinger.",
+      "text": "Lorem ipsum dolor sit amet <b>consectetur adipiscing</b> elit sed do eiusmod tempor incididunt.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -18433,7 +18433,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Locate the glow rods</b> in the wall cavity and pull the rods through with the line. ",
+      "text": "<b>Lorem ipsum dolor sit</b> amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore. ",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -18633,7 +18633,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Lower Wall Fish (from Basement/Crawlspace)",
+      "text": "Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19112,7 +19112,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Locate the <b>wall cavity</b> that you wish to fish the line through using your stud detector.",
+      "text": "Lorem ipsum <b>dolor sit amet</b> consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -19575,7 +19575,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Make your cutout in the wall cavity.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -20038,7 +20038,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Using a flex bit and angle tool, drill down through the floor plate into the basement/crawl space.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -20501,7 +20501,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Place a glowrod/fishtape through the hole in the floor plate",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -20964,7 +20964,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Go back to the basement/crawl space, locate the glowrod/fishtape and attach your line.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -21427,7 +21427,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "Go back upstairs and pull your line into the wall cavity",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -21620,7 +21620,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "If a lower wall fish is required, <b>reach out to a lead tech</b> for assistance. They will have a flex bit and angle tool to help you.",
+      "text": "Lorem ipsum dolor sit amet consectetur <b>adipiscing elit sed do</b> eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim.",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
@@ -21829,7 +21829,7 @@ export const googleInspiredTemplateFour = {
           }
         }
       },
-      "text": "<b>Warning: </b>If you make a cutout before verifying the wall cavity and then find out that you cant get the line down that wall, this will be considered a damage and you will be issued a formal coaching. <b>Always verify the wall cavity before making the cutout!</b>",
+      "text": "<b>Lorem Ipsum: </b>Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris. <b>Nisi ut aliquip ex ea commodo consequat duis aute irure!</b>",
       "listType": "none",
       "inTable": false,
       "hasIcon": true,
