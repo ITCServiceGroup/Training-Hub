@@ -1,11 +1,6 @@
 /* TemplatePreview.css */
 /* Force desktop mode for template previews regardless of container size */
 
-.template-preview-desktop-mode {
-  /* Override the responsive media query behavior */
-  /* Force horizontal containers to remain horizontal even in small containers */
-}
-
 /* Override the media query from CraftRenderer.css and ContentEditor styles for template previews */
 /* Use extremely high specificity to override media queries */
 .template-preview-desktop-mode .craft-container-horizontal,
@@ -103,8 +98,8 @@
   /* Use transform scale to fit desktop content in the preview window */
   transform-origin: top left;
   transform: scale(0.25);
-  width: 400%; /* 100% / 0.6 to compensate for the scale */
-  height: 400%; /* 100% / 0.6 to compensate for the scale */
+  width: 400%; /* 100% / 0.25 to compensate for the scale */
+  height: 400%; /* 100% / 0.25 to compensate for the scale */
   /* Set a minimum width to ensure desktop layout behavior */
   min-width: 800px;
 }
@@ -115,8 +110,76 @@
   position: relative;
 }
 
+.template-preview::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.template-preview::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.template-preview::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.template-preview::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.7);
+}
+
+/* Dark mode scrollbar styling */
+.dark .template-preview {
+  scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
+}
+
+.dark .template-preview::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.5);
+}
+
+.dark .template-preview::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.7);
+}
+
 /* Ensure the CraftRenderer respects the minimum width and displays as desktop */
 .template-preview-desktop-mode .craft-renderer {
   min-width: 800px;
   width: 100%;
+  /* Enable smooth scrolling with custom thin scrollbars */
+  scroll-behavior: smooth !important;
+  /* Add custom scrollbar styling for better UX */
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent !important;
+}
+
+/* Apply thin custom scrollbars to CraftRenderer */
+.template-preview-desktop-mode .craft-renderer::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.template-preview-desktop-mode .craft-renderer::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.template-preview-desktop-mode .craft-renderer::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5) !important;
+  border-radius: 3px !important;
+}
+
+.template-preview-desktop-mode .craft-renderer::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.7) !important;
+}
+
+/* Dark mode scrollbar styling for CraftRenderer */
+.dark .template-preview-desktop-mode .craft-renderer {
+  scrollbar-color: rgba(100, 116, 139, 0.5) transparent !important;
+}
+
+.dark .template-preview-desktop-mode .craft-renderer::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.5) !important;
+}
+
+.dark .template-preview-desktop-mode .craft-renderer::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.7) !important;
 }

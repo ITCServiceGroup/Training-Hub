@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { templatesService } from '../../../../services/api/templates';
 import { FaFileAlt, FaPlus, FaSearch, FaTags, FaCog, FaStar, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
-import TemplatePreview from '../../../../components/TemplatePreview';
+import LazyTemplatePreview from '../../../../components/LazyTemplatePreview';
+import { performanceLogger } from '../../../../utils/performanceLogger';
 
 const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelectTemplate }) => {
   const { theme } = useTheme();
@@ -32,6 +33,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
   useEffect(() => {
     if (isOpen) {
+      performanceLogger.startTimer('template-modal-load');
       fetchTemplates();
     }
   }, [isOpen]);
@@ -60,8 +62,15 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
     try {
       const data = await templatesService.getAll();
       setTemplates(data);
+      
+      // Log performance after templates are loaded and modal is ready
+      setTimeout(() => {
+        const duration = performanceLogger.endTimer('template-modal-load');
+        performanceLogger.logModalOpen(data.length, duration);
+      }, 100);
     } catch (error) {
       console.error('Failed to fetch templates:', error);
+      performanceLogger.endTimer('template-modal-load');
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +168,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 py-8">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8 pt-20">
         <div className="fixed inset-0 bg-black opacity-30" onClick={onClose}></div>
         <div className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
           <div className="flex justify-between items-center mb-6">
@@ -263,9 +272,11 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
 
                   <div className="h-80 overflow-hidden">
-                    <TemplatePreview
+                    <LazyTemplatePreview
                       content={template.content}
                       className="w-full h-full"
+                      rootMargin="50px"
+                      threshold={0.25}
                     />
                   </div>
                   <div className="p-3">

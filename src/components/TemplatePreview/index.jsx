@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import CraftRenderer from '../craft/CraftRenderer';
+import { templateCache } from '../../utils/templateCache';
 import './TemplatePreview.css';
 
 // Helper function to recursively parse stringified JSON properties (copied from ContentEditor)
@@ -148,6 +149,13 @@ const TemplatePreview = ({ content, className = '' }) => {
         return null;
       }
 
+      // Check cache first
+      const cachedContent = templateCache.get(content);
+      if (cachedContent) {
+        console.log('TemplatePreview: Using cached content');
+        return cachedContent;
+      }
+
       console.log('TemplatePreview: Processing content', {
         type: typeof content,
         isString: typeof content === 'string',
@@ -178,6 +186,9 @@ const TemplatePreview = ({ content, className = '' }) => {
         return null;
       }
 
+      // Cache the processed content
+      templateCache.set(content, deepParsed);
+
       return deepParsed;
     } catch (error) {
       console.error('TemplatePreview: Error parsing content:', error);
@@ -200,8 +211,8 @@ const TemplatePreview = ({ content, className = '' }) => {
   }
 
   return (
-    <div className={`template-preview ${className} ${isDark ? 'bg-slate-800' : 'bg-white'} rounded border ${isDark ? 'border-slate-600' : 'border-gray-200'} overflow-hidden`}>
-      <div className="h-full template-preview-desktop-mode">
+    <div className={`template-preview ${className} ${isDark ? 'bg-slate-800' : 'bg-white'} rounded border ${isDark ? 'border-slate-600' : 'border-gray-200'}`}>
+      <div className="template-preview-desktop-mode">
         <CraftRenderer
           jsonContent={preparedContent}
           searchTerm=""
