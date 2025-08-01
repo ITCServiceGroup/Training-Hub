@@ -25,9 +25,35 @@ class TemplatesService {
         ...systemTemplates,
         ...(userTemplates || []).map(template => ({ ...template, isSystemTemplate: false }))
       ].sort((a, b) => {
-        // Sort system templates first, then by name
+        // Sort system templates first, then by series grouping and name
         if (a.isSystemTemplate && !b.isSystemTemplate) return -1;
         if (!a.isSystemTemplate && b.isSystemTemplate) return 1;
+
+        // For system templates, maintain series grouping
+        if (a.isSystemTemplate && b.isSystemTemplate) {
+          // Define series order priority
+          const getSeriesPriority = (template) => {
+            if (template.category === 'Basic') return 0;
+            if (template.category === 'Interactive') return 1;
+            if (template.category === 'Educational') return 2;
+            if (template.category === 'Layout') return 3;
+            if (template.category === 'Signature Series') return 4;
+            if (template.category === 'Google Inspired Series') return 5;
+            return 6; // Other categories
+          };
+
+          const aPriority = getSeriesPriority(a);
+          const bPriority = getSeriesPriority(b);
+
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority;
+          }
+
+          // Within the same series/category, sort by name
+          return a.name.localeCompare(b.name);
+        }
+
+        // For user templates, sort by name
         return a.name.localeCompare(b.name);
       });
 
