@@ -211,6 +211,9 @@ import MultiSelect from './components/Filters/MultiSelect';
 import SingleSelect from './components/Filters/SingleSelect';
 import { DashboardProvider } from './contexts/DashboardContext';
 import DrillDownBreadcrumbs from './components/DrillDownBreadcrumbs';
+import toast, { Toaster } from 'react-hot-toast';
+import { showDataQualityNotifications } from '../../utils/dataQualityNotifications';
+import DataQualityDiagnostics from './components/DataQualityDiagnostics';
 // Removed old complex hook - now using simplified useDashboards
 
 
@@ -288,6 +291,7 @@ const Dashboard = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showDataQualityModal, setShowDataQualityModal] = useState(false);
 
   // Handle PDF view
   const handleViewPDF = useCallback((url) => {
@@ -656,6 +660,23 @@ const Dashboard = () => {
           includeQuizMetadata: true // Include quiz passing thresholds for pass/fail analysis
         });
         setResults(data);
+        
+        // Check for data quality issues and show notifications
+        if (data && data.length > 0) {
+          const stats = {
+            total_records: data.length,
+            with_metadata: data.filter(r => r.has_quiz_metadata).length,
+            without_metadata: data.filter(r => !r.has_quiz_metadata).length,
+            using_default_score: data.filter(r => r.using_default_score).length,
+            exact_matches: data.filter(r => r.match_type === 'exact').length,
+            fuzzy_matches: data.filter(r => r.match_type === 'fuzzy').length,
+            no_matches: data.filter(r => r.match_type === 'none').length,
+          };
+          
+          // Show notifications for data quality issues (silent on initial load)
+          showDataQualityNotifications(stats, isInitialLoad);
+        }
+        
         // Update stable references only when data actually changes
         stableDataRef.current = data;
         stableFiltersRef.current = globalFilters;
@@ -968,6 +989,28 @@ const Dashboard = () => {
                 }}
                 rawData={results}
               />
+
+              {/* Data Quality Button */}
+              <button
+                onClick={() => setShowDataQualityModal(true)}
+                className="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
+                style={{
+                  backgroundColor: 'var(--primary-color)',
+                  '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'var(--primary-dark)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'var(--primary-color)';
+                }}
+                title="View data quality diagnostics"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Data Quality
+              </button>
               </div>
 
               {/* Global Filters */}
@@ -1386,6 +1429,41 @@ const Dashboard = () => {
         isOpen={showPdfModal}
         pdfUrl={pdfUrl}
         onClose={() => setShowPdfModal(false)}
+      />
+
+      {/* Data Quality Diagnostics Modal */}
+      <DataQualityDiagnostics
+        isOpen={showDataQualityModal}
+        onClose={() => setShowDataQualityModal(false)}
+        dashboardData={results}
+      />
+
+      {/* Toast Notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+            borderRadius: '8px',
+            fontSize: '14px',
+            maxWidth: '400px'
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
+          },
+        }}
       />
       </div>
     </DashboardProvider>

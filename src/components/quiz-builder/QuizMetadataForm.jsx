@@ -3,6 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { sectionsService } from '../../services/api/sections';
 import { categoriesService } from '../../services/api/categories';
 import { studyGuidesService } from '../../services/api/studyGuides';
+import toast from 'react-hot-toast';
 
 const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   const { theme } = useTheme();
@@ -72,12 +73,56 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
     loadLinkedStudyGuides();
   }, [quiz.id]);
 
-  // Handle form field changes
+  // Handle form field changes (allow normal typing)
   const handleChange = (field, value) => {
     onChange({
       ...quiz,
       [field]: value
     });
+  };
+
+  // Handle blur events (clean up on focus loss)
+  const handleBlur = (field, value) => {
+    let sanitizedValue = value;
+    let wasChanged = false;
+    
+    if (field === 'title') {
+      // Trim leading/trailing whitespace and normalize internal spaces
+      const cleaned = value.trim().replace(/\s+/g, ' ');
+      if (cleaned !== value) {
+        sanitizedValue = cleaned;
+        wasChanged = true;
+        
+        console.log('QuizMetadataForm: Cleaned quiz title on blur:', {
+          original: `"${value}"`,
+          cleaned: `"${sanitizedValue}"`
+        });
+        
+        toast('Quiz title cleaned up', {
+          icon: '✨',
+          duration: 2000,
+          style: {
+            background: '#10b981',
+            color: 'white',
+          }
+        });
+      }
+    } else if (field === 'description') {
+      // Trim whitespace from description
+      const cleaned = value.trim();
+      if (cleaned !== value) {
+        sanitizedValue = cleaned;
+        wasChanged = true;
+      }
+    }
+    
+    // Update only if changes were made
+    if (wasChanged) {
+      onChange({
+        ...quiz,
+        [field]: sanitizedValue
+      });
+    }
   };
 
   // Handle content linking
@@ -141,6 +186,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
           value={quiz.title}
           onChange={(e) => handleChange('title', e.target.value)}
+          onBlur={(e) => handleBlur('title', e.target.value)}
           disabled={isLoading}
           placeholder="Enter quiz title"
           required
@@ -155,6 +201,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
           className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
           value={quiz.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
+          onBlur={(e) => handleBlur('description', e.target.value)}
           rows={3}
           disabled={isLoading}
           placeholder="Enter quiz description"
