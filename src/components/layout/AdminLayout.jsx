@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useFullscreen } from '../../contexts/FullscreenContext';
 import { createContext } from 'react';
-import { MdDashboard, MdQuiz, MdOutlinePermMedia } from 'react-icons/md'; // Added MdOutlinePermMedia
+import { MdDashboard, MdQuiz, MdOutlinePermMedia, MdChevronLeft, MdChevronRight } from 'react-icons/md'; // Added MdOutlinePermMedia
 import { BiBook } from 'react-icons/bi';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { FiSettings } from 'react-icons/fi';
@@ -25,6 +25,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Auto-exit fullscreen when navigating away from content editing
   useEffect(() => {
@@ -77,16 +78,18 @@ const AdminLayout = () => {
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0 min-h-0">
         {!isFullscreen && (
-          <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col">
-          <ul className="list-none p-0 m-0">
+          <div className={`${sidebarCollapsed ? 'w-[60px]' : 'w-[250px]'} bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out`}>
+          <ul className="list-none p-0 m-0 flex-1">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin"
-                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                title={sidebarCollapsed ? 'Dashboard' : ''}
               >
-                <MdDashboard className="text-lg" /> Dashboard
+                <MdDashboard className="text-lg" />
+                {!sidebarCollapsed && <span>Dashboard</span>}
               </Link>
             </li>
             <li
@@ -94,9 +97,11 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/study-guides"
-                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'study-guides' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'study-guides' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                title={sidebarCollapsed ? 'Create' : ''}
               >
-                <BiBook className="text-lg" /> Create
+                <BiBook className="text-lg" />
+                {!sidebarCollapsed && <span>Create</span>}
               </Link>
             </li>
             {/* Media Library Link */}
@@ -105,9 +110,11 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/media"
-                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'media' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'media' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                title={sidebarCollapsed ? 'Media Library' : ''}
               >
-                <MdOutlinePermMedia className="text-lg" /> Media Library
+                <MdOutlinePermMedia className="text-lg" />
+                {!sidebarCollapsed && <span>Media Library</span>}
               </Link>
             </li>
             {/* End Media Library Link */}
@@ -117,9 +124,11 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/quizzes"
-                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                title={sidebarCollapsed ? 'Quizzes' : ''}
               >
-                <MdQuiz className="text-lg" /> Quizzes
+                <MdQuiz className="text-lg" />
+                {!sidebarCollapsed && <span>Quizzes</span>}
               </Link>
             </li>
             <li
@@ -127,12 +136,24 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/settings"
-                className={`no-underline hover:no-underline flex items-center gap-3 w-full py-3 px-6 ${activeTab === 'settings' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'settings' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                title={sidebarCollapsed ? 'Settings' : ''}
               >
-                <FiSettings className="text-lg" /> Settings
+                <FiSettings className="text-lg" />
+                {!sidebarCollapsed && <span>Settings</span>}
               </Link>
             </li>
           </ul>
+            {/* Toggle button at bottom */}
+            <div className="flex justify-center p-2 border-t border-slate-300 dark:border-slate-700">
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="p-2 rounded-md hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors"
+                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {sidebarCollapsed ? <MdChevronRight className="text-lg" /> : <MdChevronLeft className="text-lg" />}
+              </button>
+            </div>
           </div>
         )}
 
