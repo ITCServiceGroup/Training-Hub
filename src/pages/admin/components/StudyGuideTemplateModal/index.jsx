@@ -4,6 +4,7 @@ import { templatesService } from '../../../../services/api/templates';
 import { FaFileAlt, FaPlus, FaSearch, FaTags, FaCog, FaStar, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
 import LazyTemplatePreview from '../../../../components/LazyTemplatePreview';
 import { performanceLogger } from '../../../../utils/performanceLogger';
+import './StudyGuideTemplateModal.css';
 
 const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelectTemplate }) => {
   const { theme } = useTheme();
@@ -170,7 +171,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 py-8 pt-20">
         <div className="fixed inset-0 bg-black opacity-30" onClick={onClose}></div>
-        <div className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+        <div className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto study-guide-template-modal ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Create New Content</h2>
             <button
@@ -182,7 +183,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
           </div>
 
           <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-            Choose how you'd like to start creating your study guide:
+            Choose how you'd like to start creating your content:
           </p>
 
           {/* Start from Scratch Option */}
@@ -201,7 +202,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
               <div>
                 <h3 className="text-lg font-semibold">Start from Scratch</h3>
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Begin with a blank canvas and build your study guide from the ground up
+                  Begin with a blank canvas and build your content from the ground up
                 </p>
               </div>
             </div>
@@ -246,7 +247,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : filteredTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-h-[600px] overflow-y-auto p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-h-[600px] overflow-y-auto p-4 template-grid-scroll">
               {filteredTemplates.map(template => (
                 <div
                   key={template.id}
