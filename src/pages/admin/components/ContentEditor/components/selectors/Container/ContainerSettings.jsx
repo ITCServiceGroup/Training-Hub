@@ -1163,7 +1163,7 @@ export const ContainerSettings = () => {
                   <input
                     type="number"
                     value={margin[0] === '' || margin[0] === '0' ? '' : parseInt(margin[0])}
-                    min={0}
+                    min={-100}
                     max={100}
                     onChange={(e) => {
                       const newMargin = [...margin];
@@ -1185,7 +1185,7 @@ export const ContainerSettings = () => {
                   <input
                     type="number"
                     value={margin[2] === '' || margin[2] === '0' ? '' : parseInt(margin[2])}
-                    min={0}
+                    min={-100}
                     max={100}
                     onChange={(e) => {
                       const newMargin = [...margin];
@@ -1207,7 +1207,7 @@ export const ContainerSettings = () => {
                   <input
                     type="number"
                     value={margin[3] === '' || margin[3] === '0' ? '' : parseInt(margin[3])}
-                    min={0}
+                    min={-100}
                     max={100}
                     onChange={(e) => {
                       const newMargin = [...margin];
@@ -1229,7 +1229,7 @@ export const ContainerSettings = () => {
                   <input
                     type="number"
                     value={margin[1] === '' || margin[1] === '0' ? '' : parseInt(margin[1])}
-                    min={0}
+                    min={-100}
                     max={100}
                     onChange={(e) => {
                       const newMargin = [...margin];

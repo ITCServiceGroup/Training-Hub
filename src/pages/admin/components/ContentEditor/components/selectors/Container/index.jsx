@@ -225,10 +225,11 @@ export const Container = (props) => {
   const bottomMarginValue = parseInt(margin[2]) || 0;
   const leftMarginValue = parseInt(margin[1]) || 0;
 
-  // Create a wrapper with top and bottom margins as separate divs
+  // Create a wrapper with top and bottom margins as separate divs for positive values
+  // For negative values, apply them directly to the container
   return (
     <>
-      {/* Invisible spacer div for top margin */}
+      {/* Invisible spacer div for positive top margin */}
       {topMarginValue > 0 && (
         <div
           style={{
@@ -239,7 +240,7 @@ export const Container = (props) => {
         />
       )}
 
-      {/* The actual container with only right and left margins */}
+      {/* The actual container with all margins applied */}
       <Resizer
         ref={containerRef}
         propKey={{ width: 'width', height: 'height' }}
@@ -251,8 +252,8 @@ export const Container = (props) => {
           boxSizing: 'border-box',
           flexShrink: 0,
           flexBasis: 'auto',
-          // Apply only right and left margins - don't interfere with justifyContent
-          margin: `0px ${rightMarginValue}px 0px ${leftMarginValue}px`,
+          // Apply all margins - handle negative values properly
+          margin: `${topMarginValue < 0 ? topMarginValue : 0}px ${rightMarginValue}px ${bottomMarginValue < 0 ? bottomMarginValue : 0}px ${leftMarginValue}px`,
           // Add horizontal alignment for column containers with width < 100%
           alignSelf: (() => {
             // Only apply horizontal alignment for column containers with width < 100%
@@ -456,7 +457,7 @@ export const Container = (props) => {
         </div>
       </Resizer>
 
-      {/* Invisible spacer div for bottom margin */}
+      {/* Invisible spacer div for positive bottom margin */}
       {bottomMarginValue > 0 && (
         <div
           style={{

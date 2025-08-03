@@ -96,9 +96,10 @@ export const comparisonLayoutTemplate = {
     "nodes": [
       "title",
       "intro",
+      "1IDpL0fqku",
       "comparison",
       "UoWqSCVHCh",
-      "1IDpL0fqku",
+      "VBV9YrfVdW",
       "w7y4G8wAtO",
       "mJfvyjQjx0",
       "0HIeCt4dst"
@@ -277,7 +278,7 @@ export const comparisonLayoutTemplate = {
           }
         }
       },
-      "text": "This template helps you compare different options, concepts, or approaches in a clear and organized manner.",
+      "text": "This template gives you several different layouts to help you compare different options, concepts, or approaches in a clear and organized manner.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3558,15 +3559,15 @@ export const comparisonLayoutTemplate = {
     },
     "isCanvas": false,
     "props": {
-      "fontSize": 30,
+      "fontSize": 26,
       "lineHeight": 1.5,
       "textAlign": "center",
       "fontWeight": "500",
       "color": {
         "light": {
-          "r": 92,
-          "g": 90,
-          "b": 90,
+          "r": 77,
+          "g": 77,
+          "b": 77,
           "a": 1
         },
         "dark": {
@@ -3609,7 +3610,7 @@ export const comparisonLayoutTemplate = {
           }
         }
       },
-      "text": "Option 2",
+      "text": "Comparison Layout 1",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -3679,13 +3680,13 @@ export const comparisonLayoutTemplate = {
       "padding": [
         "20",
         "19",
-        "20",
+        "30",
         "19"
       ],
       "margin": [
+        "-10",
         "0",
-        "0",
-        "0",
+        "-15",
         "0"
       ],
       "background": {
@@ -3835,7 +3836,7 @@ export const comparisonLayoutTemplate = {
         }
       },
       "radius": 8,
-      "width": "49%",
+      "width": "48.6%",
       "height": "auto",
       "autoConvertColors": true,
       "color": {
@@ -4160,7 +4161,7 @@ export const comparisonLayoutTemplate = {
         }
       },
       "radius": 8,
-      "width": "49%",
+      "width": "48.6%",
       "height": "auto",
       "autoConvertColors": true,
       "color": {
@@ -4773,7 +4774,7 @@ export const comparisonLayoutTemplate = {
           }
         }
       },
-      "text": "Text Block",
+      "text": "Based on the comparison above:\n\n• Each option offers unique advantages and considerations\n• Option 1 emphasizes [key strengths]\n• Option 2 provides [distinctive benefits]\n• Option 3 focuses on [specific advantages]\n• Option 4 delivers [particular strengths]\n• Option 5 offers [unique benefits]\n• Option 6 specializes in [core advantages]\n\nKey factors to evaluate:\n• Implementation complexity and timeline\n• Cost-effectiveness and budget requirements\n• Long-term scalability and maintenance\n• Team expertise and resource availability\n• Integration with existing systems\n• Risk assessment and mitigation strategies\n\nRecommendation: Choose the option that best aligns with your specific requirements, timeline, and organizational goals.",
       "listType": "none",
       "inTable": false,
       "hasIcon": false,
@@ -4827,6 +4828,121 @@ export const comparisonLayoutTemplate = {
     "displayName": "Text",
     "custom": {},
     "parent": "oBfrJlFp3H",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "VBV9YrfVdW": {
+    "type": {
+      "resolvedName": "Text"
+    },
+    "isCanvas": false,
+    "props": {
+      "fontSize": 26,
+      "lineHeight": 1.5,
+      "textAlign": "center",
+      "fontWeight": "500",
+      "color": {
+        "light": {
+          "r": 77,
+          "g": 77,
+          "b": 77,
+          "a": 1
+        },
+        "dark": {
+          "r": 229,
+          "g": 231,
+          "b": 235,
+          "a": 1
+        }
+      },
+      "margin": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "padding": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shadow": {
+        "enabled": false,
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": {
+          "light": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.15
+          },
+          "dark": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      },
+      "text": "Comparison Layout 2",
+      "listType": "none",
+      "inTable": false,
+      "hasIcon": false,
+      "iconName": "edit",
+      "iconColor": {
+        "light": {
+          "r": 92,
+          "g": 90,
+          "b": 90,
+          "a": 1
+        },
+        "dark": {
+          "r": 229,
+          "g": 231,
+          "b": 235,
+          "a": 1
+        }
+      },
+      "_lastUpdate": 1754249943268,
+      "autoConvertColors": true,
+      "enableFormatting": true,
+      "linkColor": {
+        "light": {
+          "r": 59,
+          "g": 130,
+          "b": 246,
+          "a": 1
+        },
+        "dark": {
+          "r": 96,
+          "g": 165,
+          "b": 250,
+          "a": 1
+        }
+      },
+      "linkHoverColor": {
+        "light": {
+          "r": 37,
+          "g": 99,
+          "b": 235,
+          "a": 1
+        },
+        "dark": {
+          "r": 147,
+          "g": 197,
+          "b": 253,
+          "a": 1
+        }
+      }
+    },
+    "displayName": "Text",
+    "custom": {},
+    "parent": "ROOT",
     "hidden": false,
     "nodes": [],
     "linkedNodes": {}

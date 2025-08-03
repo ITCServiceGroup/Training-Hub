@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import {
   DndContext,
@@ -7,6 +7,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -304,7 +305,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const SortableStudyGuideItem = ({
+const SortableStudyGuideItem = React.memo(({
   guide,
   onSelect,
   selectedId,
@@ -317,13 +318,18 @@ const SortableStudyGuideItem = ({
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
 
-  // Get current secondary color for the theme
-  const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
+  // Memoize theme-related calculations
+  const currentSecondaryColor = useMemo(() =>
+    themeColors.secondary[isDark ? 'dark' : 'light'],
+    [themeColors.secondary, isDark]
+  );
+
   const [showActions, setShowActions] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [description, setDescription] = useState(guide.description || '');
   const actionsRef = useRef(null);
   const descriptionRef = useRef(null);
+
   const {
     attributes,
     listeners,
@@ -331,85 +337,148 @@ const SortableStudyGuideItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: guide.id });
+  } = useSortable({
+    id: guide.id,
+    // Optimize by disabling animations during drag for better performance
+    animateLayoutChanges: () => false
+  });
 
-  const style = {
+  // Memoize style calculations for better performance
+  const style = useMemo(() => ({
     transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 1 : 0,
-  };
+    transition: isDragging ? 'none' : transition, // Disable transition during drag for smoother performance
+    zIndex: isDragging ? 1000 : 0,
+    opacity: isDragging ? 0 : 1, // Hide the original item when dragging to prevent off-screen dragging
+  }), [transform, transition, isDragging]);
 
   // Update description when guide changes
   useEffect(() => {
     setDescription(guide.description || '');
-  }, [guide]);
+  }, [guide.description]); // More specific dependency
+
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleClickOutside = useCallback((event) => {
+    if (actionsRef.current && !actionsRef.current.contains(event.target)) {
+      setShowActions(false);
+    }
+
+    if (isEditingDescription && descriptionRef.current && !descriptionRef.current.contains(event.target)) {
+      setIsEditingDescription(false);
+      if (description !== guide.description) {
+        onUpdateDescription(guide.id, description);
+      }
+    }
+  }, [isEditingDescription, description, guide.description, guide.id, onUpdateDescription]);
 
   // Close actions menu and description editor when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (actionsRef.current && !actionsRef.current.contains(event.target)) {
-        setShowActions(false);
-      }
+    // Only add listener when needed
+    if (showActions || isEditingDescription) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showActions, isEditingDescription, handleClickOutside]);
 
-      if (isEditingDescription && descriptionRef.current && !descriptionRef.current.contains(event.target)) {
-        setIsEditingDescription(false);
-        if (description !== guide.description) {
-          onUpdateDescription(guide.id, description);
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isEditingDescription, description, guide, onUpdateDescription]);
-
-  const handleCopy = (e) => {
+  // Memoize all event handlers to prevent unnecessary re-renders
+  const handleCopy = useCallback((e) => {
     e.stopPropagation();
     setShowActions(false);
     onCopy(guide);
-  };
+  }, [onCopy, guide]);
 
-  const handleMove = (e) => {
+  const handleMove = useCallback((e) => {
     e.stopPropagation();
     setShowActions(false);
     onMove(guide);
-  };
+  }, [onMove, guide]);
 
-  const toggleActions = (e) => {
+  const toggleActions = useCallback((e) => {
     e.stopPropagation();
-    setShowActions(!showActions);
-  };
+    setShowActions(prev => !prev);
+  }, []);
 
-  const handleDescriptionClick = (e) => {
+  const handleDescriptionClick = useCallback((e) => {
     e.stopPropagation();
     setIsEditingDescription(true);
-  };
+  }, []);
 
-  const handleDescriptionChange = (e) => {
+  const handleDescriptionChange = useCallback((e) => {
     setDescription(e.target.value);
-  };
+  }, []);
 
-  const handleDescriptionSave = (e) => {
+  const handleDescriptionSave = useCallback((e) => {
     e.stopPropagation();
     setIsEditingDescription(false);
     if (description !== guide.description) {
       onUpdateDescription(guide.id, description);
     }
-  };
+  }, [description, guide.description, guide.id, onUpdateDescription]);
+
+  const handleMouseEnter = useCallback(() => {
+    if (!isDragging) setHoveredId(guide.id);
+  }, [isDragging, setHoveredId, guide.id]);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredId(null);
+  }, [setHoveredId]);
+
+  const handleSelect = useCallback(() => {
+    onSelect(guide);
+  }, [onSelect, guide]);
+
+  // Memoize complex className calculations
+  const containerClassName = useMemo(() => {
+    const isSelected = selectedId === guide.id;
+    const isHovered = hoveredId === guide.id;
+
+    let classes = 'rounded-lg overflow-hidden';
+
+    // Border classes
+    if (isSelected) {
+      classes += ' border-2 border-primary';
+    } else if (isHovered) {
+      classes += ' border-2 border-gray-400 dark:border-slate-500';
+    } else {
+      classes += ' border-2 border-gray-300 dark:border-slate-500';
+    }
+
+    // Shadow classes
+    if (isDragging) {
+      classes += ' shadow-xl opacity-80';
+    } else if (isSelected) {
+      classes += ' shadow-lg';
+    } else if (isHovered) {
+      classes += ' shadow-md';
+    } else {
+      classes += ' shadow-sm';
+    }
+
+    // Only add transition when not dragging for better performance
+    if (!isDragging) {
+      classes += ' transition-all duration-200';
+    }
+
+    return classes;
+  }, [selectedId, guide.id, hoveredId, isDragging]);
+
+  const innerClassName = useMemo(() => {
+    const isHovered = hoveredId === guide.id;
+    return `${isHovered ? 'bg-gray-50 dark:bg-slate-600' : 'bg-white dark:bg-slate-700'} cursor-pointer ${!isDragging ? 'transition-colors duration-200' : ''}`;
+  }, [hoveredId, guide.id, isDragging]);
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg ${selectedId === guide.id ? 'border-2 border-primary shadow-lg' : `border-2 ${hoveredId === guide.id ? 'border-gray-400 dark:border-slate-500' : 'border-gray-300 dark:border-slate-500'}`} overflow-hidden transition-all duration-200 ${isDragging ? 'shadow-xl opacity-80' : selectedId === guide.id ? 'shadow-lg' : hoveredId === guide.id ? 'shadow-md' : 'shadow-sm'}`}
-      onMouseEnter={() => !isDragging && setHoveredId(guide.id)}
-      onMouseLeave={() => setHoveredId(null)}
-      onClick={() => onSelect(guide)}
+      className={containerClassName}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleSelect}
       {...attributes}
     >
-      <div className={`${hoveredId === guide.id ? 'bg-gray-50 dark:bg-slate-600' : 'bg-white dark:bg-slate-700'} cursor-pointer transition-colors duration-200`}>
+      <div className={innerClassName}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
@@ -562,7 +631,7 @@ const SortableStudyGuideItem = ({
       </div>
     </div>
   );
-};
+});
 
 const StudyGuideList = ({
   studyGuides: propStudyGuides = [], // Allow direct prop injection
@@ -576,6 +645,7 @@ const StudyGuideList = ({
   error
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
+  const [activeId, setActiveId] = useState(null);
   const { sectionsData, selectedCategory } = useContext(CategoryContext);
 
   // Combine prop data with context data
@@ -593,15 +663,27 @@ const StudyGuideList = ({
     return currentCategory?.study_guides || [];
   }, [sectionsData, selectedCategory, propStudyGuides]); // Include propStudyGuides in dependencies
 
+  // Optimize sensors for better performance
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      // Add activation constraint to prevent accidental drags
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  const handleDragEnd = async (event) => {
+  const handleDragStart = useCallback((event) => {
+    setActiveId(event.active.id);
+  }, []);
+
+  const handleDragEnd = useCallback(async (event) => {
     const { active, over } = event;
+
+    setActiveId(null); // Clear active drag state
 
     if (over && active.id !== over.id && selectedCategory) {
       const oldIndex = studyGuidesToDisplay.findIndex((g) => g.id === active.id);
@@ -623,7 +705,23 @@ const StudyGuideList = ({
         console.error("Error updating study guide order on backend:", error);
       }
     }
-  };
+  }, [studyGuidesToDisplay, selectedCategory, onReorder]);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  }, []);
+
+  // Memoize the items array to prevent unnecessary re-renders - MOVED BEFORE EARLY RETURNS
+  const sortableItems = useMemo(() =>
+    studyGuidesToDisplay.map(g => g.id),
+    [studyGuidesToDisplay]
+  );
+
+  // Find the active guide for the drag overlay - MOVED BEFORE EARLY RETURNS
+  const activeGuide = useMemo(() =>
+    studyGuidesToDisplay.find(guide => guide.id === activeId),
+    [studyGuidesToDisplay, activeId]
+  );
 
   // Using Tailwind classes instead of inline styles
 
@@ -664,10 +762,12 @@ const StudyGuideList = ({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <SortableContext
-        items={studyGuidesToDisplay.map(g => g.id)}
+        items={sortableItems}
         strategy={verticalListSortingStrategy}
       >
         <div className="flex flex-col gap-4">
@@ -686,6 +786,38 @@ const StudyGuideList = ({
           ))}
         </div>
       </SortableContext>
+
+      <DragOverlay>
+        {activeGuide ? (
+          <div className="rounded-lg border-2 border-primary shadow-xl opacity-90 bg-white dark:bg-slate-700 overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
+                  {activeGuide.title}
+                </h3>
+              </div>
+              <div className="mb-2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Custom Description
+                </span>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                  {activeGuide.description || 'No description provided.'}
+                </p>
+              </div>
+              <div className={`text-xs font-medium flex items-center ${activeGuide.is_published
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-gray-500 dark:text-gray-400'}`}
+              >
+                <span className={`inline-block w-2 h-2 rounded-full mr-1 ${activeGuide.is_published
+                  ? 'bg-green-500 dark:bg-green-400'
+                  : 'bg-gray-400 dark:bg-gray-500'}`}
+                ></span>
+                {activeGuide.is_published ? 'Published' : 'Draft'}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 };
