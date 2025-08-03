@@ -12,13 +12,22 @@ const EnhancedTooltip = ({
   comparison = null,
   additionalInfo = null
 }) => {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
+  // Debug logging
+  console.log('EnhancedTooltip - theme:', theme, 'isDark:', isDark);
 
   return (
-    <div className={`
-      ${isDark ? 'bg-slate-800 border-slate-600 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}
-      p-3 rounded-lg shadow-xl border-2 min-w-[200px] max-w-[300px]
-    `}>
+    <div 
+      className="p-3 rounded-lg shadow-xl min-w-[200px] max-w-[300px]"
+      style={{
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        color: isDark ? '#e2e8f0' : '#475569',
+        border: `2px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+        zIndex: 9999
+      }}
+    >
       {/* Header with icon and title */}
       <div className="flex items-center gap-2 mb-2">
         {icon && (
@@ -46,17 +55,17 @@ const EnhancedTooltip = ({
 
       {/* Trend indicator */}
       {trend && (
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+        <div className={`mt-2 pt-2 border-t ${isDark ? 'border-slate-600' : 'border-slate-200'}`}>
           <div className="flex items-center gap-1">
             <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Trend:
             </span>
             <span className={`text-xs font-medium ${
               trend.direction === 'up' 
-                ? 'text-green-600 dark:text-green-400' 
+                ? (isDark ? 'text-green-400' : 'text-green-600')
                 : trend.direction === 'down'
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-slate-600 dark:text-slate-400'
+                ? (isDark ? 'text-red-400' : 'text-red-600')
+                : (isDark ? 'text-slate-400' : 'text-slate-600')
             }`}>
               {trend.direction === 'up' ? '↗' : trend.direction === 'down' ? '↘' : '→'} {trend.value}
             </span>
@@ -66,17 +75,17 @@ const EnhancedTooltip = ({
 
       {/* Comparison data */}
       {comparison && (
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+        <div className={`mt-2 pt-2 border-t ${isDark ? 'border-slate-600' : 'border-slate-200'}`}>
           <div className="text-xs space-y-1">
             <div className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               vs {comparison.period}:
             </div>
             <div className={`font-medium ${
               comparison.change > 0 
-                ? 'text-green-600 dark:text-green-400' 
+                ? (isDark ? 'text-green-400' : 'text-green-600')
                 : comparison.change < 0
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-slate-600 dark:text-slate-400'
+                ? (isDark ? 'text-red-400' : 'text-red-600')
+                : (isDark ? 'text-slate-400' : 'text-slate-600')
             }`}>
               {comparison.change > 0 ? '+' : ''}{comparison.change}% {comparison.label}
             </div>
@@ -86,7 +95,7 @@ const EnhancedTooltip = ({
 
       {/* Additional information */}
       {additionalInfo && (
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+        <div className={`mt-2 pt-2 border-t ${isDark ? 'border-slate-600' : 'border-slate-200'}`}>
           <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {additionalInfo}
           </div>
@@ -95,7 +104,7 @@ const EnhancedTooltip = ({
 
       {/* Drill down indicator */}
       {showDrillDown && (
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+        <div className={`mt-2 pt-2 border-t ${isDark ? 'border-slate-600' : 'border-slate-200'}`}>
           <div className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
             <span>🔍</span>
             {drillDownText}
