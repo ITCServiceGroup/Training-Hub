@@ -3,6 +3,20 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from './common/LoadingSpinner';
 
+// Helper function to decode HTML entities
+const decodeHtmlEntities = (text) => {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+};
+
+// Helper function to strip HTML tags
+const stripHtmlTags = (html) => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 // Helper function to extract a preview from HTML or JSON content
 const extractPreview = (content, maxLength = 300) => {
   if (!content) return '';
@@ -200,7 +214,9 @@ const extractPreview = (content, maxLength = 300) => {
 
       // If we found text content, use it
       if (textContent.length > 0) {
-        const preview = textContent.join(' ').replace(/\s+/g, ' ').trim();
+        let preview = textContent.join(' ').replace(/\s+/g, ' ').trim();
+        preview = stripHtmlTags(preview);
+        preview = decodeHtmlEntities(preview);
         return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
       }
 
@@ -214,7 +230,9 @@ const extractPreview = (content, maxLength = 300) => {
           });
 
           if (extractedTexts.length > 0) {
-            const preview = extractedTexts.join(' ').replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
+            let preview = extractedTexts.join(' ').replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
+            preview = stripHtmlTags(preview);
+            preview = decodeHtmlEntities(preview);
             return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
           }
         }
@@ -228,7 +246,9 @@ const extractPreview = (content, maxLength = 300) => {
             });
 
             if (extractedTexts.length > 0) {
-              const preview = extractedTexts.join(' ').replace(/\\\\/g, '\\').replace(/\s+/g, ' ').trim();
+              let preview = extractedTexts.join(' ').replace(/\\\\/g, '\\').replace(/\s+/g, ' ').trim();
+              preview = stripHtmlTags(preview);
+              preview = decodeHtmlEntities(preview);
               return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
             }
           }
@@ -269,16 +289,22 @@ const extractPreview = (content, maxLength = 300) => {
       preview = doc.body?.textContent?.replace(/\s+/g, ' ')?.trim() || '';
     }
 
+    // Apply HTML cleaning to the preview
+    preview = stripHtmlTags(preview);
+    preview = decodeHtmlEntities(preview);
+
     return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
   } catch (error) {
     console.error("Error extracting preview:", error);
     // Basic fallback if DOM parsing fails
-    const textContent = content
+    let textContent = content
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
+    textContent = stripHtmlTags(textContent);
+    textContent = decodeHtmlEntities(textContent);
     return textContent.length > maxLength ? textContent.substring(0, maxLength) + '...' : textContent;
   }
 };
