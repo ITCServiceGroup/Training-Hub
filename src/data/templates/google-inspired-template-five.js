@@ -10753,9 +10753,7 @@ export const googleInspiredTemplateFive = {
       "mej6bjtcMH",
       "5SOkhBLhI9",
       "e4-642vb3D",
-      "fvjJjGtNXc",
-      "9OIWow82gt",
-      "aesWL0ShWC"
+      "fvjJjGtNXc"
     ],
     "linkedNodes": {}
   },
@@ -13125,7 +13123,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet <b>consectetur adipiscing elit</b> sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n<b>Duis Aute Irure:</b> Dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat.\n<b>Non Proident Sunt:</b> In culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error.\n<b>Sit Voluptatem Accusantium:</b> Doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.\n<b>Sed Quia Consequuntur:</b> Magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sed quia consequuntur <b>magni dolores eos</b>. Qui ratione voluptatem <b>sequi nesciunt neque</b> porro quisquam est qui dolorem.",
+      "text": "<b>Lorem Ipsum Dolor:</b> Sit amet <b>consectetur adipiscing elit</b> sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n<b>Duis Aute Irure:</b> Dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat.\n<b>Non Proident Sunt:</b> In culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error.\n<b>Sit Voluptatem Accusantium:</b> Doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.\n<b>Sed Quia Consequuntur:</b> Magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13470,7 +13468,7 @@ export const googleInspiredTemplateFive = {
           }
         }
       },
-      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod</b> tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim <b>ipsam voluptatem quia:</b> voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est.\nNisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+      "text": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do <b>eiusmod</b> tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.\nNisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit.",
       "listType": "bullet",
       "inTable": false,
       "hasIcon": false,
@@ -13490,236 +13488,6 @@ export const googleInspiredTemplateFive = {
         }
       },
       "_lastUpdate": 1752701816398,
-      "autoConvertColors": true,
-      "enableFormatting": true,
-      "linkColor": {
-        "light": {
-          "r": 59,
-          "g": 130,
-          "b": 246,
-          "a": 1
-        },
-        "dark": {
-          "r": 96,
-          "g": 165,
-          "b": 250,
-          "a": 1
-        }
-      },
-      "linkHoverColor": {
-        "light": {
-          "r": 37,
-          "g": 99,
-          "b": 235,
-          "a": 1
-        },
-        "dark": {
-          "r": 147,
-          "g": 197,
-          "b": 253,
-          "a": 1
-        }
-      }
-    },
-    "displayName": "Text",
-    "custom": {},
-    "parent": "g0s_qbjUE0",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
-  },
-  "9OIWow82gt": {
-    "type": {
-      "resolvedName": "Text"
-    },
-    "isCanvas": false,
-    "props": {
-      "fontSize": "16",
-      "lineHeight": 1.5,
-      "textAlign": "left",
-      "fontWeight": "700",
-      "color": {
-        "light": {
-          "r": 92,
-          "g": 90,
-          "b": 90,
-          "a": 1
-        },
-        "dark": {
-          "r": 229,
-          "g": 231,
-          "b": 235,
-          "a": 1
-        }
-      },
-      "margin": [
-        "0",
-        "0",
-        15,
-        0
-      ],
-      "padding": [
-        "0",
-        "0",
-        "0",
-        55
-      ],
-      "shadow": {
-        "enabled": false,
-        "x": 0,
-        "y": 2,
-        "blur": 4,
-        "spread": 0,
-        "color": {
-          "light": {
-            "r": 0,
-            "g": 0,
-            "b": 0,
-            "a": 0.15
-          },
-          "dark": {
-            "r": 0,
-            "g": 0,
-            "b": 0,
-            "a": 0.25
-          }
-        }
-      },
-      "text": "Lorem Ipsum Dolor Sit Amet Consectetur:",
-      "listType": "none",
-      "inTable": false,
-      "hasIcon": false,
-      "iconName": "edit",
-      "iconColor": {
-        "light": {
-          "r": 92,
-          "g": 90,
-          "b": 90,
-          "a": 1
-        },
-        "dark": {
-          "r": 229,
-          "g": 231,
-          "b": 235,
-          "a": 1
-        }
-      },
-      "_lastUpdate": 1752685129955,
-      "autoConvertColors": true,
-      "enableFormatting": true,
-      "linkColor": {
-        "light": {
-          "r": 59,
-          "g": 130,
-          "b": 246,
-          "a": 1
-        },
-        "dark": {
-          "r": 96,
-          "g": 165,
-          "b": 250,
-          "a": 1
-        }
-      },
-      "linkHoverColor": {
-        "light": {
-          "r": 37,
-          "g": 99,
-          "b": 235,
-          "a": 1
-        },
-        "dark": {
-          "r": 147,
-          "g": 197,
-          "b": 253,
-          "a": 1
-        }
-      }
-    },
-    "displayName": "Text",
-    "custom": {},
-    "parent": "g0s_qbjUE0",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
-  },
-  "aesWL0ShWC": {
-    "type": {
-      "resolvedName": "Text"
-    },
-    "isCanvas": false,
-    "props": {
-      "fontSize": "16",
-      "lineHeight": 1.5,
-      "textAlign": "left",
-      "fontWeight": "500",
-      "color": {
-        "light": {
-          "r": 92,
-          "g": 90,
-          "b": 90,
-          "a": 1
-        },
-        "dark": {
-          "r": 229,
-          "g": 231,
-          "b": 235,
-          "a": 1
-        }
-      },
-      "margin": [
-        "0",
-        "0",
-        0,
-        0
-      ],
-      "padding": [
-        "0",
-        "0",
-        "0",
-        55
-      ],
-      "shadow": {
-        "enabled": false,
-        "x": 0,
-        "y": 2,
-        "blur": 4,
-        "spread": 0,
-        "color": {
-          "light": {
-            "r": 0,
-            "g": 0,
-            "b": 0,
-            "a": 0.15
-          },
-          "dark": {
-            "r": 0,
-            "g": 0,
-            "b": 0,
-            "a": 0.25
-          }
-        }
-      },
-      "text": "<ul style=\"list-style-type: disc; list-style-position: outside; padding-left: 24px; width: calc(100% - 24px);\"><li style=\"display: list-item; padding-left: 4px;\"><b>Lorem Ipsum:</b> Dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Ullamco Laboris Nisi:</b> Ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est <b>laborum sed ut</b> perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Totam Rem Aperiam:</b> Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Sed ut perspiciatis unde omnis iste <b>natus error sit voluptatem</b> accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Enim Ad Minim:</b> Veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li><li style=\"display: list-item; padding-left: 4px;\"><b>Excepteur Sint Occaecat:</b> Cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</li></ul>",
-      "listType": "bullet",
-      "inTable": false,
-      "hasIcon": false,
-      "iconName": "edit",
-      "iconColor": {
-        "light": {
-          "r": 92,
-          "g": 90,
-          "b": 90,
-          "a": 1
-        },
-        "dark": {
-          "r": 229,
-          "g": 231,
-          "b": 235,
-          "a": 1
-        }
-      },
-      "_lastUpdate": 1752685268777,
       "autoConvertColors": true,
       "enableFormatting": true,
       "linkColor": {
