@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFullscreen } from '../contexts/FullscreenContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 import { studyGuidesService } from '../services/api/studyGuides';
@@ -14,6 +15,7 @@ import SearchResults from '../components/SearchResults';
 
 const StudyGuidePage = () => {
   const { theme } = useTheme();
+  const { isFullscreen } = useFullscreen();
   const isDark = theme === 'dark';
   const { sectionId, categoryId, studyGuideId } = useParams();
   const navigate = useNavigate();
@@ -462,15 +464,17 @@ const StudyGuidePage = () => {
             <div
               className={`
                 fixed md:sticky left-0 z-[55] md:z-auto
-                w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out
-                ${isHeaderScrolledAway ? 'top-0 h-[calc(100vh-60px)]' : 'top-[60px] h-[calc(100vh-180px)]'}
+                w-[250px] flex-shrink-0 transform transition-all duration-300 ease-in-out
+                ${isFullscreen 
+                  ? 'top-0 h-[calc(100vh-100px)]' 
+                  : isHeaderScrolledAway ? 'top-0 h-[calc(100vh-60px)]' : 'top-[60px] h-[calc(100vh-180px)]'}
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
                 md:top-0 md:self-start
               `}
               style={{
-                height: 'calc(100vh - 240px)',
-                maxHeight: 'calc(100vh - 240px)'
+                height: isFullscreen ? 'calc(100vh - 100px)' : 'calc(100vh - 240px)',
+                maxHeight: isFullscreen ? 'calc(100vh - 100px)' : 'calc(100vh - 240px)'
               }}
             >
             <StudyGuideList

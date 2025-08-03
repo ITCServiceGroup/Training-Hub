@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFullscreen } from '../contexts/FullscreenContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSearch, FaClipboardList } from 'react-icons/fa';
 import CraftRenderer from './craft/CraftRenderer';
@@ -12,6 +13,7 @@ import LoadingSpinner from './common/LoadingSpinner';
  */
 const StudyGuideViewer = ({ studyGuide, isLoading }) => {
   const { theme } = useTheme();
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const isDark = theme === 'dark';
   const location = useLocation();
   const navigate = useNavigate();
@@ -146,8 +148,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     <div
       className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow w-full flex flex-col`}
       style={{ 
-        height: 'calc(100vh - 240px)', // Account for header (~60px) + footer (~60px) + padding (~80px)
-        maxHeight: 'calc(100vh - 240px)'}}
+        height: isFullscreen ? 'calc(100vh - 100px)' : 'calc(100vh - 240px)', // Fullscreen: match sidebar bottom edge, Normal: account for header + footer + padding
+        maxHeight: isFullscreen ? 'calc(100vh - 100px)' : 'calc(100vh - 240px)'}}
     >
       {/* Fixed header section */}
       <div className={`flex justify-between items-center px-6 pt-4 flex-shrink-0`}>
@@ -239,8 +241,27 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
               </div>
             )}
           </div>
-          {studyGuide && studyGuide.linked_quiz_id && (
+          <div className="flex items-center gap-3">
+            {/* Fullscreen toggle button */}
             <button
+              type="button"
+              onClick={toggleFullscreen}
+              className={`
+                p-2 rounded-md text-sm cursor-pointer transition-colors
+                ${isDark
+                  ? 'bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 hover:text-white'
+                  : 'bg-white hover:bg-gray-100 border border-gray-300 text-gray-600 hover:text-gray-700'
+                }
+              `}
+              title="Toggle Fullscreen"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+              </svg>
+            </button>
+
+            {studyGuide && studyGuide.linked_quiz_id && (
+              <button
               onClick={() => {
                 // Extract current URL parameters to get section and category context
                 const urlParams = new URLSearchParams(location.search);
@@ -266,8 +287,9 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
               className={`bg-primary hover:bg-primary-dark text-white border-none rounded py-2 px-4 text-sm font-bold cursor-pointer transition-colors flex items-center gap-2`}
             >
               <FaClipboardList /> Take Practice Quiz
-            </button>
-          )}
+              </button>
+            )}
+          </div>
         </div>
 
       {/* Scrollable content area */}
