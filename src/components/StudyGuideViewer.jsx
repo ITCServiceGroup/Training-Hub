@@ -146,8 +146,8 @@ const StudyGuideViewer = ({ studyGuide, isLoading }) => {
     <div
       className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow w-full flex flex-col`}
       style={{ 
-        height: 'calc(100vh - 170px)', // Account for header (~60px) + footer (~80px)
-        maxHeight: 'calc(100vh - 170px)'}}
+        height: 'calc(100vh - 240px)', // Account for header (~60px) + footer (~60px) + padding (~80px)
+        maxHeight: 'calc(100vh - 240px)'}}
     >
       {/* Fixed header section */}
       <div className={`flex justify-between items-center px-6 pt-4 flex-shrink-0`}>

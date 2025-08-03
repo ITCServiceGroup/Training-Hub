@@ -13,12 +13,12 @@ const Layout = () => {
   const isQuizPage = location.pathname.startsWith('/quiz'); // Check if quiz page
 
   return (
-    <div className={`app-layout w-full flex flex-col ${isAdminPage || isFullscreen ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100`}>
+    <div className={`app-layout w-full flex flex-col ${isAdminPage || isStudyGuidePage || isFullscreen ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100`}>
       {!isFullscreen && <Header />}
-      <main className={`main-content ${isAdminPage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col w-full`}>
+      <main className={`main-content ${isAdminPage || isStudyGuidePage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col w-full`}>
         {/* Apply padding conditionally - no padding for admin, study guide, or quiz pages */}
         <div
-          className={`w-full ${isAdminPage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col ${isAdminPage || isStudyGuidePage || isQuizPage || isFullscreen ? '' : 'p-8'}`}
+          className={`w-full ${isAdminPage || isStudyGuidePage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col ${isAdminPage || isStudyGuidePage || isQuizPage || isFullscreen ? '' : 'p-8'}`}
           style={isStudyGuidePage || isQuizPage ? { overflow: 'visible !important' } : {}}
         >
           <Outlet />

@@ -463,14 +463,14 @@ const StudyGuidePage = () => {
               className={`
                 fixed md:sticky left-0 z-[55] md:z-auto
                 w-[250px] flex-shrink-0 transform transition-transform duration-300 ease-in-out
-                ${isHeaderScrolledAway ? 'top-0 h-screen' : 'top-[60px] h-[calc(100vh-130px)]'}
+                ${isHeaderScrolledAway ? 'top-0 h-[calc(100vh-60px)]' : 'top-[60px] h-[calc(100vh-180px)]'}
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 ${isDark ? 'bg-slate-800 md:bg-transparent' : 'bg-white md:bg-transparent'}
                 md:top-0 md:self-start
               `}
               style={{
-                height: 'calc(100vh - 170px)',
-                maxHeight: 'calc(100vh - 170px)'
+                height: 'calc(100vh - 240px)',
+                maxHeight: 'calc(100vh - 240px)'
               }}
             >
             <StudyGuideList
