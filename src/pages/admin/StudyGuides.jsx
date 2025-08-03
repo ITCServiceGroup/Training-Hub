@@ -184,7 +184,7 @@ const getInitialJson = (studyGuide, isCreatingFlag) => {
 
 
 const StudyGuides = () => {
-  const { isFullscreen } = useFullscreen();
+  const { isFullscreen, exitFullscreen } = useFullscreen();
   const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);
@@ -342,6 +342,12 @@ const StudyGuides = () => {
   // Function to handle the actual deletion after confirmation
   const handleDelete = async () => {
     if (!selectedStudyGuide) return;
+    
+    // Exit fullscreen when deleting
+    if (isFullscreen) {
+      exitFullscreen();
+    }
+    
     try {
       // Optimistically update UI
       const newSectionsData = sectionsData?.map(section => {
@@ -522,6 +528,10 @@ const StudyGuides = () => {
 
         // Only exit if shouldExit is true
         if (shouldExit) {
+          // Exit fullscreen when exiting editing mode
+          if (isFullscreen) {
+            exitFullscreen();
+          }
           setIsCreating(false);
           setSelectedStudyGuide(null);
           setCurrentEditorJson(null); // Clear editor state
@@ -573,6 +583,10 @@ const StudyGuides = () => {
 
         // Only exit if shouldExit is true
         if (shouldExit) {
+          // Exit fullscreen when exiting editing mode
+          if (isFullscreen) {
+            exitFullscreen();
+          }
           setSelectedStudyGuide(null);
           setCurrentEditorJson(null); // Clear editor state
         } else {
@@ -849,6 +863,11 @@ const StudyGuides = () => {
             onJsonChange={handleJsonChange} // Pass callback to update state
             onSave={handleSave} // Pass modified handleSave
             onCancel={() => {
+              // Exit fullscreen when canceling
+              if (isFullscreen) {
+                exitFullscreen();
+              }
+              
               // Clear localStorage draft for 'new' study guide
               const key = `content_editor_new_draft`;
               localStorage.removeItem(key);

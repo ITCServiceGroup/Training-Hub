@@ -15,7 +15,7 @@ import SearchResults from '../components/SearchResults';
 
 const StudyGuidePage = () => {
   const { theme } = useTheme();
-  const { isFullscreen } = useFullscreen();
+  const { isFullscreen, exitFullscreen } = useFullscreen();
   const isDark = theme === 'dark';
   const { sectionId, categoryId, studyGuideId } = useParams();
   const navigate = useNavigate();
@@ -340,6 +340,13 @@ const StudyGuidePage = () => {
     );
   };
 
+  // Auto-exit fullscreen when navigating away from a study guide
+  useEffect(() => {
+    if (isFullscreen && !studyGuideId) {
+      exitFullscreen();
+    }
+  }, [studyGuideId, isFullscreen, exitFullscreen]);
+
   // Combine loading states
   const isPageLoading = isLoadingSections || (sectionId && categories.length === 0 && !sectionsError); // Consider sections loading or categories not yet derived
 
@@ -487,6 +494,7 @@ const StudyGuidePage = () => {
               onClose={() => setIsSidebarOpen(false)}
             />
           </div>
+
 
           {/* Main content area: Show list or viewer */}
           <div

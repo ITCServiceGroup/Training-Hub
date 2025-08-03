@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFullscreen } from '../contexts/FullscreenContext';
 import { Link } from 'react-router-dom';
 import { BiBook, BiQuestionMark } from 'react-icons/bi';
 import { MdQuiz, MdTouchApp, MdAdminPanelSettings } from 'react-icons/md';
@@ -8,7 +9,15 @@ import { HiOutlineAcademicCap } from 'react-icons/hi';
 
 const HomePage = () => {
   const { theme } = useTheme();
+  const { isFullscreen, exitFullscreen } = useFullscreen();
   const isDark = theme === 'dark';
+
+  // Auto-exit fullscreen when navigating to home page
+  React.useEffect(() => {
+    if (isFullscreen) {
+      exitFullscreen();
+    }
+  }, [isFullscreen, exitFullscreen]);
 
   return (
     <div className="min-h-screen">

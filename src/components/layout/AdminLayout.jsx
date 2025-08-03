@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -21,11 +21,18 @@ export const CategoryContext = createContext({
 const AdminLayout = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { isFullscreen } = useFullscreen();
+  const { isFullscreen, exitFullscreen } = useFullscreen();
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
 
+  // Auto-exit fullscreen when navigating away from content editing
+  useEffect(() => {
+    const isOnStudyGuidesPage = location.pathname.startsWith('/admin/study-guides');
+    if (isFullscreen && !isOnStudyGuidesPage) {
+      exitFullscreen();
+    }
+  }, [location.pathname, isFullscreen, exitFullscreen]);
 
 
 

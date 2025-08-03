@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const FullscreenContext = createContext();
 
@@ -20,6 +20,20 @@ export const FullscreenProvider = ({ children }) => {
   const exitFullscreen = () => {
     setIsFullscreen(false);
   };
+
+  // Add escape key handler
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && isFullscreen) {
+        exitFullscreen();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isFullscreen]);
 
   return (
     <FullscreenContext.Provider value={{
