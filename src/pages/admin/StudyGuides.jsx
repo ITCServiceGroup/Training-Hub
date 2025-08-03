@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useFullscreen } from '../../contexts/FullscreenContext';
 
 import ContentEditor from './components/ContentEditor';
 import StudyGuideManagement from './components/StudyGuideManagement';
@@ -183,6 +184,7 @@ const getInitialJson = (studyGuide, isCreatingFlag) => {
 
 
 const StudyGuides = () => {
+  const { isFullscreen } = useFullscreen();
   const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);
@@ -1035,7 +1037,7 @@ const StudyGuides = () => {
 
   return (
     /* Removed gray background (bg-gray-50 dark:bg-slate-800) and padding (p-6) from this outer div */
-    <div className="rounded-lg shadow dark:shadow-lg" style={{ height: 'calc(100vh - 180px)', overflow: 'hidden' }}>
+    <div className="rounded-lg shadow dark:shadow-lg" style={{ height: isFullscreen ? '100vh' : 'calc(100vh - 180px)', overflow: 'hidden' }}>
       <div
         className="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-sm dark:shadow-md"
         style={{

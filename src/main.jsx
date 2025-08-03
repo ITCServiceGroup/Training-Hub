@@ -9,6 +9,7 @@ import App from './App';
 const basename = import.meta.env.BASE_URL === '/' ? '/' : '';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { FullscreenProvider } from './contexts/FullscreenContext';
 import { ToastProvider } from './components/common/ToastContainer';
 import './utils/debugHelper';
 
@@ -28,9 +29,11 @@ try {
       >
         <AuthProvider>
           <ThemeProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
+            <FullscreenProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </FullscreenProvider>
           </ThemeProvider>
         </AuthProvider>
       </HashRouter>
@@ -51,9 +54,11 @@ try {
         }}
       >
         <ThemeProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
+          <FullscreenProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </FullscreenProvider>
         </ThemeProvider>
       </HashRouter>
     </React.StrictMode>

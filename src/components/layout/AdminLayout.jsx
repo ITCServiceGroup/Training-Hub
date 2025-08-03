@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useFullscreen } from '../../contexts/FullscreenContext';
 import { createContext } from 'react';
 import { MdDashboard, MdQuiz, MdOutlinePermMedia } from 'react-icons/md'; // Added MdOutlinePermMedia
 import { BiBook } from 'react-icons/bi';
@@ -20,6 +21,7 @@ export const CategoryContext = createContext({
 const AdminLayout = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { isFullscreen } = useFullscreen();
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
@@ -67,7 +69,8 @@ const AdminLayout = () => {
       }}
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0 min-h-0">
-        <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col">
+        {!isFullscreen && (
+          <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col">
           <ul className="list-none p-0 m-0">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
@@ -123,9 +126,10 @@ const AdminLayout = () => {
               </Link>
             </li>
           </ul>
-        </div>
+          </div>
+        )}
 
-        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto min-h-0">
+        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-4'} bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto min-h-0`}>
           {/* Render the child routes */}
           <Outlet />
         </div>
