@@ -3,7 +3,7 @@ import { ResponsiveScatterPlot } from '@nivo/scatterplot';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
-import { FaExpand, FaCompress } from 'react-icons/fa';
+import { FaExpand, FaCompress, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { filterDataForChart } from '../../utils/dashboardFilters';
 
 const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) => {
@@ -63,6 +63,7 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
     return Math.max(1, Math.round(halfTimeMinutes));
   }, []);
 
+
   // Set session flag to indicate navigation and handle page refresh detection
   useEffect(() => {
     sessionStorage.setItem('timeVsScoreChart_hasNavigated', 'true');
@@ -82,6 +83,40 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
 
   // Efficiency quadrant analysis
   const [showQuadrants, setShowQuadrants] = useState(true);
+  const [anonymizeNames, setAnonymizeNames] = useState(() => {
+    // Load default from localStorage (set in Settings)
+    try {
+      const savedDefault = localStorage.getItem('dashboardDefaultShowNames');
+      return savedDefault !== null ? !JSON.parse(savedDefault) : true; // true = anonymous, false = show names
+    } catch (error) {
+      return true; // Default to anonymous
+    }
+  });
+
+  // Anonymization function (defined after anonymizeNames state)
+  const anonymizeName = useCallback((ldap) => {
+    if (!anonymizeNames) return ldap;
+    
+    // Create a stable hash from the LDAP for consistent anonymization
+    let hash = 0;
+    for (let i = 0; i < ldap.length; i++) {
+      const char = ldap.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert hash to positive number
+    hash = Math.abs(hash);
+    
+    // Generate anonymous identifier
+    const prefixes = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Theta', 'Sigma', 'Omega', 'Zeta', 'Kappa', 'Lambda'];
+    const suffixes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+    
+    const prefixIndex = hash % prefixes.length;
+    const suffixIndex = Math.floor(hash / 100) % suffixes.length;
+    
+    return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
+  }, [anonymizeNames]);
   const [quadrantThresholds, setQuadrantThresholds] = useState(() => {
     const saved = localStorage.getItem('timeVsScoreChart_quadrantThresholds');
     const sessionFlag = sessionStorage.getItem('timeVsScoreChart_hasNavigated');
@@ -307,7 +342,7 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
           supervisor: result.supervisor || 'Unknown',
           market: result.market || 'Unknown',
           date: result.date_of_test,
-          ldap: result.ldap || 'Unknown',
+          ldap: anonymizeName(result.ldap || 'Unknown'),
           quadrant,
           efficiency,
           color
@@ -317,7 +352,7 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
       .slice(0, 200); // Limit for performance
 
     return [{ id: 'time_vs_score', data: scatterData }];
-  }, [filteredData, effectiveThresholds]);
+  }, [filteredData, effectiveThresholds, anonymizeName]);
 
   // Calculate quadrant statistics
   const quadrantStats = useMemo(() => {
@@ -360,7 +395,7 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
 
   return (
     <div className="h-full w-full relative">
-      {/* Quadrant Controls */}
+      {/* Chart Controls */}
       <div className="absolute top-1 left-1 z-10 flex gap-2">
         <button
           onClick={() => setShowQuadrants(!showQuadrants)}
@@ -373,6 +408,17 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
         >
           <FaExpand size={10} />
           Quadrants
+        </button>
+        
+        <button
+          onClick={() => setAnonymizeNames(!anonymizeNames)}
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+            isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+          title={anonymizeNames ? "Show actual names" : "Show anonymous identifiers"}
+        >
+          {anonymizeNames ? <FaEyeSlash size={10} /> : <FaEye size={10} />}
+          {anonymizeNames ? 'Anonymous' : 'Names'}
         </button>
 
         {showQuadrants && (

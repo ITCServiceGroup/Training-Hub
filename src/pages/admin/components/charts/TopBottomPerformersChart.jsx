@@ -11,7 +11,15 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
   const isDark = theme === 'dark';
   const { getFiltersForChart, shouldFilterChart } = useDashboard();
   const [showTopPerformers, setShowTopPerformers] = useState(true);
-  const [anonymizeNames, setAnonymizeNames] = useState(true);
+  const [anonymizeNames, setAnonymizeNames] = useState(() => {
+    // Load default from localStorage (set in Settings)
+    try {
+      const savedDefault = localStorage.getItem('dashboardDefaultShowNames');
+      return savedDefault !== null ? !JSON.parse(savedDefault) : true; // true = anonymous, false = show names
+    } catch (error) {
+      return true; // Default to anonymous
+    }
+  });
   const [performerCount, setPerformerCount] = useState(10);
 
   // Enhanced anonymization function

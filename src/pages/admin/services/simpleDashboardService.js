@@ -281,11 +281,33 @@ export const duplicateDashboard = async (userId, dashboardId, newName) => {
 };
 
 /**
- * Set a dashboard as default for a user
+ * Set a dashboard as default for a user (or unset all defaults if dashboardId is null)
  */
 export const setDefaultDashboard = async (userId, dashboardId) => {
-  if (!userId || !dashboardId) {
-    throw new Error('User ID and Dashboard ID are required');
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+  
+  if (dashboardId === null) {
+    // Unset all defaults for this user
+    console.log('⭐ Unsetting all default dashboards for user:', userId);
+    const { error } = await supabase
+      .from(TABLE_NAME)
+      .update({ is_default: false })
+      .eq('user_id', userId)
+      .eq('is_template', false);
+    
+    if (error) {
+      console.error('❌ Error unsetting default dashboards:', error);
+      throw new Error(`Failed to unset default dashboards: ${error.message}`);
+    }
+    
+    console.log('✅ Unset all default dashboards');
+    return null;
+  }
+  
+  if (!dashboardId) {
+    throw new Error('Dashboard ID is required');
   }
 
   console.log('⭐ Setting dashboard as default:', dashboardId, 'for user:', userId);

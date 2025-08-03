@@ -278,13 +278,33 @@ const Dashboard = () => {
   const [tileOrder, setTileOrder] = useState([]);
 
   // Global filters state (initialized from preset or saved layout)
-  const [globalFilters, setGlobalFilters] = useState({
-    dateRange: 'last-30-days',
-    quickPreset: 'last-30-days',
-    markets: [],
-    supervisors: [],
-    ldaps: [],
-    quizTypes: []
+  const [globalFilters, setGlobalFilters] = useState(() => {
+    try {
+      // Get defaults from localStorage (set in Settings)
+      const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
+      const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
+      const defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
+      
+      return {
+        dateRange: savedTimePeriod,
+        quickPreset: savedTimePeriod,
+        markets: defaultMarkets,
+        supervisors: [],
+        ldaps: [],
+        quizTypes: []
+      };
+    } catch (error) {
+      console.error('Error loading dashboard defaults from localStorage:', error);
+      // Fallback to default values if localStorage is corrupted
+      return {
+        dateRange: 'last-30-days',
+        quickPreset: 'last-30-days',
+        markets: [],
+        supervisors: [],
+        ldaps: [],
+        quizTypes: []
+      };
+    }
   });
 
   // UI state - simplified (removed complex configuration management)
@@ -424,9 +444,52 @@ const Dashboard = () => {
   // Sync global filters with active dashboard
   useEffect(() => {
     if (activeDashboard) {
+      console.log('🔄 Active dashboard changed, checking filters:', activeDashboard.name, activeDashboard.filters);
       const dashboardFilters = activeDashboard.filters;
-      if (dashboardFilters && Object.keys(dashboardFilters).length > 0) {
+      
+      // Check if dashboard has meaningful USER-CUSTOMIZED filters (not template defaults)
+      const hasUserCustomizedFilters = dashboardFilters && 
+        Object.keys(dashboardFilters).length > 0 && 
+        (
+          // Check for non-default filter values that indicate user customization
+          (dashboardFilters.markets && dashboardFilters.markets.length > 0) ||
+          (dashboardFilters.supervisors && dashboardFilters.supervisors.length > 0) ||
+          (dashboardFilters.ldaps && dashboardFilters.ldaps.length > 0) ||
+          (dashboardFilters.quizTypes && dashboardFilters.quizTypes.length > 0) ||
+          // Custom date range indicates user customization
+          (dashboardFilters.dateRange && typeof dashboardFilters.dateRange === 'object') ||
+          // Check for old format filters that aren't defaults
+          (dashboardFilters.market && dashboardFilters.market !== 'all') ||
+          (dashboardFilters.supervisor && dashboardFilters.supervisor !== 'all')
+        );
+      
+      if (hasUserCustomizedFilters) {
+        console.log('📋 Applying user-customized dashboard filters:', dashboardFilters);
         setGlobalFilters(dashboardFilters);
+      } else {
+        // No saved dashboard filters, apply user's default settings from localStorage
+        console.log('📋 No saved dashboard filters, applying user defaults from localStorage');
+        try {
+          const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod');
+          const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
+          
+          console.log('📋 User defaults found:', { savedTimePeriod, savedMarkets });
+          
+          if (savedTimePeriod || savedMarkets) {
+            const newFilters = {
+              dateRange: savedTimePeriod || 'last-30-days',
+              quickPreset: savedTimePeriod || 'last-30-days',
+              markets: savedMarkets ? JSON.parse(savedMarkets) : [],
+              supervisors: [],
+              ldaps: [],
+              quizTypes: []
+            };
+            console.log('📋 Setting global filters to user defaults:', newFilters);
+            setGlobalFilters(newFilters);
+          }
+        } catch (error) {
+          console.error('Error applying dashboard defaults:', error);
+        }
       }
     }
   }, [activeDashboard]);
@@ -1282,11 +1345,23 @@ const Dashboard = () => {
                         // Use functional update to ensure we have the latest state
                         setGlobalFilters(prevFilters => {
                           const dashboardFilters = activeDashboard?.filters || {};
+                          
+                          // Get user defaults from localStorage
+                          let defaultTimePeriod = 'last-30-days';
+                          let defaultMarkets = [];
+                          try {
+                            defaultTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
+                            const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
+                            defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
+                          } catch (error) {
+                            console.error('Error loading user defaults during reset:', error);
+                          }
+                          
                           const newFilters = { 
                             ...dashboardFilters, 
-                            dateRange: 'last-30-days',
-                            quickPreset: 'last-30-days',
-                            markets: [],
+                            dateRange: defaultTimePeriod,
+                            quickPreset: defaultTimePeriod,
+                            markets: defaultMarkets,
                             supervisors: [],
                             ldaps: [],
                             quizTypes: []
@@ -1343,7 +1418,38 @@ const Dashboard = () => {
             onReset={() => {
               console.log('🔄 GlobalFilters component reset');
               const dashboardFilters = activeDashboard?.filters || {};
-              setGlobalFilters(dashboardFilters);
+              
+              // If dashboard has saved filters, use those; otherwise use user defaults
+              if (dashboardFilters && Object.keys(dashboardFilters).length > 0) {
+                setGlobalFilters(dashboardFilters);
+              } else {
+                // Apply user defaults from localStorage
+                try {
+                  const defaultTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
+                  const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
+                  const defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
+                  
+                  setGlobalFilters({
+                    dateRange: defaultTimePeriod,
+                    quickPreset: defaultTimePeriod,
+                    markets: defaultMarkets,
+                    supervisors: [],
+                    ldaps: [],
+                    quizTypes: []
+                  });
+                } catch (error) {
+                  console.error('Error loading user defaults during GlobalFilters reset:', error);
+                  // Fallback to system defaults
+                  setGlobalFilters({
+                    dateRange: 'last-30-days',
+                    quickPreset: 'last-30-days',
+                    markets: [],
+                    supervisors: [],
+                    ldaps: [],
+                    quizTypes: []
+                  });
+                }
+              }
               
               // Force a refresh to ensure data is fetched
               setTimeout(() => {

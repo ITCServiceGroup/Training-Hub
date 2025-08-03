@@ -301,7 +301,7 @@ const DashboardManagerDropdown = ({
                       
                       <div className="flex items-center gap-1 ml-2">
                         <button
-                          onClick={() => onSetDefaultDashboard && onSetDefaultDashboard(dashboard.id)}
+                          onClick={() => onSetDefaultDashboard && onSetDefaultDashboard(isDefault ? null : dashboard.id)}
                           className={`p-1.5 rounded transition-colors ${
                             isDefault
                               ? 'text-yellow-500'
@@ -309,7 +309,7 @@ const DashboardManagerDropdown = ({
                                 ? 'hover:bg-slate-600 text-slate-400 hover:text-yellow-500'
                                 : 'hover:bg-slate-200 text-slate-500 hover:text-yellow-500'
                           }`}
-                          title={isDefault ? 'Default dashboard' : 'Set as default'}
+                          title={isDefault ? 'Remove as default' : 'Set as default'}
                         >
                           {isDefault ? <FaStar size={12} /> : <FaRegStar size={12} />}
                         </button>

@@ -8,10 +8,16 @@ import { quizzesService } from '../../services/api/quizzes';
 import ColorPicker from '../../components/common/ColorPicker';
 import { Dialog } from '@headlessui/react';
 import { organizationService } from '../../services/api/organization';
+import MultiSelect from './components/Filters/MultiSelect';
+import SingleSelect from './components/Filters/SingleSelect';
+import { useDashboards } from './hooks/useDashboards';
 
 const SettingsPage = () => {
   const [supervisors, setSupervisors] = useState([]);
   const [markets, setMarkets] = useState([]);
+  
+  // Get user dashboards for the default dashboard setting
+  const { dashboards, loading: dashboardsLoading, setAsDefaultDashboard } = useDashboards();
   const [isLoadingOrganization, setIsLoadingOrganization] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const { user } = useAuth();
@@ -61,6 +67,14 @@ const SettingsPage = () => {
     defaultTimer: 0,
     defaultQuestionRandomization: true,
     defaultAnswerRandomization: true,
+  });
+
+  // Dashboard settings state
+  const [dashboardSettings, setDashboardSettings] = useState({
+    defaultTimePeriod: 'last-30-days',
+    defaultMarkets: [],
+    defaultShowNames: false, // false = anonymous by default, true = show names
+    defaultDashboard: '' // default dashboard template name
   });
 
   // State for archived quizzes
@@ -122,6 +136,8 @@ const SettingsPage = () => {
         return renderAccountSection();
       case 'quiz':
         return renderQuizSection();
+      case 'dashboard':
+        return renderDashboardSection();
       case 'organization':
         return renderOrganizationSection();
       case 'system':
@@ -252,9 +268,74 @@ const SettingsPage = () => {
       defaultAnswerRandomization: savedARand !== null ? JSON.parse(savedARand) : prev.defaultAnswerRandomization,
     }));
 
+    // Load dashboard settings from localStorage
+    try {
+      const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod');
+      const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
+      const savedShowNames = localStorage.getItem('dashboardDefaultShowNames');
+      const savedDefaultDashboard = localStorage.getItem('dashboardDefaultDashboard');
+
+      setDashboardSettings(prev => ({
+        ...prev,
+        defaultTimePeriod: savedTimePeriod || prev.defaultTimePeriod,
+        defaultMarkets: savedMarkets ? JSON.parse(savedMarkets) : prev.defaultMarkets,
+        defaultShowNames: savedShowNames !== null ? JSON.parse(savedShowNames) : prev.defaultShowNames,
+        defaultDashboard: savedDefaultDashboard || prev.defaultDashboard,
+      }));
+    } catch (error) {
+      console.error('Error loading dashboard settings from localStorage:', error);
+    }
+
     fetchArchivedQuizzes();
     fetchOrganizationData();
   }, [fetchArchivedQuizzes, fetchOrganizationData]);
+
+  // Listen for localStorage changes from other parts of the app (like dashboard dropdown)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'dashboardDefaultDashboard' && e.newValue !== null) {
+        setDashboardSettings(prev => ({
+          ...prev,
+          defaultDashboard: e.newValue
+        }));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Validate that the stored default dashboard still exists when dashboards change
+  useEffect(() => {
+    if (dashboards.length > 0) {
+      if (dashboardSettings.defaultDashboard) {
+        const defaultExists = dashboards.some(dashboard => dashboard.name === dashboardSettings.defaultDashboard);
+        if (!defaultExists) {
+          // The stored default dashboard no longer exists, set to first available dashboard
+          const firstDashboard = dashboards[0];
+          console.log('Default dashboard no longer exists, setting to first available:', firstDashboard.name);
+          setDashboardSettings(prev => ({ ...prev, defaultDashboard: firstDashboard.name }));
+          try {
+            localStorage.setItem('dashboardDefaultDashboard', firstDashboard.name);
+          } catch (error) {
+            console.error("Failed to update default dashboard in localStorage", error);
+          }
+        }
+      } else {
+        // No default set, use the first dashboard or the one marked as default
+        const defaultDashboard = dashboards.find(d => d.is_default) || dashboards[0];
+        if (defaultDashboard) {
+          console.log('No default set, using:', defaultDashboard.name);
+          setDashboardSettings(prev => ({ ...prev, defaultDashboard: defaultDashboard.name }));
+          try {
+            localStorage.setItem('dashboardDefaultDashboard', defaultDashboard.name);
+          } catch (error) {
+            console.error("Failed to set default dashboard in localStorage", error);
+          }
+        }
+      }
+    }
+  }, [dashboards]);
 
   useEffect(() => {
     if (user) {
@@ -292,6 +373,47 @@ const SettingsPage = () => {
         }
       } catch (error) {
         console.error("Failed to save quiz setting preference to localStorage", error);
+      }
+
+      return updatedSettings;
+    });
+  };
+
+  const handleDashboardSettingChange = async (name, value) => {
+    setDashboardSettings(prevSettings => {
+      const updatedSettings = {
+        ...prevSettings,
+        [name]: value,
+      };
+
+      try {
+        if (name === 'defaultTimePeriod') {
+          localStorage.setItem('dashboardDefaultTimePeriod', value);
+        } else if (name === 'defaultMarkets') {
+          localStorage.setItem('dashboardDefaultMarkets', JSON.stringify(value));
+        } else if (name === 'defaultShowNames') {
+          localStorage.setItem('dashboardDefaultShowNames', JSON.stringify(value));
+        } else if (name === 'defaultDashboard') {
+          // Update the database to sync with dashboard dropdown
+          // The setAsDefaultDashboard function will also update localStorage, so we don't need to do it here
+          if (value) {
+            // Find the dashboard ID by name
+            const selectedDashboard = dashboards.find(d => d.name === value);
+            if (selectedDashboard) {
+              setAsDefaultDashboard(selectedDashboard.id)
+                .then(() => {
+                  console.log('✅ Updated default dashboard in database from Settings');
+                })
+                .catch(error => {
+                  console.error('❌ Failed to update default dashboard in database:', error);
+                  // If database update fails, still update localStorage
+                  localStorage.setItem('dashboardDefaultDashboard', value);
+                });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save dashboard setting preference to localStorage", error);
       }
 
       return updatedSettings;
@@ -843,6 +965,157 @@ const SettingsPage = () => {
     </section>
   );
 
+  const renderDashboardSection = () => (
+    <section className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+      <h2 className="text-xl font-medium mb-4 dark:text-white">Dashboard Defaults</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+        Set default values for Dashboard Global Filters. These will be applied when you first visit the Dashboard, but can be changed at any time.
+      </p>
+
+      <div className="space-y-6">
+        {/* Default Time Period */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+            Default Time Period
+          </label>
+          <div className="w-64">
+            <SingleSelect
+              value={dashboardSettings.defaultTimePeriod}
+              onChange={(value) => handleDashboardSettingChange('defaultTimePeriod', value)}
+              options={[
+                { value: 'today', label: 'Today' },
+                { value: 'yesterday', label: 'Yesterday' },
+                { value: 'last-7-days', label: 'Last 7 Days' },
+                { value: 'last-30-days', label: 'Last 30 Days' },
+                { value: 'this-month', label: 'This Month' },
+                { value: 'this-quarter', label: 'This Quarter' },
+                { value: 'this-year', label: 'This Year' },
+                { value: 'all-time', label: 'All Time' },
+                { value: 'custom', label: 'Custom' },
+              ]}
+              placeholder="Select default time period"
+              className="w-full"
+            />
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            This will be the default time range when you first load the Dashboard.
+          </p>
+        </div>
+
+        {/* Default Markets */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+            Default Markets
+          </label>
+          <div className="w-64">
+            <MultiSelect
+              type="markets"
+              value={dashboardSettings.defaultMarkets}
+              onChange={(value) => handleDashboardSettingChange('defaultMarkets', value)}
+              hideLabel={true}
+            />
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            Pre-select these markets when the Dashboard loads. Leave empty to show all markets by default.
+          </p>
+        </div>
+
+        {/* Default Names Display */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+            Names Display
+          </label>
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="defaultShowNames"
+              checked={dashboardSettings.defaultShowNames}
+              onChange={(e) => handleDashboardSettingChange('defaultShowNames', e.target.checked)}
+              className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+            />
+            <div className="ml-3">
+              <label htmlFor="defaultShowNames" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                Show Names by Default
+              </label>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                When enabled, dashboard charts will show actual names instead of anonymous identifiers by default. This affects Top/Bottom Performers, Score Trend (Individual mode), and Time vs Score charts.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Default Dashboard */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+            Default Dashboard
+          </label>
+          <div className="w-64">
+            <SingleSelect
+              value={dashboardSettings.defaultDashboard}
+              onChange={(value) => handleDashboardSettingChange('defaultDashboard', value)}
+              options={dashboards.map(dashboard => ({
+                value: dashboard.name,
+                label: dashboard.name
+              }))}
+              placeholder={
+                dashboardsLoading 
+                  ? "Loading dashboards..." 
+                  : dashboards.length === 0 
+                    ? "No dashboards available" 
+                    : "Select default dashboard"
+              }
+              disabled={dashboardsLoading || dashboards.length === 0}
+              className="w-full"
+            />
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            {dashboards.length === 0 && !dashboardsLoading 
+              ? "Create dashboards on the Dashboard page to set a default here."
+              : "When set, this dashboard will automatically load when you visit the Dashboard page. You can also set the default by clicking the star icon next to a dashboard name in the dashboard dropdown."
+            }
+          </p>
+        </div>
+
+        {/* Reset to Defaults */}
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-600">
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Reset Options</h3>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                handleDashboardSettingChange('defaultTimePeriod', 'last-30-days');
+                handleDashboardSettingChange('defaultMarkets', []);
+                handleDashboardSettingChange('defaultShowNames', false);
+                // Don't reset defaultDashboard since there's no "no default" option
+              }}
+              className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Reset to System Defaults
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            This will reset the time period to "Last 30 Days", clear all default markets, and set names to anonymous by default.
+          </p>
+        </div>
+
+        {/* Settings Note */}
+        <div className="mt-6 rounded-md bg-primary/10 dark:bg-primary/20 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-primary dark:text-primary">
+                Dashboard defaults are automatically saved when changed. These settings take effect the next time you visit the Dashboard and can always be overridden using the Dashboard's filter controls.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
   const renderSystemSection = () => (
     <section className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
       <h2 className="text-xl font-medium mb-4 dark:text-white">System Settings</h2>
@@ -1085,6 +1358,18 @@ const SettingsPage = () => {
               }`}
             >
               Quiz Preferences
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => navigateToSection('dashboard')}
+              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                activeSection === 'dashboard'
+                  ? 'bg-primary text-white'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              Dashboard Defaults
             </button>
           </li>
           <li>

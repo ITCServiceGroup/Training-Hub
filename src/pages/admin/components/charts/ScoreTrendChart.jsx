@@ -23,8 +23,13 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     return saved && ['aggregate', 'individual', 'cohort'].includes(saved) ? saved : 'aggregate';
   });
   const [anonymizeNames, setAnonymizeNames] = useState(() => {
-    const saved = localStorage.getItem('scoreTrendAnonymizeNames');
-    return saved !== null ? JSON.parse(saved) : true;
+    // Load default from localStorage (set in Settings)
+    try {
+      const savedDefault = localStorage.getItem('dashboardDefaultShowNames');
+      return savedDefault !== null ? !JSON.parse(savedDefault) : true; // true = anonymous, false = show names
+    } catch (error) {
+      return true; // Default to anonymous
+    }
   });
 
   // Save analysis mode to localStorage when it changes
@@ -32,10 +37,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     localStorage.setItem('scoreTrendAnalysisMode', analysisMode);
   }, [analysisMode]);
 
-  // Save anonymization preference to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('scoreTrendAnonymizeNames', JSON.stringify(anonymizeNames));
-  }, [anonymizeNames]);
+  // Note: anonymizeNames now uses global dashboard defaults from Settings
 
   // Enhanced anonymization function
   const anonymizeName = (ldap) => {

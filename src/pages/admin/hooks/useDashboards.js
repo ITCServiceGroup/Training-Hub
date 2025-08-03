@@ -264,33 +264,70 @@ export const useDashboards = () => {
   }, [activeDashboard]);
 
   /**
-   * Set a dashboard as default
+   * Set a dashboard as default (or unset if dashboardId is null)
    */
   const setAsDefaultDashboard = useCallback(async (dashboardId) => {
-    if (!user?.id || !dashboardId) return;
+    if (!user?.id) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      console.log('⭐ Setting dashboard as default:', dashboardId);
-      const updatedDashboard = await setDefaultDashboard(user.id, dashboardId);
+      if (dashboardId === null) {
+        // Unset all defaults
+        console.log('⭐ Unsetting default dashboard');
+        await setDefaultDashboard(user.id, null);
+        
+        // Update the dashboards list to reflect no default
+        setDashboards(prevDashboards =>
+          prevDashboards.map(dashboard => ({
+            ...dashboard,
+            is_default: false
+          }))
+        );
 
-      // Update the dashboards list to reflect the new default status
-      setDashboards(prevDashboards =>
-        prevDashboards.map(dashboard => ({
-          ...dashboard,
-          is_default: dashboard.id === dashboardId
-        }))
-      );
+        // Update active dashboard if it was the default
+        if (activeDashboard?.is_default) {
+          setActiveDashboard(prev => ({ ...prev, is_default: false }));
+        }
 
-      // If this is the active dashboard, update it too
-      if (activeDashboard?.id === dashboardId) {
-        setActiveDashboard(prev => ({ ...prev, is_default: true }));
+        // Clear localStorage
+        try {
+          localStorage.setItem('dashboardDefaultDashboard', '');
+        } catch (error) {
+          console.warn('Failed to update localStorage default dashboard setting:', error);
+        }
+
+        console.log('✅ Default dashboard unset');
+        return null;
+      } else {
+        // Set new default
+        console.log('⭐ Setting dashboard as default:', dashboardId);
+        const updatedDashboard = await setDefaultDashboard(user.id, dashboardId);
+
+        // Update the dashboards list to reflect the new default status
+        setDashboards(prevDashboards =>
+          prevDashboards.map(dashboard => ({
+            ...dashboard,
+            is_default: dashboard.id === dashboardId
+          }))
+        );
+
+        // If this is the active dashboard, update it too
+        if (activeDashboard?.id === dashboardId) {
+          setActiveDashboard(prev => ({ ...prev, is_default: true }));
+        }
+
+        // Update localStorage to sync with Settings page
+        try {
+          localStorage.setItem('dashboardDefaultDashboard', updatedDashboard.name);
+        } catch (error) {
+          console.warn('Failed to update localStorage default dashboard setting:', error);
+        }
+
+        console.log('✅ Dashboard set as default:', updatedDashboard.name);
+        return updatedDashboard;
       }
-
-      console.log('✅ Dashboard set as default:', updatedDashboard.name);
-      return updatedDashboard;
     } catch (err) {
       console.error('❌ Error setting dashboard as default:', err);
       setError('Failed to set dashboard as default: ' + err.message);
