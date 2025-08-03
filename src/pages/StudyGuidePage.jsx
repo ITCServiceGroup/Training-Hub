@@ -499,7 +499,11 @@ const StudyGuidePage = () => {
           {/* Main content area: Show list or viewer */}
           <div
             className={`w-full ${isFullscreen ? 'md:ml-4' : 'md:ml-8'} ${isFullscreen ? 'pr-4' : 'pr-8'} mb-4`}
-            style={{ overflow: 'visible !important' }}
+            style={{ 
+              overflow: studyGuideId ? 'visible !important' : 'auto',
+              height: studyGuideId ? 'auto' : 'calc(100vh - 240px)',
+              maxHeight: studyGuideId ? 'none' : 'calc(100vh - 240px)'
+            }}
           >
             {studyGuideId ? (
               <StudyGuideViewer

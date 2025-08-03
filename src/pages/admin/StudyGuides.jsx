@@ -1064,7 +1064,7 @@ const StudyGuides = () => {
           maxHeight: '100%',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'auto'
         }}
       >
         <div className="flex-grow flex flex-col" style={{ flex: '1 1 auto' }}>
