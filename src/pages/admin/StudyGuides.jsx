@@ -1035,15 +1035,15 @@ const StudyGuides = () => {
 
   return (
     /* Removed gray background (bg-gray-50 dark:bg-slate-800) and padding (p-6) from this outer div */
-    <div className="rounded-lg shadow dark:shadow-lg" style={{ height: 'calc(100vh - 110px)', overflow: 'hidden' }}>
+    <div className="rounded-lg shadow dark:shadow-lg" style={{ height: 'calc(100vh - 180px)', overflow: 'hidden' }}>
       <div
         className="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-sm dark:shadow-md"
         style={{
-          height: '100%', /* Changed to 100% to match parent exactly */
-          minHeight: '700px',
+          height: '100%',
+          maxHeight: '100%',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'auto' /* Added overflow auto to enable scrolling */
+          overflow: 'hidden'
         }}
       >
         <div className="flex-grow flex flex-col" style={{ flex: '1 1 auto' }}>

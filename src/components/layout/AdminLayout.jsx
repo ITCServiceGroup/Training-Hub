@@ -66,8 +66,8 @@ const AdminLayout = () => {
         setResetStudyGuideSelection,
       }}
     >
-      <div className="flex flex-1 overflow-hidden w-full m-0 p-0">
-        <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white pt-4 flex-shrink-0 mt-0 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+      <div className="flex flex-1 overflow-hidden w-full m-0 p-0 min-h-0">
+        <div className="w-[250px] bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col">
           <ul className="list-none p-0 m-0">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
@@ -125,7 +125,7 @@ const AdminLayout = () => {
           </ul>
         </div>
 
-        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto h-[calc(100vh-73px)]">
+        <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto min-h-0">
           {/* Render the child routes */}
           <Outlet />
         </div>

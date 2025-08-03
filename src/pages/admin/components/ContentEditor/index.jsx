@@ -787,7 +787,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ position: 'relative', paddingBottom: '60px' }}>
+    <div className="flex flex-col" style={{ position: 'relative', paddingBottom: '60px', height: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)', overflow: 'hidden' }}>
       {/* Header section with title, description and publish controls */}
       <div className="flex flex-col w-full gap-2 mb-4">
         {/* Title and publish controls */}
@@ -1071,7 +1071,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
   }, []);
 
   return (
-    <div className="content-editor flex flex-col gap-2 w-full flex-grow h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 130px)' }}>
+    <div className="content-editor flex flex-col gap-2 w-full flex-grow overflow-auto" style={{ height: 'calc(100% - 120px)' }}>
       <ToolbarZIndexProvider>
         <Editor
           resolver={{

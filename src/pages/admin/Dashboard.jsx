@@ -987,16 +987,16 @@ const Dashboard = () => {
     <DashboardProvider activeDashboardId={activeDashboard?.id}>
       <div className="space-y-6">
         {/* Streamlined Dashboard Header */}
-        <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6">
-          <div className="space-y-4 mb-6">
+        <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-4">
+          <div className="space-y-2 mb-4">
             {/* Analytics Dashboard Title */}
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
               Analytics Dashboard
             </h1>
             
             {/* Dashboard Controls Row */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
                 {/* Dashboard Manager Dropdown */}
                 <DashboardManagerDropdown
                 dashboards={dashboards}
@@ -1077,11 +1077,11 @@ const Dashboard = () => {
               </div>
 
               {/* Global Filters */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
                   Global Filters
                 </label>
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                   {/* Time Period Filter */}
                   <div className="flex flex-col">
                     <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
