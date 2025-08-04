@@ -5,7 +5,6 @@ import { useDashboards } from './hooks/useDashboards';
 import { quizResultsService } from '../../services/api/quizResults';
 import DashboardTile from './components/DashboardTile';
 import TileFilterPopover from './components/TileFilterPopover';
-import GlobalFilters from './components/GlobalFilters';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/themes/light.css';
 
@@ -985,20 +984,31 @@ const Dashboard = () => {
 
   return (
     <DashboardProvider activeDashboardId={activeDashboard?.id}>
-      <div className="space-y-6">
-        {/* Streamlined Dashboard Header */}
+      <div className="space-y-4">
+        {/* Compact Dashboard Header */}
         <div className="bg-slate-100 dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-600 p-4">
-          <div className="space-y-2 mb-4">
-            {/* Analytics Dashboard Title */}
+          {/* Title Row */}
+          <div className="flex items-center justify-between mb-2">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
               Analytics Dashboard
             </h1>
-            
-            {/* Dashboard Controls Row */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {/* Dashboard Manager Dropdown */}
-                <DashboardManagerDropdown
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Global Filters:</span>
+              <div className="w-40"></div>
+              <div className="w-40"></div>
+              <div className="w-40"></div>
+              <div className="w-40"></div>
+              <div className="w-20"></div>
+              <div className="w-10"></div>
+              <div></div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between gap-4 mb-2">
+            {/* Left Side - Controls */}
+            <div className="flex items-center gap-4">
+              {/* Dashboard Manager Dropdown */}
+              <DashboardManagerDropdown
                 dashboards={dashboards}
                 activeDashboard={activeDashboard}
                 onDashboardChange={switchToDashboard}
@@ -1035,8 +1045,6 @@ const Dashboard = () => {
                 }}
               />
 
-
-
               {/* Export Button */}
               <ExportButton
                 targetSelector=".dashboard-resizable-grid"
@@ -1056,7 +1064,7 @@ const Dashboard = () => {
               {/* Data Quality Button */}
               <button
                 onClick={() => setShowDataQualityModal(true)}
-                className="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
                 style={{
                   backgroundColor: 'var(--primary-color)',
                   '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
@@ -1074,300 +1082,142 @@ const Dashboard = () => {
                 </svg>
                 Data Quality
               </button>
+            </div>
+
+            {/* Right Side - Global Filters */}
+            <div className="flex items-center gap-3 flex-1 justify-end">
+              {/* Time Period Filter */}
+              <div className="w-40">
+                <SingleSelect
+                  value={globalFilters.quickPreset || 'last-30-days'}
+                  onChange={(preset) => {
+                      console.log('🔄 Time period filter changed to:', preset);
+                      
+                      // Use functional update to ensure we have the latest state
+                      setGlobalFilters(prevFilters => {
+                        let newFilters = { ...prevFilters, quickPreset: preset };
+                        
+                        // Apply preset date ranges
+                        switch (preset) {
+                          case 'today':
+                            newFilters.dateRange = 'today';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'yesterday':
+                            newFilters.dateRange = 'yesterday';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'last-7-days':
+                            newFilters.dateRange = 'last-7-days';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'last-30-days':
+                            newFilters.dateRange = 'last-30-days';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'this-month':
+                            newFilters.dateRange = 'this-month';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'this-quarter':
+                            newFilters.dateRange = 'this-quarter';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'this-year':
+                            newFilters.dateRange = 'this-year';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'all-time':
+                            newFilters.dateRange = 'all-time';
+                            // Clear any custom date range properties
+                            delete newFilters.startDate;
+                            delete newFilters.endDate;
+                            break;
+                          case 'custom':
+                            newFilters.dateRange = {
+                              startDate: null,
+                              endDate: null
+                            };
+                            break;
+                          default:
+                            break;
+                        }
+                        
+                        console.log('📝 Updated filters:', newFilters);
+                        
+                        // Force a refresh to ensure data is fetched
+                        setTimeout(() => {
+                          setRefreshTrigger(prev => prev + 1);
+                        }, 100);
+                        
+                        return newFilters;
+                      });
+                    }}
+                    options={[
+                      { value: 'today', label: 'Today' },
+                      { value: 'yesterday', label: 'Yesterday' },
+                      { value: 'last-7-days', label: 'Last 7 Days' },
+                      { value: 'last-30-days', label: 'Last 30 Days' },
+                      { value: 'this-month', label: 'This Month' },
+                      { value: 'this-quarter', label: 'This Quarter' },
+                      { value: 'this-year', label: 'This Year' },
+                      { value: 'all-time', label: 'All Time' },
+                      { value: 'custom', label: 'Custom' }
+                    ]}
+                    placeholder="Time Period"
+                    className="w-full"
+                  />
               </div>
 
-              {/* Global Filters */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Global Filters
-                </label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Time Period Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Time Period
-                    </label>
-                    <div className="w-32">
-                      <SingleSelect
-                        value={globalFilters.quickPreset || 'last-30-days'}
-                        onChange={(preset) => {
-                          console.log('🔄 Time period filter changed to:', preset);
-                          
-                          // Use functional update to ensure we have the latest state
-                          setGlobalFilters(prevFilters => {
-                            let newFilters = { ...prevFilters, quickPreset: preset };
-                            
-                            // Apply preset date ranges
-                            switch (preset) {
-                              case 'today':
-                                newFilters.dateRange = 'today';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'yesterday':
-                                newFilters.dateRange = 'yesterday';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'last-7-days':
-                                newFilters.dateRange = 'last-7-days';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'last-30-days':
-                                newFilters.dateRange = 'last-30-days';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'this-month':
-                                newFilters.dateRange = 'this-month';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'this-quarter':
-                                newFilters.dateRange = 'this-quarter';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'this-year':
-                                newFilters.dateRange = 'this-year';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'all-time':
-                                newFilters.dateRange = 'all-time';
-                                // Clear any custom date range properties
-                                delete newFilters.startDate;
-                                delete newFilters.endDate;
-                                break;
-                              case 'custom':
-                                newFilters.dateRange = {
-                                  startDate: null,
-                                  endDate: null
-                                };
-                                break;
-                              default:
-                                break;
-                            }
-                            
-                            console.log('📝 Updated filters:', newFilters);
-                            
-                            // Force a refresh to ensure data is fetched
-                            setTimeout(() => {
-                              setRefreshTrigger(prev => prev + 1);
-                            }, 100);
-                            
-                            return newFilters;
-                          });
-                        }}
-                        options={[
-                          { value: 'today', label: 'Today' },
-                          { value: 'yesterday', label: 'Yesterday' },
-                          { value: 'last-7-days', label: 'Last 7 Days' },
-                          { value: 'last-30-days', label: 'Last 30 Days' },
-                          { value: 'this-month', label: 'This Month' },
-                          { value: 'this-quarter', label: 'This Quarter' },
-                          { value: 'this-year', label: 'This Year' },
-                          { value: 'all-time', label: 'All Time' },
-                          { value: 'custom', label: 'Custom' }
-                        ]}
-                        placeholder="Select time period"
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Custom Date Range Picker */}
-                  {globalFilters.quickPreset === 'custom' && (
-                    <div className="flex flex-col date-range-container">
-                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                        Date Range
-                      </label>
-                      <div className="w-38 date-range-wrapper">
-                        <Flatpickr
-                          value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
-                            ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
-                            : []}
-                          onChange={(selectedDates) => {
-                            console.log('📅 Custom date range changed:', selectedDates);
-                            
-                            // Use functional update to ensure we have the latest state
-                            setGlobalFilters(prevFilters => {
-                              let newFilters = { ...prevFilters };
-                              
-                              if (selectedDates.length === 2) {
-                                newFilters.dateRange = {
-                                  startDate: selectedDates[0].toISOString().split('T')[0],
-                                  endDate: selectedDates[1].toISOString().split('T')[0]
-                                };
-                              } else if (selectedDates.length === 1) {
-                                // First date selected, clear end date
-                                newFilters.dateRange = {
-                                  startDate: selectedDates[0].toISOString().split('T')[0],
-                                  endDate: null
-                                };
-                              } else if (selectedDates.length === 0) {
-                                // Clear both dates
-                                newFilters.dateRange = {
-                                  startDate: null,
-                                  endDate: null
-                                };
-                              }
-                              
-                              console.log('📝 Updated filters from date picker:', newFilters);
-                              
-                              // Force a refresh to ensure data is fetched
-                              setTimeout(() => {
-                                setRefreshTrigger(prev => prev + 1);
-                              }, 100);
-                              
-                              return newFilters;
-                            });
-                          }}
-                          placeholder="Select date range"
-                          className="flatpickr-input"
-                          options={{
-                            mode: 'range',
-                            dateFormat: 'm/d/y',
-                            maxDate: 'today',
-                            clickOpens: true,
-                            allowInput: false,
-                            disableMobile: true,
-                            onReady: (selectedDates, dateStr, instance) => {
-                              instance.element.setAttribute('autocomplete', 'off');
-                              instance.element.setAttribute('readonly', 'readonly');
-                              // Set initial dates if they exist
-                              if (globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate) {
-                                instance.setDate([
-                                  new Date(globalFilters.dateRange.startDate),
-                                  new Date(globalFilters.dateRange.endDate)
-                                ], false);
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Market Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Market
-                    </label>
-                    <div className="w-40">
-                      <MultiSelect
-                        type="markets"
-                        value={globalFilters.markets || []}
-                        onChange={(value) => {
-                          console.log('🔄 Markets filter changed:', value);
-                          setGlobalFilters(prevFilters => ({ ...prevFilters, markets: value || [] }));
-                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
-                        }}
-                        hideLabel={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Supervisor Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Supervisor
-                    </label>
-                    <div className="w-40">
-                      <MultiSelect
-                        type="supervisors"
-                        value={globalFilters.supervisors || []}
-                        onChange={(value) => {
-                          console.log('🔄 Supervisors filter changed:', value);
-                          setGlobalFilters(prevFilters => ({ ...prevFilters, supervisors: value || [] }));
-                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
-                        }}
-                        hideLabel={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* LDAP Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      LDAP
-                    </label>
-                    <div className="w-40">
-                      <MultiSelect
-                        type="ldaps"
-                        value={globalFilters.ldaps || []}
-                        onChange={(value) => {
-                          console.log('🔄 LDAP filter changed:', value);
-                          setGlobalFilters(prevFilters => ({ ...prevFilters, ldaps: value || [] }));
-                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
-                        }}
-                        hideLabel={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Quiz Type Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Quiz Type
-                    </label>
-                    <div className="w-40">
-                      <MultiSelect
-                        type="quizTypes"
-                        value={globalFilters.quizTypes || []}
-                        onChange={(value) => {
-                          console.log('🔄 Quiz Types filter changed:', value);
-                          setGlobalFilters(prevFilters => ({ ...prevFilters, quizTypes: value || [] }));
-                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
-                        }}
-                        hideLabel={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Reset Button */}
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 opacity-0">
-                      Reset
-                    </label>
-                    <button
-                      onClick={() => {
-                        console.log('🔄 Resetting filters');
+              {/* Custom Date Range Picker */}
+              {globalFilters.quickPreset === 'custom' && (
+                <div className="w-48 date-range-container">
+                  <div className="date-range-wrapper">
+                    <Flatpickr
+                      value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
+                        ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
+                        : []}
+                      onChange={(selectedDates) => {
+                        console.log('📅 Custom date range changed:', selectedDates);
                         
                         // Use functional update to ensure we have the latest state
                         setGlobalFilters(prevFilters => {
-                          const dashboardFilters = activeDashboard?.filters || {};
+                          let newFilters = { ...prevFilters };
                           
-                          // Get user defaults from localStorage
-                          let defaultTimePeriod = 'last-30-days';
-                          let defaultMarkets = [];
-                          try {
-                            defaultTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
-                            const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
-                            defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
-                          } catch (error) {
-                            console.error('Error loading user defaults during reset:', error);
+                          if (selectedDates.length === 2) {
+                            newFilters.dateRange = {
+                              startDate: selectedDates[0].toISOString().split('T')[0],
+                              endDate: selectedDates[1].toISOString().split('T')[0]
+                            };
+                          } else if (selectedDates.length === 1) {
+                            // First date selected, clear end date
+                            newFilters.dateRange = {
+                              startDate: selectedDates[0].toISOString().split('T')[0],
+                              endDate: null
+                            };
+                          } else if (selectedDates.length === 0) {
+                            // Clear both dates
+                            newFilters.dateRange = {
+                              startDate: null,
+                              endDate: null
+                            };
                           }
                           
-                          const newFilters = { 
-                            ...dashboardFilters, 
-                            dateRange: defaultTimePeriod,
-                            quickPreset: defaultTimePeriod,
-                            markets: defaultMarkets,
-                            supervisors: [],
-                            ldaps: [],
-                            quizTypes: []
-                          };
-                          
-                          console.log('📝 Reset filters to:', newFilters);
+                          console.log('📝 Updated filters from date picker:', newFilters);
                           
                           // Force a refresh to ensure data is fetched
                           setTimeout(() => {
@@ -1377,93 +1227,164 @@ const Dashboard = () => {
                           return newFilters;
                         });
                       }}
-                      className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
-                      style={{
-                        backgroundColor: 'var(--primary-color)',
-                        '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                      placeholder="Select date range"
+                      className="flatpickr-input"
+                      options={{
+                        mode: 'range',
+                        dateFormat: 'm/d/y',
+                        maxDate: 'today',
+                        clickOpens: true,
+                        allowInput: false,
+                        disableMobile: true,
+                        onReady: (selectedDates, dateStr, instance) => {
+                          instance.element.setAttribute('autocomplete', 'off');
+                          instance.element.setAttribute('readonly', 'readonly');
+                          // Set initial dates if they exist
+                          if (globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate) {
+                            instance.setDate([
+                              new Date(globalFilters.dateRange.startDate),
+                              new Date(globalFilters.dateRange.endDate)
+                            ], false);
+                          }
+                        }
                       }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = 'var(--primary-dark)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'var(--primary-color)';
-                      }}
-                    >
-                      Reset
-                    </button>
+                    />
                   </div>
                 </div>
+              )}
+
+              {/* Market Filter */}
+              <div className="w-40">
+                <MultiSelect
+                  type="markets"
+                  value={globalFilters.markets || []}
+                  onChange={(value) => {
+                    console.log('🔄 Markets filter changed:', value);
+                    setGlobalFilters(prevFilters => ({ ...prevFilters, markets: value || [] }));
+                    setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                  }}
+                  hideLabel={true}
+                  placeholder="Market"
+                />
+              </div>
+
+              {/* Supervisor Filter */}
+              <div className="w-40">
+                <MultiSelect
+                  type="supervisors"
+                  value={globalFilters.supervisors || []}
+                  onChange={(value) => {
+                    console.log('🔄 Supervisors filter changed:', value);
+                    setGlobalFilters(prevFilters => ({ ...prevFilters, supervisors: value || [] }));
+                    setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                  }}
+                  hideLabel={true}
+                  placeholder="Supervisor"
+                />
+              </div>
+
+              {/* LDAP Filter */}
+              <div className="w-40">
+                <MultiSelect
+                  type="ldaps"
+                  value={globalFilters.ldaps || []}
+                  onChange={(value) => {
+                    console.log('🔄 LDAP filter changed:', value);
+                    setGlobalFilters(prevFilters => ({ ...prevFilters, ldaps: value || [] }));
+                    setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                  }}
+                  hideLabel={true}
+                  placeholder="LDAP"
+                />
+              </div>
+
+              {/* Quiz Type Filter */}
+              <div className="w-40">
+                <MultiSelect
+                  type="quizTypes"
+                  value={globalFilters.quizTypes || []}
+                  onChange={(value) => {
+                    console.log('🔄 Quiz Types filter changed:', value);
+                    setGlobalFilters(prevFilters => ({ ...prevFilters, quizTypes: value || [] }));
+                    setTimeout(() => setRefreshTrigger(prev => prev + 1), 100);
+                  }}
+                  hideLabel={true}
+                  placeholder="Quiz Type"
+                />
+              </div>
+
+              {/* Reset Button */}
+              <div>
+                <button
+                  onClick={() => {
+                    console.log('🔄 Resetting filters');
+                    
+                    // Use functional update to ensure we have the latest state
+                    setGlobalFilters(prevFilters => {
+                      const dashboardFilters = activeDashboard?.filters || {};
+                      
+                      // Get user defaults from localStorage
+                      let defaultTimePeriod = 'last-30-days';
+                      let defaultMarkets = [];
+                      try {
+                        defaultTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
+                        const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
+                        defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
+                      } catch (error) {
+                        console.error('Error loading user defaults during reset:', error);
+                      }
+                      
+                      const newFilters = { 
+                        ...dashboardFilters, 
+                        dateRange: defaultTimePeriod,
+                        quickPreset: defaultTimePeriod,
+                        markets: defaultMarkets,
+                        supervisors: [],
+                        ldaps: [],
+                        quizTypes: []
+                      };
+                      
+                      console.log('📝 Reset filters to:', newFilters);
+                      
+                      // Force a refresh to ensure data is fetched
+                      setTimeout(() => {
+                        setRefreshTrigger(prev => prev + 1);
+                      }, 100);
+                      
+                      return newFilters;
+                    });
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
+                  style={{
+                    backgroundColor: 'var(--primary-color)',
+                    '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-dark)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-color)';
+                  }}
+                >
+                  Reset
+                </button>
               </div>
             </div>
-            
-            {/* Dashboard Description */}
-            {activeDashboard?.description && (
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                {activeDashboard.description}
-              </p>
-            )}
           </div>
-
-          <GlobalFilters
-            filters={globalFilters}
-            onFiltersChange={(newFilters) => {
-              console.log('🔄 GlobalFilters component changed filters:', newFilters);
-              setGlobalFilters(newFilters);
-              
-              // Force a refresh to ensure data is fetched
-              setTimeout(() => {
-                setRefreshTrigger(prev => prev + 1);
-              }, 100);
-            }}
-            onReset={() => {
-              console.log('🔄 GlobalFilters component reset');
-              const dashboardFilters = activeDashboard?.filters || {};
-              
-              // If dashboard has saved filters, use those; otherwise use user defaults
-              if (dashboardFilters && Object.keys(dashboardFilters).length > 0) {
-                setGlobalFilters(dashboardFilters);
-              } else {
-                // Apply user defaults from localStorage
-                try {
-                  const defaultTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
-                  const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
-                  const defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
-                  
-                  setGlobalFilters({
-                    dateRange: defaultTimePeriod,
-                    quickPreset: defaultTimePeriod,
-                    markets: defaultMarkets,
-                    supervisors: [],
-                    ldaps: [],
-                    quizTypes: []
-                  });
-                } catch (error) {
-                  console.error('Error loading user defaults during GlobalFilters reset:', error);
-                  // Fallback to system defaults
-                  setGlobalFilters({
-                    dateRange: 'last-30-days',
-                    quickPreset: 'last-30-days',
-                    markets: [],
-                    supervisors: [],
-                    ldaps: [],
-                    quizTypes: []
-                  });
-                }
-              }
-              
-              // Force a refresh to ensure data is fetched
-              setTimeout(() => {
-                setRefreshTrigger(prev => prev + 1);
-              }, 100);
-            }}
-          />
+          
+          {/* Dashboard Description */}
+          {activeDashboard?.description && (
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
+              {activeDashboard.description}
+            </p>
+          )}
         </div>
 
         {/* Drill-down Breadcrumbs */}
         <DrillDownBreadcrumbs />
 
-      {/* Dashboard Grid */}
-      <div className="bg-slate-100 dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-600 p-6">
+        {/* Dashboard Grid */}
+        <div className="bg-slate-100 dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-600 p-4">
 
         {error ? (
           <div className="p-8 text-center">
