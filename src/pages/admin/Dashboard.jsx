@@ -987,7 +987,7 @@ const Dashboard = () => {
     <DashboardProvider activeDashboardId={activeDashboard?.id}>
       <div className="space-y-6">
         {/* Streamlined Dashboard Header */}
-        <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-4">
+        <div className="bg-slate-100 dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-600 p-4">
           <div className="space-y-2 mb-4">
             {/* Analytics Dashboard Title */}
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
@@ -1069,7 +1069,7 @@ const Dashboard = () => {
                 }}
                 title="View data quality diagnostics"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ background: 'transparent' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Data Quality
@@ -1463,7 +1463,7 @@ const Dashboard = () => {
         <DrillDownBreadcrumbs />
 
       {/* Dashboard Grid */}
-      <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-600 p-6">
+      <div className="bg-slate-100 dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-600 p-6">
 
         {error ? (
           <div className="p-8 text-center">

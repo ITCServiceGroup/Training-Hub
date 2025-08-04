@@ -78,7 +78,7 @@ const AdminLayout = () => {
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0 min-h-0">
         {!isFullscreen && (
-          <div className={`${sidebarCollapsed ? 'w-[72px]' : 'w-[250px]'} bg-slate-200 dark:bg-slate-700 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out`}>
+          <div className={`${sidebarCollapsed ? 'w-[72px]' : 'w-[250px]'} bg-slate-100 dark:bg-slate-700 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out shadow-md dark:shadow-lg border-r border-slate-200 dark:border-slate-600`}>
           <ul className="list-none p-0 m-0 flex-1">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
@@ -156,7 +156,7 @@ const AdminLayout = () => {
           </div>
         )}
 
-        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-4'} bg-slate-50 dark:bg-slate-900 min-w-0 w-full overflow-y-auto min-h-0`}>
+        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-4'} bg-slate-50 dark:bg-slate-800 min-w-0 w-full overflow-y-auto min-h-0`}>
           {/* Render the child routes */}
           <Outlet />
         </div>
