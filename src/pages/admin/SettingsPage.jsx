@@ -1334,7 +1334,8 @@ const SettingsPage = () => {
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-800">
       {/* Navigation Sidebar */}
-      <nav className="w-64 bg-white dark:bg-slate-900 p-6 border-r border-slate-200 dark:border-slate-700 sticky top-0 h-screen">
+      <div className="w-64 py-4 pr-4">
+        <nav className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-700 sticky top-4 h-[calc(100vh-2rem)] rounded-lg shadow-sm dark:shadow-lg">
         <ul className="space-y-2 mt-8">
           <li>
             <button
@@ -1397,7 +1398,8 @@ const SettingsPage = () => {
             </button>
           </li>
         </ul>
-      </nav>
+        </nav>
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 p-6">
