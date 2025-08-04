@@ -144,15 +144,15 @@ const AdminLayout = () => {
               </Link>
             </li>
           </ul>
-            {/* Toggle button at bottom */}
-            <div className="flex justify-center p-2 border-t border-slate-300 dark:border-slate-700">
-              <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="p-2 rounded-md hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors"
-                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
+            {/* Toggle button at bottom - entire area is clickable */}
+            <div 
+              className="flex justify-center p-4 border-t border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              <div className="text-slate-800 dark:text-white">
                 {sidebarCollapsed ? <MdChevronRight className="text-lg" /> : <MdChevronLeft className="text-lg" />}
-              </button>
+              </div>
             </div>
           </div>
         )}

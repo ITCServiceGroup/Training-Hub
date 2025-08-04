@@ -20,14 +20,14 @@ export const Viewport = ({ children }) => {
         <div className="page-container flex flex-1 h-full flex-col overflow-hidden">
           <Header />
           <div
-            className={`craftjs-renderer flex-1 w-full transition pb-8 overflow-auto ${enabled ? 'bg-gray-100 dark:bg-slate-800' : ''}`}
+            className={`craftjs-renderer flex-1 w-full transition overflow-auto ${enabled ? 'bg-gray-100 dark:bg-slate-800' : ''}`}
             ref={(ref) => {
               connectors.select(connectors.hover(ref, null), null);
             }}
-            style={{ maxHeight: 'calc(100% - 48px)' }} /* 48px accounts for the header height */
+            style={{ height: 'calc(100% - 48px)', minHeight: 0 }} /* 48px accounts for the header height */
             data-editor-drag-area="true" /* Add this attribute to help with drag detection */
           >
-            <div className="relative flex-col flex items-center pt-8">
+            <div className="relative flex-col flex items-center py-8 px-4">
               {children}
             </div>
           </div>

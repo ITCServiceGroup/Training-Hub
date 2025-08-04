@@ -320,7 +320,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   const { actions, query } = useEditor();
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
+  const { toggleFullscreen } = useFullscreen();
   const isDark = theme === 'dark';
   const [title, setTitle] = useState(initialTitle);
   const [isSaving, setIsSaving] = useState(false);
@@ -789,7 +789,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
   };
 
   return (
-    <div className="flex flex-col" style={{ position: 'relative', paddingBottom: '60px', height: isFullscreen ? 'calc(100vh - 20px)' : 'calc(100vh - 200px)', maxHeight: isFullscreen ? 'calc(100vh - 20px)' : 'calc(100vh - 200px)', overflow: 'hidden' }}>
+    <div className="flex flex-col h-full" style={{ position: 'relative', overflow: 'hidden' }}>
       {/* Header section with title, description and publish controls */}
       <div className="flex flex-col w-full gap-2 mb-4">
         {/* Title and publish controls */}
@@ -882,7 +882,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       </div>
 
       {/* Editor area - takes all available space */}
-      <div className="flex flex-grow gap-4 overflow-hidden h-full">
+      <div className="flex flex-1 gap-4 overflow-hidden" style={{ minHeight: 0, paddingBottom: '70px' }}>
         <CraftJsDirectPatch />
         {useCollapsibleSectionPatch()}
         <Viewport>
@@ -1081,7 +1081,6 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
 const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, onCancel, onDelete, isNew = false, selectedStudyGuide = null }) => {
   // Store the callback function from EditorInner
   const nodesChangeHandlerRef = useRef(null);
-  const { isFullscreen } = useFullscreen();
 
   const setNodesChangeHandler = useCallback((handler) => {
     nodesChangeHandlerRef.current = handler;
@@ -1092,7 +1091,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
   }, []);
 
   return (
-    <div className="content-editor flex flex-col gap-2 w-full flex-grow overflow-auto" style={{ height: isFullscreen ? 'calc(100% - 120px)' : 'calc(100% - 120px)' }}>
+    <div className="content-editor flex flex-col gap-2 w-full h-full overflow-hidden">
       <ToolbarZIndexProvider>
         <Editor
           resolver={{
