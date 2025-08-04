@@ -78,18 +78,18 @@ const AdminLayout = () => {
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0 min-h-0">
         {!isFullscreen && (
-          <div className={`${sidebarCollapsed ? 'w-[60px]' : 'w-[250px]'} bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out`}>
+          <div className={`${sidebarCollapsed ? 'w-[72px]' : 'w-[250px]'} bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out`}>
           <ul className="list-none p-0 m-0 flex-1">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin"
-                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
                 title={sidebarCollapsed ? 'Dashboard' : ''}
               >
-                <MdDashboard className="text-lg" />
-                {!sidebarCollapsed && <span>Dashboard</span>}
+                <MdDashboard className="text-lg flex-shrink-0" />
+                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Dashboard</span>
               </Link>
             </li>
             <li
@@ -97,11 +97,11 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/study-guides"
-                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'study-guides' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'study-guides' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
                 title={sidebarCollapsed ? 'Create' : ''}
               >
-                <BiBook className="text-lg" />
-                {!sidebarCollapsed && <span>Create</span>}
+                <BiBook className="text-lg flex-shrink-0" />
+                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Create</span>
               </Link>
             </li>
             {/* Media Library Link */}
@@ -110,25 +110,24 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/media"
-                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'media' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'media' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
                 title={sidebarCollapsed ? 'Media Library' : ''}
               >
-                <MdOutlinePermMedia className="text-lg" />
-                {!sidebarCollapsed && <span>Media Library</span>}
+                <MdOutlinePermMedia className="text-lg flex-shrink-0" />
+                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden whitespace-nowrap' : 'opacity-100'}`}>Media Library</span>
               </Link>
             </li>
             {/* End Media Library Link */}
-
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
               <Link
                 to="/admin/quizzes"
-                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
                 title={sidebarCollapsed ? 'Quizzes' : ''}
               >
-                <MdQuiz className="text-lg" />
-                {!sidebarCollapsed && <span>Quizzes</span>}
+                <MdQuiz className="text-lg flex-shrink-0" />
+                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Quizzes</span>
               </Link>
             </li>
             <li
@@ -136,11 +135,11 @@ const AdminLayout = () => {
             >
               <Link
                 to="/admin/settings"
-                className={`no-underline hover:no-underline flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'gap-3 px-6'} w-full py-3 ${activeTab === 'settings' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'settings' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
                 title={sidebarCollapsed ? 'Settings' : ''}
               >
-                <FiSettings className="text-lg" />
-                {!sidebarCollapsed && <span>Settings</span>}
+                <FiSettings className="text-lg flex-shrink-0" />
+                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Settings</span>
               </Link>
             </li>
           </ul>
