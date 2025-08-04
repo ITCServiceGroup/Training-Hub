@@ -78,7 +78,7 @@ const AdminLayout = () => {
     >
       <div className="flex flex-1 overflow-hidden w-full m-0 p-0 min-h-0">
         {!isFullscreen && (
-          <div className={`${sidebarCollapsed ? 'w-[72px]' : 'w-[250px]'} bg-slate-200 dark:bg-slate-900 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out`}>
+          <div className={`${sidebarCollapsed ? 'w-[72px]' : 'w-[250px]'} bg-slate-200 dark:bg-slate-700 text-white dark:text-white flex-shrink-0 mt-0 flex flex-col transition-all duration-300 ease-in-out`}>
           <ul className="list-none p-0 m-0 flex-1">
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'dashboard' ? 'bg-primary' : 'hover:bg-primary'}`}
