@@ -114,7 +114,7 @@ const AdminLayout = () => {
                 title={sidebarCollapsed ? 'Media Library' : ''}
               >
                 <MdOutlinePermMedia className="text-lg flex-shrink-0" />
-                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden whitespace-nowrap' : 'opacity-100'}`}>Media Library</span>
+                <span className={`ml-3 transition-all duration-300 whitespace-nowrap ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Media Library</span>
               </Link>
             </li>
             {/* End Media Library Link */}
