@@ -30,7 +30,10 @@ const formatBytes = (bytes, decimals = 2) => {
 };
 
 // Simple Media Grid Component
-const SimpleMediaGrid = ({ mediaItems, onSelect }) => {
+const SimpleMediaGrid = ({ mediaItems, onSelect, currentImageSrc }) => {
+  const { theme, themeColors } = useTheme();
+  const isDark = theme === 'dark';
+  const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-2">
@@ -42,11 +45,20 @@ const SimpleMediaGrid = ({ mediaItems, onSelect }) => {
         const isImage = item.mime_type?.startsWith('image/');
         const isVideo = item.mime_type?.startsWith('video/');
         const isAudio = item.mime_type?.startsWith('audio/');
+        const isCurrentImage = currentImageSrc && item.public_url === currentImageSrc;
 
         return (
           <div
             key={item.id}
-            className="border rounded-lg overflow-hidden shadow-sm bg-white dark:bg-slate-700 dark:border-slate-600 flex flex-col transition-shadow hover:shadow-md cursor-pointer"
+            className={`border rounded-lg overflow-hidden shadow-sm bg-white dark:bg-slate-700 dark:border-slate-600 flex flex-col transition-all cursor-pointer ${
+              isCurrentImage 
+                ? 'ring-2 border-2 shadow-lg' 
+                : 'hover:shadow-md'
+            }`}
+            style={{
+              '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.8),
+              borderColor: isCurrentImage ? currentPrimaryColor : undefined
+            }}
             onClick={() => onSelect(item)}
           >
             {/* Preview Area */}
@@ -104,7 +116,7 @@ const SimpleMediaGrid = ({ mediaItems, onSelect }) => {
   );
 };
 
-export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
+export const MediaLibrarySelector = ({ isOpen, onClose, onSelect, currentImageSrc }) => {
   const { theme, themeColors } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
 
@@ -294,6 +306,7 @@ export const MediaLibrarySelector = ({ isOpen, onClose, onSelect }) => {
             <SimpleMediaGrid
               mediaItems={mediaItems}
               onSelect={onSelect}
+              currentImageSrc={currentImageSrc}
             />
           )}
         </div>

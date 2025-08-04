@@ -17,7 +17,7 @@ const hexToRgba = (hex, alpha) => {
 
 // Reusable Media Grid Component (adapted from MediaLibraryPage)
 // Note: Removed edit/delete buttons for selection context
-const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
+const MediaGridSelect = ({ mediaItems, onSelectItem, currentImageSrc }) => {
   const { theme, themeColors } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
 
@@ -27,15 +27,24 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
   return (
   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-3 overflow-y-auto"> {/* Removed h-full */}
     {mediaItems.length === 0 && <p className="col-span-full text-center text-gray-500 dark:text-gray-300">No media items found matching the criteria.</p>}
-    {mediaItems.map((item) => (
+    {mediaItems.map((item) => {
+      const isCurrentImage = currentImageSrc && item.public_url === currentImageSrc;
+      return (
       <div
         key={item.id}
-        className="border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer hover:ring-2 transition-all bg-white dark:bg-slate-700 dark:border-slate-600"
+        className={`border rounded-lg overflow-hidden shadow-sm relative group cursor-pointer transition-all bg-white dark:bg-slate-700 dark:border-slate-600 ${
+          isCurrentImage 
+            ? 'ring-2 border-2' 
+            : 'hover:ring-2'
+        }`}
         style={{
-          '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.5)
+          '--tw-ring-color': hexToRgba(currentPrimaryColor, 0.8),
+          borderColor: isCurrentImage ? currentPrimaryColor : undefined
         }}
         onMouseEnter={(e) => {
-          e.target.style.setProperty('--tw-ring-color', hexToRgba(currentPrimaryColor, 0.5));
+          if (!isCurrentImage) {
+            e.target.style.setProperty('--tw-ring-color', hexToRgba(currentPrimaryColor, 0.5));
+          }
         }}
         onClick={() => onSelectItem(item)}
         title={`Select ${item.file_name}`}
@@ -74,13 +83,14 @@ const MediaGridSelect = ({ mediaItems, onSelectItem }) => {
           <p className="font-medium truncate text-gray-800 dark:text-white" title={item.file_name}>{item.file_name}</p>
         </div>
       </div>
-    ))}
+      );
+    })}
   </div>
   );
 };
 
 
-const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType }) => {
+const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType, currentImageSrc }) => {
   const { theme, themeColors } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
 
@@ -260,6 +270,7 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType })
             <MediaGridSelect
               mediaItems={filteredMedia}
                onSelectItem={handleSelectItem}
+               currentImageSrc={currentImageSrc}
              />
            )}
            {/* Add padding at the bottom of the grid area if needed */}

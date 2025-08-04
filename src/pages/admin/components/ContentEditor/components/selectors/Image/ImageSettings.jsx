@@ -709,6 +709,7 @@ export const ImageSettings = () => {
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
         onSelect={handleMediaSelect}
+        currentImageSrc={src}
       />
     </div>
   );
