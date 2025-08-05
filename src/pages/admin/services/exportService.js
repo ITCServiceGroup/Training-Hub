@@ -408,23 +408,58 @@ class ExportService {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const centerX = pageWidth / 2;
+    const margin = 20;
 
-    // Main Title - moved up
-    pdf.setFontSize(24);
+    // Corporate Letterhead - compact version
+    const letterheadY = 25; // Moved up from 30
+    const letterheadHeight = 18; // Reduced from 25
+    
+    // Company branding section (left side)
+    pdf.setFontSize(14); // Reduced from 16
     pdf.setFont('helvetica', 'bold');
-    pdf.text(title, centerX, 40, { align: 'center' });
+    pdf.text('Training Hub', margin, letterheadY);
+    
+    pdf.setFontSize(8); // Reduced from 9
+    pdf.setFont('helvetica', 'italic');
+    pdf.text('Professional Development & Assessment', margin, letterheadY + 6); // Reduced from +8
 
-    // Subtitle - moved up and closer
-    pdf.setFontSize(16);
+    // Document metadata (right side)
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const formattedTime = currentDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    pdf.setFontSize(11); // Reduced from 12
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Dashboard Report', pageWidth - margin, letterheadY, { align: 'right' });
+    
+    pdf.setFontSize(8); // Reduced from 9
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Analytics Dashboard Report', centerX, 60, { align: 'center' });
+    pdf.text(`Generated: ${formattedDate}`, pageWidth - margin, letterheadY + 6, { align: 'right' }); // Reduced from +8
+    pdf.text(`Time: ${formattedTime}`, pageWidth - margin, letterheadY + 12, { align: 'right' }); // Reduced from +16
 
-    // Generated date - moved under subtitle
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Generated: ${new Date().toLocaleString()}`, centerX, 75, { align: 'center' });
+    // Letterhead border
+    pdf.setDrawColor(203, 213, 224); // Light gray border like Quiz PDF
+    pdf.line(margin, letterheadY + letterheadHeight, pageWidth - margin, letterheadY + letterheadHeight);
 
-    // Removed chart count from here - will be in Report Details section
+    // Report Title Section - more compact
+    const titleSectionY = letterheadY + letterheadHeight + 12; // Reduced from +20
+    
+    pdf.setFontSize(20); // Reduced from 22
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Dashboard Analytics Report', centerX, titleSectionY, { align: 'center' });
+
+    pdf.setFontSize(14); // Reduced from 16
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(title, centerX, titleSectionY + 12, { align: 'center' }); // Reduced from +15
 
     // Extract chart names and filter information
     const chartNames = chartTiles.map(tile => {
@@ -439,159 +474,363 @@ class ExportService {
 
     const filterInfo = this._extractCurrentFilters(context);
 
-    // Calculate two-column layout - optimized for content visibility
-    const boxY = 90; // Positioned after the generated date
-    const boxWidth = 280; // Increased slightly to accommodate full text
-    const maxItems = Math.max(chartNames.length, filterInfo.length);
-    const boxHeight = Math.min(
-      35 + (maxItems * 6), // Reduced spacing: 35 base + 6px per item (was 8px)
-      140 // Increased max height slightly to accommodate more content
-    );
-    const boxX = centerX - (boxWidth / 2);
-
-    // Column dimensions - optimized for text display
-    const columnWidth = (boxWidth - 16) / 2; // 16px total for margins and gap
-    const leftColumnX = boxX + 8;
-    const rightColumnX = boxX + 8 + columnWidth + 8; // 8px gap between columns
-
-    // Draw main box
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(boxX, boxY, boxWidth, boxHeight);
-
-    // Draw vertical divider between columns
-    pdf.line(boxX + boxWidth/2, boxY, boxX + boxWidth/2, boxY + boxHeight);
-
-    // Left Column - Charts
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(`${chartNames.length} Charts Included`, leftColumnX + columnWidth/2, boxY + 12, { align: 'center' });
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    // Show more charts with tighter spacing
+    // Calculate height parameters
     const maxChartsToShow = Math.min(chartNames.length, 15);
-    chartNames.slice(0, maxChartsToShow).forEach((chartName, index) => {
-      // Only truncate if absolutely necessary (much more generous)
-      let displayName = chartName;
-      if (chartName.length > 35) {
-        displayName = chartName.substring(0, 32) + '...';
-      }
-      pdf.text(displayName, leftColumnX + 2, boxY + 22 + (index * 6), { align: 'left' });
-    });
+    const listItemHeight = 6; // Tight line spacing
+    const headerHeight = 25; // Space for header and count
+    
+    // Quick height estimation - we'll use a reasonable default that adapts to content
+    const chartsHeight = 18 + (maxChartsToShow * listItemHeight) + 15; // Added extra padding at bottom
+    const estimatedFilterHeight = 18 + (Math.min(filterInfo.length, 20) * listItemHeight / 2) + 20; // Added extra padding
+    const requiredHeight = Math.max(chartsHeight, estimatedFilterHeight);
+    
+    // Professional Information Grid with lists inside
+    const infoGridY = titleSectionY + 20; // Much closer to title (reduced from 30)
+    const infoGridWidth = pageWidth - (margin * 2);
+    const infoGridHeight = Math.max(requiredHeight, 80); // Minimum height of 80
+    
+    // Draw professional info grid background
+    pdf.setFillColor(247, 250, 252); // Light blue-gray background (#f7fafc)
+    pdf.setDrawColor(226, 232, 240); // Light border color (#e2e8f0)
+    pdf.rect(margin, infoGridY, infoGridWidth, infoGridHeight, 'FD'); // Fill and Draw
 
-    // Show "and X more" if there are more charts
-    if (chartNames.length > maxChartsToShow) {
-      pdf.text(`and ${chartNames.length - maxChartsToShow} more...`, leftColumnX + 2, boxY + 22 + (maxChartsToShow * 6), { align: 'left' });
-    }
+    // Info grid layout - 1x2 grid (single row, two columns)
+    const itemWidth = infoGridWidth / 2;
+    const padding = 6; // Reduced padding
 
-    // Right Column - Report Data Content
-    pdf.setFontSize(10);
+    // Left Column - Charts with list inside the box
+    pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Report Data Content', rightColumnX + columnWidth/2, boxY + 12, { align: 'center' });
-
+    pdf.text(`${chartNames.length} Dashboard Charts`, margin + padding, infoGridY + padding + 8);
+    
+    // Chart list inside the box
+    pdf.setFontSize(7); // Smaller font for compactness
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    if (filterInfo.length > 0) {
-      // Show more filters with tighter spacing
-      const maxFiltersToShow = Math.min(filterInfo.length, 15);
-      filterInfo.slice(0, maxFiltersToShow).forEach((filter, index) => {
-        // Only truncate if absolutely necessary (much more generous)
-        let displayFilter = filter;
-        if (filter.length > 40) {
-          displayFilter = filter.substring(0, 37) + '...';
+    
+    if (chartNames.length > 0) {
+      chartNames.slice(0, maxChartsToShow).forEach((chartName, index) => {
+        let displayName = chartName;
+        if (chartName.length > 32) { // Increased truncation limit
+          displayName = chartName.substring(0, 29) + '...';
         }
-        pdf.text(displayFilter, rightColumnX + 2, boxY + 22 + (index * 6), { align: 'left' });
+        pdf.text(`• ${displayName}`, margin + padding + 2, infoGridY + padding + 18 + (index * listItemHeight));
       });
-
-      // Show "and X more" if there are more filters
-      if (filterInfo.length > maxFiltersToShow) {
-        pdf.text(`and ${filterInfo.length - maxFiltersToShow} more...`, rightColumnX + 2, boxY + 22 + (maxFiltersToShow * 6), { align: 'left' });
+      
+      // Show "and X more" if there are more charts
+      if (chartNames.length > maxChartsToShow) {
+        pdf.setFont('helvetica', 'italic');
+        pdf.text(`...and ${chartNames.length - maxChartsToShow} more`, 
+                 margin + padding + 2, infoGridY + padding + 18 + (maxChartsToShow * listItemHeight));
       }
     } else {
-      pdf.text('No filters applied', rightColumnX + 2, boxY + 22, { align: 'left' });
+      pdf.text('No charts available', margin + padding + 2, infoGridY + padding + 18);
     }
 
-    // Footer note - positioned after the Report Details box
-    const footerStartY = boxY + boxHeight + 40; // Position footer below the box with some spacing
+    // Right Column - Filters with list inside the box
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    // Count only main filter categories (items that don't start with spaces)
+    const mainFilterCount = filterInfo.filter(filter => !filter.startsWith('  ')).length;
+    const filterCount = mainFilterCount > 0 ? `${mainFilterCount} Active Filters` : 'No Filters Applied';
+    pdf.text(filterCount, margin + itemWidth + padding, infoGridY + padding + 8);
+    
+    // Filter layout information (for rendering logic)
+    let totalItemsToShow = 0;
+    let useColumns = false;
+    let groupsToShow = [];
+    
+    // Filter list inside the box with intelligent column layout
+    if (filterInfo.length > 0) {
+      const tempHeight = 200; // Temporary height for initial calculations
+      const availableHeight = tempHeight - 30; // Height available for content (minus headers)
+      const maxItemsForSingleColumn = Math.floor(availableHeight / listItemHeight);
+      
+      // Create groups of related filters (main filter + its sub-items)
+      const filterGroups = [];
+      let currentGroup = null;
+      
+      filterInfo.forEach(filter => {
+        if (!filter.startsWith('  •')) {
+          // Main filter - start new group
+          if (currentGroup) filterGroups.push(currentGroup);
+          currentGroup = { main: filter, subItems: [] };
+        } else {
+          // Sub-item - add to current group
+          if (currentGroup) {
+            currentGroup.subItems.push(filter);
+          }
+        }
+      });
+      if (currentGroup) filterGroups.push(currentGroup);
+      
+      // Apply intelligent limiting that respects group boundaries
+      const maxReasonableItems = 20; // Reasonable upper limit
+      totalItemsToShow = 0;
+      groupsToShow = [];
+      
+      for (const group of filterGroups) {
+        const groupSize = 1 + group.subItems.length;
+        if (totalItemsToShow + groupSize <= maxReasonableItems) {
+          groupsToShow.push(group);
+          totalItemsToShow += groupSize;
+        } else {
+          break; // Stop at group boundary if we'd exceed reasonable limit
+        }
+      }
+      
+      // Check if we need two columns based on total items vs available space
+      const totalItems = totalItemsToShow;
+      const maxItemsPerColumn = Math.min(Math.floor(availableHeight / listItemHeight) - 1, 15); // Force wrapping at 15 items
+      useColumns = totalItems > maxItemsPerColumn || totalItems > maxItemsForSingleColumn;
+      
+      
+      console.log('🔍 PDF Debug - Smart Column Layout:', {
+        availableHeight,
+        listItemHeight,
+        maxItemsForSingleColumn,
+        maxItemsPerColumn,
+        totalItems,
+        totalItemsToShow,
+        useColumns,
+        allGroups: filterGroups.length,
+        groupsToShow: groupsToShow.length,
+        groupsToShowDetails: groupsToShow.map(g => ({ main: g.main, subCount: g.subItems.length }))
+      });
+      
+      if (useColumns) {
+        // Two-column layout - distribute groups intelligently
+        const filterColumnWidth = (itemWidth - padding * 3) / 2;
+        const leftFilterX = margin + itemWidth + padding + 2;
+        const rightFilterX = leftFilterX + filterColumnWidth + 5;
+        
+        let leftColumnItems = 0;
+        let rightColumnItems = 0;
+        let leftColumnRow = 0;
+        let rightColumnRow = 0;
+        let currentColumn = 0; // 0 = left, 1 = right
+        
+        groupsToShow.forEach((group, groupIndex) => {
+          const groupSize = 1 + group.subItems.length; // main + sub-items
+          
+          // Check if group fits in current column based on available height
+          const itemsInCurrentColumn = currentColumn === 0 ? leftColumnItems : rightColumnItems;
+          
+          console.log(`🔍 PDF Debug - Group ${groupIndex} (${group.main}): size=${groupSize}, currentColumn=${currentColumn}, itemsInCurrentColumn=${itemsInCurrentColumn}, maxItemsPerColumn=${maxItemsPerColumn}, shouldSwitch=${itemsInCurrentColumn + groupSize > maxItemsPerColumn && currentColumn === 0}`);
+          
+          if (itemsInCurrentColumn + groupSize > maxItemsPerColumn && currentColumn === 0) {
+            // Switch to right column
+            console.log(`🔍 PDF Debug - Switching to right column at group ${groupIndex}`);
+            currentColumn = 1;
+          }
+          
+          const xPosition = currentColumn === 0 ? leftFilterX : rightFilterX;
+          const currentRow = currentColumn === 0 ? leftColumnRow : rightColumnRow;
+          
+          // Render main filter
+          let yPosition = infoGridY + padding + 18 + (currentRow * listItemHeight);
+          pdf.setFontSize(7.5);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`• ${group.main}`, xPosition, yPosition);
+          
+          // Update row counter for current column
+          if (currentColumn === 0) {
+            leftColumnRow++;
+          } else {
+            rightColumnRow++;
+          }
+          
+          // Render sub-items
+          group.subItems.forEach(subItem => {
+            const currentRowForSubItem = currentColumn === 0 ? leftColumnRow : rightColumnRow;
+            yPosition = infoGridY + padding + 18 + (currentRowForSubItem * listItemHeight);
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`    ${subItem.substring(2)}`, xPosition, yPosition);
+            
+            // Update row counter for current column
+            if (currentColumn === 0) {
+              leftColumnRow++;
+            } else {
+              rightColumnRow++;
+            }
+          });
+          
+          // Update column item counts
+          if (currentColumn === 0) {
+            leftColumnItems += groupSize;
+          } else {
+            rightColumnItems += groupSize;
+          }
+        });
+      } else {
+        // Single column layout
+        const leftFilterX = margin + itemWidth + padding + 2;
+        let currentRow = 0;
+        
+        groupsToShow.forEach(group => {
+          // Render main filter
+          let yPosition = infoGridY + padding + 18 + (currentRow * listItemHeight);
+          pdf.setFontSize(7.5);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`• ${group.main}`, leftFilterX, yPosition);
+          currentRow++;
+          
+          // Render sub-items
+          group.subItems.forEach(subItem => {
+            yPosition = infoGridY + padding + 18 + (currentRow * listItemHeight);
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`    ${subItem.substring(2)}`, leftFilterX, yPosition);
+            currentRow++;
+          });
+        });
+      }
+      
+      // Show "and X more" if there are more filters
+      const totalFilterItems = filterInfo.length;
+      if (totalFilterItems > totalItemsToShow) {
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'italic');
+        const moreTextX = margin + itemWidth + padding + 2;
+        const moreTextY = infoGridY + padding + 18 + (totalItemsToShow * listItemHeight);
+        pdf.text(`...and ${totalFilterItems - totalItemsToShow} more`, moreTextX, moreTextY);
+      }
+    } else {
+      pdf.text('No filters applied', margin + itemWidth + padding + 2, infoGridY + padding + 18);
+    }
+
+    // Draw vertical divider
+    pdf.setDrawColor(226, 232, 240);
+    pdf.line(margin + itemWidth, infoGridY, margin + itemWidth, infoGridY + infoGridHeight);
+
+    // Compact footer section below the info grid
+    const footerY = infoGridY + infoGridHeight + 15;
+    
+    // Professional footer note - more compact (removed duplicate Data Period)
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'italic');
-
-    const footerLines = [
-      'This report contains interactive dashboard data exported',
-      'for analysis and reporting purposes.'
-    ];
-
-    footerLines.forEach((line, index) => {
-      pdf.text(
-        line,
-        centerX,
-        footerStartY + (index * 10),
-        { align: 'center' }
-      );
-    });
+    pdf.text('This comprehensive dashboard report contains real-time analytics data exported for business intelligence and reporting purposes.', 
+             centerX, footerY, { align: 'center' });
   }
 
   _extractCurrentFilters(context = {}) {
     const { dashboardContext, rawData } = context;
     const filters = [];
+    // Track what filters we've already added to avoid duplicates
+    const addedFilterTypes = new Set();
 
     try {
+      // Debug logging for the entire context
+      console.log('🔍 PDF Debug - Full dashboardContext:', dashboardContext);
+      console.log('🔍 PDF Debug - rawData sample:', rawData ? rawData.slice(0, 2) : 'no rawData');
+      
+      // Collect filter data first, then add in desired order
+      let dateRangeFilter = null;
+      let marketsData = null;
+      let supervisorsData = null;
+      let techniciansData = null;
+      let quizTypesData = null;
+      
       // Extract filters from dashboard context if available
       if (dashboardContext && dashboardContext.filters) {
         const { filters: globalFilters, tileFilters, configuration } = dashboardContext;
 
-        // Add global filters
+        // Debug logging to understand the structure
+        console.log('🔍 PDF Debug - globalFilters object:', globalFilters);
+        console.log('🔍 PDF Debug - globalFilters keys:', Object.keys(globalFilters || {}));
+        
+        // Log each property individually to see the structure
+        Object.keys(globalFilters || {}).forEach(key => {
+          console.log(`🔍 PDF Debug - globalFilters.${key}:`, globalFilters[key]);
+        });
+
+        // Collect global filters
         if (globalFilters.dateRange) {
           if (globalFilters.dateRange.preset) {
-            filters.push(`Date Range: ${globalFilters.dateRange.preset.replace('_', ' ')}`);
+            dateRangeFilter = `Date Range: ${globalFilters.dateRange.preset.replace('_', ' ')}`;
           } else if (globalFilters.dateRange.startDate && globalFilters.dateRange.endDate) {
-            filters.push(`Date Range: ${globalFilters.dateRange.startDate} to ${globalFilters.dateRange.endDate}`);
+            dateRangeFilter = `Date Range: ${globalFilters.dateRange.startDate} to ${globalFilters.dateRange.endDate}`;
           }
         }
 
-        // Add specific filter selections with proper counts and names
-        if (globalFilters.supervisors && globalFilters.supervisors.length > 0) {
-          filters.push(`Supervisors: ${globalFilters.supervisors.length}`);
-          globalFilters.supervisors.forEach(supervisor => {
-            filters.push(`  • ${supervisor}`);
-          });
+        // Collect filter data - check multiple possible property names
+        if (globalFilters.markets && globalFilters.markets.length > 0) {
+          marketsData = {
+            count: globalFilters.markets.length,
+            items: globalFilters.markets
+          };
+          addedFilterTypes.add('markets');
+          console.log('🔍 PDF Debug - Found markets filter:', marketsData);
         }
 
-        if (globalFilters.markets && globalFilters.markets.length > 0) {
-          filters.push(`Markets: ${globalFilters.markets.length}`);
-          globalFilters.markets.forEach(market => {
-            filters.push(`  • ${market}`);
-          });
+        // Check for supervisors - separate from technicians
+        if (globalFilters.supervisors && globalFilters.supervisors.length > 0) {
+          supervisorsData = {
+            count: globalFilters.supervisors.length,
+            items: globalFilters.supervisors
+          };
+          addedFilterTypes.add('supervisors');
+          console.log('🔍 PDF Debug - Found supervisors filter:', supervisorsData);
+        }
+
+        // Check for technicians with comprehensive property name search
+        const possibleTechnicianProps = [
+          'ldaps', 'technicians', 'employees', 'workers', 'staff', 'people', 'users', 
+          'selectedTechnicians', 'selectedEmployees', 'selectedUsers',
+          'technicianIds', 'employeeIds', 'userIds'
+        ];
+        
+        for (const prop of possibleTechnicianProps) {
+          if (globalFilters[prop] && Array.isArray(globalFilters[prop]) && globalFilters[prop].length > 0) {
+            techniciansData = {
+              count: globalFilters[prop].length,
+              items: globalFilters[prop]
+            };
+            addedFilterTypes.add('technicians');
+            console.log(`🔍 PDF Debug - Found technicians under property '${prop}':`, techniciansData);
+            break; // Stop after finding the first valid property
+          }
+        }
+        
+        // Also check for object-based structures (in case technicians are objects with name/id)
+        if (!techniciansData) {
+          for (const prop of possibleTechnicianProps) {
+            if (globalFilters[prop] && Array.isArray(globalFilters[prop]) && globalFilters[prop].length > 0) {
+              // Check if items are objects with name property
+              const items = globalFilters[prop].map(item => {
+                if (typeof item === 'object' && item.name) return item.name;
+                if (typeof item === 'object' && item.label) return item.label;
+                if (typeof item === 'object' && item.value) return item.value;
+                return item;
+              }).filter(Boolean);
+              
+              if (items.length > 0) {
+                techniciansData = { count: items.length, items: items };
+                addedFilterTypes.add('technicians');
+                console.log(`🔍 PDF Debug - Found technicians as objects under property '${prop}':`, techniciansData);
+                break;
+              }
+            }
+          }
         }
 
         if (globalFilters.quizTypes && globalFilters.quizTypes.length > 0) {
-          filters.push(`Quiz Types: ${globalFilters.quizTypes.length}`);
-          globalFilters.quizTypes.forEach(quizType => {
-            filters.push(`  • ${quizType}`);
-          });
+          quizTypesData = {
+            count: globalFilters.quizTypes.length,
+            items: globalFilters.quizTypes
+          };
+          addedFilterTypes.add('quizTypes');
+          console.log('🔍 PDF Debug - Found quizTypes filter:', quizTypesData);
         }
 
-        // Add configuration info
-        if (configuration) {
-          filters.push(`Configuration: ${configuration.name || 'Default'}`);
-          if (configuration.description) {
-            filters.push(`Description: ${configuration.description}`);
-          }
-        }
-
-        // Add tile-specific filters if any
-        const activeTileFilters = Object.keys(tileFilters || {}).filter(key =>
-          tileFilters[key] && Object.keys(tileFilters[key]).length > 0
-        );
-
-        if (activeTileFilters.length > 0) {
-          filters.push(`Custom Filters: ${activeTileFilters.length} chart(s) have custom filters`);
-        }
       }
 
-      // Add data summary if available
+      // Collect data from rawData if available
+      let totalRecords = null;
+      let dataDateRange = null;
+      
       if (rawData && Array.isArray(rawData)) {
-        filters.push(`Total Records: ${rawData.length}`);
+        totalRecords = rawData.length;
 
         // Get date range from data
         const dates = rawData.map(r => r.date_of_test).filter(Boolean);
@@ -601,40 +840,70 @@ class ExportService {
           const endDate = new Date(sortedDates[sortedDates.length - 1]).toLocaleDateString();
 
           if (startDate === endDate) {
-            filters.push(`Data Date: ${startDate}`);
+            dataDateRange = `Data Date: ${startDate}`;
           } else {
-            filters.push(`Data Period: ${startDate} - ${endDate}`);
+            dataDateRange = `Data Period: ${startDate} - ${endDate}`;
           }
         }
 
-        // Always show what data is contained in the report
-        if (rawData && Array.isArray(rawData)) {
-          // Show actual data content from the report
-          const supervisors = [...new Set(rawData.map(r => r.supervisor).filter(Boolean))].sort();
-          const markets = [...new Set(rawData.map(r => r.market).filter(Boolean))].sort();
-          const quizTypes = [...new Set(rawData.map(r => r.quiz_type).filter(Boolean))].sort();
+        // Collect data content only if not already added from globalFilters
+        const supervisors = [...new Set(rawData.map(r => r.supervisor).filter(Boolean))].sort();
+        const technicians = [...new Set(rawData.map(r => r.technician || r.employee).filter(Boolean))].sort();
+        const markets = [...new Set(rawData.map(r => r.market).filter(Boolean))].sort();
+        const quizTypes = [...new Set(rawData.map(r => r.quiz_type).filter(Boolean))].sort();
 
-          if (supervisors.length > 0) {
-            filters.push(`Supervisors: ${supervisors.length}`);
-            supervisors.forEach(supervisor => {
-              filters.push(`  • ${supervisor}`);
-            });
-          }
-
-          if (markets.length > 0) {
-            filters.push(`Markets: ${markets.length}`);
-            markets.forEach(market => {
-              filters.push(`  • ${market}`);
-            });
-          }
-
-          if (quizTypes.length > 0) {
-            filters.push(`Quiz Types: ${quizTypes.length}`);
-            quizTypes.forEach(quizType => {
-              filters.push(`  • ${quizType}`);
-            });
-          }
+        if (!addedFilterTypes.has('supervisors') && supervisors.length > 0) {
+          supervisorsData = { count: supervisors.length, items: supervisors };
         }
+
+        if (!addedFilterTypes.has('technicians') && technicians.length > 0) {
+          techniciansData = { count: technicians.length, items: technicians };
+        }
+
+        if (!addedFilterTypes.has('markets') && markets.length > 0) {
+          marketsData = { count: markets.length, items: markets };
+        }
+
+        if (!addedFilterTypes.has('quizTypes') && quizTypes.length > 0) {
+          quizTypesData = { count: quizTypes.length, items: quizTypes };
+        }
+      }
+
+      // Add filters in desired order: Total Records, Data Period, Markets, Supervisors, Technicians, Quiz Types
+      if (totalRecords !== null) {
+        filters.push(`Total Records: ${totalRecords}`);
+      }
+      
+      if (dataDateRange) {
+        filters.push(dataDateRange);
+      }
+      
+      if (marketsData) {
+        filters.push(`Markets: ${marketsData.count}`);
+        marketsData.items.forEach(market => {
+          filters.push(`  • ${market}`);
+        });
+      }
+      
+      if (supervisorsData) {
+        filters.push(`Supervisors: ${supervisorsData.count}`);
+        supervisorsData.items.forEach(supervisor => {
+          filters.push(`  • ${supervisor}`);
+        });
+      }
+      
+      if (techniciansData) {
+        filters.push(`Technicians: ${techniciansData.count}`);
+        techniciansData.items.forEach(technician => {
+          filters.push(`  • ${technician}`);
+        });
+      }
+      
+      if (quizTypesData) {
+        filters.push(`Quiz Types: ${quizTypesData.count}`);
+        quizTypesData.items.forEach(quizType => {
+          filters.push(`  • ${quizType}`);
+        });
       }
 
       // If no specific filters found, add generic info
