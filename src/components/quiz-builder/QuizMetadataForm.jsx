@@ -327,6 +327,28 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
             </label>
           </div>
         </div>
+
+        {/* Grading Options */}
+        <div>
+          <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Grading Options</h3>
+          <div className="space-y-2">
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
+                checked={quiz.allow_partial_credit || false}
+                onChange={(e) => handleChange('allow_partial_credit', e.target.checked)}
+                disabled={isLoading}
+              />
+              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                Allow partial credit for "Check All That Apply" questions
+              </span>
+            </label>
+          </div>
+          <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+            When enabled, "Check All That Apply" questions will receive partial credit based on the percentage of correct selections. When disabled, missing any option will result in zero points for the question.
+          </p>
+        </div>
       </div>
 
       {/* Description text below both sections */}

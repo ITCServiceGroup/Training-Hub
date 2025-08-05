@@ -179,35 +179,61 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         if (answer === undefined) return; // Skip if practice answer object doesn't have 'answer'
 
         let isCorrect = false;
+        let partialCredit = 0;
+        
         switch (question.question_type) {
           case 'multiple_choice':
             isCorrect = answer === question.correct_answer;
+            if (isCorrect) partialCredit = 1;
             break;
           case 'check_all_that_apply':
             // Ensure answer is an array for comparison
             if (Array.isArray(answer) && Array.isArray(question.correct_answer)) {
-              isCorrect =
-                answer.length === question.correct_answer.length &&
-                answer.every(a => question.correct_answer.includes(a));
+              if (quiz.allow_partial_credit) {
+                // Calculate partial credit based on correct selections
+                const totalCorrect = question.correct_answer.length;
+                const correctSelections = answer.filter(a => question.correct_answer.includes(a)).length;
+                const incorrectSelections = answer.filter(a => !question.correct_answer.includes(a)).length;
+                
+                // Partial credit formula: (correct selections - incorrect selections) / total correct answers
+                // Ensure it doesn't go below 0
+                partialCredit = Math.max(0, (correctSelections - incorrectSelections) / totalCorrect);
+                isCorrect = partialCredit === 1;
+              } else {
+                // All-or-nothing grading
+                isCorrect =
+                  answer.length === question.correct_answer.length &&
+                  answer.every(a => question.correct_answer.includes(a));
+                if (isCorrect) partialCredit = 1;
+              }
             }
             break;
           case 'true_false':
             isCorrect = answer === question.correct_answer;
+            if (isCorrect) partialCredit = 1;
             break;
         }
-        if (isCorrect) correctCount++;
+        correctCount += partialCredit;
       });
 
-      return {
-        correct: correctCount,
+      const result = {
+        correct: Math.round(correctCount * 100) / 100, // Round to 2 decimal places
         total: totalQuestions,
-        percentage: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
+        percentage: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 10000) / 100 : 0 // Round to 2 decimal places
       };
+      return result;
     };
 
     try {
       const finalScore = calculateScore(); // Use the inner function
-      setScore(finalScore);
+      
+      // Ensure score is valid
+      if (finalScore && typeof finalScore.percentage === 'number' && !isNaN(finalScore.percentage)) {
+        setScore(finalScore);
+      } else {
+        // Provide fallback score
+        setScore({ correct: 0, total: quiz?.questions?.length || 0, percentage: 0 });
+      }
 
       // For non-practice quizzes, generate PDF and save the result
       if (!quiz.is_practice && accessCodeData) {
@@ -375,19 +401,37 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     // For practice mode, check answer immediately
     if (quiz.is_practice) {
       let isCorrect = false;
+      let partialCredit = 0;
+      
       switch (currentQuestion.question_type) {
         case 'multiple_choice':
           isCorrect = answer === currentQuestion.correct_answer;
+          if (isCorrect) partialCredit = 1;
           break;
         case 'check_all_that_apply':
           if (Array.isArray(answer) && Array.isArray(currentQuestion.correct_answer)) {
-            isCorrect =
-              answer.length === currentQuestion.correct_answer.length &&
-              answer.every(a => currentQuestion.correct_answer.includes(a));
+            if (quiz.allow_partial_credit) {
+              // Calculate partial credit based on correct selections
+              const totalCorrect = currentQuestion.correct_answer.length;
+              const correctSelections = answer.filter(a => currentQuestion.correct_answer.includes(a)).length;
+              const incorrectSelections = answer.filter(a => !currentQuestion.correct_answer.includes(a)).length;
+              
+              // Partial credit formula: (correct selections - incorrect selections) / total correct answers
+              // Ensure it doesn't go below 0
+              partialCredit = Math.max(0, (correctSelections - incorrectSelections) / totalCorrect);
+              isCorrect = partialCredit === 1;
+            } else {
+              // All-or-nothing grading
+              isCorrect =
+                answer.length === currentQuestion.correct_answer.length &&
+                answer.every(a => currentQuestion.correct_answer.includes(a));
+              if (isCorrect) partialCredit = 1;
+            }
           }
           break;
         case 'true_false':
           isCorrect = answer === currentQuestion.correct_answer;
+          if (isCorrect) partialCredit = 1;
           break;
       }
 
@@ -397,6 +441,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           answer,
           showFeedback: true,
           isCorrect,
+          partialCredit: partialCredit
         }
       }));
       setIsCurrentPracticeQuestionAnswered(true); // Mark as answered for practice mode

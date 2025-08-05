@@ -17,6 +17,15 @@ const QuizResults = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+  // Early return if score is null/undefined
+  if (!score || typeof score.percentage !== 'number') {
+    return (
+      <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>
+        <div>Calculating results...</div>
+      </div>
+    );
+  }
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);

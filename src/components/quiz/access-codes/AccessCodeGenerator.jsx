@@ -176,11 +176,16 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
               id="ldap"
               type="text"
               className={classNames(
-                "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
+                "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200 autofill:dark:bg-slate-800 autofill:dark:text-slate-200",
                 error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
                   : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
+              style={isDarkMode ? {
+                colorScheme: 'dark',
+                WebkitTextFillColor: '#e2e8f0 !important',
+                WebkitBoxShadow: '0 0 0 1000px #1e293b inset !important',
+              } : {}}
               value={testTakerInfo.ldap}
               onChange={(e) => handleChange('ldap', e.target.value)}
               required
@@ -195,11 +200,16 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
               id="email"
               type="email"
               className={classNames(
-                "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
+                "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200 autofill:dark:bg-slate-800 autofill:dark:text-slate-200",
                 emailError || error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
                   : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
+              style={isDarkMode ? {
+                colorScheme: 'dark',
+                WebkitTextFillColor: '#e2e8f0 !important',
+                WebkitBoxShadow: '0 0 0 1000px #1e293b inset !important',
+              } : {}}
               value={testTakerInfo.email}
               onChange={(e) => handleChange('email', e.target.value)}
               required
@@ -249,6 +259,11 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
                   : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
+              style={isDarkMode ? {
+                colorScheme: 'dark',
+                backgroundColor: '#1e293b',
+                color: '#e2e8f0'
+              } : {}}
               value={testTakerInfo.market}
               onChange={(e) => handleChange('market', e.target.value)}
               required
