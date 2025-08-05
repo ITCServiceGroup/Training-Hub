@@ -297,7 +297,7 @@ const AdminQuizzes = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Quizzes</h2>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Quiz</h2>
           <p className={`mt-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
             Manage quizzes and access codes
           </p>

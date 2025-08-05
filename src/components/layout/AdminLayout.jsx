@@ -61,7 +61,7 @@ const AdminLayout = () => {
       case 'study-guides': return 'Creation Management';
       case 'media': return 'Media Library'; // Added media title
 
-      case 'quizzes': return 'Quizzes Management';
+      case 'quizzes': return 'Quiz Management';
       case 'settings': return 'Settings';
       default: return 'Admin Dashboard';
     }
@@ -124,10 +124,10 @@ const AdminLayout = () => {
               <Link
                 to="/admin/quizzes"
                 className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'quizzes' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
-                title={sidebarCollapsed ? 'Quizzes' : ''}
+                title={sidebarCollapsed ? 'Quiz' : ''}
               >
                 <MdQuiz className="text-lg flex-shrink-0" />
-                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Quizzes</span>
+                <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Quiz</span>
               </Link>
             </li>
             <li
