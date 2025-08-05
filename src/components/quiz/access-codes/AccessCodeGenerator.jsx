@@ -5,6 +5,7 @@ import { accessCodesService } from '../../../services/api/accessCodes';
 import { organizationService } from '../../../services/api/organization';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../common/ToastContainer';
+import { isValidEmail, getEmailErrorMessage } from '../../../utils/validation';
 
 const AccessCodeGenerator = ({ quizId, onGenerated }) => {
   const { isDarkMode } = useTheme();
@@ -21,6 +22,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
   const [generatedCode, setGeneratedCode] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
+  const [emailError, setEmailError] = useState(null);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -52,6 +54,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
     });
     setGeneratedCode(null);
     setError(null);
+    setEmailError(null);
   };
 
   const handleChange = (field, value) => {
@@ -60,12 +63,30 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
       [field]: value
     }));
     setError(null);
+    
+    // Validate email field in real-time
+    if (field === 'email') {
+      if (value.trim() === '') {
+        setEmailError(null); // Clear error when field is empty
+      } else if (!isValidEmail(value)) {
+        setEmailError(getEmailErrorMessage(value));
+      } else {
+        setEmailError(null);
+      }
+    }
   };
 
   const handleGenerateCode = async (e) => {
     e.preventDefault();
     setIsGenerating(true);
     setError(null);
+
+    // Validate email before submission
+    if (!isValidEmail(testTakerInfo.email)) {
+      setEmailError(getEmailErrorMessage(testTakerInfo.email));
+      setIsGenerating(false);
+      return;
+    }
 
     try {
       const code = await accessCodesService.generateCode(quizId, testTakerInfo);
@@ -175,7 +196,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
               type="email"
               className={classNames(
                 "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
-                error
+                emailError || error
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
                   : "border-slate-300 dark:border-slate-600 focus:ring-primary"
               )}
@@ -183,6 +204,11 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
               onChange={(e) => handleChange('email', e.target.value)}
               required
             />
+            {emailError && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {emailError}
+              </p>
+            )}
           </div>
 
           <div>
@@ -240,7 +266,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
           <button
             type="submit"
             className="w-full py-2 bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:dark:opacity-50"
-            disabled={isGenerating}
+            disabled={isGenerating || emailError}
           >
             {isGenerating ? 'Generating...' : 'Generate Access Code'}
           </button>
