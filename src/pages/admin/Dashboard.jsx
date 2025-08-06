@@ -14,6 +14,7 @@ const flatpickrThemeStyles = `
     font-family: inherit;
     border-radius: 0.5rem !important;
     overflow: hidden !important;
+    z-index: 99999 !important;
   }
   
   /* Header background - all possible containers */
@@ -1138,9 +1139,9 @@ const Dashboard = () => {
             </div>
 
             {/* Right Side - Global Filters */}
-            <div className="flex items-center gap-3 flex-1 justify-end">
+            <div className="flex items-center gap-3 flex-1 justify-end relative z-[50000]">
               {/* Time Period Filter */}
-              <div className="w-40 relative">
+              <div className="w-40 relative z-[99999]">
                 <SingleSelect
                   value={timePeriodDropdownValue}
                   onDropdownToggle={setTimePeriodDropdownOpen}
@@ -1241,7 +1242,7 @@ const Dashboard = () => {
                   
                   {/* Custom Date Range Picker - positioned absolutely below Time Period dropdown */}
                   {timePeriodDropdownValue === 'custom' && !timePeriodDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-full z-50">
+                    <div className="absolute top-full left-0 mt-1 w-full z-[99999]">
                       <Flatpickr
                         className="dashboard-date-picker w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700 dark:text-slate-200 shadow-lg"
                         value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 

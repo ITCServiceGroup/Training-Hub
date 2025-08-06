@@ -23,7 +23,11 @@ const SingleSelect = ({ value, onChange, options, placeholder, className = "", o
       ...provided,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
       fontSize: '12px',
-      zIndex: 9999, // High z-index to stay above charts and grid items
+      zIndex: 99999, // Extremely high z-index to stay above charts and grid items
+    }),
+    menuPortal: (provided) => ({
+      ...provided,
+      zIndex: 99999, // Ensure portal also has high z-index
     }),
     option: (provided, state) => ({
       ...provided,
