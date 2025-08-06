@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
+import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
@@ -201,6 +202,8 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
 
   // Handle question hover for cross-filtering
   const handleQuestionHover = (questionData) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
     if (questionData) {
       applyHoverFilter('question', {
         questionId: questionData.data.fullQuestionId,

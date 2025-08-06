@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
-import { filterDataForChart, createPassFailClassificationFilter } from '../../utils/dashboardFilters';
+import { filterDataForChart, createPassFailClassificationFilter, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
 
 const PassFailRateChart = ({ data = [], loading = false }) => {
@@ -170,6 +170,8 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
 
   // Handle segment hover for cross-filtering
   const handleSegmentHover = (segment) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
     if (segment) {
       const classification = segment.id; // 'pass' or 'fail'
       const classificationFilter = createPassFailClassificationFilter(classification, chartFilteredData);

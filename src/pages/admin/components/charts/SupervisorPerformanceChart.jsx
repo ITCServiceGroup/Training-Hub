@@ -3,7 +3,7 @@ import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
-import { filterDataForChart, shouldShowDrillDownIndicators } from '../../utils/dashboardFilters';
+import { filterDataForChart, shouldShowDrillDownIndicators, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -85,12 +85,18 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
 
   // Handle supervisor hover for cross-filtering
   const handleSupervisorHover = (supervisorData) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
+
     if (supervisorData) {
       applyHoverFilter('supervisor', supervisorData.data.fullName, 'supervisor-performance');
     }
   };
 
   const handleSupervisorLeave = () => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
+
     // Clear hover filter when mouse leaves
     applyHoverFilter('supervisor', null, 'supervisor-performance');
   };

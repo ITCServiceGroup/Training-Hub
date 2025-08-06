@@ -3,7 +3,7 @@ import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
-import { filterDataForChart, shouldShowDrillDownIndicators } from '../../utils/dashboardFilters';
+import { filterDataForChart, shouldShowDrillDownIndicators, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const MarketResultsChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -68,12 +68,18 @@ const MarketResultsChart = ({ data = [], loading = false }) => {
 
   // Handle market hover for cross-filtering
   const handleMarketHover = (marketData) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
+
     if (marketData) {
       applyHoverFilter('market', marketData.data.fullName, 'market-results');
     }
   };
 
   const handleMarketLeave = () => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
+
     // Clear hover filter when mouse leaves
     applyHoverFilter('market', null, 'market-results');
   };

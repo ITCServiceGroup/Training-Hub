@@ -74,7 +74,8 @@ const SettingsPage = () => {
     defaultTimePeriod: 'last-30-days',
     defaultMarkets: [],
     defaultShowNames: false, // false = anonymous by default, true = show names
-    defaultDashboard: '' // default dashboard template name
+    defaultDashboard: '', // default dashboard template name
+    disableHoverDrillDown: false // false = hover enabled (default), true = hover disabled
   });
 
   // State for archived quizzes
@@ -308,6 +309,7 @@ const SettingsPage = () => {
       const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
       const savedShowNames = localStorage.getItem('dashboardDefaultShowNames');
       const savedDefaultDashboard = localStorage.getItem('dashboardDefaultDashboard');
+      const savedDisableHoverDrillDown = localStorage.getItem('dashboardDisableHoverDrillDown');
 
       setDashboardSettings(prev => ({
         ...prev,
@@ -315,6 +317,7 @@ const SettingsPage = () => {
         defaultMarkets: savedMarkets ? JSON.parse(savedMarkets) : prev.defaultMarkets,
         defaultShowNames: savedShowNames !== null ? JSON.parse(savedShowNames) : prev.defaultShowNames,
         defaultDashboard: savedDefaultDashboard || prev.defaultDashboard,
+        disableHoverDrillDown: savedDisableHoverDrillDown !== null ? JSON.parse(savedDisableHoverDrillDown) : prev.disableHoverDrillDown,
       }));
     } catch (error) {
       console.error('Error loading dashboard settings from localStorage:', error);
@@ -427,6 +430,8 @@ const SettingsPage = () => {
           localStorage.setItem('dashboardDefaultMarkets', JSON.stringify(value));
         } else if (name === 'defaultShowNames') {
           localStorage.setItem('dashboardDefaultShowNames', JSON.stringify(value));
+        } else if (name === 'disableHoverDrillDown') {
+          localStorage.setItem('dashboardDisableHoverDrillDown', JSON.stringify(value));
         } else if (name === 'defaultDashboard') {
           // Update the database to sync with dashboard dropdown
           // The setAsDefaultDashboard function will also update localStorage, so we don't need to do it here
@@ -1103,6 +1108,30 @@ const SettingsPage = () => {
           </div>
         </div>
 
+        {/* Disable Hover Drill-Down */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+            Chart Interactions
+          </label>
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="disableHoverDrillDown"
+              checked={dashboardSettings.disableHoverDrillDown}
+              onChange={(e) => handleDashboardSettingChange('disableHoverDrillDown', e.target.checked)}
+              className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 mt-0.5"
+            />
+            <div className="ml-3">
+              <label htmlFor="disableHoverDrillDown" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                Disable Hover Drill-Down
+              </label>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                When enabled, hovering over charts will not trigger drill-down filtering. Click interactions will still work for drill-down functionality.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Default Dashboard */}
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
@@ -1144,6 +1173,7 @@ const SettingsPage = () => {
                 handleDashboardSettingChange('defaultTimePeriod', 'last-30-days');
                 handleDashboardSettingChange('defaultMarkets', []);
                 handleDashboardSettingChange('defaultShowNames', false);
+                handleDashboardSettingChange('disableHoverDrillDown', false);
                 // Don't reset defaultDashboard since there's no "no default" option
               }}
               className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
@@ -1152,7 +1182,7 @@ const SettingsPage = () => {
             </button>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-            This will reset the time period to "Last 30 Days", clear all default markets, and set names to anonymous by default.
+            This will reset the time period to "Last 30 Days", clear all default markets, set names to anonymous by default, and enable hover drill-down.
           </p>
         </div>
 

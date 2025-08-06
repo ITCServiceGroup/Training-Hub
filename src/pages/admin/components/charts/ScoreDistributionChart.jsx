@@ -3,7 +3,7 @@ import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
-import { filterDataForChart } from '../../utils/dashboardFilters';
+import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const ScoreDistributionChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -97,6 +97,9 @@ const ScoreDistributionChart = ({ data = [], loading = false }) => {
 
   // Handle score range hover for cross-filtering
   const handleScoreRangeHover = (scoreData) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
+
     if (scoreData) {
       // Get the original data using the index
       const index = scoreData.index;
@@ -112,6 +115,9 @@ const ScoreDistributionChart = ({ data = [], loading = false }) => {
   };
 
   const handleScoreRangeLeave = () => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
+
     // Clear hover filter when mouse leaves
     applyHoverFilter('scoreRange', null, 'score-distribution');
   };

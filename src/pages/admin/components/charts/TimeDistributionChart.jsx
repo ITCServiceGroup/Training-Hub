@@ -3,7 +3,7 @@ import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
-import { filterDataForChart } from '../../utils/dashboardFilters';
+import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const TimeDistributionChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -69,6 +69,8 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
 
   // Handle time range hover for cross-filtering
   const handleTimeRangeHover = (timeData) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
     if (timeData) {
       const range = timeData.data;
       applyHoverFilter('timeRange', {

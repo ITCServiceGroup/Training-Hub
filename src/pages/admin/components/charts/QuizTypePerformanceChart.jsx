@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
+import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
 
 const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
@@ -124,6 +125,8 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
 
   // Handle quiz type hover for cross-filtering
   const handleQuizTypeHover = (quizTypeData) => {
+    // Check if hover drill-down is disabled
+    if (isHoverDrillDownDisabled()) return;
     if (quizTypeData) {
       applyHoverFilter('quizType', quizTypeData.data.fullName, 'quiz-type-performance');
     }
