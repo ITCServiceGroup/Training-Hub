@@ -81,20 +81,66 @@ const flatpickrThemeStyles = `
   }
   
   /* Selected dates */
-  .flatpickr-day.selected,
-  .flatpickr-day.startRange,
-  .flatpickr-day.endRange {
+  .flatpickr-day.selected {
     background: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
     color: white !important;
   }
-  
-  /* Date range styling */
+
+  /* Range styling - in between dates */
   .flatpickr-day.inRange {
     background: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
     color: white !important;
-    box-shadow: -5px 0 0 var(--primary-color), 5px 0 0 var(--primary-color) !important;
+    border-radius: 0 !important;
+  }
+
+  /* Start date styling - same color with rounded left corners */
+  .flatpickr-day.startRange {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    border-radius: 8px 0 0 8px !important;
+    font-weight: 600 !important;
+  }
+
+  /* End date styling - same color with rounded right corners */
+  .flatpickr-day.endRange {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    border-radius: 0 8px 8px 0 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Single date selection (start and end same day) */
+  .flatpickr-day.startRange.endRange {
+    border-radius: 8px !important;
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+  }
+  
+  /* Remove gaps and margins for smooth connection */
+  .flatpickr-calendar .flatpickr-days {
+    padding: 0 !important;
+  }
+  
+  .flatpickr-calendar .flatpickr-day {
+    margin: 0 !important;
+    border-width: 1px !important;
+    line-height: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  /* Override hover effects during range selection */
+  .flatpickr-day.inRange:hover {
+    background: var(--primary-dark) !important;
+  }
+
+  .flatpickr-day.startRange:hover,
+  .flatpickr-day.endRange:hover {
+    background: var(--primary-dark) !important;
   }
   
   /* Date hover effects */
@@ -311,6 +357,13 @@ const Dashboard = () => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [showDataQualityModal, setShowDataQualityModal] = useState(false);
+  const [timePeriodDropdownOpen, setTimePeriodDropdownOpen] = useState(false);
+
+  // Separate UI state for dropdown display (doesn't trigger data fetching)
+  const [timePeriodDropdownValue, setTimePeriodDropdownValue] = useState(() => {
+    const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
+    return savedTimePeriod;
+  });
 
   // Handle PDF view
   const handleViewPDF = useCallback((url) => {
@@ -1087,16 +1140,26 @@ const Dashboard = () => {
             {/* Right Side - Global Filters */}
             <div className="flex items-center gap-3 flex-1 justify-end">
               {/* Time Period Filter */}
-              <div className="w-40">
+              <div className="w-40 relative">
                 <SingleSelect
-                  value={globalFilters.quickPreset || 'last-30-days'}
+                  value={timePeriodDropdownValue}
+                  onDropdownToggle={setTimePeriodDropdownOpen}
                   onChange={(preset) => {
                       console.log('🔄 Time period filter changed to:', preset);
-                      
+
+                      // Update the dropdown UI state
+                      setTimePeriodDropdownValue(preset);
+
+                      // If custom is selected, don't change any filters - just show the date picker
+                      if (preset === 'custom') {
+                        console.log('📅 Custom selected - showing date picker without data refresh');
+                        return; // Exit early to prevent any data fetching
+                      }
+
                       // Use functional update to ensure we have the latest state
                       setGlobalFilters(prevFilters => {
                         let newFilters = { ...prevFilters, quickPreset: preset };
-                        
+
                         // Apply preset date ranges
                         switch (preset) {
                           case 'today':
@@ -1147,23 +1210,17 @@ const Dashboard = () => {
                             delete newFilters.startDate;
                             delete newFilters.endDate;
                             break;
-                          case 'custom':
-                            newFilters.dateRange = {
-                              startDate: null,
-                              endDate: null
-                            };
-                            break;
                           default:
                             break;
                         }
-                        
+
                         console.log('📝 Updated filters:', newFilters);
-                        
+
                         // Force a refresh to ensure data is fetched
                         setTimeout(() => {
                           setRefreshTrigger(prev => prev + 1);
                         }, 100);
-                        
+
                         return newFilters;
                       });
                     }}
@@ -1181,77 +1238,76 @@ const Dashboard = () => {
                     placeholder="Time Period"
                     className="w-full"
                   />
+                  
+                  {/* Custom Date Range Picker - positioned absolutely below Time Period dropdown */}
+                  {timePeriodDropdownValue === 'custom' && !timePeriodDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-full z-50">
+                      <Flatpickr
+                        className="dashboard-date-picker w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700 dark:text-slate-200 shadow-lg"
+                        value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
+                          ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
+                          : []}
+                        onChange={(selectedDates) => {
+                          console.log('📅 Custom date range changed:', selectedDates);
+                          
+                          // Use functional update to ensure we have the latest state
+                          setGlobalFilters(prevFilters => {
+                            let newFilters = { ...prevFilters };
+                            
+                            if (selectedDates.length === 2) {
+                              newFilters.dateRange = {
+                                startDate: selectedDates[0].toISOString().split('T')[0],
+                                endDate: selectedDates[1].toISOString().split('T')[0]
+                              };
+                              newFilters.quickPreset = 'custom'; // Update the quickPreset to match
+
+                              console.log('📝 Updated filters from date picker:', newFilters);
+
+                              // Only trigger refresh when both dates are selected (complete range)
+                              setTimeout(() => {
+                                setRefreshTrigger(prev => prev + 1);
+                              }, 100);
+                            } else if (selectedDates.length === 1) {
+                              // First date selected, don't update filters yet - wait for second date
+                              console.log('📅 First date selected, waiting for second date');
+                              return prevFilters; // Don't update filters until range is complete
+                            } else if (selectedDates.length === 0) {
+                              // Clear both dates - don't trigger refresh, just clear the selection
+                              newFilters.dateRange = {
+                                startDate: null,
+                                endDate: null
+                              };
+                              console.log('📝 Cleared date selection');
+                            }
+                            
+                            return newFilters;
+                          });
+                        }}
+                        placeholder="Select date range"
+                        options={{
+                          mode: 'range',
+                          dateFormat: 'm/d/y',
+                          maxDate: 'today',
+                          clickOpens: true,
+                          allowInput: false,
+                          disableMobile: true,
+                          onReady: (selectedDates, dateStr, instance) => {
+                            instance.element.setAttribute('autocomplete', 'off');
+                            instance.element.setAttribute('readonly', 'readonly');
+                            // Set initial dates if they exist
+                            if (globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate) {
+                              instance.setDate([
+                                new Date(globalFilters.dateRange.startDate),
+                                new Date(globalFilters.dateRange.endDate)
+                              ], false);
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
               </div>
 
-              {/* Custom Date Range Picker */}
-              {globalFilters.quickPreset === 'custom' && (
-                <div className="w-48 date-range-container">
-                  <div className="date-range-wrapper">
-                    <Flatpickr
-                      value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
-                        ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
-                        : []}
-                      onChange={(selectedDates) => {
-                        console.log('📅 Custom date range changed:', selectedDates);
-                        
-                        // Use functional update to ensure we have the latest state
-                        setGlobalFilters(prevFilters => {
-                          let newFilters = { ...prevFilters };
-                          
-                          if (selectedDates.length === 2) {
-                            newFilters.dateRange = {
-                              startDate: selectedDates[0].toISOString().split('T')[0],
-                              endDate: selectedDates[1].toISOString().split('T')[0]
-                            };
-                          } else if (selectedDates.length === 1) {
-                            // First date selected, clear end date
-                            newFilters.dateRange = {
-                              startDate: selectedDates[0].toISOString().split('T')[0],
-                              endDate: null
-                            };
-                          } else if (selectedDates.length === 0) {
-                            // Clear both dates
-                            newFilters.dateRange = {
-                              startDate: null,
-                              endDate: null
-                            };
-                          }
-                          
-                          console.log('📝 Updated filters from date picker:', newFilters);
-                          
-                          // Force a refresh to ensure data is fetched
-                          setTimeout(() => {
-                            setRefreshTrigger(prev => prev + 1);
-                          }, 100);
-                          
-                          return newFilters;
-                        });
-                      }}
-                      placeholder="Select date range"
-                      className="flatpickr-input"
-                      options={{
-                        mode: 'range',
-                        dateFormat: 'm/d/y',
-                        maxDate: 'today',
-                        clickOpens: true,
-                        allowInput: false,
-                        disableMobile: true,
-                        onReady: (selectedDates, dateStr, instance) => {
-                          instance.element.setAttribute('autocomplete', 'off');
-                          instance.element.setAttribute('readonly', 'readonly');
-                          // Set initial dates if they exist
-                          if (globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate) {
-                            instance.setDate([
-                              new Date(globalFilters.dateRange.startDate),
-                              new Date(globalFilters.dateRange.endDate)
-                            ], false);
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Market Filter */}
               <div className="w-40">
@@ -1371,6 +1427,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          
           
           {/* Dashboard Description */}
           {activeDashboard?.description && (

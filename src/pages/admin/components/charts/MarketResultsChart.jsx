@@ -1,14 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { useDashboardFilters } from '../../contexts/DashboardContext';
+import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 import { filterDataForChart, shouldShowDrillDownIndicators } from '../../utils/dashboardFilters';
 
 const MarketResultsChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { getFiltersForChart, getCombinedFilters, shouldFilterChart, drillDown, applyHoverFilter } = useDashboardFilters();
+  const { getFiltersForChart, getCombinedFilters, shouldFilterChart, drillDown, applyHoverFilter } = useDashboard();
 
   // Get filtered data (includes hover filters from other charts, excludes own hover)
   const filteredData = useMemo(() => {
@@ -77,6 +77,20 @@ const MarketResultsChart = ({ data = [], loading = false }) => {
     // Clear hover filter when mouse leaves
     applyHoverFilter('market', null, 'market-results');
   };
+
+  // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
+  useEffect(() => {
+    if (loading) {
+      applyHoverFilter('market', null, 'market-results');
+    }
+  }, [loading, applyHoverFilter]);
+
+  // Clear hover filters when component unmounts
+  useEffect(() => {
+    return () => {
+      applyHoverFilter('market', null, 'market-results');
+    };
+  }, [applyHoverFilter]);
 
   if (loading) {
     return (

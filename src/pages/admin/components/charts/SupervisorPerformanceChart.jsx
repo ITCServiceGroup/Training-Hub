@@ -95,6 +95,20 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
     applyHoverFilter('supervisor', null, 'supervisor-performance');
   };
 
+  // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
+  useEffect(() => {
+    if (loading) {
+      applyHoverFilter('supervisor', null, 'supervisor-performance');
+    }
+  }, [loading, applyHoverFilter]);
+
+  // Clear hover filters when component unmounts
+  useEffect(() => {
+    return () => {
+      applyHoverFilter('supervisor', null, 'supervisor-performance');
+    };
+  }, [applyHoverFilter]);
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { useDashboardFilters } from '../../contexts/DashboardContext';
+import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
@@ -13,7 +13,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     shouldFilterChart,
     drillDown,
     applyHoverFilter
-  } = useDashboardFilters();
+  } = useDashboard();
   const [sortBy, setSortBy] = useState('difficulty'); // 'difficulty', 'attempts', 'question'
   const [sortOrder, setSortOrder] = useState('desc');
   const [showOnlyProblematic, setShowOnlyProblematic] = useState(false);
@@ -212,6 +212,20 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
   const handleQuestionLeave = () => {
     applyHoverFilter('question', null, 'question-analytics');
   };
+
+  // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
+  useEffect(() => {
+    if (loading) {
+      applyHoverFilter('question', null, 'question-analytics');
+    }
+  }, [loading, applyHoverFilter]);
+
+  // Clear hover filters when component unmounts
+  useEffect(() => {
+    return () => {
+      applyHoverFilter('question', null, 'question-analytics');
+    };
+  }, [applyHoverFilter]);
 
   if (loading) {
     return (

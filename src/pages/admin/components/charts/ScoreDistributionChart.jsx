@@ -116,6 +116,20 @@ const ScoreDistributionChart = ({ data = [], loading = false }) => {
     applyHoverFilter('scoreRange', null, 'score-distribution');
   };
 
+  // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
+  useEffect(() => {
+    if (loading) {
+      applyHoverFilter('scoreRange', null, 'score-distribution');
+    }
+  }, [loading, applyHoverFilter]);
+
+  // Clear hover filters when component unmounts
+  useEffect(() => {
+    return () => {
+      applyHoverFilter('scoreRange', null, 'score-distribution');
+    };
+  }, [applyHoverFilter]);
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">

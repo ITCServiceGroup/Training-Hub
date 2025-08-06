@@ -1,13 +1,13 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { useDashboardFilters } from '../../contexts/DashboardContext';
+import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 
 const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { getFiltersForChart, shouldFilterChart, drillDown, applyHoverFilter } = useDashboardFilters();
+  const { getFiltersForChart, shouldFilterChart, drillDown, applyHoverFilter } = useDashboard();
 
   // Track data changes and drill down state to control animations
   const prevDataRef = useRef(null);
@@ -132,6 +132,20 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
   const handleQuizTypeLeave = () => {
     applyHoverFilter('quizType', null, 'quiz-type-performance');
   };
+
+  // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
+  useEffect(() => {
+    if (loading) {
+      applyHoverFilter('quizType', null, 'quiz-type-performance');
+    }
+  }, [loading, applyHoverFilter]);
+
+  // Clear hover filters when component unmounts
+  useEffect(() => {
+    return () => {
+      applyHoverFilter('quizType', null, 'quiz-type-performance');
+    };
+  }, [applyHoverFilter]);
 
   if (loading) {
     return (

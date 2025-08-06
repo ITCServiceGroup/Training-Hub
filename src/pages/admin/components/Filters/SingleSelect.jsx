@@ -2,7 +2,7 @@ import React from 'react';
 import Select from 'react-select';
 import { useTheme } from '../../../../contexts/ThemeContext';
 
-const SingleSelect = ({ value, onChange, options, placeholder, className = "" }) => {
+const SingleSelect = ({ value, onChange, options, placeholder, className = "", onDropdownToggle }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -23,6 +23,7 @@ const SingleSelect = ({ value, onChange, options, placeholder, className = "" })
       ...provided,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
       fontSize: '12px',
+      zIndex: 9999, // High z-index to stay above charts and grid items
     }),
     option: (provided, state) => ({
       ...provided,
@@ -81,6 +82,10 @@ const SingleSelect = ({ value, onChange, options, placeholder, className = "" })
       styles={customStyles}
       className={className}
       classNamePrefix="react-select"
+      onMenuOpen={() => onDropdownToggle && onDropdownToggle(true)}
+      onMenuClose={() => onDropdownToggle && onDropdownToggle(false)}
+      menuPortalTarget={document.body}
+      menuPosition="fixed"
     />
   );
 };

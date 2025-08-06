@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
@@ -83,6 +83,20 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
     // Clear hover filter when mouse leaves
     applyHoverFilter('timeRange', null, 'time-distribution');
   };
+
+  // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
+  useEffect(() => {
+    if (loading) {
+      applyHoverFilter('timeRange', null, 'time-distribution');
+    }
+  }, [loading, applyHoverFilter]);
+
+  // Clear hover filters when component unmounts
+  useEffect(() => {
+    return () => {
+      applyHoverFilter('timeRange', null, 'time-distribution');
+    };
+  }, [applyHoverFilter]);
 
   if (loading) {
     return (
