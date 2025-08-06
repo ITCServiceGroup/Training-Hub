@@ -216,8 +216,28 @@ const SettingsPage = () => {
     handleDeleteItem(id, 'Market');
   };
 
+  const handleToggleSupervisorStatus = async (id, currentStatus) => {
+    try {
+      if (currentStatus) {
+        await organizationService.deactivateSupervisor(id);
+      } else {
+        await organizationService.activateSupervisor(id);
+      }
+      fetchOrganizationData();
+    } catch (error) {
+      console.error('Error toggling supervisor status:', error);
+      setDialogTitle('Error');
+      setDialogMessage(`Failed to ${currentStatus ? 'deactivate' : 'activate'} supervisor`);
+      setDialogType('error');
+      setDialogOpen(true);
+    }
+  };
+
   const handleSaveItem = async () => {
     const inputValue = document.querySelector('.dialog-input')?.value;
+    const marketSelect = document.querySelector('.market-select');
+    const statusSelect = document.querySelector('.status-select');
+    
     if (!inputValue?.trim()) {
       setDialogTitle('Error');
       setDialogMessage('Name cannot be empty');
@@ -229,7 +249,14 @@ const SettingsPage = () => {
       if (editingItem) {
         // Update existing item
         if (editingItem.type === 'Supervisor') {
-          await organizationService.updateSupervisor(editingItem.id, inputValue);
+          const updates = { name: inputValue };
+          if (marketSelect) {
+            updates.market_id = parseInt(marketSelect.value);
+          }
+          if (statusSelect) {
+            updates.is_active = statusSelect.value === 'true';
+          }
+          await organizationService.updateSupervisor(editingItem.id, updates);
         } else {
           await organizationService.updateMarket(editingItem.id, inputValue);
         }
@@ -237,7 +264,14 @@ const SettingsPage = () => {
         // Add new item
         const type = dialogTitle.includes('Supervisor') ? 'Supervisor' : 'Market';
         if (type === 'Supervisor') {
-          await organizationService.addSupervisor(inputValue);
+          const marketId = marketSelect ? parseInt(marketSelect.value) : null;
+          if (!marketId) {
+            setDialogTitle('Error');
+            setDialogMessage('Please select a market for this supervisor');
+            setDialogType('error');
+            return;
+          }
+          await organizationService.addSupervisor(inputValue, marketId);
         } else {
           await organizationService.addMarket(inputValue);
         }
@@ -883,13 +917,29 @@ const SettingsPage = () => {
             <thead className="bg-slate-100 dark:bg-slate-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Market</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
               {supervisors.map((supervisor) => (
-                <tr key={supervisor.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">{supervisor.name}</td>
+                <tr key={supervisor.id} className={supervisor.is_active ? '' : 'opacity-60'}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200">
+                    {supervisor.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
+                    {supervisor.markets?.name || 'No Market'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                      supervisor.is_active 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                    }`}>
+                      {supervisor.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex flex-wrap justify-end gap-2">
                       <button
@@ -897,6 +947,15 @@ const SettingsPage = () => {
                         className="text-primary hover:text-primary-dark dark:hover:text-primary"
                       >
                         Edit
+                      </button>
+                      <button
+                        onClick={() => handleToggleSupervisorStatus(supervisor.id, supervisor.is_active)}
+                        className={supervisor.is_active 
+                          ? "text-orange-600 hover:text-orange-900 dark:hover:text-orange-400"
+                          : "text-green-600 hover:text-green-900 dark:hover:text-green-400"
+                        }
+                      >
+                        {supervisor.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                       <button
                         onClick={() => handleDeleteSupervisor(supervisor.id)}
@@ -1418,14 +1477,60 @@ const SettingsPage = () => {
             {dialogType === 'input' ? (
               // Input dialog for adding/editing items
               <>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    className="dialog-input w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
-                    defaultValue={editingItem?.name || ''}
-                    placeholder={dialogMessage}
-                  />
+                <div className="mt-2 space-y-4">
+                  {/* Name field */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      className="dialog-input w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+                      defaultValue={editingItem?.name || ''}
+                      placeholder="Enter name"
+                    />
+                  </div>
+                  
+                  {/* Supervisor-specific fields */}
+                  {(dialogTitle.includes('Supervisor')) && (
+                    <>
+                      {/* Market selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Market
+                        </label>
+                        <select 
+                          className="market-select w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+                          defaultValue={editingItem?.market_id || editingItem?.markets?.id || ''}
+                        >
+                          <option value="">Select Market</option>
+                          {markets.map((market) => (
+                            <option key={market.id} value={market.id}>
+                              {market.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Status selection (only for editing) */}
+                      {editingItem && (
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Status
+                          </label>
+                          <select 
+                            className="status-select w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+                            defaultValue={editingItem?.is_active ? 'true' : 'false'}
+                          >
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                          </select>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
+                
                 <div className="mt-4 flex justify-end space-x-3">
                   <button
                     type="button"

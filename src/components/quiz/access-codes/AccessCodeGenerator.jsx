@@ -29,7 +29,7 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
       setIsLoading(true);
       try {
         const [supervisorsData, marketsData] = await Promise.all([
-          organizationService.getSupervisors(),
+          organizationService.getActiveSupervisors(),
           organizationService.getMarkets()
         ]);
         setSupervisors(supervisorsData);
@@ -45,6 +45,33 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
     fetchOptions();
   }, []);
 
+  // Update supervisors when market changes
+  useEffect(() => {
+    const updateSupervisors = async () => {
+      if (testTakerInfo.market && testTakerInfo.market !== '') {
+        try {
+          const marketId = markets.find(m => m.name === testTakerInfo.market)?.id;
+          if (marketId) {
+            const supervisorsForMarket = await organizationService.getSupervisorsByMarket(marketId);
+            setSupervisors(supervisorsForMarket);
+          }
+        } catch (error) {
+          console.error('Failed to fetch supervisors for market:', error);
+        }
+      } else {
+        // If no market selected, show all active supervisors
+        try {
+          const allSupervisors = await organizationService.getActiveSupervisors();
+          setSupervisors(allSupervisors);
+        } catch (error) {
+          console.error('Failed to fetch all supervisors:', error);
+        }
+      }
+    };
+
+    updateSupervisors();
+  }, [testTakerInfo.market, markets]);
+
   const resetForm = () => {
     setTestTakerInfo({
       ldap: '',
@@ -58,10 +85,16 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
   };
 
   const handleChange = (field, value) => {
-    setTestTakerInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setTestTakerInfo(prev => {
+      const newInfo = { ...prev, [field]: value };
+      
+      // If market changes, reset supervisor selection
+      if (field === 'market') {
+        newInfo.supervisor = '';
+      }
+      
+      return newInfo;
+    });
     setError(null);
     
     // Validate email field in real-time
@@ -222,32 +255,6 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="supervisor">
-              Supervisor
-            </label>
-            <select
-              id="supervisor"
-              className={classNames(
-                "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
-                error
-                  ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-slate-300 dark:border-slate-600 focus:ring-primary"
-              )}
-              value={testTakerInfo.supervisor}
-              onChange={(e) => handleChange('supervisor', e.target.value)}
-              required
-              disabled={isLoading}
-            >
-              <option value="">Select Supervisor</option>
-              {supervisors.map((supervisor) => (
-                <option key={supervisor.id} value={supervisor.name}>
-                  {supervisor.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="market">
               Market
             </label>
@@ -276,6 +283,51 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="supervisor">
+              Supervisor
+            </label>
+            <select
+              id="supervisor"
+              className={classNames(
+                "w-full p-2 border rounded-lg focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200",
+                error
+                  ? "border-red-300 dark:border-red-700 focus:ring-red-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-primary"
+              )}
+              value={testTakerInfo.supervisor}
+              onChange={(e) => handleChange('supervisor', e.target.value)}
+              required
+              disabled={isLoading || !testTakerInfo.market}
+            >
+              <option value="">
+                {testTakerInfo.market 
+                  ? `Select Supervisor for ${testTakerInfo.market}` 
+                  : "Select Market First"
+                }
+              </option>
+              {supervisors.map((supervisor) => (
+                <option key={supervisor.id} value={supervisor.name}>
+                  {supervisor.name}
+                  {supervisor.markets && ` (${supervisor.markets.name})`}
+                </option>
+              ))}
+            </select>
+            
+            {/* Helper text for market-supervisor relationship */}
+            {testTakerInfo.market && supervisors.length === 0 && (
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                No supervisors available for {testTakerInfo.market} market. Please contact an administrator.
+              </p>
+            )}
+            
+            {!testTakerInfo.market && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Select a market to see available supervisors for that market.
+              </p>
+            )}
           </div>
 
           <button
