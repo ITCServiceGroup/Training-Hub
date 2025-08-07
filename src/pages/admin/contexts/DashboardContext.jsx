@@ -95,6 +95,42 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
         const newState = { ...prev.drillDownState };
         const newBreadcrumbs = [...prev.drillDownState.breadcrumbs];
 
+        // Check if this filter already exists to prevent duplicates
+        const filterValue = type === 'supervisor' || type === 'market' || type === 'quizType'
+          ? (value.fullName || value)
+          : value;
+
+        const existingFilter = newBreadcrumbs.find(breadcrumb => {
+          if (breadcrumb.type !== type) return false;
+
+          // For complex objects, compare the actual filter value
+          const existingValue = breadcrumb.type === 'supervisor' || breadcrumb.type === 'market' || breadcrumb.type === 'quizType'
+            ? breadcrumb.value
+            : breadcrumb.value;
+
+          // For simple values, direct comparison
+          if (typeof filterValue === 'string' || typeof filterValue === 'number') {
+            return existingValue === filterValue;
+          }
+
+          // For complex objects (like timeRange, scoreRange, passFailClassification)
+          if (typeof filterValue === 'object' && filterValue !== null) {
+            // Compare by label for most filter types
+            if (filterValue.label && existingValue.label) {
+              return filterValue.label === existingValue.label;
+            }
+            // Fallback to JSON comparison for complex objects
+            return JSON.stringify(existingValue) === JSON.stringify(filterValue);
+          }
+
+          return false;
+        });
+
+        // If filter already exists, don't add it again
+        if (existingFilter) {
+          return prev; // Return unchanged state
+        }
+
         switch (type) {
           case 'supervisor':
             // Store the fullName for filtering (this is what matches the raw data)
