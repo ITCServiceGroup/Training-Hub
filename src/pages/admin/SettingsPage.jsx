@@ -1452,10 +1452,10 @@ const SettingsPage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-800">
+    <div className="flex h-full">
       {/* Navigation Sidebar */}
-      <div className="w-64 py-4 pr-4">
-        <nav className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-700 sticky top-4 h-[calc(100vh-2rem)] rounded-lg shadow-sm dark:shadow-lg">
+      <div className="w-64 pr-4 flex-shrink-0">
+        <nav className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-700 h-full rounded-lg shadow-sm dark:shadow-lg">
         <ul className="space-y-2 mt-8">
           <li>
             <button
@@ -1522,7 +1522,7 @@ const SettingsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 overflow-y-auto">
         {renderActiveSection()}
       </div>
 
