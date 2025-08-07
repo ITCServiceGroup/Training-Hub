@@ -391,7 +391,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       let allDataPoints = [];
       if (analysisMode === 'individual' || analysisMode === 'cohort') {
         // For individual/cohort modes, combine data points from all series
-        chartData.forEach(series => {
+        displayChartData.forEach(series => {
           if (series.data && Array.isArray(series.data)) {
             allDataPoints.push(...series.data);
           }
@@ -401,7 +401,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         allDataPoints = uniqueDates.map(x => ({ x })).sort((a, b) => new Date(a.x) - new Date(b.x));
       } else {
         // For aggregate mode, use the single series
-        allDataPoints = chartData[0]?.data || [];
+        allDataPoints = displayChartData[0]?.data || [];
       }
       
       let startDate = pixelToDate(startX, rect.width, allDataPoints);
@@ -448,7 +448,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     setIsDragging(false);
     setDragStart(null);
     setBrushRange(null);
-  }, [isDragging, dragStart, chartData, pixelToDate, applyBrushSelection]);
+  }, [isDragging, dragStart, displayChartData, pixelToDate, applyBrushSelection]);
 
   // Clear brush selection
   const handleClearBrush = useCallback(() => {
@@ -464,7 +464,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     );
   }
 
-  if (chartData.length === 0 || (chartData[0] && chartData[0].data.length === 0)) {
+  if (displayChartData.length === 0 || (displayChartData[0] && displayChartData[0].data.length === 0)) {
     return (
       <div className="h-full w-full relative">
         {/* Clear brush button - always show when there's a brush selection */}
@@ -761,55 +761,18 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           return point.seriesColor || '#3b82f6';
         }}
         pointLabelYOffset={-12}
-        useMesh={false}
+        useMesh={true}
         enableSlices={false}
         enableCrosshair={false}
         enablePoints={true}
         animate={true}
         motionConfig="default"
         tooltip={({ point }) => {
-          // Calculate minimal positioning adjustments only when very close to edges
-          const [tooltipStyle, setTooltipStyle] = useState({});
-          
-          useEffect(() => {
-            const handleMouseMove = (e) => {
-              const tooltipWidth = 300; // Approximate tooltip width
-              const tooltipHeight = 180; // Approximate tooltip height
-              const edgeThreshold = 50; // Only adjust when within 50px of edge
-              
-              const viewportWidth = window.innerWidth;
-              const viewportHeight = window.innerHeight;
-              
-              let adjustments = {};
-              
-              // Only adjust if VERY close to right edge
-              if (e.clientX + tooltipWidth/2 > viewportWidth - edgeThreshold) {
-                const overflowAmount = (e.clientX + tooltipWidth/2) - (viewportWidth - 20);
-                adjustments.marginLeft = `-${Math.min(overflowAmount, tooltipWidth/3)}px`;
-              }
-              // Only adjust if VERY close to left edge  
-              else if (e.clientX - tooltipWidth/2 < edgeThreshold) {
-                const overflowAmount = edgeThreshold - (e.clientX - tooltipWidth/2);
-                adjustments.marginLeft = `${Math.min(overflowAmount, tooltipWidth/3)}px`;
-              }
-              
-              // Only adjust if VERY close to top edge
-              if (e.clientY - tooltipHeight < edgeThreshold) {
-                adjustments.marginTop = '15px'; // Move slightly below cursor
-                adjustments.transform = 'translateY(0)';
-              }
-              
-              setTooltipStyle(adjustments);
-            };
-            
-            document.addEventListener('mousemove', handleMouseMove);
-            return () => document.removeEventListener('mousemove', handleMouseMove);
-          }, []);
           // Individual mode has different tooltip structure
           if (analysisMode === 'individual') {
             const userDisplayName = anonymizeNames ? point.data.displayName : point.data.fullLdap;
             const attemptNumber = point.data.attempt;
-            const userSeries = chartData.find(series => series.fullLdap === point.data.fullLdap);
+            const userSeries = displayChartData.find(series => series.fullLdap === point.data.fullLdap);
             
             // Calculate comprehensive progression analysis
             const userAttempts = userSeries?.data || [];
@@ -860,7 +823,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
             const data = [
               { label: 'User', value: userDisplayName || 'Unknown' },
               { label: 'Date', value: point.data.xFormatted },
-              { label: 'Score', value: `${point.data.yFormatted}%${isPersonalBest ? ' 🏆' : ''}` },
+              { label: 'Score', value: `${point.data.yFormatted || point.data.y}%${isPersonalBest ? ' 🏆' : ''}` },
               { label: 'Attempt #', value: `${attemptNumber || 'N/A'} of ${userAttempts.length}` },
               { label: 'Performance', value: performanceTier },
               ...(overallProgress ? [{ label: 'Overall Progress', value: overallProgress.points }] : [])
@@ -873,26 +836,21 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
             ].filter(Boolean).join(' • ');
             
             return (
-              <div style={{
-                position: 'relative',
-                ...tooltipStyle
-              }}>
-                <EnhancedTooltip
-                  title="Individual Performance"
-                  data={data}
-                  icon={true}
-                  color={point.seriesColor}
-                  trend={trend}
-                  additionalInfo={additionalInfo || `${userAttempts.length} total attempts`}
-                />
-              </div>
+              <EnhancedTooltip
+                title="Individual Performance"
+                data={data}
+                icon={true}
+                color={point.seriesColor}
+                trend={trend}
+                additionalInfo={additionalInfo || `${userAttempts.length} total attempts`}
+              />
             );
           }
           
           // Default tooltip for Aggregate and Cohort modes
-          const currentIndex = chartData[0]?.data.findIndex(d => d.x === point.data.x) || 0;
-          const previousPoint = currentIndex > 0 ? chartData[0]?.data[currentIndex - 1] : null;
-          const nextPoint = currentIndex < (chartData[0]?.data.length - 1) ? chartData[0]?.data[currentIndex + 1] : null;
+          const currentIndex = displayChartData[0]?.data.findIndex(d => d.x === point.data.x) || 0;
+          const previousPoint = currentIndex > 0 ? displayChartData[0]?.data[currentIndex - 1] : null;
+          const nextPoint = currentIndex < (displayChartData[0]?.data.length - 1) ? displayChartData[0]?.data[currentIndex + 1] : null;
 
           // Calculate trend
           let trend = null;
@@ -906,7 +864,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           }
 
           // Calculate comparison to overall average
-          const allPoints = chartData[0]?.data || [];
+          const allPoints = displayChartData[0]?.data || [];
           const overallAverage = allPoints.reduce((sum, p) => sum + parseFloat(p.y), 0) / allPoints.length;
           const comparison = {
             period: 'overall average',
@@ -916,26 +874,21 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
           const data = [
             { label: 'Date', value: point.data.xFormatted },
-            { label: 'Average Score', value: `${point.data.yFormatted}%` },
-            { label: 'Tests Taken', value: point.data.count },
+            { label: 'Average Score', value: `${point.data.yFormatted || point.data.y}%` },
+            { label: 'Tests Taken', value: point.data.count || 'N/A' },
             { label: 'Overall Avg', value: `${overallAverage.toFixed(1)}%` }
           ];
 
           return (
-            <div style={{
-              position: 'relative',
-              ...tooltipStyle
-            }}>
-              <EnhancedTooltip
-                title={analysisMode === 'cohort' ? 'Cohort Performance' : 'Score Trend'}
-                data={data}
-                icon={true}
-                color="#f59e0b"
-                trend={trend}
-                comparison={comparison}
-                additionalInfo={`${point.data.count} test${point.data.count !== 1 ? 's' : ''} completed on this date`}
-              />
-            </div>
+            <EnhancedTooltip
+              title={analysisMode === 'cohort' ? 'Cohort Performance' : 'Score Trend'}
+              data={data}
+              icon={true}
+              color="#f59e0b"
+              trend={trend}
+              comparison={comparison}
+              additionalInfo={point.data.count ? `${point.data.count} test${point.data.count !== 1 ? 's' : ''} completed on this date` : 'Chart data point'}
+            />
           );
         }}
       />
