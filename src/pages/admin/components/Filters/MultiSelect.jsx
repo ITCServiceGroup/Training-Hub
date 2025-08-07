@@ -74,6 +74,11 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       ...provided,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
       fontSize: '12px',
+      zIndex: 1000, // Higher than chart tiles (100) but lower than tooltips
+    }),
+    menuPortal: (provided) => ({
+      ...provided,
+      zIndex: 1000, // Ensure portal also has medium z-index
     }),
     option: (provided, state) => ({
       ...provided,
@@ -156,101 +161,62 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     );
   };
 
-  // Custom MultiValue component that always shows the X button
+  // Simple MultiValue component without conflicting tooltip
   const MultiValue = (props) => {
-    const [showTooltip, setShowTooltip] = useState(false);
-    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-
-    const handleMouseEnter = (e) => {
-      const rect = e.target.getBoundingClientRect();
-      setTooltipPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top - 5
-      });
-      setTimeout(() => setShowTooltip(true), 200); // 200ms delay
-    };
-
-    const handleMouseLeave = () => {
-      setShowTooltip(false);
-    };
-
     return (
-      <>
+      <div
+        title={props.children} // Use native browser tooltip instead of custom one
+        style={{
+          backgroundColor: isDark ? '#475569' : '#e5e7eb',
+          fontSize: '11px',
+          display: 'flex',
+          alignItems: 'center',
+          margin: '1px',
+          borderRadius: '2px',
+          minWidth: '60px',
+        }}
+      >
         <div
           style={{
-            backgroundColor: isDark ? '#475569' : '#e5e7eb',
+            color: isDark ? '#f8fafc' : '#374151',
             fontSize: '11px',
-            display: 'flex',
-            alignItems: 'center',
-            margin: '1px',
-            borderRadius: '2px',
-            minWidth: '60px',
+            padding: '2px 6px',
+            paddingRight: '2px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '120px',
+            flex: '1 1 auto',
           }}
         >
-          <div
-            style={{
-              color: isDark ? '#f8fafc' : '#374151',
-              fontSize: '11px',
-              padding: '2px 6px',
-              paddingRight: '2px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: '120px',
-              flex: '1 1 auto',
-            }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            {props.children}
-          </div>
-          <div
-            style={{
-              color: isDark ? '#cbd5e1' : '#6b7280',
-              fontSize: '11px',
-              padding: '2px 4px',
-              cursor: 'pointer',
-              borderRadius: '0 2px 2px 0',
-              flex: '0 0 auto',
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              props.removeProps.onClick(e);
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = isDark ? '#64748b' : '#d1d5db';
-              e.target.style.color = isDark ? '#f8fafc' : '#1f2937';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = isDark ? '#cbd5e1' : '#6b7280';
-            }}
-          >
-            ×
-          </div>
+          {props.children}
         </div>
-        {showTooltip && (
-          <div
-            style={{
-              position: 'fixed',
-              left: tooltipPosition.x,
-              top: tooltipPosition.y,
-              transform: 'translateX(-50%) translateY(-100%)',
-              backgroundColor: 'rgba(0, 0, 0, 0.9)',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              whiteSpace: 'nowrap',
-              zIndex: 10000,
-              pointerEvents: 'none',
-            }}
-          >
-            {props.children}
-          </div>
-        )}
-      </>
+        <div
+          style={{
+            color: isDark ? '#cbd5e1' : '#6b7280',
+            fontSize: '11px',
+            padding: '2px 4px',
+            cursor: 'pointer',
+            borderRadius: '0 2px 2px 0',
+            flex: '0 0 auto',
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            props.removeProps.onClick(e);
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = isDark ? '#64748b' : '#d1d5db';
+            e.target.style.color = isDark ? '#f8fafc' : '#1f2937';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+            e.target.style.color = isDark ? '#cbd5e1' : '#6b7280';
+          }}
+        >
+          ×
+        </div>
+      </div>
     );
   };
 
@@ -277,6 +243,8 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
         components={{
           MultiValue
         }}
+        menuPortalTarget={null} // Explicitly disable portal rendering
+        menuShouldScrollIntoView={false}
       />
     </div>
   );

@@ -37,7 +37,7 @@ const DashboardTile = ({
       style={{ 
         minHeight: '320px',
         position: 'relative',
-        zIndex: isHovered ? 1000 : 1
+        zIndex: isHovered ? 100 : 1  // Lower than dropdown z-index (but still elevated for tooltips)
       }}
     >
       {/* Tile Header */}

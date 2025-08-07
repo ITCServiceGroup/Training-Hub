@@ -71,7 +71,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="bg-primary text-white py-4 shadow-md sticky top-0 z-[100]">
+    <header className="bg-primary text-white py-4 shadow-md sticky top-0 z-40">
       <div className="w-full px-6">
         <div className="flex justify-between items-center">
           {/* Logo and page title */}

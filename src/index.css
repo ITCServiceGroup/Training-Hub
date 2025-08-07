@@ -493,6 +493,30 @@ label { /* Uncommented custom CSS */
   color: #9ca3af !important;
 }
 
+/* FINAL TOOLTIP FIX - Force all tooltips above everything */
+/* Ensure React-Select menus have medium z-index - above chart tiles but below tooltips */
+.react-select__menu,
+.react-select__menu-list,
+div[class*="react-select"][class*="menu"] {
+  z-index: 1000 !important;
+}
+
+/* Force all tooltips to MAXIMUM z-index - above all stacking contexts */
+/* Target all possible tooltip containers */
+div[style*="position: absolute"][style*="pointer-events: none"],
+div[style*="position: fixed"][style*="pointer-events: none"],
+div[data-testid="tooltip"],
+div[role="tooltip"],
+.enhanced-tooltip-container,
+/* Nivo specific tooltip containers - more specific targeting */
+div[style*="position: absolute"][style*="background"][style*="border"],
+div[style*="position: absolute"][style*="background"][style*="box-shadow"],
+/* Target any tooltip-like element with these characteristics */
+div[style*="position: absolute"][style*="font-size: 12px"],
+div[style*="position: absolute"][style*="border-radius"][style*="padding"] {
+  z-index: 2147483647 !important;
+}
+
 /* React Grid Layout Z-Index Fix for Tooltips */
 /* Target React Grid Layout items when they contain active tooltips */
 .react-grid-item:hover,

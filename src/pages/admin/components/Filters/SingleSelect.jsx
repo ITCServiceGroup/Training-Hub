@@ -23,11 +23,11 @@ const SingleSelect = ({ value, onChange, options, placeholder, className = "", o
       ...provided,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
       fontSize: '12px',
-      zIndex: 99999, // Extremely high z-index to stay above charts and grid items
+      zIndex: 1000, // Higher than chart tiles (100) but lower than tooltips
     }),
     menuPortal: (provided) => ({
       ...provided,
-      zIndex: 99999, // Ensure portal also has high z-index
+      zIndex: 1000, // Ensure portal also has medium z-index
     }),
     option: (provided, state) => ({
       ...provided,
@@ -88,8 +88,8 @@ const SingleSelect = ({ value, onChange, options, placeholder, className = "", o
       classNamePrefix="react-select"
       onMenuOpen={() => onDropdownToggle && onDropdownToggle(true)}
       onMenuClose={() => onDropdownToggle && onDropdownToggle(false)}
-      menuPortalTarget={document.body}
-      menuPosition="fixed"
+      menuPortalTarget={null} // Explicitly disable portal rendering
+      menuShouldScrollIntoView={false}
     />
   );
 };
