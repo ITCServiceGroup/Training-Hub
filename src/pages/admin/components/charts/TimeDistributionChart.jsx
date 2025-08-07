@@ -57,6 +57,41 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
       }));
   }, [filteredData]);
 
+  // Compute data-driven typical time info (mean-based), per quiz when singular, else overall
+  const typicalInfo = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) {
+      return { meanSec: 0, typicalLabel: null };
+    }
+
+    const uniqueQuizTypes = Array.from(new Set(
+      filteredData.map(r => r.quiz_type).filter(Boolean)
+    ));
+
+    let relevant = filteredData;
+    if (uniqueQuizTypes.length === 1) {
+      const quizType = uniqueQuizTypes[0];
+      relevant = filteredData.filter(r => r.quiz_type === quizType);
+    }
+
+    const times = relevant.map(r => parseInt(r.time_taken) || 0).filter(t => t >= 0);
+    const meanSec = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+
+    // Use same bucket definitions to find the label that contains the mean
+    const buckets = [
+      { label: '< 1 min', min: 0, max: 60 },
+      { label: '1-3 min', min: 60, max: 180 },
+      { label: '3-5 min', min: 180, max: 300 },
+      { label: '5-10 min', min: 300, max: 600 },
+      { label: '> 10 min', min: 600, max: Infinity }
+    ];
+    const typicalBucket = buckets.find(b => meanSec >= b.min && meanSec < b.max);
+
+    return {
+      meanSec,
+      typicalLabel: typicalBucket ? typicalBucket.label : null
+    };
+  }, [filteredData]);
+
   // Handle time range click for drill-down
   const handleTimeRangeClick = (timeData) => {
     const range = timeData.data;
@@ -168,20 +203,30 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
           const isLargestSegment = datum.value === Math.max(...chartData.map(d => d.value));
           const isSmallestSegment = datum.value === Math.min(...chartData.map(d => d.value));
 
-          // Determine if this is a concerning time range
+          // Range boundaries (seconds)
+          const minSec = datum.data.min;
+          const maxSec = datum.data.max;
+
+          // Determine guidance relative to data-driven typical range
           let timeInsight = '';
-          if (datum.data.min >= 20) {
-            timeInsight = 'This may indicate difficulty with test content';
-          } else if (datum.data.max <= 5) {
-            timeInsight = 'Very quick completion - may indicate rushing';
-          } else if (datum.data.min <= 10 && datum.data.max <= 15) {
-            timeInsight = 'Optimal completion time range';
+          if (typicalInfo.typicalLabel && datum.label === typicalInfo.typicalLabel) {
+            timeInsight = 'Typical for this dataset';
+          } else if (maxSec <= typicalInfo.meanSec) {
+            timeInsight = 'Faster than typical for this dataset';
+          } else if (minSec >= typicalInfo.meanSec) {
+            timeInsight = 'Slower than typical for this dataset';
+          } else {
+            timeInsight = 'Around typical';
           }
 
-          // Calculate average time for this range (estimate) - convert from seconds to minutes
-          const avgTimeSeconds = datum.data.max === Infinity
-            ? datum.data.min + 300 // Estimate for "> 10 min" range
-            : (datum.data.min + datum.data.max) / 2;
+          // Compute the actual average time for this slice based on underlying data
+          const inRange = filteredData.filter(r => {
+            const t = parseInt(r.time_taken) || 0;
+            return t >= minSec && t < maxSec;
+          });
+          const avgTimeSeconds = inRange.length
+            ? inRange.reduce((sum, r) => sum + ((parseInt(r.time_taken) || 0)), 0) / inRange.length
+            : (maxSec === Infinity ? (minSec + 300) : (minSec + maxSec) / 2); // fallback to midpoint/estimate
           const avgTime = (avgTimeSeconds / 60).toFixed(1);
 
           const data = [
@@ -198,7 +243,7 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
               data={data}
               icon={true}
               color={datum.color}
-              additionalInfo={timeInsight || `${datum.data.percentage}% of tests fall in this time range`}
+              additionalInfo={`${timeInsight} • Typical range: ${typicalInfo.typicalLabel || 'N/A'} • Mean: ${(typicalInfo.meanSec / 60).toFixed(1)} min`}
             />
           );
         }}
