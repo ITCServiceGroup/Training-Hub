@@ -144,8 +144,8 @@ const AdminLayout = () => {
             </li>
           </ul>
             {/* Toggle button at bottom - entire area is clickable */}
-            <div 
-              className="flex justify-center p-4 border-t border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            <div
+              className="flex justify-center p-4 border-t border-slate-300 dark:border-slate-600 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >

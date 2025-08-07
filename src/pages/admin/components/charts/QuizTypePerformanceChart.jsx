@@ -36,7 +36,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
 
     if (!shouldFilter) return data;
 
-    return data.filter(result => {
+    const filtered = data.filter(result => {
       if (filters.supervisor && result.supervisor !== filters.supervisor) return false;
       if (filters.market && result.market !== filters.market) return false;
       if (filters.timeRange) {
@@ -52,6 +52,8 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
       if (filters.quizType && result.quiz_type !== filters.quizType) return false;
       return true;
     });
+
+    return filtered;
   }, [data, getFiltersForChart, shouldFilterChart]);
 
   // Process data by quiz type
@@ -60,7 +62,7 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
 
     // Group by quiz type
     const quizTypeGroups = {};
-    
+
     chartFilteredData.forEach(result => {
       const quizType = result.quiz_type || 'Unknown';
       if (!quizTypeGroups[quizType]) {
@@ -69,39 +71,66 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
           count: 0
         };
       }
-      
+
       quizTypeGroups[quizType].records.push(result);
       quizTypeGroups[quizType].count++;
     });
 
+
+
     // Calculate averages and format for chart
     const quizTypeData = Object.entries(quizTypeGroups)
       .map(([quizType, group]) => {
-        // Only process records with valid thresholds
-        const validRecords = group.records.filter(r => r.passing_score != null);
-        if (validRecords.length === 0) return null;
-        
-        const scores = validRecords.map(r => parseFloat(r.score_value) || 0);
-        const times = validRecords.map(r => parseInt(r.time_taken) || 0);
-        
+        // Use all records for score and time calculations
+        const allRecords = group.records;
+        if (allRecords.length === 0) return null;
+
+        const scores = allRecords.map(r => parseFloat(r.score_value) || 0);
+        const times = allRecords.map(r => parseInt(r.time_taken) || 0);
+
         const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
         const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+
+        // Calculate pass rate using only records with valid thresholds
+        const recordsWithThresholds = allRecords.filter(r => r.passing_score != null);
+        let passRate = 0;
+        if (recordsWithThresholds.length > 0) {
+          const passedCount = recordsWithThresholds.filter(r => {
+            const score = parseFloat(r.score_value) || 0;
+            const threshold = r.passing_score; // Already in decimal format
+            return score >= threshold;
+          }).length;
+          passRate = passedCount / recordsWithThresholds.length;
+        } else {
+          // If no records have thresholds, use a default threshold of 70%
+          const defaultThreshold = 0.7;
+          const passedCount = allRecords.filter(r => {
+            const score = parseFloat(r.score_value) || 0;
+            return score >= defaultThreshold;
+          }).length;
+          passRate = passedCount / allRecords.length;
+        }
         
-        // Calculate pass rate using actual thresholds
-        const passedCount = validRecords.filter(r => {
-          const score = parseFloat(r.score_value) || 0;
-          const threshold = r.passing_score; // Already in decimal format
-          return score >= threshold;
-        }).length;
-        const passRate = passedCount / validRecords.length;
-        
+        // Create a unique display name that avoids truncation conflicts
+        let displayName = quizType;
+        if (quizType.length > 20) {
+          // For long names, try to keep distinguishing parts
+          if (quizType.includes('v2')) {
+            displayName = quizType.replace('Advanced Service Tech Quiz', 'AST Quiz').replace(' v2', ' v2');
+          } else if (quizType.includes('Advanced Service Tech')) {
+            displayName = quizType.replace('Advanced Service Tech Quiz', 'AST Quiz');
+          } else {
+            displayName = quizType.substring(0, 20) + '...';
+          }
+        }
+
         return {
-          quizType: quizType.length > 20 ? quizType.substring(0, 20) + '...' : quizType,
+          quizType: displayName,
           fullName: quizType,
           averageScore: (avgScore * 100).toFixed(1),
           averageTime: Math.round(avgTime / 60), // Convert to minutes
           passRate: (passRate * 100).toFixed(1),
-          count: validRecords.length,
+          count: allRecords.length,
           difficulty: avgScore < 0.6 ? 'Hard' : avgScore < 0.8 ? 'Medium' : 'Easy'
         };
       })
@@ -165,6 +194,8 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
       </div>
     );
   }
+
+
 
   return (
     <div className="h-full w-full">
