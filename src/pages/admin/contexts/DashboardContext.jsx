@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 
 const DashboardContext = createContext();
 
@@ -88,91 +89,94 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
 
   // Handle drill-down actions
   const drillDown = useCallback((type, value, sourceChart) => {
-    updateDashboardState(prev => {
-      const newState = { ...prev.drillDownState };
-      const newBreadcrumbs = [...prev.drillDownState.breadcrumbs];
+    // Batch both state updates together to prevent animation interruption
+    flushSync(() => {
+      updateDashboardState(prev => {
+        const newState = { ...prev.drillDownState };
+        const newBreadcrumbs = [...prev.drillDownState.breadcrumbs];
 
-      switch (type) {
-        case 'supervisor':
-          // Store the fullName for filtering (this is what matches the raw data)
-          newState.supervisor = value.fullName || value;
-          newBreadcrumbs.push({
-            type: 'supervisor',
-            value: value.fullName || value,
-            label: `Supervisor: ${value.fullName || value}`,
-            sourceChart
-          });
-          break;
-        case 'market':
-          // Store the fullName for filtering (this is what matches the raw data)
-          newState.market = value.fullName || value;
-          newBreadcrumbs.push({
-            type: 'market',
-            value: value.fullName || value,
-            label: `Market: ${value.fullName || value}`,
-            sourceChart
-          });
-          break;
-        case 'timeRange':
-          newState.timeRange = value;
-          newBreadcrumbs.push({
-            type: 'timeRange',
-            value,
-            label: `Time: ${value.label}`,
-            sourceChart
-          });
-          break;
-        case 'scoreRange':
-          newState.scoreRange = value;
-          newBreadcrumbs.push({
-            type: 'scoreRange',
-            value,
-            label: `Score: ${value.label}`,
-            sourceChart
-          });
-          break;
-        case 'passFailClassification':
-          newState.passFailClassification = value;
-          newBreadcrumbs.push({
-            type: 'passFailClassification',
-            value,
-            label: value.label,
-            sourceChart
-          });
-          break;
-        case 'quizType':
-          newState.quizType = value.fullName || value;
-          newBreadcrumbs.push({
-            type: 'quizType',
-            value: value.fullName || value,
-            label: `Quiz: ${value.fullName || value}`,
-            sourceChart
-          });
-          break;
-        case 'question':
-          newState.question = value;
-          newBreadcrumbs.push({
-            type: 'question',
-            value,
-            label: `Question: ${value.questionId}`,
-            sourceChart
-          });
-          break;
-        default:
-          break;
-      }
+        switch (type) {
+          case 'supervisor':
+            // Store the fullName for filtering (this is what matches the raw data)
+            newState.supervisor = value.fullName || value;
+            newBreadcrumbs.push({
+              type: 'supervisor',
+              value: value.fullName || value,
+              label: `Supervisor: ${value.fullName || value}`,
+              sourceChart
+            });
+            break;
+          case 'market':
+            // Store the fullName for filtering (this is what matches the raw data)
+            newState.market = value.fullName || value;
+            newBreadcrumbs.push({
+              type: 'market',
+              value: value.fullName || value,
+              label: `Market: ${value.fullName || value}`,
+              sourceChart
+            });
+            break;
+          case 'timeRange':
+            newState.timeRange = value;
+            newBreadcrumbs.push({
+              type: 'timeRange',
+              value,
+              label: `Time: ${value.label}`,
+              sourceChart
+            });
+            break;
+          case 'scoreRange':
+            newState.scoreRange = value;
+            newBreadcrumbs.push({
+              type: 'scoreRange',
+              value,
+              label: `Score: ${value.label}`,
+              sourceChart
+            });
+            break;
+          case 'passFailClassification':
+            newState.passFailClassification = value;
+            newBreadcrumbs.push({
+              type: 'passFailClassification',
+              value,
+              label: value.label,
+              sourceChart
+            });
+            break;
+          case 'quizType':
+            newState.quizType = value.fullName || value;
+            newBreadcrumbs.push({
+              type: 'quizType',
+              value: value.fullName || value,
+              label: `Quiz: ${value.fullName || value}`,
+              sourceChart
+            });
+            break;
+          case 'question':
+            newState.question = value;
+            newBreadcrumbs.push({
+              type: 'question',
+              value,
+              label: `Question: ${value.questionId}`,
+              sourceChart
+            });
+            break;
+          default:
+            break;
+        }
 
-      newState.breadcrumbs = newBreadcrumbs;
-      return {
+        newState.breadcrumbs = newBreadcrumbs;
+        return {
+          ...prev,
+          drillDownState: newState
+        };
+      });
+
+      setDashboardDrillLevels(prev => ({
         ...prev,
-        drillDownState: newState
-      };
+        [activeDashboardId]: (prev[activeDashboardId] || 0) + 1
+      }));
     });
-
-    setDashboardDrillLevels(prev => ({
-      ...prev,
-      [activeDashboardId]: (prev[activeDashboardId] || 0) + 1
-    }));
   }, [updateDashboardState, activeDashboardId]);
 
   // Handle hover cross-filtering (temporary filters for visual feedback only)

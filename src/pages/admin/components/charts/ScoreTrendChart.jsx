@@ -4,7 +4,7 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaUser, FaUsers, FaChartLine, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { filterDataForChart, createTimeRangeFilter } from '../../utils/dashboardFilters';
+import { filterDataForChart, createTimeRangeFilter, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const ScoreTrendChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -16,6 +16,13 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
   const chartRef = useRef(null);
+
+  // Track Time Distribution specific drill-downs to prevent animation issues
+  const prevTimeRangeRef = useRef(null);
+  const [shouldDisableAnimation, setShouldDisableAnimation] = useState(false);
+  const animationResetRef = useRef(null);
+  
+  
 
   // Learning curve analysis mode - persist selection in localStorage
   const [analysisMode, setAnalysisMode] = useState(() => {
@@ -64,14 +71,59 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}`;
   };
 
-  // Get filtered data (includes hover filters from other charts, excludes own hover)
-  const filteredData = useMemo(() => {
+  // Animation-aware filter stabilization to prevent mid-animation re-renders
+  const stableFilters = useMemo(() => {
     const filters = getFiltersForChart('score-trend');
     const shouldFilter = shouldFilterChart('score-trend');
-    return filterDataForChart(data, filters, 'score-trend', shouldFilter);
-  }, [data, getFiltersForChart, shouldFilterChart]);
+    
+    // Create deeply stabilized filter objects to prevent object reference changes
+    const stabilizedFilters = {
+      supervisor: filters.supervisor,
+      market: filters.market,
+      // Stabilize timeRange object to prevent animation interruption
+      timeRange: filters.timeRange ? {
+        ...filters.timeRange,
+        // Freeze label to prevent string concatenation changes
+        label: filters.timeRange.label || 'Time Range',
+        min: filters.timeRange.min,
+        max: filters.timeRange.max,
+        startDate: filters.timeRange.startDate,
+        endDate: filters.timeRange.endDate
+      } : null,
+      scoreRange: filters.scoreRange ? {
+        ...filters.scoreRange,
+        label: filters.scoreRange.label || 'Score Range',
+        min: filters.scoreRange.min,
+        max: filters.scoreRange.max
+      } : null,
+      passFailClassification: filters.passFailClassification,
+      quizType: filters.quizType,
+      question: filters.question
+    };
+    
+    return {
+      filters: stabilizedFilters,
+      shouldFilter,
+      // Create a stable hash that only changes when filter values actually change
+      _hash: JSON.stringify({
+        supervisor: stabilizedFilters.supervisor,
+        market: stabilizedFilters.market,
+        timeRange: stabilizedFilters.timeRange,
+        scoreRange: stabilizedFilters.scoreRange,
+        passFailClassification: stabilizedFilters.passFailClassification,
+        quizType: stabilizedFilters.quizType,
+        question: stabilizedFilters.question,
+        shouldFilter
+      })
+    };
+  }, [getFiltersForChart, shouldFilterChart]);
 
-  // Process aggregate data (original functionality)
+  // Get filtered data (includes hover filters from other charts, excludes own hover)  
+  const filteredData = useMemo(() => {
+    return filterDataForChart(data, stableFilters.filters, 'score-trend', stableFilters.shouldFilter);
+  }, [data, stableFilters._hash]);
+
+  // Stabilize processing functions to prevent recreations during animation
   const processAggregateData = useCallback((data) => {
     const dateGroups = {};
 
@@ -105,7 +157,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     return [{ id: 'Average Score', color: '#f59e0b', data: points }];
   }, []);
 
-  // Process individual user data
+  // Process individual user data - stabilized
   const processIndividualData = useCallback((data) => {
     const userGroups = {};
     data.forEach(result => {
@@ -158,7 +210,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       });
   }, [anonymizeNames]);
 
-  // Process cohort data (users who started around the same time)
+  // Process cohort data (users who started around the same time) - stabilized
   const processCohortData = useCallback((data) => {
     // Group users by their first test date (cohort start)
     const userFirstTests = {};
@@ -218,31 +270,66 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       });
   }, []);
 
-  // Process data based on analysis mode
+  // Animation-safe data processing - prevent mid-animation data changes
   const chartData = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return [];
 
-    console.log('ScoreTrendChart processing data:', {
-      mode: analysisMode,
-      filteredDataCount: filteredData.length,
-      brushSelection: brushSelection.timeRange
-    });
-
     switch (analysisMode) {
       case 'individual':
-        const individualData = processIndividualData(filteredData);
-        console.log('Individual mode data:', {
-          seriesCount: individualData.length,
-          totalDataPoints: individualData.reduce((sum, series) => sum + series.data.length, 0)
-        });
-        return individualData;
+        return processIndividualData(filteredData);
       case 'cohort':
         return processCohortData(filteredData);
       case 'aggregate':
       default:
         return processAggregateData(filteredData);
     }
-  }, [filteredData, analysisMode, anonymizeNames, processAggregateData, processIndividualData, processCohortData, brushSelection]);
+  }, [
+    // Only use truly stable dependencies to prevent animation interruption
+    stableFilters._hash,
+    analysisMode, 
+    anonymizeNames,
+    // Remove unstable dependencies that were causing mid-animation updates
+    JSON.stringify(brushSelection.timeRange), // Stable serialized version instead of object properties
+    // Stable processing function references
+    processAggregateData,
+    processIndividualData,
+    processCohortData
+  ]);
+
+  // Let's try a different approach: delay data updates during potential animations
+  const [displayChartData, setDisplayChartData] = useState(chartData);
+  const updateTimeoutRef = useRef(null);
+  
+  useEffect(() => {
+    // Clear any pending update
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    // For Time Distribution drill-downs, add a small delay to let any ongoing animation complete
+    const currentTimeRange = stableFilters.filters.timeRange;
+    const isTimeDistributionDrillDown = currentTimeRange && 
+                                       currentTimeRange.min !== undefined && 
+                                       currentTimeRange.max !== undefined &&
+                                       !currentTimeRange.startDate &&
+                                       !currentTimeRange.endDate;
+    
+    if (isTimeDistributionDrillDown && isHoverDrillDownDisabled()) {
+      // Small delay to let animations complete
+      updateTimeoutRef.current = setTimeout(() => {
+        setDisplayChartData(chartData);
+      }, 50);
+    } else {
+      // Immediate update for other cases
+      setDisplayChartData(chartData);
+    }
+    
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, [chartData, stableFilters.filters.timeRange]);
 
   // Convert pixel position to date
   const pixelToDate = useCallback((pixelX, chartWidth, dataPoints) => {
@@ -566,7 +653,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
       )}
 
       <ResponsiveLine
-        data={chartData}
+        data={displayChartData}
         margin={{ top: 20, right: 30, bottom: 80, left: 60 }}
         colors={{ datum: 'color' }}
         xScale={{
@@ -674,13 +761,12 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           return point.seriesColor || '#3b82f6';
         }}
         pointLabelYOffset={-12}
-        useMesh={true}
+        useMesh={false}
         enableSlices={false}
         enableCrosshair={false}
         enablePoints={true}
         animate={true}
-        motionStiffness={90}
-        motionDamping={15}
+        motionConfig="default"
         tooltip={({ point }) => {
           // Calculate minimal positioning adjustments only when very close to edges
           const [tooltipStyle, setTooltipStyle] = useState({});
