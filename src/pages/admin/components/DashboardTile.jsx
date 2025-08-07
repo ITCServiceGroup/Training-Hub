@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { BiFilter } from 'react-icons/bi';
+import { BiFilter, BiX } from 'react-icons/bi';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 const DashboardTile = ({
@@ -11,7 +11,9 @@ const DashboardTile = ({
   hasCustomFilters = false,
   onFilterClick,
   dragHandle = null,
-  className = ''
+  className = '',
+  drillDownFilters = [],
+  onRemoveDrillDownFilter
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -51,29 +53,53 @@ const DashboardTile = ({
         </div>
 
         {/* Header Actions */}
-        <div 
+        <div
           className="flex items-center gap-2 ml-4"
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
         >
+          {/* Drill-down Filter Badges */}
+          {drillDownFilters.map((filter, index) => (
+            <div
+              key={`${filter.type}-${index}`}
+              className="flex items-center pl-2 pr-1 py-1 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700/50 rounded-md text-xs shadow-sm"
+            >
+              <span className="text-blue-700 dark:text-blue-300 font-medium">
+                {filter.label}
+              </span>
+              {onRemoveDrillDownFilter && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveDrillDownFilter(filter.type);
+                  }}
+                  className="ml-1 p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
+                  title={`Remove ${filter.label} filter`}
+                >
+                  <BiX className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          ))}
+
           {/* Custom Filter Indicator */}
           {hasCustomFilters && (
             <div className="w-2 h-2 bg-blue-500 rounded-full" title="Custom filters applied" />
           )}
-          
+
           {/* Filter Button */}
           <button
             onClick={handleFilterClick}
             className={`p-1.5 rounded-md transition-colors duration-200 ${
-              isHovered 
-                ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' 
+              isHovered
+                ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                 : 'text-slate-400 dark:text-slate-500'
             } hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300`}
             title="Configure filters"
           >
             <BiFilter className="w-4 h-4" />
           </button>
-          
+
         </div>
       </div>
 

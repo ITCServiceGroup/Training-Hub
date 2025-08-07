@@ -342,6 +342,34 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
     }
   }, [drillDownState.breadcrumbs, updateDashboardState, activeDashboardId]);
 
+  // Remove specific drill-down filter by type
+  const removeDrillDownFilter = useCallback((filterType) => {
+    updateDashboardState(prev => {
+      const newBreadcrumbs = prev.drillDownState.breadcrumbs.filter(b => b.type !== filterType);
+      const newState = {
+        ...prev.drillDownState,
+        breadcrumbs: newBreadcrumbs,
+        [filterType]: null
+      };
+
+      return {
+        ...prev,
+        drillDownState: newState
+      };
+    });
+
+    // Update drill level
+    setDashboardDrillLevels(prev => ({
+      ...prev,
+      [activeDashboardId]: Math.max(0, drillDownState.breadcrumbs.filter(b => b.type !== filterType).length)
+    }));
+  }, [drillDownState.breadcrumbs, activeDashboardId, updateDashboardState]);
+
+  // Get active drill-down filters for a specific chart
+  const getActiveDrillDownFilters = useCallback((chartId) => {
+    return drillDownState.breadcrumbs.filter(breadcrumb => breadcrumb.sourceChart === chartId);
+  }, [drillDownState.breadcrumbs]);
+
   // Reset all drill-down state
   const resetDrillDown = useCallback(() => {
     updateDashboardState(prev => ({
@@ -604,6 +632,7 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
     drillDown,
     drillBack,
     resetDrillDown,
+    removeDrillDownFilter,
     applyCrossFilter,
     applyHoverFilter,
     applyBrushSelection,
@@ -614,7 +643,8 @@ export const DashboardProvider = ({ children, activeDashboardId }) => {
     getCombinedFilters,
     getBaseFilters,
     getFiltersForChart,
-    shouldFilterChart
+    shouldFilterChart,
+    getActiveDrillDownFilters
   };
 
   return (

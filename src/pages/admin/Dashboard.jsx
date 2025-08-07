@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from '
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDashboards } from './hooks/useDashboards';
+import { useDashboard } from './contexts/DashboardContext';
 import { quizResultsService } from '../../services/api/quizResults';
 import DashboardTile from './components/DashboardTile';
 import TileFilterPopover from './components/TileFilterPopover';
@@ -851,7 +852,7 @@ const Dashboard = () => {
   }, []);
 
   // Grid Tile Component (for react-grid-layout) - Memoized to prevent chart reloading
-  const GridTile = memo(({ tileId }) => {
+  const GridTile = memo(({ tileId, drillDownFilters = [], onRemoveDrillDownFilter }) => {
     // Memoize the tile configuration to prevent unnecessary recalculations
     const config = useMemo(() => {
       const dashboardTiles = getCurrentTiles();
@@ -923,9 +924,27 @@ const Dashboard = () => {
         onFilterClick={(id, event) => handleTileFilterClick(id, event)}
         onRefresh={handleTileRefresh}
         dragHandle={null}
+        drillDownFilters={drillDownFilters}
+        onRemoveDrillDownFilter={onRemoveDrillDownFilter}
       >
         {chartComponent}
       </DashboardTile>
+    );
+  });
+
+  // Wrapper component that uses the dashboard context for drill-down functionality
+  const GridTileWithDrillDown = memo(({ tileId }) => {
+    const { getActiveDrillDownFilters, removeDrillDownFilter } = useDashboard();
+
+    // Get active drill-down filters for this chart
+    const drillDownFilters = getActiveDrillDownFilters(tileId);
+
+    return (
+      <GridTile
+        tileId={tileId}
+        drillDownFilters={drillDownFilters}
+        onRemoveDrillDownFilter={removeDrillDownFilter}
+      />
     );
   });
 
@@ -1465,7 +1484,7 @@ const Dashboard = () => {
           >
             {gridLayout.map((item) => (
               <div key={item.i}>
-                <GridTile tileId={item.i} />
+                <GridTileWithDrillDown tileId={item.i} />
               </div>
             ))}
           </ResizableGridLayout>
