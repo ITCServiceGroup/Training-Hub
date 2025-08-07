@@ -72,15 +72,65 @@ const flatpickrThemeStyles = `
     fill: rgba(255, 255, 255, 0.8) !important;
   }
   
-  /* Weekdays header */
+  /* Weekdays header with minimal spacing */
   .flatpickr-weekdays {
     background-color: var(--primary-color) !important;
+    margin-bottom: 1px !important;
+    padding-bottom: 4px !important;
   }
   
   .flatpickr-weekday {
     color: white !important;
     background-color: var(--primary-color) !important;
   }
+
+  /* Match the grid row-gap for consistent spacing */
+  .flatpickr-days {
+    margin-top: 1px !important;
+  }
+
+  /* Remove container-level spacing that might be causing uneven gaps */
+  .flatpickr-days .dayContainer {
+    margin: 0 !important;
+  }
+
+  /* Nuclear approach - completely override Flatpickr's calendar structure */
+  .flatpickr-calendar .flatpickr-days {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 0px 0px !important;
+    row-gap: 1px !important;
+  }
+
+  .flatpickr-calendar .dayContainer {
+    display: contents !important;
+  }
+
+  /* Force all days to be part of the grid - selected dates expand to fill gaps */
+  .flatpickr-calendar .flatpickr-day {
+    line-height: 36px !important;
+    height: 36px !important;
+    width: 100% !important;
+    min-width: 36px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Selected dates expand to completely fill their grid cell */
+  .flatpickr-calendar .flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-day.endRange {
+    width: calc(100% + 2px) !important;
+    margin-left: -1px !important;
+  }
+
+  /* Remove extra margin - let grid row-gap handle all spacing */
   
   /* Selected dates */
   .flatpickr-day.selected {
@@ -89,50 +139,129 @@ const flatpickrThemeStyles = `
     color: white !important;
   }
 
-  /* Range styling - in between dates */
-  .flatpickr-day.inRange {
+  /* Aggressive override with highest specificity - target the exact structure */
+  .flatpickr-calendar .flatpickr-days .dayContainer span.flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer span.flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer span.flatpickr-day.endRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer .flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer .flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer .flatpickr-day.endRange {
+    border: 0 !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    outline: 0 !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Use box-shadow to create seamless connection */
+  .flatpickr-calendar .flatpickr-days .dayContainer span.flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer .flatpickr-day.inRange {
+    box-shadow: inset 1px 0 0 var(--primary-color), inset -1px 0 0 var(--primary-color) !important;
+  }
+
+  .flatpickr-calendar .flatpickr-days .dayContainer span.flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer .flatpickr-day.startRange {
+    box-shadow: inset -1px 0 0 var(--primary-color) !important;
+  }
+
+  .flatpickr-calendar .flatpickr-days .dayContainer span.flatpickr-day.endRange,
+  .flatpickr-calendar .flatpickr-days .dayContainer .flatpickr-day.endRange {
+    box-shadow: inset 1px 0 0 var(--primary-color) !important;
+  }
+
+  /* Base styling for selected dates */
+  .flatpickr-calendar .flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-day.endRange {
     background: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
     color: white !important;
+    position: relative !important;
+    margin: 0 !important;
+    border: 0 !important;
+  }
+
+  /* In-range dates - completely square to connect seamlessly */
+  .flatpickr-calendar .flatpickr-day.inRange {
     border-radius: 0 !important;
   }
 
-  /* Start date styling - same color with rounded left corners */
-  .flatpickr-day.startRange {
-    background: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-    color: white !important;
-    border-radius: 8px 0 0 8px !important;
+  /* Start date - fully rounded on the left, square on the right for connection */
+  .flatpickr-calendar .flatpickr-day.startRange {
+    border-radius: 18px 0 0 18px !important;
     font-weight: 600 !important;
   }
 
-  /* End date styling - same color with rounded right corners */
-  .flatpickr-day.endRange {
-    background: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-    color: white !important;
-    border-radius: 0 8px 8px 0 !important;
+  /* End date - square on the left for connection, fully rounded on the right */
+  .flatpickr-calendar .flatpickr-day.endRange {
+    border-radius: 0 18px 18px 0 !important;
     font-weight: 600 !important;
   }
 
-  /* Single date selection (start and end same day) */
-  .flatpickr-day.startRange.endRange {
-    border-radius: 8px !important;
+  /* Single date selection - fully rounded */
+  .flatpickr-calendar .flatpickr-day.startRange.endRange {
+    border-radius: 18px !important;
+  }
+
+  /* More aggressive gap filling - extend the background beyond boundaries */
+  .flatpickr-calendar .flatpickr-day.inRange:after,
+  .flatpickr-calendar .flatpickr-day.startRange:after {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    right: -3px !important;
+    width: 6px !important;
+    height: 100% !important;
     background: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
+    z-index: 0 !important;
   }
-  
-  /* Remove gaps and margins for smooth connection */
-  .flatpickr-calendar .flatpickr-days {
-    padding: 0 !important;
+
+  /* Don't add gap filler after the last date in a row */
+  .flatpickr-calendar .flatpickr-day.endRange:after {
+    display: none !important;
   }
-  
-  .flatpickr-calendar .flatpickr-day {
-    margin: 0 !important;
-    border-width: 1px !important;
-    line-height: 36px !important;
-    width: 36px !important;
-    height: 36px !important;
+
+  /* Fill gaps on the left side */
+  .flatpickr-calendar .flatpickr-day.inRange:before,
+  .flatpickr-calendar .flatpickr-day.endRange:before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -3px !important;
+    width: 6px !important;
+    height: 100% !important;
+    background: var(--primary-color) !important;
+    z-index: 0 !important;
+  }
+
+  /* Don't add gap filler before the first date in a row */
+  .flatpickr-calendar .flatpickr-day.startRange:before {
+    display: none !important;
+  }
+
+  /* Alternative approach - use box-shadow to create seamless connection */
+  .flatpickr-calendar .flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-day.startRange:not(.endRange) {
+    box-shadow: 3px 0 0 var(--primary-color) !important;
+  }
+
+  .flatpickr-calendar .flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-day.endRange:not(.startRange) {
+    box-shadow: -3px 0 0 var(--primary-color), 3px 0 0 var(--primary-color) !important;
+  }
+
+  /* Ensure proper z-index layering */
+  .flatpickr-calendar .flatpickr-day.inRange,
+  .flatpickr-calendar .flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-day.endRange {
+    z-index: 1 !important;
+  }
+
+  .flatpickr-calendar .flatpickr-day.startRange,
+  .flatpickr-calendar .flatpickr-day.endRange {
+    z-index: 2 !important;
   }
   
   /* Override hover effects during range selection */
@@ -1160,7 +1289,7 @@ const Dashboard = () => {
             {/* Right Side - Global Filters */}
             <div className="flex items-center gap-3 flex-1 justify-end" style={{overflow: 'visible'}}>
               {/* Time Period Filter */}
-              <div className="w-40">
+              <div className="w-40 relative">
                 <SingleSelect
                   value={timePeriodDropdownValue}
                   onDropdownToggle={setTimePeriodDropdownOpen}
@@ -1173,7 +1302,9 @@ const Dashboard = () => {
                       // If custom is selected, don't change any filters - just show the date picker
                       if (preset === 'custom') {
                         console.log('📅 Custom selected - showing date picker without data refresh');
-                        return; // Exit early to prevent any data fetching
+                        // The dropdown value is already set above on line 1171
+                        // Just return early to prevent any data fetching
+                        return; 
                       }
 
                       // Use functional update to ensure we have the latest state
@@ -1265,19 +1396,37 @@ const Dashboard = () => {
                       <Flatpickr
                         className="dashboard-date-picker w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700 dark:text-slate-200 shadow-lg"
                         value={globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate 
-                          ? [new Date(globalFilters.dateRange.startDate), new Date(globalFilters.dateRange.endDate)]
+                          ? [
+                              new Date(globalFilters.dateRange.startDate + 'T00:00:00'), 
+                              new Date(globalFilters.dateRange.endDate + 'T00:00:00')
+                            ]
                           : []}
                         onChange={(selectedDates) => {
                           console.log('📅 Custom date range changed:', selectedDates);
+                          console.log('📅 Selected dates details:', selectedDates.map(d => ({
+                            original: d,
+                            toDateString: d.toDateString(),
+                            getDate: d.getDate(),
+                            getMonth: d.getMonth() + 1,
+                            getFullYear: d.getFullYear()
+                          })));
                           
                           // Use functional update to ensure we have the latest state
                           setGlobalFilters(prevFilters => {
                             let newFilters = { ...prevFilters };
                             
                             if (selectedDates.length === 2) {
+                              // Use local date formatting to avoid timezone issues
+                              const formatLocalDate = (date) => {
+                                const year = date.getFullYear();
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const day = String(date.getDate()).padStart(2, '0');
+                                return `${year}-${month}-${day}`;
+                              };
+                              
                               newFilters.dateRange = {
-                                startDate: selectedDates[0].toISOString().split('T')[0],
-                                endDate: selectedDates[1].toISOString().split('T')[0]
+                                startDate: formatLocalDate(selectedDates[0]),
+                                endDate: formatLocalDate(selectedDates[1])
                               };
                               newFilters.quickPreset = 'custom'; // Update the quickPreset to match
 
@@ -1311,14 +1460,16 @@ const Dashboard = () => {
                           clickOpens: true,
                           allowInput: false,
                           disableMobile: true,
+                          enableTime: false,
+                          time_24hr: false,
                           onReady: (selectedDates, dateStr, instance) => {
                             instance.element.setAttribute('autocomplete', 'off');
                             instance.element.setAttribute('readonly', 'readonly');
                             // Set initial dates if they exist
                             if (globalFilters.dateRange?.startDate && globalFilters.dateRange?.endDate) {
                               instance.setDate([
-                                new Date(globalFilters.dateRange.startDate),
-                                new Date(globalFilters.dateRange.endDate)
+                                new Date(globalFilters.dateRange.startDate + 'T00:00:00'),
+                                new Date(globalFilters.dateRange.endDate + 'T00:00:00')
                               ], false);
                             }
                           }
