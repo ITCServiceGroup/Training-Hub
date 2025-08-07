@@ -13,6 +13,37 @@ import SingleSelect from './components/Filters/SingleSelect';
 import { useDashboards } from './hooks/useDashboards';
 
 const SettingsPage = () => {
+  // Scroll to top when component mounts - handle both window and container scroll
+  useEffect(() => {
+    const scrollToTop = () => {
+      // Scroll the main window
+      window.scrollTo(0, 0);
+      
+      // Find and scroll the admin layout container (which has overflow-y-auto)
+      const mainContentContainer = document.querySelector('.overflow-y-auto');
+      if (mainContentContainer) {
+        mainContentContainer.scrollTop = 0;
+      }
+      
+      // Also scroll any parent containers that might have scroll
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    
+    // Immediate scroll
+    scrollToTop();
+    
+    // Scroll after a short delay to handle layout shifts
+    const scrollTimeout = setTimeout(scrollToTop, 50);
+    
+    // Scroll after content loads
+    const scrollTimeout2 = setTimeout(scrollToTop, 200);
+    
+    return () => {
+      clearTimeout(scrollTimeout);
+      clearTimeout(scrollTimeout2);
+    };
+  }, []);
   const [supervisors, setSupervisors] = useState([]);
   const [markets, setMarkets] = useState([]);
   
