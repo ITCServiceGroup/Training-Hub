@@ -66,10 +66,28 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       color: isDark ? '#f8fafc' : provided.color,
       fontSize: '12px',
       minHeight: '28px',
+      height: 'auto',
+      paddingTop: 0,
+      paddingBottom: 0,
+      alignItems: 'flex-start',
       '&:hover': {
         borderColor: 'var(--color-primary)'
       }
     }),
+    valueContainer: (provided, state) => {
+      const val = state.selectProps && state.selectProps.value;
+      const count = Array.isArray(val) ? val.length : (val ? 1 : 0);
+      const isMultiLine = count > 1;
+      return {
+        ...provided,
+        flexWrap: isMultiLine ? 'wrap' : 'nowrap',
+        alignItems: isMultiLine ? 'flex-start' : 'center',
+        alignContent: isMultiLine ? 'flex-start' : undefined,
+        paddingTop: 2,
+        paddingBottom: isMultiLine ? 0 : 2,
+        marginBottom: 0,
+      };
+    },
     menu: (provided) => ({
       ...provided,
       backgroundColor: isDark ? '#1e293b' : provided.backgroundColor,
@@ -103,7 +121,10 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       fontSize: '11px',
       display: 'flex !important',
       alignItems: 'center',
-      margin: '1px',
+      marginTop: 0,
+      marginBottom: 0,
+      marginLeft: 2,
+      marginRight: 2,
       borderRadius: '2px',
       minWidth: '60px', // Ensure minimum width for text + X
       width: 'auto !important',
@@ -136,15 +157,55 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
         color: isDark ? '#f8fafc' : '#1f2937'
       }
     }),
+    inputContainer: (provided) => ({
+      ...provided,
+      display: 'none', // fully remove the input container; not needed when isSearchable=false
+    }),
     input: (provided) => ({
       ...provided,
       color: isDark ? '#f8fafc' : provided.color,
       fontSize: '12px',
+      margin: 0,
+      padding: 0,
+      width: 0,
+      minWidth: 0,
+      height: 0,
+      lineHeight: 0,
+      flex: '0 0 0',
+      position: 'absolute',
+      opacity: 0,
+      pointerEvents: 'none',
     }),
     placeholder: (provided) => ({
       ...provided,
       color: isDark ? '#94a3b8' : provided.color,
       fontSize: '12px',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    }),
+    indicatorsContainer: (provided) => ({
+      ...provided,
+      alignItems: 'flex-start',
+      paddingTop: 2,
+      paddingBottom: 0,
+      height: 'auto',
+    }),
+    clearIndicator: (provided) => ({
+      ...provided,
+      paddingTop: 2,
+      paddingBottom: 0,
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      paddingTop: 2,
+      paddingBottom: 0,
+    }),
+    indicatorSeparator: (provided) => ({
+      ...provided,
+      marginTop: 2,
+      marginBottom: 2,
+      alignSelf: 'stretch',
     }),
     singleValue: (provided) => ({
       ...provided,
