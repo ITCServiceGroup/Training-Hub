@@ -20,7 +20,7 @@ const EnhancedTooltip = ({
 
   return (
     <div 
-      className="p-3 rounded-lg shadow-xl min-w-[200px] max-w-[300px]"
+      className="p-3 rounded-lg shadow-xl min-w-[300px] max-w-[500px]"
       style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         color: isDark ? '#e2e8f0' : '#475569',
@@ -42,13 +42,19 @@ const EnhancedTooltip = ({
       {/* Main data points */}
       <div className="space-y-1.5">
         {data.map((item, index) => (
-          <div key={index} className="flex justify-between items-center">
-            <span className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              {item.label}:
-            </span>
-            <span className="text-sm font-medium ml-2">
-              {item.value}
-            </span>
+          <div key={index}>
+            <div className="flex justify-between items-center">
+              <span className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                {item.label}:
+              </span>
+              <span className="text-sm font-medium ml-2">
+                {item.value}
+              </span>
+            </div>
+            {/* Add subtle divider after the first item (Question) */}
+            {index === 0 && (
+              <div className={`mt-2 mb-1 border-t ${isDark ? 'border-slate-600' : 'border-slate-200'}`} />
+            )}
           </div>
         ))}
       </div>

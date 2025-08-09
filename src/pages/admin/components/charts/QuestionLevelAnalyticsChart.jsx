@@ -11,6 +11,18 @@ const GLOBAL_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
+// Helper function to format question types nicely
+const formatQuestionType = (questionType) => {
+  if (!questionType || questionType === 'Unknown') return 'Unknown';
+  
+  // Convert underscores to spaces and capitalize each word
+  return questionType
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
   // Initialize state by checking global cache first
   const [questionState, setQuestionState] = useState(() => {
@@ -268,13 +280,13 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
       { label: 'Quiz', value: data.quizTitle || 'Unknown Quiz' },
       { label: 'Category', value: data.category || 'Uncategorized' },
       { label: 'Section', value: data.section || 'No Section' },
-      { label: 'Question Type', value: data.questionType || 'Unknown' },
+      { label: 'Question Type', value: formatQuestionType(data.questionType) },
       { label: 'Difficulty', value: `${value}%` },
-      { label: 'Correct Rate', value: `${data.correctRate}%` },
+      { label: 'Correct Rate', value: `${data.correctRate ?? 0}%` },
       { label: 'Total Attempts', value: data.attempts },
       { label: 'Correct', value: data.correct },
       { label: 'Incorrect', value: data.incorrect },
-      { label: 'Avg Time', value: `${data.avgTimeSpent}s` },
+      { label: 'Avg Time', value: data.avgTimeSpent ? `${data.avgTimeSpent}s` : 'No data' },
       { label: 'Status', value: data.status }
     ];
 
@@ -510,6 +522,10 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
               zIndex: 9999,
+              minWidth: '400px',
+              maxWidth: '600px',
+              padding: '12px',
+              lineHeight: '1.4',
             },
           },
         }}
