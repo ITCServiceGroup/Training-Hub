@@ -46,6 +46,18 @@ class QuestionAnalyticsService {
 
       console.log('🔍 Processing', filteredData.length, 'pre-filtered quiz results');
 
+      // Debug: Show sample of the data being processed
+      if (filteredData.length > 0) {
+        console.log('📋 Sample quiz result:', {
+          id: filteredData[0].id,
+          quiz_id: filteredData[0].quiz_id,
+          quiz_type: filteredData[0].quiz_type,
+          hasAnswers: !!filteredData[0].answers,
+          answersCount: filteredData[0].answers ? Object.keys(filteredData[0].answers).length : 0,
+          sampleAnswer: filteredData[0].answers ? Object.entries(filteredData[0].answers)[0] : null
+        });
+      }
+
       if (filteredData.length === 0) {
         return [];
       }
@@ -358,6 +370,31 @@ class QuestionAnalyticsService {
       }
     });
 
+    // Create a lookup for shuffled question data from quiz results
+    const shuffledQuestionLookup = new Map();
+    quizResults.forEach(result => {
+      if (result.shuffled_questions) {
+        let shuffledQuestions;
+        try {
+          shuffledQuestions = typeof result.shuffled_questions === 'string'
+            ? JSON.parse(result.shuffled_questions)
+            : result.shuffled_questions;
+        } catch (e) {
+          console.warn('⚠️ Invalid shuffled_questions JSON for result:', result.id);
+          return;
+        }
+
+        Object.entries(shuffledQuestions).forEach(([questionId, questionData]) => {
+          const questionKey = `${result.quiz_id}-${questionId}`;
+          shuffledQuestionLookup.set(questionKey, {
+            quiz: { id: result.quiz_id, title: result.quiz_type },
+            question: questionData,
+            orderIndex: 0 // Order doesn't matter for analytics
+          });
+        });
+      }
+    });
+
     console.log('🔗 Created lookup for', quizLookup.size, 'quiz-question combinations');
 
     // Debug: Check what we have in quiz results
@@ -391,6 +428,13 @@ class QuestionAnalyticsService {
         }
         return;
       }
+
+      console.log('📊 Processing quiz result:', {
+        resultId: result.id,
+        quizId: result.quiz_id,
+        answersCount: Object.keys(result.answers).length,
+        sampleAnswers: Object.entries(result.answers).slice(0, 2)
+      });
 
       let answers;
       try {
@@ -441,15 +485,22 @@ class QuestionAnalyticsService {
       answers.forEach((answer, index) => {
         const answerId = answer.questionId || answer.question_id || index.toString();
         const questionKey = `${result.quiz_id}-${answerId}`;
-        let questionInfo = quizLookup.get(questionKey);
+
+        // Prefer shuffled question data if available, fallback to original
+        let questionInfo = shuffledQuestionLookup.get(questionKey) || quizLookup.get(questionKey);
 
         // If we can't find by exact ID, try to match by index/position
         if (!questionInfo) {
-          // Try matching by order/index
-          const possibleKeys = Array.from(quizLookup.keys()).filter(key => key.startsWith(`${result.quiz_id}-`));
-          if (possibleKeys.length > index) {
-            questionInfo = quizLookup.get(possibleKeys[index]);
-            console.log('🔍 Matched by index:', index, 'Key:', possibleKeys[index]);
+          // Try matching by order/index in shuffled data first, then original
+          const shuffledKeys = Array.from(shuffledQuestionLookup.keys()).filter(key => key.startsWith(`${result.quiz_id}-`));
+          const originalKeys = Array.from(quizLookup.keys()).filter(key => key.startsWith(`${result.quiz_id}-`));
+
+          if (shuffledKeys.length > index) {
+            questionInfo = shuffledQuestionLookup.get(shuffledKeys[index]);
+            console.log('🔍 Matched by index in shuffled data:', index, 'Key:', shuffledKeys[index]);
+          } else if (originalKeys.length > index) {
+            questionInfo = quizLookup.get(originalKeys[index]);
+            console.log('🔍 Matched by index in original data:', index, 'Key:', originalKeys[index]);
           }
         }
 
@@ -492,6 +543,24 @@ class QuestionAnalyticsService {
         
         // Determine if answer was correct
         const isCorrect = this.isAnswerCorrect(answer, question);
+
+        // Debug logging for the first few questions
+        if (stats.totalAttempts < 3) {
+          console.log('🔍 Question Analytics Debug:', {
+            questionId: globalQuestionId,
+            questionText: question.question_text?.substring(0, 50) + '...',
+            questionType: question.question_type,
+            rawAnswer: answer,
+            extractedAnswer: (typeof answer === 'object' && answer !== null)
+              ? (answer.selectedAnswer || answer.selected_answer || answer.answer)
+              : answer,
+            correctAnswer: question.correct_answer,
+            isCorrect,
+            timeSpent: (typeof answer === 'object' && answer !== null)
+              ? (answer.timeSpent || answer.time_spent || 0)
+              : 0
+          });
+        }
         
         // Update statistics
         stats.totalAttempts++;
@@ -501,9 +570,19 @@ class QuestionAnalyticsService {
           stats.incorrectAttempts++;
         }
 
-        // Track time spent if available
-        const timeSpent = answer.timeSpent || answer.time_spent || 0;
-        if (timeSpent > 0) {
+        // Track time spent if available with data quality validation
+        // First try to get timing from separate question_timings field
+        let timeSpent = 0;
+        if (result.question_timings && result.question_timings[globalQuestionId]) {
+          timeSpent = result.question_timings[globalQuestionId];
+        } else {
+          // Fallback: extract timing from answer object (for backward compatibility)
+          const rawAnswerData = answer.selectedAnswer || answer.selected_answer || answer.answer || answer;
+          timeSpent = (typeof rawAnswerData === 'object' && rawAnswerData !== null)
+            ? (rawAnswerData.timeSpent || rawAnswerData.time_spent || 0)
+            : 0;
+        }
+        if (timeSpent > 0 && timeSpent < 3600) { // Validate: positive and less than 1 hour per question
           stats.totalTime += timeSpent;
           stats.timeSpentRecords.push(timeSpent);
         }
@@ -518,7 +597,9 @@ class QuestionAnalyticsService {
           overallScore: result.score_value,
           isCorrect,
           timeSpent,
-          userAnswer: answer.selectedAnswer || answer.selected_answer || answer.answer,
+          userAnswer: (typeof answer === 'object' && answer !== null)
+            ? (answer.selectedAnswer || answer.selected_answer || answer.answer)
+            : answer,
           questionOrder: index
         });
       });
@@ -588,6 +669,7 @@ class QuestionAnalyticsService {
         
         // Data source indicators
         isSimulatedData: hasSimulatedData,
+        hasTimingData: stats.timeSpentRecords.length > 0,
         
         // For debugging/drill-down
         results: stats.results
@@ -968,9 +1050,30 @@ class QuestionAnalyticsService {
    */
   isAnswerCorrect(answer, question) {
     const correctAnswer = question.correct_answer;
-    const userAnswer = answer.selectedAnswer || answer.selected_answer || answer.answer;
 
-    if (!userAnswer || !correctAnswer) {
+    // Extract user answer - handle both simple format and object format
+    let userAnswer;
+    if (typeof answer === 'object' && answer !== null && 'selectedAnswer' in answer) {
+      // This is the object format from the analytics processing
+      userAnswer = answer.selectedAnswer || answer.selected_answer || answer.answer;
+    } else {
+      // This is the simple format directly from the database
+      userAnswer = answer;
+    }
+
+    // Debug logging for first few questions
+    if (Math.random() < 0.1) { // Log ~10% of questions to avoid spam
+      console.log('🔍 Correctness Debug:', {
+        questionId: question.id,
+        questionType: question.question_type,
+        userAnswer,
+        correctAnswer,
+        userAnswerType: typeof userAnswer,
+        correctAnswerType: typeof correctAnswer
+      });
+    }
+
+    if (userAnswer === undefined || userAnswer === null || correctAnswer === undefined || correctAnswer === null) {
       return false;
     }
 
@@ -1009,4 +1112,8 @@ export const questionAnalyticsService = new QuestionAnalyticsService();
 // Make it available globally for debugging
 if (typeof window !== 'undefined') {
   window.questionAnalyticsService = questionAnalyticsService;
+  window.clearQuestionAnalyticsCache = () => {
+    questionAnalyticsService.clearCache();
+    console.log('🧹 Question analytics cache cleared. Refresh the Question Analytics chart to see new data.');
+  };
 }

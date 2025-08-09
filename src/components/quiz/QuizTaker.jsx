@@ -42,6 +42,11 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const [accessCodeData, setAccessCodeData] = useState(null);
   const [isCurrentPracticeQuestionAnswered, setIsCurrentPracticeQuestionAnswered] = useState(false); // New state for practice mode
 
+  // Question timing state
+  const [questionStartTimes, setQuestionStartTimes] = useState({}); // Track when each question was started
+  const [questionTimings, setQuestionTimings] = useState({}); // Track accumulated time per question
+  const currentQuestionStartTimeRef = useRef(null); // Track current question start time
+
   // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -157,6 +162,12 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
   // Submit quiz handler - defined before timer effect
   const handleSubmitQuiz = useCallback(async (isTimeout = false) => {
+    // Stop timing for current question before submission
+    if (quiz && quiz.questions && quiz.questions[currentQuestionIndex]) {
+      const currentQuestionId = quiz.questions[currentQuestionIndex].id;
+      stopQuestionTimer(currentQuestionId);
+    }
+
     // Prevent multiple submissions
     if (submitInProgressRef.current) return;
     submitInProgressRef.current = true;
@@ -253,7 +264,29 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             console.warn('PDF generation/upload failed. Saving result without PDF URL.');
           }
 
-          // Save quiz result to DB
+          // Create timing data separately from answers
+          const timingData = {};
+          Object.keys(selectedAnswers).forEach(questionId => {
+            const timing = questionTimings[questionId] || 0;
+            if (timing > 0) {
+              timingData[questionId] = Math.round(timing * 10) / 10;
+            }
+          });
+
+          // Store the shuffled question data for analytics
+          const shuffledQuestionData = {};
+          quiz.questions.forEach(question => {
+            shuffledQuestionData[question.id] = {
+              id: question.id,
+              question_text: question.question_text,
+              question_type: question.question_type,
+              options: question.options,
+              correct_answer: question.correct_answer, // This is already shuffled
+              category_id: question.category_id
+            };
+          });
+
+          // Save quiz result to DB with simple answer format + separate timing + shuffled question data
           await quizResultsService.create({
             ldap: accessCodeData.ldap,
             supervisor: accessCodeData.supervisor,
@@ -262,7 +295,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             quiz_type: quiz.title,
             score_value: finalScore.percentage / 100,
             score_text: `${finalScore.correct}/${finalScore.total} (${finalScore.percentage}%)`,
-            answers: selectedAnswers,
+            answers: selectedAnswers, // Keep simple format like working quizzes
+            question_timings: timingData, // Store timing separately
+            shuffled_questions: shuffledQuestionData, // Store shuffled question data for analytics
             time_taken: timeTaken,
             date_of_test: new Date().toISOString(),
             pdf_url: pdfUrl
@@ -392,6 +427,16 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       setTimeLeft(quiz.time_limit);
     }
     setTimeTaken(0);
+
+    // Initialize timing state
+    setQuestionStartTimes({});
+    setQuestionTimings({});
+    currentQuestionStartTimeRef.current = null;
+
+    // Start timing for the first question
+    if (questions.length > 0) {
+      startQuestionTimer(questions[0].id);
+    }
   };
 
   // Handle answer selection and provide immediate feedback in practice mode
@@ -446,7 +491,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       }));
       setIsCurrentPracticeQuestionAnswered(true); // Mark as answered for practice mode
     } else {
-      // For regular quizzes, just store the answer
+      // For regular quizzes, just store the answer (keep original format)
       setSelectedAnswers(prev => ({
         ...prev,
         [currentQuestion.id]: answer
@@ -454,8 +499,46 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     }
   };
 
+  // Question timing functions
+  const startQuestionTimer = useCallback((questionId) => {
+    const now = Date.now();
+    setQuestionStartTimes(prev => ({
+      ...prev,
+      [questionId]: now
+    }));
+    currentQuestionStartTimeRef.current = now;
+  }, []);
+
+  const stopQuestionTimer = useCallback((questionId) => {
+    if (!currentQuestionStartTimeRef.current) return 0;
+
+    const now = Date.now();
+    const timeSpent = (now - currentQuestionStartTimeRef.current) / 1000; // Convert to seconds
+
+    setQuestionTimings(prev => ({
+      ...prev,
+      [questionId]: (prev[questionId] || 0) + timeSpent
+    }));
+
+    currentQuestionStartTimeRef.current = null;
+    return timeSpent;
+  }, []);
+
+  const updateQuestionTiming = useCallback((questionId, additionalTime = 0) => {
+    setQuestionTimings(prev => ({
+      ...prev,
+      [questionId]: (prev[questionId] || 0) + additionalTime
+    }));
+  }, []);
+
   // Navigation
   const handleNextQuestion = () => {
+    // Stop timing for current question
+    if (quiz && quiz.questions && quiz.questions[currentQuestionIndex]) {
+      const currentQuestionId = quiz.questions[currentQuestionIndex].id;
+      stopQuestionTimer(currentQuestionId);
+    }
+
     // If user came from review page, take them back to review
     if (cameFromReview) {
       setCameFromReview(false); // Reset the flag
@@ -464,8 +547,15 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     }
 
     if (currentQuestionIndex < quiz.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
       setIsCurrentPracticeQuestionAnswered(false); // Reset for next question
+
+      // Start timing for next question
+      if (quiz && quiz.questions && quiz.questions[nextIndex]) {
+        const nextQuestionId = quiz.questions[nextIndex].id;
+        startQuestionTimer(nextQuestionId);
+      }
     } else {
       // Last question behavior
       if (quiz.is_practice) {
@@ -479,10 +569,23 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   };
 
   const handlePrevQuestion = () => {
+    // Stop timing for current question
+    if (quiz && quiz.questions && quiz.questions[currentQuestionIndex]) {
+      const currentQuestionId = quiz.questions[currentQuestionIndex].id;
+      stopQuestionTimer(currentQuestionId);
+    }
+
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      const prevIndex = currentQuestionIndex - 1;
+      setCurrentQuestionIndex(prevIndex);
       setIsCurrentPracticeQuestionAnswered(false); // Reset when going back
       setCameFromReview(false); // Reset review flag when navigating normally
+
+      // Start timing for previous question
+      if (quiz && quiz.questions && quiz.questions[prevIndex]) {
+        const prevQuestionId = quiz.questions[prevIndex].id;
+        startQuestionTimer(prevQuestionId);
+      }
     }
   };
 

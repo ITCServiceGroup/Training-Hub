@@ -8,6 +8,38 @@ import { questionAnalyticsService } from '../../services/questionAnalyticsServic
 // Global cache that persists across component mounts/unmounts
 const globalQuestionDataCache = new Map();
 const GLOBAL_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+// Make cache clearing available globally for debugging
+if (typeof window !== 'undefined') {
+  window.clearAllQuestionAnalyticsCaches = () => {
+    globalQuestionDataCache.clear();
+    if (window.questionAnalyticsService) {
+      window.questionAnalyticsService.clearCache();
+    }
+    console.log('🧹 All question analytics caches cleared (global + service). Refresh the page to see new data.');
+  };
+
+  // Force refresh function for debugging
+  window.forceQuestionAnalyticsRefresh = () => {
+    globalQuestionDataCache.clear();
+    if (window.questionAnalyticsService) {
+      window.questionAnalyticsService.clearCache();
+    }
+    // Force a page reload to completely reset the component state
+    window.location.reload();
+  };
+
+  // Force refresh without page reload (for testing)
+  window.forceQuestionAnalyticsRefreshNoReload = () => {
+    globalQuestionDataCache.clear();
+    if (window.questionAnalyticsService) {
+      window.questionAnalyticsService.clearCache();
+    }
+    // Try to trigger a re-render by dispatching a custom event
+    window.dispatchEvent(new CustomEvent('forceQuestionAnalyticsRefresh'));
+    console.log('🔄 Forced question analytics refresh without page reload');
+  };
+}
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
@@ -52,10 +84,18 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
   useEffect(() => {
     console.log('🔍 QuestionAnalytics: Component render/props change', {
       dataLength: data.length,
+      chartFilteredDataLength: chartFilteredData?.length || 0,
       loading,
       questionStateLoading: questionState.loading,
       hasEverLoaded: questionState.hasEverLoaded,
-      questionDataLength: questionState.data.length
+      questionDataLength: questionState.data.length,
+      currentSignature: currentDataSignature,
+      sampleData: chartFilteredData?.[0] ? {
+        id: chartFilteredData[0].id,
+        quiz_id: chartFilteredData[0].quiz_id,
+        hasAnswers: !!chartFilteredData[0].answers,
+        answersCount: chartFilteredData[0].answers ? Object.keys(chartFilteredData[0].answers).length : 0
+      } : null
     });
   });
   const { theme } = useTheme();
@@ -116,15 +156,23 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
   // Create a stable data identifier based on length and key fields only when actually needed
   const currentDataSignature = useMemo(() => {
     if (!chartFilteredData || chartFilteredData.length === 0) return 'empty';
-    
-    // Create a more stable signature using just count and a few key identifiers
-    const signature = `${chartFilteredData.length}-${chartFilteredData[0]?.id || 'no-id'}-${chartFilteredData[chartFilteredData.length - 1]?.id || 'no-id'}`;
+
+    // Create a more comprehensive signature that includes answers data to detect changes
+    const answersHash = chartFilteredData
+      .map(result => result.answers ? Object.keys(result.answers).length : 0)
+      .join('-');
+    const signature = `${chartFilteredData.length}-${chartFilteredData[0]?.id || 'no-id'}-${chartFilteredData[chartFilteredData.length - 1]?.id || 'no-id'}-${answersHash}`;
     return signature;
   }, [chartFilteredData]);
   
   // Only update reference when signature actually changes
   const hasDataChanged = stableDataRef.current !== currentDataSignature;
   if (hasDataChanged) {
+    console.log('🔄 QuestionAnalytics: Data signature changed', {
+      oldSignature: stableDataRef.current,
+      newSignature: currentDataSignature,
+      dataLength: chartFilteredData.length
+    });
     stableDataRef.current = currentDataSignature;
     stableDataRef.previousData = chartFilteredData;
   }
@@ -140,7 +188,11 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     
     // Only run if data actually changed
     if (!hasDataChanged && questionState.hasEverLoaded) {
-      console.log('⏭️ QuestionAnalytics: Skipping fetch - no data change and already loaded');
+      console.log('⏭️ QuestionAnalytics: Skipping fetch - no data change and already loaded', {
+        hasDataChanged,
+        currentSignature: currentDataSignature,
+        hasEverLoaded: questionState.hasEverLoaded
+      });
       return;
     }
     
@@ -184,6 +236,25 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
 
     fetchQuestionData();
   }, [currentDataSignature, hasDataChanged, questionState.hasEverLoaded]);
+
+  // Listen for force refresh events
+  useEffect(() => {
+    const handleForceRefresh = () => {
+      console.log('🔄 QuestionAnalytics: Force refresh triggered');
+      setQuestionState({
+        data: [],
+        loading: false,
+        hasEverLoaded: false
+      });
+      // Reset the stable data ref to force a refresh
+      stableDataRef.current = null;
+    };
+
+    window.addEventListener('forceQuestionAnalyticsRefresh', handleForceRefresh);
+    return () => {
+      window.removeEventListener('forceQuestionAnalyticsRefresh', handleForceRefresh);
+    };
+  }, []);
 
   // Process and filter the real question data
   const chartData = useMemo(() => {
@@ -278,8 +349,6 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     const tooltipData = [
       { label: 'Question', value: data.questionText ? data.questionText.substring(0, 200) + (data.questionText.length > 200 ? '...' : '') : 'No question text' },
       { label: 'Quiz', value: data.quizTitle || 'Unknown Quiz' },
-      { label: 'Category', value: data.category || 'Uncategorized' },
-      { label: 'Section', value: data.section || 'No Section' },
       { label: 'Question Type', value: formatQuestionType(data.questionType) },
       { label: 'Difficulty', value: `${value}%` },
       { label: 'Correct Rate', value: `${data.correctRate ?? 0}%` },
