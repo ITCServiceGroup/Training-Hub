@@ -20,10 +20,22 @@
   outline: none !important;
   opacity: 0 !important;
   transition: opacity 0.2s ease;
+  z-index: 200 !important; /* Ensure handles sit above tile content */
 }
 
 /* Show handles when hovering over the tile */
-.react-grid-item:hover > .react-resizable-handle {
+.react-grid-item:hover .react-resizable-handle {
+  opacity: 0.3 !important;
+}
+
+/* Ensure corner handles also reveal on tile hover (not just when hovered directly) */
+.react-grid-item .react-resizable-handle.react-resizable-handle-se,
+.react-grid-item .react-resizable-handle.react-resizable-handle-sw {
+  opacity: 0 !important;
+}
+
+.react-grid-item:hover .react-resizable-handle.react-resizable-handle-se,
+.react-grid-item:hover .react-resizable-handle.react-resizable-handle-sw {
   opacity: 0.3 !important;
 }
 
