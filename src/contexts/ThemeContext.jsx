@@ -129,10 +129,27 @@ const generateColorVariations = (baseColor) => {
 
 // Theme provider component
 export const ThemeProvider = ({ children }) => {
-  // Initialize theme from localStorage or default to 'light'
+  // Helper to get system theme preference
+  const getSystemTheme = () => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  };
+
+  // Initialize theme mode from localStorage or default to 'system'
+  const [themeMode, setThemeModeState] = useState(() => {
+    const savedThemeMode = localStorage.getItem('themeMode');
+    return savedThemeMode || 'system';
+  });
+
+  // Initialize actual theme based on mode
   const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme || 'light';
+    const savedThemeMode = localStorage.getItem('themeMode') || 'system';
+    if (savedThemeMode === 'system') {
+      return getSystemTheme();
+    }
+    return savedThemeMode;
   });
 
   // Initialize theme colors from localStorage or defaults
@@ -187,9 +204,31 @@ export const ThemeProvider = ({ children }) => {
     setVariable('--color-secondary', currentSecondary);
   };
 
+  // Listen for system theme changes
+  useEffect(() => {
+    if (themeMode === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleSystemThemeChange = (e) => {
+        setTheme(e.matches ? 'dark' : 'light');
+      };
+
+      // Set initial theme based on system preference
+      setTheme(mediaQuery.matches ? 'dark' : 'light');
+
+      // Add listener for system theme changes
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+      // Cleanup listener on unmount or when themeMode changes
+      return () => {
+        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      };
+    }
+  }, [themeMode]);
+
   // Update theme in localStorage and apply CSS classes when it changes
   useEffect(() => {
-    localStorage.setItem('theme', theme);
+    localStorage.setItem('themeMode', themeMode);
 
     // Apply theme class to document element for global CSS variables
     if (theme === 'dark') {
@@ -200,7 +239,7 @@ export const ThemeProvider = ({ children }) => {
 
     // Update CSS variables with current colors
     updateCSSVariables(themeColors);
-  }, [theme, themeColors]);
+  }, [theme, themeColors, themeMode]);
 
   // Update colors in localStorage when they change
   useEffect(() => {
@@ -215,13 +254,20 @@ export const ThemeProvider = ({ children }) => {
 
   // Toggle theme function
   const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    const nextMode = theme === 'light' ? 'dark' : 'light';
+    setThemeModeState(nextMode);
+    setTheme(nextMode);
   };
 
-  // Set specific theme
+  // Set specific theme mode
   const setThemeMode = (mode) => {
-    if (mode === 'light' || mode === 'dark') {
-      setTheme(mode);
+    if (mode === 'light' || mode === 'dark' || mode === 'system') {
+      setThemeModeState(mode);
+      if (mode === 'system') {
+        setTheme(getSystemTheme());
+      } else {
+        setTheme(mode);
+      }
     }
   };
 
@@ -342,6 +388,7 @@ export const ThemeProvider = ({ children }) => {
   // Context value
   const value = {
     theme,
+    themeMode,
     toggleTheme,
     setThemeMode,
     isDarkMode: theme === 'dark',

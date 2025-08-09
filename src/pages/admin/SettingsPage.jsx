@@ -118,6 +118,7 @@ const SettingsPage = () => {
   // Get theme from ThemeContext
   const {
     theme,
+    themeMode,
     setThemeMode,
     themeColors,
     colorModes,
@@ -132,7 +133,7 @@ const SettingsPage = () => {
 
   // System settings state
   const [systemSettings, setSystemSettings] = useState({
-    theme: theme || 'light',
+    theme: themeMode || 'system',
   });
 
   const [isLoadingArchived, setIsLoadingArchived] = useState(false);
@@ -1244,7 +1245,7 @@ const SettingsPage = () => {
         {/* Theme Mode */}
         <div>
           <h3 className="text-lg font-medium mb-2 dark:text-white">Theme</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div
               className={`p-4 border rounded-lg cursor-pointer transition-all ${
                 systemSettings.theme === 'light'
@@ -1269,6 +1270,22 @@ const SettingsPage = () => {
               <div className="flex items-center space-x-2">
                 <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-600"></span>
                 <span className="text-sm font-medium">Dark Mode</span>
+              </div>
+            </div>
+            <div
+              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                systemSettings.theme === 'system'
+                  ? 'border-primary shadow-sm bg-white dark:bg-slate-800'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+              }`}
+              onClick={() => handleSystemSettingChange({ target: { name: 'theme', value: 'system' } })}
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 relative overflow-hidden">
+                  <div className="w-1/2 h-full bg-white"></div>
+                  <div className="w-1/2 h-full bg-slate-800 absolute top-0 right-0"></div>
+                </div>
+                <span className="text-sm font-medium dark:text-white">System</span>
               </div>
             </div>
           </div>
