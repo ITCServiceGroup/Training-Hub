@@ -66,10 +66,6 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       color: isDark ? '#f8fafc' : provided.color,
       fontSize: '12px',
       minHeight: '28px',
-      height: 'auto',
-      paddingTop: 0,
-      paddingBottom: 0,
-      alignItems: 'flex-start',
       '&:hover': {
         borderColor: 'var(--color-primary)'
       }
@@ -77,15 +73,9 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     valueContainer: (provided, state) => {
       const val = state.selectProps && state.selectProps.value;
       const count = Array.isArray(val) ? val.length : (val ? 1 : 0);
-      const isMultiLine = count > 1;
       return {
         ...provided,
-        flexWrap: isMultiLine ? 'wrap' : 'nowrap',
-        alignItems: isMultiLine ? 'flex-start' : 'center',
-        alignContent: isMultiLine ? 'flex-start' : undefined,
-        paddingTop: 2,
-        paddingBottom: isMultiLine ? 0 : 2,
-        marginBottom: 0,
+        flexWrap: count > 1 ? 'wrap' : 'nowrap',
       };
     },
     menu: (provided) => ({
@@ -121,10 +111,7 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       fontSize: '11px',
       display: 'flex !important',
       alignItems: 'center',
-      marginTop: 0,
-      marginBottom: 0,
-      marginLeft: 2,
-      marginRight: 2,
+      margin: '1px',
       borderRadius: '2px',
       minWidth: '60px', // Ensure minimum width for text + X
       width: 'auto !important',
@@ -159,7 +146,12 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     }),
     inputContainer: (provided) => ({
       ...provided,
-      display: 'none', // fully remove the input container; not needed when isSearchable=false
+      width: 0,
+      minWidth: 0,
+      flex: '0 0 0',
+      margin: 0,
+      padding: 0,
+      overflow: 'hidden',
     }),
     input: (provided) => ({
       ...provided,
@@ -169,12 +161,8 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       padding: 0,
       width: 0,
       minWidth: 0,
-      height: 0,
-      lineHeight: 0,
       flex: '0 0 0',
-      position: 'absolute',
-      opacity: 0,
-      pointerEvents: 'none',
+      lineHeight: 1,
     }),
     placeholder: (provided) => ({
       ...provided,
@@ -183,29 +171,6 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-    }),
-    indicatorsContainer: (provided) => ({
-      ...provided,
-      alignItems: 'flex-start',
-      paddingTop: 2,
-      paddingBottom: 0,
-      height: 'auto',
-    }),
-    clearIndicator: (provided) => ({
-      ...provided,
-      paddingTop: 2,
-      paddingBottom: 0,
-    }),
-    dropdownIndicator: (provided) => ({
-      ...provided,
-      paddingTop: 2,
-      paddingBottom: 0,
-    }),
-    indicatorSeparator: (provided) => ({
-      ...provided,
-      marginTop: 2,
-      marginBottom: 2,
-      alignSelf: 'stretch',
     }),
     singleValue: (provided) => ({
       ...provided,

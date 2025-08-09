@@ -501,24 +501,6 @@ div[class*="react-select"][class*="menu"] {
   z-index: 1000 !important;
 }
 
-/* React-Select value/input container sizing to remove phantom extra line */
-.react-select__value-container {
-  padding-top: 2px !important;
-  padding-bottom: 2px !important;
-}
-.react-select__input-container {
-  margin: 0 !important;
-  padding: 0 !important;
-  height: 0 !important;
-  line-height: 0 !important;
-  overflow: hidden !important;
-}
-.react-select__input {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-
 /* Force all tooltips to MAXIMUM z-index - above all stacking contexts */
 /* Target all possible tooltip containers */
 div[style*="position: absolute"][style*="pointer-events: none"],
