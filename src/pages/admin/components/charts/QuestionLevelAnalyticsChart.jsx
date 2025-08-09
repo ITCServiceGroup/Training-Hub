@@ -1,12 +1,51 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback, useReducer } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
+import { questionAnalyticsService } from '../../services/questionAnalyticsService';
+
+// Global cache that persists across component mounts/unmounts
+const globalQuestionDataCache = new Map();
+const GLOBAL_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 
 const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
+  // Initialize state by checking global cache first
+  const [questionState, setQuestionState] = useState(() => {
+    // Check if we have cached data for this component instance
+    const signature = data.length > 0 ? `${data.length}-${data[0]?.id || 'no-id'}-${data[data.length - 1]?.id || 'no-id'}` : 'empty';
+    const cached = globalQuestionDataCache.get(signature);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp) < GLOBAL_CACHE_DURATION) {
+      console.log('💾 QuestionAnalytics: Found cached data on mount!', { signature, cachedDataLength: cached.data.length });
+      return {
+        data: cached.data,
+        loading: false,
+        hasEverLoaded: true
+      };
+    }
+    
+    console.log('🆕 QuestionAnalytics: Starting fresh (no cache)', { signature });
+    return {
+      data: [],
+      loading: false,
+      hasEverLoaded: false
+    };
+  });
+
+  // Debug logging to understand what's happening
+  useEffect(() => {
+    console.log('🔍 QuestionAnalytics: Component render/props change', {
+      dataLength: data.length,
+      loading,
+      questionStateLoading: questionState.loading,
+      hasEverLoaded: questionState.hasEverLoaded,
+      questionDataLength: questionState.data.length
+    });
+  });
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const {
@@ -59,89 +98,89 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     });
   }, [data, getFiltersForChart, shouldFilterChart]);
 
-  // Process question-level data (simulated from score patterns)
-  const chartData = useMemo(() => {
-    if (!chartFilteredData || chartFilteredData.length === 0) return [];
-
-    // Since we don't have actual question-level data, we'll simulate it based on quiz types and score patterns
-    // In a real implementation, this would come from detailed quiz response data
-    const questionGroups = {};
+  // Create a stable reference for chartFilteredData to prevent unnecessary refetches
+  const stableDataRef = useRef(null);
+  
+  // Create a stable data identifier based on length and key fields only when actually needed
+  const currentDataSignature = useMemo(() => {
+    if (!chartFilteredData || chartFilteredData.length === 0) return 'empty';
     
-    chartFilteredData.forEach(result => {
-      const quizType = result.quiz_type || 'Unknown Quiz';
-      const score = parseFloat(result.score_value) || 0;
-      
-      // Simulate 5-10 questions per quiz type
-      const questionCount = Math.floor(Math.random() * 6) + 5;
-      
-      for (let i = 1; i <= questionCount; i++) {
-        const questionId = `${quizType}-Q${i}`;
-        
-        if (!questionGroups[questionId]) {
-          questionGroups[questionId] = {
-            quizType,
-            questionNumber: i,
-            attempts: 0,
-            correct: 0,
-            incorrect: 0,
-            avgTimeSpent: 0,
-            totalTime: 0
-          };
-        }
-        
-        questionGroups[questionId].attempts++;
-        questionGroups[questionId].totalTime += Math.random() * 120 + 30; // 30-150 seconds per question
-        
-        // Simulate question difficulty - some questions are harder than others
-        const questionDifficulty = 0.3 + (Math.sin(i * 0.5) + 1) * 0.35; // Varies by question number
-        const isCorrect = score > questionDifficulty;
-        
-        if (isCorrect) {
-          questionGroups[questionId].correct++;
-        } else {
-          questionGroups[questionId].incorrect++;
-        }
-      }
-    });
+    // Create a more stable signature using just count and a few key identifiers
+    const signature = `${chartFilteredData.length}-${chartFilteredData[0]?.id || 'no-id'}-${chartFilteredData[chartFilteredData.length - 1]?.id || 'no-id'}`;
+    return signature;
+  }, [chartFilteredData]);
+  
+  // Only update reference when signature actually changes
+  const hasDataChanged = stableDataRef.current !== currentDataSignature;
+  if (hasDataChanged) {
+    stableDataRef.current = currentDataSignature;
+    stableDataRef.previousData = chartFilteredData;
+  }
 
-    // Calculate analytics for each question
-    const questionData = Object.entries(questionGroups)
-      .map(([questionId, group]) => {
-        const correctRate = group.correct / group.attempts;
-        const avgTimeSpent = group.totalTime / group.attempts;
-        const difficulty = 1 - correctRate; // Higher difficulty = lower correct rate
+  // Fetch real question-level data only when data actually changes
+  useEffect(() => {
+    console.log('🔄 QuestionAnalytics: useEffect triggered', {
+      hasDataChanged,
+      hasEverLoaded: questionState.hasEverLoaded,
+      currentDataSignature,
+      willSkip: !hasDataChanged && questionState.hasEverLoaded
+    });
+    
+    // Only run if data actually changed
+    if (!hasDataChanged && questionState.hasEverLoaded) {
+      console.log('⏭️ QuestionAnalytics: Skipping fetch - no data change and already loaded');
+      return;
+    }
+    
+    const fetchQuestionData = async () => {
+      const currentData = stableDataRef.previousData;
+      
+      if (!currentData || currentData.length === 0) {
+        setQuestionState(prev => ({ ...prev, data: [] }));
+        return;
+      }
+
+      setQuestionState(prev => ({ ...prev, loading: true }));
+
+      try {
+        console.log('QuestionAnalytics: Processing', currentData.length, 'filtered results');
+        const analytics = await questionAnalyticsService.getQuestionAnalyticsFromFilteredData(currentData);
         
-        // Determine question status
-        let status = 'Good';
-        let statusColor = '#10b981';
+        // Store in global cache for next time
+        globalQuestionDataCache.set(currentDataSignature, {
+          data: analytics,
+          timestamp: Date.now()
+        });
         
-        if (correctRate < 0.4) {
-          status = 'Very Hard';
-          statusColor = '#dc2626';
-        } else if (correctRate < 0.6) {
-          status = 'Hard';
-          statusColor = '#ef4444';
-        } else if (correctRate < 0.8) {
-          status = 'Moderate';
-          statusColor = '#f59e0b';
-        }
+        // Single atomic state update
+        setQuestionState({
+          data: analytics,
+          loading: false,
+          hasEverLoaded: true
+        });
+      } catch (error) {
+        console.error('Error fetching question analytics:', error);
         
-        return {
-          questionId: questionId.length > 20 ? questionId.substring(0, 20) + '...' : questionId,
-          fullQuestionId: questionId,
-          quizType: group.quizType,
-          questionNumber: group.questionNumber,
-          attempts: group.attempts,
-          correct: group.correct,
-          incorrect: group.incorrect,
-          correctRate: (correctRate * 100).toFixed(1),
-          difficulty: (difficulty * 100).toFixed(1),
-          avgTimeSpent: avgTimeSpent.toFixed(1),
-          status,
-          statusColor,
-          needsReview: correctRate < 0.6 || avgTimeSpent > 120
-        };
-      })
+        // Single atomic state update
+        setQuestionState({
+          data: [],
+          loading: false,
+          hasEverLoaded: true
+        });
+      }
+    };
+
+    fetchQuestionData();
+  }, [currentDataSignature, hasDataChanged, questionState.hasEverLoaded]);
+
+  // Process and filter the real question data
+  const chartData = useMemo(() => {
+    if (!questionState.data || questionState.data.length === 0) {
+      return [];
+    }
+
+    return questionState.data
+      .filter(q => !q.isLegacyNotice && !q.isExclusionNotice) // Exclude notice items from chart
       .filter(q => showOnlyProblematic ? q.needsReview : true)
       .sort((a, b) => {
         let aVal, bVal;
@@ -155,8 +194,8 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
             bVal = b.attempts;
             break;
           case 'question':
-            aVal = a.fullQuestionId;
-            bVal = b.fullQuestionId;
+            aVal = a.displayText || a.questionText;
+            bVal = b.displayText || b.questionText;
             break;
           default:
             aVal = parseFloat(a.difficulty);
@@ -169,10 +208,12 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
           return aVal < bVal ? 1 : -1;
         }
       })
-      .slice(0, 15); // Show top 15 questions
-
-    return questionData;
-  }, [chartFilteredData, sortBy, sortOrder, showOnlyProblematic]);
+      .slice(0, 15) // Show top 15 questions
+      .map(question => ({
+        ...question,
+        questionId: question.displayText || question.questionText.substring(0, 50) + '...'
+      }));
+  }, [questionState.data, sortBy, sortOrder, showOnlyProblematic]);
 
   const handleSort = (newSortBy) => {
     if (sortBy === newSortBy) {
@@ -189,32 +230,91 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
   };
 
   // Handle question click for drill-down
-  const handleQuestionClick = (questionData) => {
+  const handleQuestionClick = useCallback((questionData) => {
     drillDown('question', {
-      questionId: questionData.data.fullQuestionId,
-      quizType: questionData.data.quizType,
+      questionId: questionData.data.questionId,
+      questionText: questionData.data.questionText,
+      quizTitle: questionData.data.quizTitle,
+      category: questionData.data.category,
+      section: questionData.data.section,
       difficulty: questionData.data.difficulty,
       correctRate: questionData.data.correctRate,
       status: questionData.data.status,
       needsReview: questionData.data.needsReview
     }, 'question-analytics');
-  };
+  }, [drillDown]);
 
   // Handle question hover for cross-filtering
-  const handleQuestionHover = (questionData) => {
+  const handleQuestionHover = useCallback((questionData) => {
     // Check if hover drill-down is disabled
     if (isHoverDrillDownDisabled()) return;
     if (questionData) {
       applyHoverFilter('question', {
-        questionId: questionData.data.fullQuestionId,
-        quizType: questionData.data.quizType
+        questionId: questionData.data.questionId,
+        questionText: questionData.data.questionText,
+        quizTitle: questionData.data.quizTitle
       }, 'question-analytics');
     }
-  };
+  }, [applyHoverFilter]);
 
-  const handleQuestionLeave = () => {
+  const handleQuestionLeave = useCallback(() => {
     applyHoverFilter('question', null, 'question-analytics');
-  };
+  }, [applyHoverFilter]);
+
+  // Create the tooltip function (always create it to avoid hook order issues)
+  const tooltipFunction = useCallback(({ id, value, data }) => {
+    const tooltipData = [
+      { label: 'Question', value: data.questionText ? data.questionText.substring(0, 200) + (data.questionText.length > 200 ? '...' : '') : 'No question text' },
+      { label: 'Quiz', value: data.quizTitle || 'Unknown Quiz' },
+      { label: 'Category', value: data.category || 'Uncategorized' },
+      { label: 'Section', value: data.section || 'No Section' },
+      { label: 'Question Type', value: data.questionType || 'Unknown' },
+      { label: 'Difficulty', value: `${value}%` },
+      { label: 'Correct Rate', value: `${data.correctRate}%` },
+      { label: 'Total Attempts', value: data.attempts },
+      { label: 'Correct', value: data.correct },
+      { label: 'Incorrect', value: data.incorrect },
+      { label: 'Avg Time', value: `${data.avgTimeSpent}s` },
+      { label: 'Status', value: data.status }
+    ];
+
+    // Add data source indicator if it's legacy, simulated, or notice data
+    if (data.isLegacyNotice || data.isExclusionNotice) {
+      tooltipData.push({ label: 'Type', value: 'System Notice' });
+    } else if (data.isLegacyData) {
+      tooltipData.push({ label: 'Data Source', value: 'Legacy (Estimated)' });
+    } else if (data.isSimulatedData) {
+      tooltipData.push({ label: 'Data Source', value: 'Score-based Simulation' });
+    }
+
+    let additionalInfo = '';
+    
+    if (data.isLegacyNotice) {
+      additionalInfo = 'Legacy quiz results do not contain question-level response data needed for this analysis.';
+    } else if (data.isExclusionNotice) {
+      additionalInfo = `Legacy results from ${data.excludedQuizTypes?.join(', ')} were excluded from this analysis.`;
+    } else if (data.needsReview) {
+      additionalInfo = data.needsReview ? 'This question may need review or revision' : 'Question performance is within normal range';
+    } else {
+      additionalInfo = 'Question performance is within normal range';
+    }
+    
+    if (data.isLegacyData) {
+      additionalInfo += ' | Note: This data is estimated from historical quiz results.';
+    } else if (data.isSimulatedData) {
+      additionalInfo += ' | Note: This data is simulated based on overall quiz scores.';
+    }
+
+    return (
+      <EnhancedTooltip
+        title="Question Analytics"
+        data={tooltipData}
+        icon={true}
+        color={data.statusColor}
+        additionalInfo={additionalInfo}
+      />
+    );
+  }, []);
 
   // Clear hover filters when entering loading state or when component unmounts to prevent stuck filters
   useEffect(() => {
@@ -230,7 +330,9 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     };
   }, [applyHoverFilter]);
 
-  if (loading) {
+  // Show loading if either the main data is loading OR we're processing question data
+  if (loading || questionState.loading) {
+    console.log('📊 QuestionAnalytics: Showing loading state', { loading, questionStateLoading: questionState.loading });
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-slate-500 dark:text-slate-400">Loading chart...</div>
@@ -238,7 +340,24 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     );
   }
 
+  // Don't show "no data" if we haven't loaded anything yet or are still in the process
   if (chartData.length === 0) {
+    console.log('📊 QuestionAnalytics: No chart data', { 
+      hasEverLoaded: questionState.hasEverLoaded,
+      questionDataLength: questionState.data.length 
+    });
+    
+    // If we've never loaded data successfully, show loading instead of no data
+    if (!questionState.hasEverLoaded) {
+      console.log('📊 QuestionAnalytics: Showing loading for never loaded');
+      return (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-slate-500 dark:text-slate-400">Loading chart...</div>
+        </div>
+      );
+    }
+    
+    console.log('📊 QuestionAnalytics: Showing no data');
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-slate-500 dark:text-slate-400">
@@ -248,8 +367,50 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     );
   }
 
+  // Check if we only have a legacy notice
+  const hasOnlyLegacyNotice = chartData.length === 1 && chartData[0]?.isLegacyNotice;
+  
+  if (hasOnlyLegacyNotice) {
+    const notice = chartData[0];
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-slate-600 dark:text-slate-300 text-lg font-semibold mb-2">
+            Question Analytics Not Available
+          </div>
+          <div className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+            Question-level analytics require detailed response data, which is not available for legacy quiz results.
+          </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <div className="text-amber-800 dark:text-amber-200 text-sm">
+              <div className="font-medium">Legacy Quiz Types:</div>
+              <div>{notice.legacyQuizTypes?.join(', ') || notice.quizTitle}</div>
+              <div className="mt-2 text-xs">
+                {notice.attempts} total quiz attempts
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if we have excluded legacy data to show a notice
+  const excludedNotice = questionState.data?.find(q => q.isExclusionNotice);
+
+  console.log('📊 QuestionAnalytics: Rendering chart with data', { chartDataLength: chartData.length });
+  
   return (
     <div className="h-full w-full relative">
+      {/* Legacy data exclusion notice */}
+      {excludedNotice && (
+        <div className="absolute top-2 left-2 z-10 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">
+          <div className="text-amber-800 dark:text-amber-200 text-xs font-medium">
+            ⚠️ {excludedNotice.attempts} legacy results excluded
+          </div>
+        </div>
+      )}
+      
       {/* Controls */}
       <div className="absolute top-2 right-2 z-10 flex gap-2">
         {/* Sort Controls */}
@@ -375,35 +536,13 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
           legendOffset: -50,
         }}
         enableLabel={false}
-        animate={shouldAnimate.current}
+        animate={false}
         motionStiffness={90}
         motionDamping={15}
         onClick={handleQuestionClick}
         onMouseEnter={handleQuestionHover}
         onMouseLeave={handleQuestionLeave}
-        tooltip={({ id, value, data }) => {
-          const tooltipData = [
-            { label: 'Question', value: data.fullQuestionId },
-            { label: 'Quiz Type', value: data.quizType },
-            { label: 'Difficulty', value: `${value}%` },
-            { label: 'Correct Rate', value: `${data.correctRate}%` },
-            { label: 'Total Attempts', value: data.attempts },
-            { label: 'Correct', value: data.correct },
-            { label: 'Incorrect', value: data.incorrect },
-            { label: 'Avg Time', value: `${data.avgTimeSpent}s` },
-            { label: 'Status', value: data.status }
-          ];
-
-          return (
-            <EnhancedTooltip
-              title="Question Analytics"
-              data={tooltipData}
-              icon={true}
-              color={data.statusColor}
-              additionalInfo={data.needsReview ? 'This question may need review or revision' : 'Question performance is within normal range'}
-            />
-          );
-        }}
+        tooltip={tooltipFunction}
       />
     </div>
   );
