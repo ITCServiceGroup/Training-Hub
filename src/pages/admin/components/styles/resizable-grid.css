@@ -159,15 +159,38 @@
   content: none !important;
 }
 
-/* Dark mode resize handles */
+/* Dark mode: make all resize handles higher contrast and easier to see */
+/* Corners */
 .dark .react-grid-item > .react-resizable-handle.react-resizable-handle-se {
-  background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiNBNEE0QTciIGZpbGwtcnVsZT0iZXZlbm9kZCI+PHBhdGggZD0ibTUgNWgtNHYtNGg0eiIvPjwvZz48L3N2Zz4=') no-repeat;
-  background-position: bottom right;
+  background: radial-gradient(ellipse at 100% 100%, var(--primary-light, #60a5fa), transparent 65%) !important;
+  box-shadow: none !important; /* no border in dark mode corners */
 }
 
 .dark .react-grid-item > .react-resizable-handle.react-resizable-handle-sw {
-  background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiNBNEE0QTciIGZpbGwtcnVsZT0iZXZlbm9kZCI+PHBhdGggZD0ibTEgNWg0di00aC00eiIvPjwvZz48L3N2Zz4=') no-repeat;
-  background-position: bottom left;
+  background: radial-gradient(ellipse at 0% 0%, var(--primary-light, #60a5fa), transparent 65%) !important;
+  box-shadow: none !important; /* no border in dark mode corners */
+}
+
+/* Edges */
+.dark .react-grid-item > .react-resizable-handle.react-resizable-handle-e {
+  background: linear-gradient(to right, transparent, var(--primary-light, #60a5fa)) !important;
+  box-shadow: none !important;
+}
+.dark .react-grid-item > .react-resizable-handle.react-resizable-handle-w {
+  background: linear-gradient(to left, transparent, var(--primary-light, #60a5fa)) !important;
+  box-shadow: none !important;
+}
+.dark .react-grid-item > .react-resizable-handle.react-resizable-handle-s {
+  background: linear-gradient(to bottom, transparent, var(--primary-light, #60a5fa)) !important;
+  box-shadow: none !important;
+}
+
+/* Dark-mode visibility on hover */
+.dark .react-grid-item:hover .react-resizable-handle {
+  opacity: 0.6 !important; /* increase visibility on tile hover */
+}
+.dark .react-grid-item > .react-resizable-handle:hover {
+  opacity: 1 !important; /* strongest when directly hovering the handle */
 }
 
 /* Resize handle hover effects - make darker when hovering directly over handle */
