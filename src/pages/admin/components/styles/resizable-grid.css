@@ -234,6 +234,12 @@
   display: none !important;
   content: none !important;
 }
+/* Lower z-index for left/right handles so chart tooltips appear above them */
+.react-grid-item > .react-resizable-handle.react-resizable-handle-e,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-w {
+  z-index: 80 !important; /* below tooltips, still above tile content */
+}
+
 
 /* West (left) resize handle */
 .react-grid-item > .react-resizable-handle.react-resizable-handle-w {
