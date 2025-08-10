@@ -106,7 +106,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     drillDown,
     applyHoverFilter
   } = useDashboard();
-  const [sortBy, setSortBy] = useState('difficulty'); // 'difficulty', 'attempts', 'question'
+  const [sortBy, setSortBy] = useState('difficulty'); // 'difficulty', 'avgTime', 'question'
   const [sortOrder, setSortOrder] = useState('desc');
   const [showOnlyProblematic, setShowOnlyProblematic] = useState(false);
 
@@ -272,9 +272,9 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
             aVal = parseFloat(a.difficulty);
             bVal = parseFloat(b.difficulty);
             break;
-          case 'attempts':
-            aVal = a.attempts;
-            bVal = b.attempts;
+          case 'avgTime':
+            aVal = a.avgTimeSpent;
+            bVal = b.avgTimeSpent;
             break;
           case 'question':
             aVal = a.displayText || a.questionText;
@@ -509,15 +509,15 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
           </button>
           
           <button
-            onClick={() => handleSort('attempts')}
+            onClick={() => handleSort('avgTime')}
             className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-              sortBy === 'attempts'
+              sortBy === 'avgTime'
                 ? isDark ? 'bg-blue-700 text-blue-200' : 'bg-blue-100 text-blue-700'
                 : isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
-            title="Sort by attempts"
+            title="Sort by average time spent"
           >
-            Attempts {getSortIcon('attempts')}
+            Avg. Time {getSortIcon('avgTime')}
           </button>
         </div>
 
