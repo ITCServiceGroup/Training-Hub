@@ -19,6 +19,7 @@ export class UiHandlers {
     this.injectLossCb = this.container.getElementById('inject-loss-cb');
     this.lossHopNum = this.container.getElementById('loss-hop-num');
     this.injectUnreachableCb = this.container.getElementById('inject-unreachable-cb');
+    this.unreachableHopNum = this.container.getElementById('unreachable-hop-num');
   }
 
   // Setup event listeners
@@ -69,7 +70,8 @@ export class UiHandlers {
       parseInt(this.latencyHopNum.value, 10),
       this.injectLossCb.checked,
       parseInt(this.lossHopNum.value, 10),
-      this.injectUnreachableCb.checked
+      this.injectUnreachableCb.checked,
+      parseInt(this.unreachableHopNum.value, 10)
     );
 
     // Draw initial visualization

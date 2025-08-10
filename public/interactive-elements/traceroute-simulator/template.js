@@ -36,6 +36,7 @@ template.innerHTML = `
                      id="latency-hop-num"
                      value="2"
                      min="1"
+                     max="10"
                      title="Select which hop will experience high latency"
                      onclick="event.stopPropagation();">
             </label>
@@ -49,15 +50,23 @@ template.innerHTML = `
                      id="loss-hop-num"
                      value="3"
                      min="1"
+                     max="10"
                      title="Select which hop will experience packet loss"
                      onclick="event.stopPropagation();">
             </label>
           </div>
 
           <div class="control-group">
-            <label title="Simulate an unreachable destination">
+            <label title="Simulate destination unreachable at a specific hop">
               <input type="checkbox" id="inject-unreachable-cb">
-              Destination Unreachable
+              Destination Unreachable at Hop #
+              <input type="number"
+                     id="unreachable-hop-num"
+                     value="5"
+                     min="1"
+                     max="10"
+                     title="Select which hop will return destination unreachable"
+                     onclick="event.stopPropagation();">
             </label>
           </div>
         </div>
