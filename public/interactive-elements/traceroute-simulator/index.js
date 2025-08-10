@@ -248,11 +248,68 @@ class TracerouteSimulatorElement extends HTMLElement {
       console.log('[TracerouteSimulator] Applied light mode');
     }
 
+    // Extract theme colors from parent document and inject into shadow DOM
+    this.injectThemeColors(isDarkMode);
+
     // Reset transition flags after a short delay
     setTimeout(() => {
       this.isTransitioning = false;
       this.themeUpdatePending = false;
     }, 100);
+  }
+
+  // Extract theme colors from parent document and inject into shadow DOM
+  injectThemeColors(isDarkMode) {
+    try {
+      // Get computed styles from a representative element in the parent document
+      let targetDoc = document;
+      
+      // If we're in an iframe, try to access parent document
+      if (window !== window.parent) {
+        try {
+          targetDoc = window.parent.document;
+        } catch (e) {
+          console.log('[TracerouteSimulator] Could not access parent document, using current document');
+        }
+      }
+
+      // Get the primary color from CSS variables in parent document
+      const rootStyles = getComputedStyle(targetDoc.documentElement);
+      const primaryColor = rootStyles.getPropertyValue('--color-primary').trim() ||
+                          rootStyles.getPropertyValue('--primary').trim() ||
+                          (isDarkMode ? '#14b8a6' : '#0f766e'); // fallback colors
+
+      const primaryDark = rootStyles.getPropertyValue('--primary-dark').trim() ||
+                         rootStyles.getPropertyValue('--color-primary-dark').trim() ||
+                         (isDarkMode ? '#0f766e' : '#0c5e57'); // fallback colors
+
+      // Create or update a style element in shadow DOM to override CSS variables
+      let themeStyleEl = this.shadowRoot.querySelector('#theme-colors');
+      if (!themeStyleEl) {
+        themeStyleEl = document.createElement('style');
+        themeStyleEl.id = 'theme-colors';
+        this.shadowRoot.appendChild(themeStyleEl);
+      }
+
+      themeStyleEl.textContent = `
+        :host {
+          --color-primary: ${primaryColor} !important;
+          --primary-dark: ${primaryDark} !important;
+        }
+        :host(.dark-mode) {
+          --primary-color: ${primaryColor} !important;
+          --primary-hover: ${primaryDark} !important;
+        }
+        :host(:not(.dark-mode)) {
+          --primary-color: ${primaryColor} !important;
+          --primary-hover: ${primaryDark} !important;
+        }
+      `;
+
+      console.log('[TracerouteSimulator] Injected theme colors:', { primaryColor, primaryDark, isDarkMode });
+    } catch (error) {
+      console.error('[TracerouteSimulator] Error injecting theme colors:', error);
+    }
   }
 }
 

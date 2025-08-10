@@ -272,7 +272,7 @@ export class UiHandlers {
     this.traceSummary.style.display = 'block';
 
     // Create overview section
-    const overviewSection = this.createAnalysisSection('Path Overview');
+    const overviewSection = this.createAnalysisSection('Traceroute Overview');
     const segments = this.formatPathSegments(stats.networkSegments);
     overviewSection.innerHTML = `
       <div class="analysis-content">
@@ -372,18 +372,19 @@ export class UiHandlers {
       .analysis-section {
         margin-bottom: 20px;
         padding: 15px;
-        background: #fff;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       }
       .analysis-section h4 {
         margin: 0 0 10px 0;
-        color: #2c3e50;
+        color: var(--text-color);
         font-size: 1.1em;
         font-weight: 600;
       }
       .analysis-content {
-        color: #34495e;
+        color: var(--text-color);
         font-size: 0.95em;
         line-height: 1.5;
       }
@@ -393,18 +394,20 @@ export class UiHandlers {
       }
       .problem-analysis {
         margin: 10px 0;
-        border: 1px solid #e0e4e8;
+        border: 1px solid var(--border-color);
         border-radius: 4px;
       }
       .problem-header {
         padding: 8px 12px;
-        background: #f8fafc;
-        border-bottom: 1px solid #e0e4e8;
+        background: var(--fieldset-bg);
+        border-bottom: 1px solid var(--border-color);
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-color);
       }
       .problem-details {
         padding: 12px;
+        background: var(--bg-color);
+        color: var(--text-color);
       }
       .problem-details p {
         margin: 8px 0;

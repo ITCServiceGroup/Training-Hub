@@ -36,7 +36,7 @@ export const styles = `
 
     /* Dark mode variables */
     --bg-color-dark: var(--custom-primary-bg-color, #1e293b);
-    --border-color-dark: #334155;
+    --border-color-dark: #475569;
     --text-color-dark: #f1f5f9;
     --text-secondary-dark: #cbd5e1;
     --fieldset-bg-dark: var(--custom-secondary-bg-color, #0f172a);

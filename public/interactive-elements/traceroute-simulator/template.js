@@ -10,7 +10,7 @@ template.innerHTML = `
 
   <div class="simulator-container">
     <div class="controls">
-      <h2>Network Path Analyzer</h2>
+      <h2>Traceroute Analyzer</h2>
       <p class="description">Visualize and analyze the network path between your device and a destination server.</p>
       
       <div class="input-group">
@@ -20,7 +20,7 @@ template.innerHTML = `
                placeholder="e.g., www.example.com" 
                value="www.example.com"
                title="Enter the domain or IP address to trace">
-        <button id="run-button" title="Start the network path analysis">Analyze Path</button>
+        <button id="run-button" title="Start the traceroute analysis">Analyze Path</button>
       </div>
 
       <fieldset id="problem-injection">
@@ -65,7 +65,7 @@ template.innerHTML = `
     </div>
 
     <fieldset class="visualization">
-      <legend>Network Path Visualization</legend>
+      <legend>Traceroute Visualization</legend>
       <div id="vis-container"></div>
       <div id="node-popover"></div>
       <p class="help-text">Click on any node to view detailed information about that hop.</p>
@@ -74,7 +74,7 @@ template.innerHTML = `
     <fieldset class="output">
       <legend>Analysis Results</legend>
       <div id="trace-output-container">
-         <div class="trace-message">Click "Analyze Path" to begin the network path analysis...</div>
+         <div class="trace-message">Click "Analyze Path" to begin the traceroute analysis...</div>
       </div>
       <div id="trace-summary" style="display: none;"></div>
     </fieldset>
