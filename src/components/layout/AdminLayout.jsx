@@ -25,7 +25,10 @@ const AdminLayout = () => {
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resetStudyGuideSelection, setResetStudyGuideSelection] = useState(() => () => {});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('adminSidebarCollapsed');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
 
   // Auto-exit fullscreen when navigating away from content editing
   useEffect(() => {
@@ -34,6 +37,11 @@ const AdminLayout = () => {
       exitFullscreen();
     }
   }, [location.pathname, isFullscreen, exitFullscreen]);
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('adminSidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
 
 
