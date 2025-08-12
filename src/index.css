@@ -532,7 +532,4 @@ div[style*="background"][style*="border-radius"][style*="box-shadow"][style*="po
   z-index: 10000 !important;
 }
 
-/* Additional fallback: Target grid items on hover to lift their stacking context */
-.react-grid-layout .react-grid-item:hover {
-  z-index: 999 !important;
-}
+/* Note: Tooltip positioning is now handled by smart repositioning in EnhancedTooltip.jsx */

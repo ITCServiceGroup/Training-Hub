@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useRef } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 
 const EnhancedTooltip = ({ 
@@ -14,18 +14,33 @@ const EnhancedTooltip = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const tooltipRef = useRef(null);
   
-  // Debug logging
-  console.log('EnhancedTooltip - theme:', theme, 'isDark:', isDark);
+  // Smart positioning to avoid sidebar overlap
+  useEffect(() => {
+    if (tooltipRef.current) {
+      const tooltip = tooltipRef.current;
+      const rect = tooltip.getBoundingClientRect();
+      
+      // Check if tooltip is behind sidebar (left 250px on desktop)
+      if (rect.left < 250) {
+        // Move tooltip to the right to avoid sidebar
+        const adjustment = 250 - rect.left + 10; // 10px padding
+        tooltip.style.transform = `translateX(${adjustment}px)`;
+        tooltip.style.zIndex = '2147483647';
+      }
+    }
+  });
 
   return (
     <div 
+      ref={tooltipRef}
       className="p-3 rounded-lg shadow-xl min-w-[300px] max-w-[500px]"
       style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         color: isDark ? '#e2e8f0' : '#475569',
         border: `2px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-        zIndex: 9999
+        zIndex: 2147483647
       }}
     >
       {/* Header with icon and title */}
