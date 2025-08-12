@@ -16,19 +16,38 @@ const EnhancedTooltip = ({
   const isDark = theme === 'dark';
   const tooltipRef = useRef(null);
   
-  // Smart positioning to avoid sidebar overlap
+  // Smart positioning to avoid sidebar overlap and screen edge cutoff
   useEffect(() => {
     if (tooltipRef.current) {
       const tooltip = tooltipRef.current;
-      const rect = tooltip.getBoundingClientRect();
       
-      // Check if tooltip is behind sidebar (left 250px on desktop)
-      if (rect.left < 250) {
-        // Move tooltip to the right to avoid sidebar
-        const adjustment = 250 - rect.left + 10; // 10px padding
-        tooltip.style.transform = `translateX(${adjustment}px)`;
-        tooltip.style.zIndex = '2147483647';
+      // Reset transform first to get original position
+      tooltip.style.transform = '';
+      
+      // Get the natural position without any transforms
+      const rect = tooltip.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const sidebarWidth = 250;
+      const minMargin = 5; // Minimum margin from screen edge
+      
+      let translateX = 0;
+      
+      // Check if tooltip would be behind sidebar (left side)
+      if (rect.left < sidebarWidth) {
+        translateX = sidebarWidth - rect.left + 10;
       }
+      // Check if tooltip would extend beyond right edge
+      else if (rect.right > viewportWidth - minMargin) {
+        // Calculate minimum movement to keep tooltip on screen with small margin
+        translateX = (viewportWidth - minMargin) - rect.right;
+      }
+      
+      // Apply the calculated adjustment
+      if (translateX !== 0) {
+        tooltip.style.transform = `translateX(${translateX}px)`;
+      }
+      
+      tooltip.style.zIndex = '2147483647';
     }
   });
 
