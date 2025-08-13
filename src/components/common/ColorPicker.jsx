@@ -496,7 +496,7 @@ const ColorPicker = ({
       }
       setIsOpen(false);
     } catch (error) {
-      console.log('EyeDropper was canceled or failed:', error);
+      // EyeDropper was canceled or failed
     }
   };
 
@@ -581,17 +581,10 @@ const ColorPicker = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isOpen) {
-        console.log('ColorPicker click outside check:', {
-          target: event.target,
-          colorPickerRef: colorPickerRef.current,
-          contains: colorPickerRef.current?.contains(event.target)
-        });
-
         // Check if the click is outside the color picker dropdown
         const isOutsidePicker = colorPickerRef.current && !colorPickerRef.current.contains(event.target);
 
         if (isOutsidePicker) {
-          console.log('Closing color picker - click outside detected');
           setIsOpen(false);
         }
       }

@@ -7,17 +7,13 @@ const Toast = ({ message, type = 'success', duration = 2000, onClose }) => {
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    console.log('Toast mounted with message:', message);
-
     // Set a timer to hide the toast after the specified duration
     const hideTimer = setTimeout(() => {
-      console.log('Toast hiding:', message);
       setIsVisible(false);
     }, duration);
 
     // Set a timer to remove the toast from the DOM after it's hidden
     const closeTimer = setTimeout(() => {
-      console.log('Toast closing:', message);
       if (onClose) onClose();
     }, duration + 300); // Wait for fade out animation to complete
 

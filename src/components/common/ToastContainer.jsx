@@ -22,13 +22,10 @@ export const ToastProvider = ({ children }) => {
   // Function to add a toast
   const showToast = useCallback((message, type = 'success', duration = 2000) => {
     const id = Date.now().toString();
-    console.log('Showing toast:', { id, message, type, duration });
 
     // Use a more reliable way to update state
     setToasts(prevToasts => {
-      console.log('Previous toasts:', prevToasts);
       const newToasts = [...prevToasts, { id, message, type, duration }];
-      console.log('New toasts:', newToasts);
       return newToasts;
     });
 
@@ -37,20 +34,12 @@ export const ToastProvider = ({ children }) => {
 
   // Function to remove a toast
   const removeToast = useCallback(id => {
-    console.log('Removing toast with id:', id);
     setToasts(prevToasts => {
-      console.log('Toasts before removal:', prevToasts);
       const newToasts = prevToasts.filter(toast => toast.id !== id);
-      console.log('Toasts after removal:', newToasts);
       return newToasts;
     });
   }, []);
 
-  // Log when the toast provider is mounted
-  useEffect(() => {
-    console.log('Toast provider mounted');
-    return () => console.log('Toast provider unmounted');
-  }, []);
 
   // Provide the toast functions to children
   return (
@@ -63,8 +52,6 @@ export const ToastProvider = ({ children }) => {
 
 // Toast container component
 const ToastContainer = ({ toasts, removeToast }) => {
-  console.log('Rendering ToastContainer with toasts:', toasts);
-
   return (
     <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-2 min-w-[300px] pointer-events-none">
       {toasts.length > 0 ? (
