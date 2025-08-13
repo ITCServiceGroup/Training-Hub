@@ -692,6 +692,7 @@ const SettingsPage = () => {
                 id="currentPassword"
                 type={passwordData.showCurrentPassword ? 'text' : 'password'}
                 name="currentPassword"
+                autoComplete="current-password"
                 value={passwordData.currentPassword}
                 onChange={handlePasswordChange}
                 className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
@@ -721,6 +722,7 @@ const SettingsPage = () => {
                 id="newPassword"
                 type={passwordData.showNewPassword ? 'text' : 'password'}
                 name="newPassword"
+                autoComplete="new-password"
                 value={passwordData.newPassword}
                 onChange={handlePasswordChange}
                 className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"
@@ -784,6 +786,7 @@ const SettingsPage = () => {
                 id="confirmPassword"
                 type={passwordData.showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
+                autoComplete="new-password"
                 value={passwordData.confirmPassword}
                 onChange={handlePasswordChange}
                 className="w-full py-2 px-3 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary"

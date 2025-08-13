@@ -346,11 +346,14 @@ const QuizPage = () => {
           <form onSubmit={handleAccessCodeSubmit} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
+              name="accessCode"
+              autoComplete="off"
               placeholder="Enter access code"
               className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm h-10 ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400' : 'bg-white border-slate-300 text-slate-900'}`}
               value={localAccessCode}
               onChange={(e) => setLocalAccessCode(e.target.value.toUpperCase())}
               maxLength={8}
+              data-form-type="other"
             />
             <button
               type="submit"

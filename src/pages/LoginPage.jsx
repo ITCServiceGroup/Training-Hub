@@ -103,6 +103,8 @@ const LoginPage = () => {
             <input
               type="email"
               id="email"
+              name="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -115,6 +117,8 @@ const LoginPage = () => {
             <input
               type="password"
               id="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
