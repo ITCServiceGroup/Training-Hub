@@ -171,15 +171,15 @@ const MediaSelectionModal = ({ isOpen, onClose, onSelectMedia, filterFileType, c
     }
   };
 
-  // Filter media based on search term and TinyMCE file type
+  // Filter media based on search term and file type
   const filteredMedia = useMemo(() => {
     let items = mediaItems;
 
-    // Filter by file type requested by TinyMCE
+    // Filter by file type
     if (filterFileType === 'image') {
       items = items.filter(item => item.mime_type.startsWith('image/'));
     } else if (filterFileType === 'media') {
-      // 'media' in TinyMCE usually means video/audio
+      // 'media' usually means video/audio
       items = items.filter(item => item.mime_type.startsWith('video/') || item.mime_type.startsWith('audio/'));
     }
     // 'file' type usually means allow anything, so no extra filtering needed

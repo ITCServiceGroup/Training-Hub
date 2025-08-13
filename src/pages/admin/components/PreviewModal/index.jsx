@@ -126,7 +126,7 @@ const processContentForWebComponents = (content) => {
   // Replace consecutive <br> tags with empty lines
   processedContent = processedContent.replace(/<br>\s*<br>/g, '<br><div class="empty-line" style="height: 1em; display: block; margin: 0.5em 0;"></div>');
 
-  // Handle TinyMCE specific empty paragraphs (only if they are visually empty)
+  // Handle editor specific empty paragraphs (only if they are visually empty)
   processedContent = processedContent.replace(/<p data-mce-empty="1">(?:<br>|\s|&nbsp;)*<\/p>/g, '<div class="empty-line" style="height: 1em; display: block; margin: 1em 0;"></div>');
 
 

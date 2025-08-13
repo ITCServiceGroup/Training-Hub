@@ -1,6 +1,6 @@
-// Utility for handling theme-aware colors, especially for TinyMCE color map
+// Utility for handling theme-aware colors
 
-// Base colors defined in TinyMCE config (light mode defaults)
+// Base colors defined for the application (light mode defaults)
 const baseColorMap = [
   'BFEDD2', 'Light Green',
   'FBEEB8', 'Light Yellow',

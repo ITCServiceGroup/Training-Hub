@@ -4,7 +4,7 @@ import { findBestQuizMatch, createMatchLog } from '../../utils/stringMatching';
 
 class QuizResultsService extends BaseService {
   constructor() {
-    super('Quiz Results');
+    super('quiz_results');
   }
 
   /**

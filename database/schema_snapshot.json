@@ -1,0 +1,269 @@
+{
+  "generated_at": "2025-01-15T00:00:00Z",
+  "database": "training_hub_v2",
+  "tables": [
+    {
+      "table_name": "quiz_results",
+      "columns": [
+        "answers jsonb",
+        "date_of_test timestamp with time zone",
+        "id bigint",
+        "ldap text",
+        "market text",
+        "pdf_url text",
+        "question_timings jsonb",
+        "quiz_id uuid",
+        "quiz_type text",
+        "score_text text",
+        "score_value double precision",
+        "shuffled_questions jsonb",
+        "supervisor text",
+        "time_taken real"
+      ]
+    },
+    {
+      "table_name": "markets",
+      "columns": [
+        "created_at timestamp with time zone",
+        "id integer",
+        "name character varying"
+      ]
+    },
+    {
+      "table_name": "media_library",
+      "columns": [
+        "alt_text text",
+        "caption text",
+        "created_at timestamp with time zone",
+        "file_name text",
+        "id uuid",
+        "mime_type text",
+        "public_url text",
+        "size bigint",
+        "storage_path text",
+        "updated_at timestamp with time zone",
+        "uploaded_by uuid"
+      ]
+    },
+    {
+      "table_name": "supervisors",
+      "columns": [
+        "created_at timestamp with time zone",
+        "id integer",
+        "is_active boolean",
+        "market_id integer",
+        "name character varying"
+      ]
+    },
+    {
+      "table_name": "user_dashboards",
+      "columns": [
+        "created_at timestamp with time zone",
+        "description text",
+        "filters jsonb",
+        "id text",
+        "is_default boolean",
+        "is_template boolean",
+        "layout jsonb",
+        "name text",
+        "tiles jsonb",
+        "updated_at timestamp with time zone",
+        "user_id uuid"
+      ]
+    },
+    {
+      "table_name": "user_initialization",
+      "columns": [
+        "created_at timestamp with time zone",
+        "dashboard_templates_copied boolean",
+        "initialized_at timestamp with time zone",
+        "updated_at timestamp with time zone",
+        "user_id uuid",
+        "version text"
+      ]
+    },
+    {
+      "table_name": "v2_access_codes",
+      "columns": [
+        "code character varying",
+        "created_at timestamp with time zone",
+        "email character varying",
+        "expires_at timestamp with time zone",
+        "id uuid",
+        "is_used boolean",
+        "ldap character varying",
+        "market character varying",
+        "quiz_id uuid",
+        "supervisor character varying"
+      ]
+    },
+    {
+      "table_name": "v2_categories",
+      "columns": [
+        "created_at timestamp with time zone",
+        "description text",
+        "display_order integer",
+        "icon character varying",
+        "id uuid",
+        "name character varying",
+        "section_id uuid",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_questions",
+      "columns": [
+        "category_id uuid",
+        "correct_answer jsonb",
+        "created_at timestamp with time zone",
+        "explanation text",
+        "id uuid",
+        "options jsonb",
+        "question_text text",
+        "question_type character varying",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_quiz_questions",
+      "columns": [
+        "created_at timestamp with time zone",
+        "order_index integer",
+        "question_id uuid",
+        "quiz_id uuid"
+      ]
+    },
+    {
+      "table_name": "v2_quizzes",
+      "columns": [
+        "allow_partial_credit boolean",
+        "archived_at timestamp with time zone",
+        "category_ids jsonb",
+        "created_at timestamp with time zone",
+        "description text",
+        "has_practice_mode boolean",
+        "id uuid",
+        "is_practice boolean",
+        "passing_score numeric",
+        "randomize_answers boolean",
+        "randomize_questions boolean",
+        "time_limit integer",
+        "title character varying",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_sections",
+      "columns": [
+        "created_at timestamp with time zone",
+        "description text",
+        "display_order integer",
+        "icon character varying",
+        "id uuid",
+        "name character varying",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_study_guide_templates",
+      "columns": [
+        "category text",
+        "content text",
+        "created_at timestamp with time zone",
+        "description text",
+        "id uuid",
+        "name text",
+        "tags ARRAY",
+        "thumbnail text",
+        "updated_at timestamp with time zone"
+      ]
+    },
+    {
+      "table_name": "v2_study_guides",
+      "columns": [
+        "category_id uuid",
+        "content text",
+        "created_at timestamp with time zone",
+        "description text",
+        "display_order integer",
+        "id uuid",
+        "is_published boolean",
+        "linked_quiz_id uuid",
+        "title character varying",
+        "updated_at timestamp with time zone"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "table_name": "v2_questions",
+      "column_name": "category_id",
+      "foreign_table_name": "v2_categories",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "v2_study_guides",
+      "column_name": "category_id",
+      "foreign_table_name": "v2_categories",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "v2_study_guides",
+      "column_name": "linked_quiz_id",
+      "foreign_table_name": "v2_quizzes",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "v2_categories",
+      "column_name": "section_id",
+      "foreign_table_name": "v2_sections",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "v2_access_codes",
+      "column_name": "quiz_id",
+      "foreign_table_name": "v2_quizzes",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "v2_quiz_questions",
+      "column_name": "question_id",
+      "foreign_table_name": "v2_questions",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "v2_quiz_questions",
+      "column_name": "quiz_id",
+      "foreign_table_name": "v2_quizzes",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "supervisors",
+      "column_name": "market_id",
+      "foreign_table_name": "markets",
+      "foreign_column_name": "id"
+    }
+  ],
+  "storage_buckets": [
+    {
+      "id": "media-library",
+      "name": "media-library",
+      "public": true,
+      "description": "Storage for uploaded media files"
+    },
+    {
+      "id": "quiz-pdfs",
+      "name": "quiz-pdfs", 
+      "public": true,
+      "description": "Storage for generated quiz PDF reports"
+    }
+  ],
+  "notes": [
+    "quiz_results table is the ACTIVE quiz results table",
+    "v2_quiz_results table is DEPRECATED and will be removed",
+    "All UUID columns use uuid_generate_v4() for defaults",
+    "Foreign keys use CASCADE DELETE where appropriate",
+    "RLS policies enforce proper data access controls",
+    "Storage buckets have appropriate access policies configured"
+  ]
+}

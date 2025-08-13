@@ -35,7 +35,7 @@ const formatBytes = (bytes, decimals = 2) => {
 
 // --- Media Grid Component ---
 // Added onPreviewClick prop
-const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFromTinyMCE }) => {
+const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick }) => {
   const { theme, themeColors } = useTheme(); // Get current theme
   const isDark = theme === 'dark';
 
@@ -59,14 +59,7 @@ const MediaGrid = ({ mediaItems, onDelete, onEditMetadata, onPreviewClick, isFro
               <div
                 className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
                 onClick={() => {
-                  if (isFromTinyMCE && window.opener && window.opener.tinyMCEMediaLibraryCallback) {
-                    // If opened from TinyMCE, send the selected image back
-                    window.opener.tinyMCEMediaLibraryCallback(item.public_url, item.alt_text || item.file_name);
-                    window.close();
-                  } else {
-                    // Normal behavior
-                    onPreviewClick(item);
-                  }
+                  onPreviewClick(item);
                 }}
               >
                 {/* Display actual image */}
@@ -548,19 +541,10 @@ function MediaLibraryPage() {
   }, []);
 
 
-  // Check if we're being opened from TinyMCE
-  const [isFromTinyMCE, setIsFromTinyMCE] = useState(false);
 
   useEffect(() => {
     setIsLoading(true); // Set loading true when component mounts
     fetchMedia();
-
-    // Check if we're being opened from TinyMCE
-    const urlParams = new URLSearchParams(window.location.search);
-    const forParam = urlParams.get('for');
-    if (forParam === 'tinymce') {
-      setIsFromTinyMCE(true);
-    }
   }, [fetchMedia]); // Depend on the stable fetchMedia function
 
   // Wrap handleUpload in useCallback
@@ -645,7 +629,6 @@ function MediaLibraryPage() {
           onDelete={handleDelete}
           onEditMetadata={handleOpenEditModal} // Opens edit modal
           onPreviewClick={handleMediaPreviewClick} // Opens media preview modal
-          isFromTinyMCE={isFromTinyMCE} // Pass the TinyMCE integration flag
         />
       )}
 
