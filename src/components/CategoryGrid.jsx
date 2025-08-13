@@ -95,7 +95,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId, navigatio
           buttonText = 'View Quizzes';
         } else {
           // Only count published study guides
-          itemCount = category.v2_study_guides?.filter(guide => guide.is_published)?.length || 0;
+          itemCount = category.study_guides?.filter(guide => guide.is_published)?.length || 0;
           itemLabel = itemCount === 1 ? 'Learn Item' : 'Learn Items';
           buttonText = 'View Guides';
         }

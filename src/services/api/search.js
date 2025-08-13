@@ -141,7 +141,7 @@ class SearchService {
   async searchStudyGuides(query, publishedOnly = true) {
     try {
       let queryBuilder = supabase
-        .from('v2_study_guides')
+        .from('study_guides')
         .select('*, categories(*, sections(*))')
         .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
         .order('display_order', { nullsLast: true });
@@ -251,7 +251,7 @@ class SearchService {
       }
 
       let queryBuilder = supabase
-        .from('v2_study_guides')
+        .from('study_guides')
         .select('*, categories(*, sections(*))')
         .or(searchPatterns.join(','))
         .order('display_order', { nullsLast: true });

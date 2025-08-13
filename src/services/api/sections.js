@@ -69,13 +69,13 @@ class SectionsService extends BaseService {
           *,
           categories (
             *,
-            v2_study_guides (*)
+            study_guides (*)
           )
         `)
         // Order sections first, then categories within sections, then study guides within categories
         .order('display_order', { nullsLast: true })
         .order('display_order', { foreignTable: 'categories', nullsLast: true })
-        .order('display_order', { foreignTable: 'categories.v2_study_guides', nullsLast: true });
+        .order('display_order', { foreignTable: 'categories.study_guides', nullsLast: true });
 
       // Execute the query
       const { data: fetchedData, error } = await query;
@@ -94,7 +94,7 @@ class SectionsService extends BaseService {
           ...section,
           categories: section.categories.map(category => ({
             ...category,
-            v2_study_guides: category.v2_study_guides.filter(guide => guide.is_published)
+            study_guides: category.study_guides.filter(guide => guide.is_published)
           }))
         }));
       }

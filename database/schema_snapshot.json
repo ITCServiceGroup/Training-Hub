@@ -165,7 +165,7 @@
       ]
     },
     {
-      "table_name": "v2_study_guide_templates",
+      "table_name": "study_guide_templates",
       "columns": [
         "category text",
         "content text",
@@ -179,7 +179,7 @@
       ]
     },
     {
-      "table_name": "v2_study_guides",
+      "table_name": "study_guides",
       "columns": [
         "category_id uuid",
         "content text",
@@ -202,13 +202,13 @@
       "foreign_column_name": "id"
     },
     {
-      "table_name": "v2_study_guides",
+      "table_name": "study_guides",
       "column_name": "category_id",
       "foreign_table_name": "categories",
       "foreign_column_name": "id"
     },
     {
-      "table_name": "v2_study_guides",
+      "table_name": "study_guides",
       "column_name": "linked_quiz_id",
       "foreign_table_name": "v2_quizzes",
       "foreign_column_name": "id"

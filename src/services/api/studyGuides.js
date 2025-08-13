@@ -2,11 +2,11 @@ import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
 
 /**
- * Study Guides service for interacting with v2_study_guides table
+ * Study Guides service for interacting with study_guides table
  */
 class StudyGuidesService extends BaseService {
   constructor() {
-    super('v2_study_guides');
+    super('study_guides');
   }
 
   /**

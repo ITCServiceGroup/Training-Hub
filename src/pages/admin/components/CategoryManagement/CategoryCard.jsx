@@ -54,7 +54,7 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
   // Using Tailwind classes instead of inline styles
 
   // Determine the study guide count using the CORRECT key
-  const studyGuideCount = category.v2_study_guides?.length || 0;
+  const studyGuideCount = category.study_guides?.length || 0;
 
   // console.log removed
 

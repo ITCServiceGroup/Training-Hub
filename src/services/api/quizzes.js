@@ -543,7 +543,7 @@ class QuizzesService extends BaseService {
   async getLinkedStudyGuides(quizId) {
     try {
       const { data, error } = await supabase
-        .from('v2_study_guides')
+        .from('study_guides')
         .select(`
           id,
           title,

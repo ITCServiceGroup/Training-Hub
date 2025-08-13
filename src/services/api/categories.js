@@ -101,16 +101,16 @@ class CategoriesService extends BaseService {
       // Then for each category, get its study guides
       for (const category of categories) {
         const { data: studyGuides, error: studyGuidesError } = await supabase
-          .from('v2_study_guides')
+          .from('study_guides')
           .select('*')
           .eq('category_id', category.id)
           .order('display_order', { nullsLast: true });
 
         if (studyGuidesError) {
           console.error('Error fetching study guides for category:', studyGuidesError.message);
-          category.v2_study_guides = [];
+          category.study_guides = [];
         } else {
-          category.v2_study_guides = studyGuides;
+          category.study_guides = studyGuides;
         }
       }
 
@@ -159,16 +159,16 @@ class CategoriesService extends BaseService {
 
         // Get study guides
         const { data: studyGuides, error: studyGuidesError } = await supabase
-          .from('v2_study_guides')
+          .from('study_guides')
           .select('*')
           .eq('category_id', category.id)
           .order('display_order', { nullsLast: true });
 
         if (studyGuidesError) {
           console.error('Error fetching study guides for category:', studyGuidesError.message);
-          category.v2_study_guides = [];
+          category.study_guides = [];
         } else {
-          category.v2_study_guides = studyGuides;
+          category.study_guides = studyGuides;
         }
       }
 

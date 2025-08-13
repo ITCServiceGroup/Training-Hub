@@ -4,7 +4,7 @@ import { debugLog } from '../../config/developer';
 
 class TemplatesService {
   constructor() {
-    this.tableName = 'v2_study_guide_templates';
+    this.tableName = 'study_guide_templates';
   }
 
   async getAll() {

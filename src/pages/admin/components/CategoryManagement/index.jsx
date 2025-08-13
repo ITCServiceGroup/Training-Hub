@@ -126,7 +126,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   };
 
   const getDeleteMessage = async (category) => {
-    const studyGuideCount = category.v2_study_guides?.length || 0;
+    const studyGuideCount = category.study_guides?.length || 0;
 
     // Get quiz question count for this category
     let questionCount = 0;

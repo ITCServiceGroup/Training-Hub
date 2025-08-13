@@ -25,7 +25,7 @@ Categories within sections for organizing content.
 - `icon` (VARCHAR) - Icon name for UI display
 - `created_at`, `updated_at` (TIMESTAMPTZ) - Audit fields
 
-#### v2_study_guides
+#### study_guides
 Study guide content organized by categories.
 - `id` (UUID, PK) - Unique identifier
 - `category_id` (UUID, FK → categories) - Parent category
@@ -37,7 +37,7 @@ Study guide content organized by categories.
 - `linked_quiz_id` (UUID, FK → v2_quizzes) - Optional specific quiz link
 - `created_at`, `updated_at` (TIMESTAMPTZ) - Audit fields
 
-#### v2_study_guide_templates
+#### study_guide_templates
 Templates for creating new study guides.
 - `id` (UUID, PK) - Unique identifier
 - `name` (TEXT) - Template name
