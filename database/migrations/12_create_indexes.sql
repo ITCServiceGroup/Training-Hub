@@ -34,10 +34,10 @@ CREATE INDEX IF NOT EXISTS quiz_results_pkey ON quiz_results USING btree (id);
 CREATE INDEX IF NOT EXISTS v2_quizzes_pkey ON v2_quizzes USING btree (id);
 CREATE INDEX IF NOT EXISTS idx_quizzes_archived_at ON v2_quizzes USING btree (archived_at);
 
--- Indexes for v2_access_codes
-CREATE INDEX IF NOT EXISTS v2_access_codes_pkey ON v2_access_codes USING btree (id);
-CREATE UNIQUE INDEX IF NOT EXISTS v2_access_codes_code_key ON v2_access_codes USING btree (code);
-CREATE INDEX IF NOT EXISTS v2_access_codes_code_idx ON v2_access_codes USING btree (code);
+-- Indexes for access_codes
+CREATE INDEX IF NOT EXISTS access_codes_pkey ON access_codes USING btree (id);
+CREATE UNIQUE INDEX IF NOT EXISTS access_codes_code_key ON access_codes USING btree (code);
+CREATE INDEX IF NOT EXISTS access_codes_code_idx ON access_codes USING btree (code);
 
 -- Indexes for v2_quiz_questions
 CREATE INDEX IF NOT EXISTS v2_quiz_questions_pkey ON v2_quiz_questions USING btree (quiz_id, question_id);

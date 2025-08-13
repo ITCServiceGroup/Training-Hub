@@ -20,7 +20,7 @@ export const accessCodesService = {
       while (!isUnique) {
         code = generateUniqueCode();
         const { data } = await supabase
-          .from('v2_access_codes')
+          .from('access_codes')
           .select('code')
           .eq('code', code)
           .single();
@@ -34,7 +34,7 @@ export const accessCodesService = {
 
       // Create the access code record
       const { data, error } = await supabase
-        .from('v2_access_codes')
+        .from('access_codes')
         .insert({
           quiz_id: quizId,
           code,
@@ -60,7 +60,7 @@ export const accessCodesService = {
   async getByQuizId(quizId) {
     try {
       const { data, error } = await supabase
-        .from('v2_access_codes')
+        .from('access_codes')
         .select('*')
         .eq('quiz_id', quizId)
         .order('created_at', { ascending: false });
@@ -77,7 +77,7 @@ export const accessCodesService = {
   async validateCode(code) {
     try {
       const { data, error } = await supabase
-        .from('v2_access_codes')
+        .from('access_codes')
         .select('*, v2_quizzes!inner(*)')
         .eq('code', code.toUpperCase())
         .single();
@@ -109,7 +109,7 @@ export const accessCodesService = {
   async markAsUsed(code) {
     try {
       const { error } = await supabase
-        .from('v2_access_codes')
+        .from('access_codes')
         .update({ is_used: true })
         .eq('code', code);
 
@@ -124,7 +124,7 @@ export const accessCodesService = {
   async delete(codeId) {
     try {
       const { error } = await supabase
-        .from('v2_access_codes')
+        .from('access_codes')
         .delete()
         .eq('id', codeId);
 

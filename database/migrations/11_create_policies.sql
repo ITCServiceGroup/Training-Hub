@@ -6,7 +6,7 @@ ALTER TABLE quiz_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE media_library ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_dashboards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_initialization ENABLE ROW LEVEL SECURITY;
-ALTER TABLE v2_access_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE access_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE v2_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE v2_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE v2_quiz_questions ENABLE ROW LEVEL SECURITY;
@@ -64,16 +64,16 @@ CREATE POLICY "Users can update their own initialization" ON user_initialization
     FOR UPDATE TO public USING (auth.uid() = user_id);
 
 -- Access codes policies
-CREATE POLICY "Access codes read access" ON v2_access_codes
+CREATE POLICY "Access codes read access" ON access_codes
     FOR SELECT TO public USING (true);
 
-CREATE POLICY "Access codes insert access" ON v2_access_codes
+CREATE POLICY "Access codes insert access" ON access_codes
     FOR INSERT TO public WITH CHECK (auth.role() = 'authenticated'::text);
 
-CREATE POLICY "Access codes update access" ON v2_access_codes
+CREATE POLICY "Access codes update access" ON access_codes
     FOR UPDATE TO public USING (auth.role() = 'authenticated'::text);
 
-CREATE POLICY "Access codes delete access" ON v2_access_codes
+CREATE POLICY "Access codes delete access" ON access_codes
     FOR DELETE TO public USING (auth.role() = 'authenticated'::text);
 
 -- Categories policies

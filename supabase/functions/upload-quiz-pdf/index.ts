@@ -43,7 +43,7 @@ serve(async (req) => {
 
     // Validate access code
     const { data: accessCodeData, error: accessCodeError } = await supabaseClient
-      .from('v2_access_codes')
+      .from('access_codes')
       .select('*')
       .eq('code', accessCode)
       .eq('is_used', false)

@@ -83,7 +83,7 @@
       ]
     },
     {
-      "table_name": "v2_access_codes",
+      "table_name": "access_codes",
       "columns": [
         "code character varying",
         "created_at timestamp with time zone",
@@ -220,7 +220,7 @@
       "foreign_column_name": "id"
     },
     {
-      "table_name": "v2_access_codes",
+      "table_name": "access_codes",
       "column_name": "quiz_id",
       "foreign_table_name": "v2_quizzes",
       "foreign_column_name": "id"

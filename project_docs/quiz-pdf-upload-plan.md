@@ -25,7 +25,7 @@ The recommended approach is to create a Supabase Edge Function to act as a secur
             *   `quizId`: The ID of the quiz taken.
         *   **Import Supabase Admin Client:** Use environment variables (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) to initialize the Supabase client with admin privileges within the function. This bypasses RLS for internal operations.
         *   **Validate Access Code:**
-            *   Query the `v2_access_codes` table using the admin client.
+            *   Query the `access_codes` table using the admin client.
             *   Verify that the provided `accessCode` exists, `is_used` is `false`, `expires_at` is in the future (or null), and optionally matches the provided `ldap` and `quizId`.
             *   If validation fails, return a `403 Forbidden` response immediately.
         *   **Decode and Upload PDF:**

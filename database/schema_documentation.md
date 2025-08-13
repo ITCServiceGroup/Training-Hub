@@ -103,7 +103,7 @@ Stores completed quiz attempts.
 - `question_timings` (JSONB) - Time per question
 - `shuffled_questions` (JSONB) - Question order presented
 
-#### v2_access_codes
+#### access_codes
 Access codes for controlling quiz access.
 - `id` (UUID, PK) - Unique identifier
 - `code` (VARCHAR, UNIQUE) - Access code string

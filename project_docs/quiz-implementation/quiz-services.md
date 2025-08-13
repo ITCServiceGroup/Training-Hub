@@ -712,7 +712,7 @@ import { supabase } from '../../config/supabase';
 
 class AccessCodesService extends BaseService {
   constructor() {
-    super('v2_access_codes');
+    super('access_codes');
   }
 
   /**

@@ -25,9 +25,9 @@ ADD CONSTRAINT IF NOT EXISTS v2_study_guides_linked_quiz_id_fkey
 FOREIGN KEY (linked_quiz_id) REFERENCES v2_quizzes(id) 
 ON DELETE SET NULL;
 
--- Foreign key: v2_access_codes -> v2_quizzes
-ALTER TABLE v2_access_codes 
-ADD CONSTRAINT IF NOT EXISTS v2_access_codes_quiz_id_fkey 
+-- Foreign key: access_codes -> v2_quizzes
+ALTER TABLE access_codes 
+ADD CONSTRAINT IF NOT EXISTS access_codes_quiz_id_fkey 
 FOREIGN KEY (quiz_id) REFERENCES v2_quizzes(id) 
 ON DELETE CASCADE;
 
