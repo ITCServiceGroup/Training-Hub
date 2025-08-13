@@ -69,14 +69,10 @@
 
 
 /* CollapsibleSection styling in StudyGuideViewer - respect component's own margin settings */
-.craft-renderer .craft-collapsible-section {
-  /* Remove forced margin to respect component's own settings */
-}
+/* Forced margins removed to respect component's own settings */
 
 /* Specific styling for the in-viewer class */
-.craft-renderer .craft-collapsible-section.in-viewer {
-  /* Remove forced margin to respect component's own settings */
-}
+/* Forced margins removed to respect component's own settings */
 
 .craft-renderer .craft-step-content {
   border: none !important;

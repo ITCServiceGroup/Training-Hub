@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef, useState, useRef, useEffect, useImperativeHandle, cloneElement } from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import { useTheme } from '../../contexts/ThemeContext';
 import { countSearchTermOccurrences } from '../../utils/contentTextExtractor';
@@ -17,7 +17,6 @@ import { TableText } from '../../pages/admin/components/ContentEditor/components
 import { Tabs } from '../../pages/admin/components/ContentEditor/components/selectors/Tabs'; // Added Tabs import
 import { HorizontalLine } from '../../pages/admin/components/ContentEditor/components/selectors/HorizontalLine'; // Added HorizontalLine import
 import { Icon } from '../../pages/admin/components/ContentEditor/components/selectors/Icon'; // Added Icon import
-import InteractiveRenderer from '../../pages/admin/components/ContentEditor/components/selectors/Interactive/InteractiveRenderer';
 
 import './CraftRenderer.css';
 
@@ -25,13 +24,13 @@ import './CraftRenderer.css';
  * Component for rendering Craft.js JSON content without editing capabilities
  * This follows the official Craft.js documentation for rendering JSON content
  */
-const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
+const CraftRenderer = forwardRef(({ jsonContent, searchTerm }, ref) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [parsedContent, setParsedContent] = React.useState(null);
-  const [error, setError] = React.useState(null);
-  const [interactiveElements, setInteractiveElements] = React.useState([]);
-  const rendererRef = React.useRef(null);
+  const [parsedContent, setParsedContent] = useState(null);
+  const [error, setError] = useState(null);
+  const [interactiveElements, setInteractiveElements] = useState([]);
+  const rendererRef = useRef(null);
 
   // Add custom styles for the renderer
   const rendererStyles = {
@@ -111,7 +110,7 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
 
       // Process linked nodes
       if (node && node.linkedNodes) {
-        Object.entries(node.linkedNodes).forEach(([key, childId]) => {
+        Object.entries(node.linkedNodes).forEach(([, childId]) => {
           if (nodes[childId]) {
             const childNodesToRemove = findPlaceholdersToRemove(childId, nodes, nodeId);
             nodesToRemove = [...nodesToRemove, ...childNodesToRemove];
@@ -156,77 +155,55 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
   };
 
   // Parse the JSON content when the component mounts or jsonContent changes
-  React.useEffect(() => {
-    console.log('CraftRenderer: Received content type:', typeof jsonContent);
-    console.log('CraftRenderer: Content preview:', typeof jsonContent === 'string'
-      ? jsonContent.substring(0, 100)
-      : 'Non-string content');
-
+  useEffect(() => {
     try {
       // Handle different formats of JSON content
       let parsed;
 
       if (typeof jsonContent === 'string') {
-        console.log('CraftRenderer: Attempting to parse string content');
-
         // Check if the content is already a valid JSON string
         if (jsonContent.trim().startsWith('{') && jsonContent.trim().endsWith('}')) {
           try {
             // First try direct parsing
             parsed = JSON.parse(jsonContent);
-            console.log('CraftRenderer: First parse successful, result type:', typeof parsed);
 
             // Check if the parsed content is also a string (double-stringified)
             if (typeof parsed === 'string') {
-              console.log('CraftRenderer: Parsed result is still a string, attempting second parse');
               try {
                 parsed = JSON.parse(parsed);
-                console.log('CraftRenderer: Second parse successful, result type:', typeof parsed);
               } catch (secondParseError) {
-                console.log('CraftRenderer: Second parse failed, treating first parse result as content:', secondParseError.message);
+                // Second parse failed, use first parse result
               }
             }
           } catch (parseError) {
-            console.log('CraftRenderer: Initial parse failed:', parseError.message);
             if (jsonContent.startsWith('"') && jsonContent.endsWith('"')) {
-              console.log('CraftRenderer: Content appears to be quoted, attempting to unquote');
               try {
                 const unescaped = jsonContent.slice(1, -1).replace(/\\"/g, '"');
                 parsed = JSON.parse(unescaped);
-                console.log('CraftRenderer: Unquoted parse successful');
               } catch (unescapeError) {
-                console.log('CraftRenderer: Unquoted parse failed:', unescapeError.message);
                 throw unescapeError;
               }
             } else {
-              console.log('CraftRenderer: Content is not quoted, cannot parse');
               throw parseError;
             }
           }
         } else if (jsonContent.startsWith('"') && jsonContent.endsWith('"')) {
-          console.log('CraftRenderer: Content appears to be a quoted string, attempting to unquote');
           try {
             const unescaped = jsonContent.slice(1, -1).replace(/\\"/g, '"');
             if (unescaped.trim().startsWith('{') && unescaped.trim().endsWith('}')) {
               parsed = JSON.parse(unescaped);
-              console.log('CraftRenderer: Unquoted parse successful');
             } else {
-              console.log('CraftRenderer: Unquoted content is not a JSON object');
               throw new Error('Unquoted content is not a valid JSON object');
             }
           } catch (unescapeError) {
-            console.log('CraftRenderer: Unquoted parse failed:', unescapeError.message);
             throw unescapeError;
           }
         } else {
-          console.log('CraftRenderer: Content does not appear to be JSON');
           throw new Error('Content is not in a recognized JSON format');
         }
       } else if (typeof jsonContent === 'object' && jsonContent !== null) {
-        console.log('CraftRenderer: Content is already an object, using directly');
         parsed = jsonContent;
       } else {
-        console.log('CraftRenderer: Content is neither a string nor an object');
         throw new Error('Content must be a JSON string or object');
       }
 
@@ -238,10 +215,8 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
 
       // No specific pre-processing for Tabs or CollapsibleSection children props needed here,
       // as components now use standard canvas rendering.
-      console.log('CraftRenderer: Skipping specific children prop population for Tabs/CollapsibleSection.');
 
       const filteredContent = filterDefaultPlaceholders(parsed);
-      console.log('CraftRenderer: Filtered out default placeholder text nodes');
 
       // Validate that all component types in the content are registered
       const validateComponents = (nodes) => {
@@ -270,9 +245,6 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
 
       const elements = findInteractiveElements(filteredContent);
       setInteractiveElements(elements);
-      console.log('CraftRenderer: Found interactive elements:', elements);
-
-      console.log('CraftRenderer: Successfully parsed JSON content');
     } catch (err) {
       console.error('CraftRenderer: Error parsing JSON content:', err);
       setError(`Error parsing JSON: ${err.message}`);
@@ -334,7 +306,7 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
                   if (element && element.props && element.props.className) {
                     if (!element.props.className.includes('craft-container-horizontal')) {
                       const newClassName = `${element.props.className} craft-container-horizontal`;
-                      return React.cloneElement(element, { className: newClassName });
+                      return cloneElement(element, { className: newClassName });
                     }
                   }
                   return element;
@@ -360,7 +332,7 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
                     return (props) => {
                       const element = originalRender(props);
                       if (element) {
-                        return React.cloneElement(element, {
+                        return cloneElement(element, {
                           className: `${element.props.className || ''} no-border-override`
                         });
                       }
@@ -378,7 +350,7 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
                     return (props) => {
                       const element = originalRender(props);
                       if (element) {
-                        return React.cloneElement(element, {
+                        return cloneElement(element, {
                           className: `${element.props.className || ''} no-border-override`
                         });
                       }
@@ -399,14 +371,12 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
     );
   };
 
-  React.useEffect(() => {
-    if (interactiveElements.length && parsedContent) {
-      console.log('CraftRenderer: Found interactive elements:', interactiveElements);
-    }
+  useEffect(() => {
+    // Interactive elements loaded
   }, [interactiveElements, parsedContent]);
 
   // Expose methods via ref
-  React.useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     highlightSearchTerm: (term) => {
       if (!term || !rendererRef.current) return 0;
 
@@ -418,7 +388,6 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
         const allText = rendererElement.textContent || '';
         // Use our consistent counting method to get the expected number of matches
         const expectedMatches = countSearchTermOccurrences(allText, term);
-        console.log(`CraftRenderer: Expected to find ${expectedMatches} matches for "${term}" based on consistent counting method`);
 
         // First, remove any existing highlights
         const existingHighlights = rendererElement.querySelectorAll('.search-highlight');
@@ -531,43 +500,30 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
           }
         });
 
-        // Log the actual count for debugging
-        console.log(`Found ${totalMatches} actual matches for "${term}" using DOM traversal`);
-
-        // No longer auto-scrolling to the first highlight
-        // Just log the number of matches found
-        if (totalMatches > 0) {
-          console.log(`Found ${totalMatches} matches for "${term}" - auto-scrolling disabled`);
-        }
-
         // Always return the expected count from our consistent counting method
         // This ensures the count shown in the study guide matches the count in search results
-        if (totalMatches !== expectedMatches) {
-          console.log(`WARNING: DOM traversal found ${totalMatches} matches but consistent counting method found ${expectedMatches} matches. Using consistent count.`);
-        }
 
         // Always return the expected count to ensure consistency
         return expectedMatches;
       } catch (e) {
-        console.error('Error highlighting search term:', e);
+        // Error highlighting search term
         return 0;
       }
     }
   }));
 
   // Apply search highlighting when searchTerm changes or content is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (searchTerm && rendererRef.current && parsedContent) {
       // Wait a bit for the content to fully render
       const timer = setTimeout(() => {
         try {
           const api = ref.current;
           if (api && api.highlightSearchTerm) {
-            const count = api.highlightSearchTerm(searchTerm);
-            console.log(`CraftRenderer useEffect: Applied highlighting for "${searchTerm}", found ${count} matches`);
+            api.highlightSearchTerm(searchTerm);
           }
         } catch (e) {
-          console.error('Error highlighting search term:', e);
+          // Error highlighting search term
         }
       }, 1500); // Increased timeout to ensure content is fully rendered
 
