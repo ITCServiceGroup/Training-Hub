@@ -279,8 +279,8 @@ const CategoryTree = ({ onSelectCategory, selectedCategoryId }) => {
       // Flatten categories from all sections
       const allCategories = [];
       sectionsData.forEach(section => {
-        if (section.v2_categories && section.v2_categories.length > 0) {
-          allCategories.push(...section.v2_categories);
+        if (section.categories && section.categories.length > 0) {
+          allCategories.push(...section.categories);
         }
       });
 

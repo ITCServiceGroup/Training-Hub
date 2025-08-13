@@ -149,7 +149,7 @@ class QuestionsService extends BaseService {
         .select('*', { count: 'exact', head: true })
         .in('category_id',
           supabase
-            .from('v2_categories')
+            .from('categories')
             .select('id')
             .eq('section_id', sectionId)
         );

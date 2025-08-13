@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'; // Import useContext
+import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaPlus, FaBars } from 'react-icons/fa';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
@@ -15,10 +15,9 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  rectSortingStrategy, // Using rectSortingStrategy for grid layout
+  rectSortingStrategy, // Using rectSortingStrategy for grid layout with size preservation
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { CategoryContext } from '../../../../components/layout/AdminLayout'; // Import context
 import SectionCard from './SectionCard';
 import SectionFormModal from '../common/SectionFormModal';
 import '../styles/grid.css';
@@ -34,12 +33,12 @@ const SectionAdminGrid = ({
   isCreating,
   setIsCreating,
   onReorder, // This prop likely handles the API call
+  optimisticallyUpdateSectionsOrder, // Receive as prop instead of context
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  // Consume optimistic update function from context
-  const { optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -47,8 +46,25 @@ const SectionAdminGrid = ({
     })
   );
 
+  const handleDragStart = (event) => {
+    setIsDragging(true);
+    // Capture heights of all grid items to preserve them during drag
+    const gridItems = document.querySelectorAll('.admin-grid-item');
+    gridItems.forEach(item => {
+      const height = item.offsetHeight;
+      item.style.setProperty('--preserved-height', `${height}px`);
+    });
+  };
+
   const handleDragEnd = async (event) => {
     const { active, over } = event;
+    setIsDragging(false);
+    
+    // Clear preserved heights
+    const gridItems = document.querySelectorAll('.admin-grid-item');
+    gridItems.forEach(item => {
+      item.style.removeProperty('--preserved-height');
+    });
 
     if (over && active.id !== over.id) { // Ensure 'over' is not null
       const oldIndex = sections.findIndex((s) => s.id === active.id);
@@ -95,15 +111,13 @@ const SectionAdminGrid = ({
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
-      zIndex: isDragging ? 1000 : 'auto', // Ensure dragging item is on top
-      opacity: isDragging ? 0.8 : 1, // Optional: reduce opacity when dragging
     };
 
     return (
       <div
         ref={setNodeRef}
         style={style}
-        className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border-2 border-gray-300 dark:border-slate-500 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
+        className="admin-grid-item bg-white dark:bg-slate-700 rounded-lg border-2 border-gray-300 dark:border-slate-500 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full"
         onMouseEnter={() => !isDragging && setHoveredId(section.id)}
         onMouseLeave={() => {
           // Don't clear hover state if the section is being edited
@@ -166,13 +180,14 @@ const SectionAdminGrid = ({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
             items={displaySections.map((s) => s.id)} // Use displaySections for SortableContext items
-            strategy={rectSortingStrategy} // Use grid strategy
+            strategy={rectSortingStrategy} // Use grid strategy with size preservation
           >
-            <div className="admin-grid"> {/* Grid container */}
+            <div className={`admin-grid ${isDragging ? 'dragging' : ''}`}> {/* Grid container */}
               {displaySections.map((section) => ( // Use displaySections for mapping
                 <SortableSectionItem key={section.id} section={section} />
               ))}

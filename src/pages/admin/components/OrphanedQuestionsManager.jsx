@@ -151,7 +151,7 @@ const OrphanedQuestionsManager = () => {
               <option value="">Select a category...</option>
               {availableCategories.map(category => (
                 <option key={category.id} value={category.id}>
-                  {category.v2_sections?.name} → {category.name}
+                  {category.sections?.name} → {category.name}
                 </option>
               ))}
             </select>

@@ -86,7 +86,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery, navigationPath = 'study
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {filteredSections.map(section => {
         const { icon, color } = getSectionIcon(section);
-        const categoryCount = section.v2_categories?.length || 0;
+        const categoryCount = section.categories?.length || 0;
 
         return (
           <div

@@ -6,7 +6,7 @@ This document provides detailed information about the current database schema fo
 
 ### Content Organization
 
-#### v2_sections
+#### sections
 Top-level content organization sections.
 - `id` (UUID, PK) - Unique identifier
 - `name` (VARCHAR) - Section name
@@ -15,10 +15,10 @@ Top-level content organization sections.
 - `icon` (VARCHAR) - Icon name for UI display
 - `created_at`, `updated_at` (TIMESTAMPTZ) - Audit fields
 
-#### v2_categories  
+#### categories  
 Categories within sections for organizing content.
 - `id` (UUID, PK) - Unique identifier
-- `section_id` (UUID, FK → v2_sections) - Parent section
+- `section_id` (UUID, FK → sections) - Parent section
 - `name` (VARCHAR) - Category name
 - `description` (TEXT) - Optional description
 - `display_order` (INTEGER) - Sort order within section
@@ -28,7 +28,7 @@ Categories within sections for organizing content.
 #### v2_study_guides
 Study guide content organized by categories.
 - `id` (UUID, PK) - Unique identifier
-- `category_id` (UUID, FK → v2_categories) - Parent category
+- `category_id` (UUID, FK → categories) - Parent category
 - `title` (VARCHAR) - Study guide title
 - `content` (TEXT) - HTML/JSON content
 - `display_order` (INTEGER) - Sort order within category
@@ -69,7 +69,7 @@ Quiz definitions with settings and metadata.
 #### v2_questions
 Question bank organized by categories.
 - `id` (UUID, PK) - Unique identifier
-- `category_id` (UUID, FK → v2_categories) - Question category
+- `category_id` (UUID, FK → categories) - Question category
 - `question_text` (TEXT) - The question
 - `question_type` (VARCHAR) - Type: multiple_choice, true_false, check_all_that_apply
 - `options` (JSONB) - Answer options array

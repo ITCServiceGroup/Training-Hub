@@ -2,11 +2,11 @@ import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
 
 /**
- * Sections service for interacting with v2_sections table
+ * Sections service for interacting with sections table
  */
 class SectionsService extends BaseService {
   constructor() {
-    super('v2_sections');
+    super('sections');
   }
 
   /**
@@ -67,15 +67,15 @@ class SectionsService extends BaseService {
         .from(this.tableName)
         .select(`
           *,
-          v2_categories (
+          categories (
             *,
             v2_study_guides (*)
           )
         `)
         // Order sections first, then categories within sections, then study guides within categories
         .order('display_order', { nullsLast: true })
-        .order('display_order', { foreignTable: 'v2_categories', nullsLast: true })
-        .order('display_order', { foreignTable: 'v2_categories.v2_study_guides', nullsLast: true });
+        .order('display_order', { foreignTable: 'categories', nullsLast: true })
+        .order('display_order', { foreignTable: 'categories.v2_study_guides', nullsLast: true });
 
       // Execute the query
       const { data: fetchedData, error } = await query;
@@ -92,7 +92,7 @@ class SectionsService extends BaseService {
         // Filter to only include published study guides
         processedData = processedData.map(section => ({
           ...section,
-          v2_categories: section.v2_categories.map(category => ({
+          categories: section.categories.map(category => ({
             ...category,
             v2_study_guides: category.v2_study_guides.filter(guide => guide.is_published)
           }))

@@ -2,11 +2,11 @@ import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
 
 /**
- * Categories service for interacting with v2_categories table
+ * Categories service for interacting with categories table
  */
 class CategoriesService extends BaseService {
   constructor() {
-    super('v2_categories');
+    super('categories');
   }
 
   /**
@@ -27,7 +27,7 @@ class CategoriesService extends BaseService {
 
       // Get all sections
       const { data: sections, error: sectionsError } = await supabase
-        .from('v2_sections')
+        .from('sections')
         .select('*');
 
       if (sectionsError) {
@@ -42,7 +42,7 @@ class CategoriesService extends BaseService {
 
       // For each category, add its section info
       for (const category of categories) {
-        category.v2_sections = sectionsMap[category.section_id];
+        category.sections = sectionsMap[category.section_id];
       }
 
       return categories;
@@ -139,7 +139,7 @@ class CategoriesService extends BaseService {
 
       // Get all sections
       const { data: sections, error: sectionsError } = await supabase
-        .from('v2_sections')
+        .from('sections')
         .select('*');
 
       if (sectionsError) {
@@ -155,7 +155,7 @@ class CategoriesService extends BaseService {
       // For each category, get its study guides and add section info
       for (const category of categories) {
         // Add section info
-        category.v2_sections = sectionsMap[category.section_id];
+        category.sections = sectionsMap[category.section_id];
 
         // Get study guides
         const { data: studyGuides, error: studyGuidesError } = await supabase

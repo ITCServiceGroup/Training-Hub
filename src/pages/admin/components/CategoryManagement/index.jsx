@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import CategoryAdminGrid from './CategoryAdminGrid';
 import { categoriesService } from '../../../../services/api/categories';
 import { questionsService } from '../../../../services/api/questions';
 import BreadcrumbNav from '../BreadcrumbNav';
-import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import QuestionMigrationDialog from '../QuestionMigrationDialog';
 
@@ -12,7 +11,7 @@ const RedBoldNum = ({ children }) => (
 );
 
 const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
-  const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
+  // Note: No longer using CategoryContext for category management
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -50,25 +49,17 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
     }
   };
 
+  // Define local optimistic update function for categories
+  const optimisticallyUpdateCategoriesOrder = (newCategoriesOrder) => {
+    setCategories(newCategoriesOrder);
+  };
+
   const handleAddCategory = async (formData) => {
     try {
       const newCategory = await categoriesService.create({
         ...formData,
         section_id: section.id
       });
-
-      // Optimistically update the UI
-      const newSectionsData = sectionsData.map(s => {
-        if (s.id === section.id) {
-          return {
-            ...s,
-            v2_categories: [...(s.v2_categories || []), newCategory]
-          };
-        }
-        return s;
-      });
-
-      optimisticallyUpdateSectionsOrder(newSectionsData);
 
       // Update local state
       setCategories(prev => [...prev, newCategory]);
@@ -93,21 +84,6 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
         ...formData,
         section_id: section.id
       };
-
-      // Optimistically update the UI
-      const newSectionsData = sectionsData.map(s => {
-        if (s.id === section.id) {
-          return {
-            ...s,
-            v2_categories: (s.v2_categories || []).map(c =>
-              c.id === id ? { ...c, ...updatedCategory } : c
-            )
-          };
-        }
-        return s;
-      });
-
-      optimisticallyUpdateSectionsOrder(newSectionsData);
 
       // Update local state
       setCategories(prev => prev.map(c =>
@@ -137,17 +113,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       // Update local state
       setCategories(updatedCategories);
 
-      // Update context state for sidebar
-      const newSectionsData = sectionsData.map(s => {
-        if (s.id === section.id) {
-          return {
-            ...s,
-            v2_categories: updatedCategories
-          };
-        }
-        return s;
-      });
-      optimisticallyUpdateSectionsOrder(newSectionsData);
+      // Note: If sidebar needs to be updated with section changes, implement that separately
 
       // Update the server
       await categoriesService.updateOrder(updates);
@@ -244,19 +210,6 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
         }
       }
 
-      // Optimistically update the UI before API call
-      const newSectionsData = sectionsData.map(s => {
-        if (s.id === section.id) {
-          return {
-            ...s,
-            v2_categories: (s.v2_categories || []).filter(c => c.id !== id)
-          };
-        }
-        return s;
-      });
-
-      optimisticallyUpdateSectionsOrder(newSectionsData);
-
       // Update local state
       setCategories(prev => prev.filter(c => c.id !== id));
 
@@ -297,6 +250,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
         isCreating={isCreating}
         setIsCreating={setIsCreating}
         onReorder={handleUpdateOrder}
+        optimisticallyUpdateCategoriesOrder={optimisticallyUpdateCategoriesOrder}
       />
       <DeleteConfirmationDialog
         isOpen={deleteModalState.isOpen}

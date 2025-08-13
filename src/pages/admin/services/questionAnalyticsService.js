@@ -139,10 +139,10 @@ class QuestionAnalyticsService {
                 question_type,
                 options,
                 correct_answer,
-                v2_categories(
+                categories(
                   id,
                   name,
-                  v2_sections(
+                  sections(
                     id,
                     name
                   )
@@ -524,8 +524,8 @@ class QuestionAnalyticsService {
             correctAnswer: question.correct_answer,
             quizTitle: quiz.title,
             quizId: quiz.id,
-            category: question.v2_categories?.name || 'Uncategorized',
-            section: question.v2_categories?.v2_sections?.name || 'No Section',
+            category: question.categories?.name || 'Uncategorized',
+            section: question.categories?.sections?.name || 'No Section',
             
             // Statistics
             totalAttempts: 0,
@@ -987,8 +987,8 @@ class QuestionAnalyticsService {
           correctAnswer: question.correct_answer,
           quizTitle: quiz.title,
           quizId: quiz.id,
-          category: question.v2_categories?.name || 'Uncategorized',
-          section: question.v2_categories?.v2_sections?.name || 'No Section',
+          category: question.categories?.name || 'Uncategorized',
+          section: question.categories?.sections?.name || 'No Section',
           
           totalAttempts: 0,
           correctAttempts: 0,

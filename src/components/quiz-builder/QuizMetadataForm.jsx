@@ -23,7 +23,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
         // Flatten categories from all sections
         const allCategories = sectionsData.reduce((acc, section) => {
-          return [...acc, ...(section.v2_categories || [])];
+          return [...acc, ...(section.categories || [])];
         }, []);
 
         setCategories(allCategories);
@@ -432,7 +432,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                 // Filter content to only show those from selected categories
                 const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
                   ? studyGuides.filter(guide =>
-                      guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
+                      guide.categories && quiz.category_ids.includes(guide.categories.id)
                     )
                   : studyGuides;
 
@@ -448,7 +448,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
                     <div className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                       <div className="font-medium">{guide.title}</div>
                       <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                        {guide.v2_categories?.v2_sections?.name} → {guide.v2_categories?.name}
+                        {guide.categories?.sections?.name} → {guide.categories?.name}
                       </div>
                     </div>
                   </label>
@@ -458,7 +458,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
               {(() => {
                 const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
                   ? studyGuides.filter(guide =>
-                      guide.v2_categories && quiz.category_ids.includes(guide.v2_categories.id)
+                      guide.categories && quiz.category_ids.includes(guide.categories.id)
                     )
                   : studyGuides;
 

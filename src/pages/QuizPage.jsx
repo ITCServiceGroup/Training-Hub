@@ -63,9 +63,9 @@ const QuizPage = () => {
     try {
       const section = sections.find(s => s.id === sectionId);
 
-      if (section && section.v2_categories) {
+      if (section && section.categories) {
         // Categories are already ordered by display_order from the API
-        setCategories(section.v2_categories);
+        setCategories(section.categories);
       } else {
         setCategories([]);
       }

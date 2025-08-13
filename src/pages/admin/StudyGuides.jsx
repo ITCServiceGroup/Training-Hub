@@ -351,10 +351,10 @@ const StudyGuides = () => {
     try {
       // Optimistically update UI
       const newSectionsData = sectionsData?.map(section => {
-        if (section.v2_categories) {
+        if (section.categories) {
           return {
             ...section,
-            v2_categories: section.v2_categories.map(category => {
+            categories: section.categories.map(category => {
               if (category.id === selectedCategory.id) {
                 return {
                   ...category,
@@ -474,10 +474,10 @@ const StudyGuides = () => {
 
         // Update context with temporary ID
         const tempSectionsData = sectionsData?.map(section => {
-          if (section.v2_categories) {
+          if (section.categories) {
             return {
               ...section,
-              v2_categories: section.v2_categories.map(category => {
+              categories: section.categories.map(category => {
                 if (category.id === selectedCategory.id) {
                   return {
                     ...category,
@@ -506,10 +506,10 @@ const StudyGuides = () => {
 
         // Update context with real ID
         const finalSectionsData = sectionsData?.map(section => {
-          if (section.v2_categories) {
+          if (section.categories) {
             return {
               ...section,
-              v2_categories: section.v2_categories.map(category => {
+              categories: section.categories.map(category => {
                 if (category.id === selectedCategory.id) {
                   return {
                     ...category,
@@ -558,10 +558,10 @@ const StudyGuides = () => {
 
         // Update context
         const newSectionsData = sectionsData?.map(section => {
-          if (section.v2_categories) {
+          if (section.categories) {
             return {
               ...section,
-              v2_categories: section.v2_categories.map(category => {
+              categories: section.categories.map(category => {
                 if (category.id === selectedCategory.id) {
                   return {
                     ...category,
@@ -657,10 +657,10 @@ const StudyGuides = () => {
 
       // Update context
       const newSectionsData = sectionsData?.map(section => {
-        if (section.v2_categories) {
+        if (section.categories) {
           return {
             ...section,
-            v2_categories: section.v2_categories.map(category => {
+            categories: section.categories.map(category => {
               if (category.id === selectedCategory.id) {
                 return {
                   ...category,
@@ -690,8 +690,8 @@ const StudyGuides = () => {
     // Find the category name for the confirmation dialog
     let categoryName = "the selected category";
     sectionsData?.forEach(section => {
-      if (section.v2_categories) {
-        section.v2_categories.forEach(category => {
+      if (section.categories) {
+        section.categories.forEach(category => {
           if (category.id === targetCategoryId) {
             categoryName = category.name;
           }
@@ -722,10 +722,10 @@ const StudyGuides = () => {
 
         // Update context
         const newSectionsData = sectionsData?.map(section => {
-          if (section.v2_categories) {
+          if (section.categories) {
             return {
               ...section,
-              v2_categories: section.v2_categories.map(category => {
+              categories: section.categories.map(category => {
                 if (category.id === selectedTargetCategoryId) {
                   return {
                     ...category,
@@ -769,8 +769,8 @@ const StudyGuides = () => {
     // Find the category name for the confirmation dialog
     let categoryName = "the selected category";
     sectionsData?.forEach(section => {
-      if (section.v2_categories) {
-        section.v2_categories.forEach(category => {
+      if (section.categories) {
+        section.categories.forEach(category => {
           if (category.id === targetCategoryId) {
             categoryName = category.name;
           }
@@ -800,10 +800,10 @@ const StudyGuides = () => {
 
       // Update context
       const newSectionsData = sectionsData?.map(section => {
-        if (section.v2_categories) {
+        if (section.categories) {
           return {
             ...section,
-            v2_categories: section.v2_categories.map(category => {
+            categories: section.categories.map(category => {
               if (category.id === selectedCategory.id) {
                 // Remove from current category
                 return {
@@ -930,10 +930,10 @@ const StudyGuides = () => {
 
                 // Update context
                 const newSectionsData = sectionsData?.map(section => {
-                  if (section.v2_categories) {
+                  if (section.categories) {
                     return {
                       ...section,
-                      v2_categories: section.v2_categories.map(category => {
+                      categories: section.categories.map(category => {
                         if (category.id === selectedCategory.id) {
                           return {
                             ...category,

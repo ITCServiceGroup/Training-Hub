@@ -11,7 +11,8 @@ const RedBoldNum = ({ children }) => (
 );
 
 const SectionManagement = ({ onViewCategories }) => {
-  const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
+  // Remove the non-existent optimisticallyUpdateSectionsOrder from context
+  const { sectionsData } = useContext(CategoryContext);
   const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,6 +40,11 @@ const SectionManagement = ({ onViewCategories }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Define optimistic update function locally
+  const optimisticallyUpdateSectionsOrder = (newSectionsOrder) => {
+    setSections(newSectionsOrder);
   };
 
   const handleAddSection = async (formData) => {
@@ -84,8 +90,7 @@ const SectionManagement = ({ onViewCategories }) => {
       // Update local state
       setSections(updatedSections);
 
-      // Update context state for sidebar
-      optimisticallyUpdateSectionsOrder(updatedSections);
+      // Note: If sidebar needs to be updated, we'll need to implement that separately
 
       // Update the server
       await sectionsService.updateOrder(updates);
@@ -98,8 +103,8 @@ const SectionManagement = ({ onViewCategories }) => {
   };
 
   const getDeleteMessage = async (section) => {
-    const categoryCount = section.v2_categories?.length || 0;
-    const studyGuideCount = section.v2_categories?.reduce(
+    const categoryCount = section.categories?.length || 0;
+    const studyGuideCount = section.categories?.reduce(
       (sum, cat) => sum + (cat.study_guides?.length || 0), 0
     ) || 0;
 
@@ -181,8 +186,7 @@ const SectionManagement = ({ onViewCategories }) => {
       // Optimistically update local state
       setSections(prev => prev.filter(s => s.id !== id));
 
-      // Update context state for sidebar
-      optimisticallyUpdateSectionsOrder(sectionsData.filter(s => s.id !== id));
+      // Note: If sidebar needs to be updated, we'll need to implement that separately
 
       // Make API call
       await sectionsService.delete(id);
@@ -214,6 +218,7 @@ const SectionManagement = ({ onViewCategories }) => {
         isCreating={isCreating}
         setIsCreating={setIsCreating}
         onReorder={handleUpdateOrder}
+        optimisticallyUpdateSectionsOrder={optimisticallyUpdateSectionsOrder}
       />
       <DeleteConfirmationDialog
         isOpen={deleteModalState.isOpen}

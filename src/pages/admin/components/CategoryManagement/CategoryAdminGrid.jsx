@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'; // Import useContext
+import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaPlus, FaLayerGroup, FaBars } from 'react-icons/fa';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
@@ -15,10 +15,9 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  rectSortingStrategy, // Using rectSortingStrategy for grid layout
+  rectSortingStrategy, // Using rectSortingStrategy for grid layout with size preservation
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { CategoryContext } from '../../../../components/layout/AdminLayout'; // Import context
 import CategoryCard from './CategoryCard';
 import CategoryFormModal from '../common/CategoryFormModal';
 import '../styles/grid.css';
@@ -35,12 +34,12 @@ const CategoryAdminGrid = ({
   isCreating,
   setIsCreating,
   onReorder, // This prop likely handles the API call for categories
+  optimisticallyUpdateCategoriesOrder, // Receive optimistic update function as prop
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  // Consume sectionsData and optimistic update function from context
-  const { sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -48,8 +47,25 @@ const CategoryAdminGrid = ({
     })
   );
 
+  const handleDragStart = (event) => {
+    setIsDragging(true);
+    // Capture heights of all grid items to preserve them during drag
+    const gridItems = document.querySelectorAll('.admin-grid-item');
+    gridItems.forEach(item => {
+      const height = item.offsetHeight;
+      item.style.setProperty('--preserved-height', `${height}px`);
+    });
+  };
+
   const handleDragEnd = async (event) => {
     const { active, over } = event;
+    setIsDragging(false);
+    
+    // Clear preserved heights
+    const gridItems = document.querySelectorAll('.admin-grid-item');
+    gridItems.forEach(item => {
+      item.style.removeProperty('--preserved-height');
+    });
 
     if (over && active.id !== over.id && section) { // Ensure 'over' and 'section' are not null
       const oldIndex = categories.findIndex((c) => c.id === active.id);
@@ -60,19 +76,10 @@ const CategoryAdminGrid = ({
       // 1. Calculate the new local order for categories within this section
       const reorderedCategories = arrayMove(categories, oldIndex, newIndex);
 
-      // 2. Create the *entire* new sectionsData structure for optimistic update
-      const newSectionsDataOrder = sectionsData.map(s => {
-        if (s.id === section.id) {
-          // Update the categories for the current section
-          return { ...s, v2_categories: reorderedCategories };
-        }
-        return s; // Keep other sections as they are
-      });
+      // 2. Optimistically update categories via the prop function
+      optimisticallyUpdateCategoriesOrder(reorderedCategories);
 
-      // 3. Optimistically update the shared state via context
-      optimisticallyUpdateSectionsOrder(newSectionsDataOrder);
-
-      // 4. Prepare data for the backend API call (only the reordered categories)
+      // 3. Prepare data for the backend API call (only the reordered categories)
       const reorderedDataForApi = reorderedCategories.map(
         (category, index) => ({
           id: category.id,
@@ -80,7 +87,7 @@ const CategoryAdminGrid = ({
         })
       );
 
-      // 5. Call the prop function to update the backend for categories
+      // 4. Call the prop function to update the backend for categories
       try {
         await onReorder(reorderedDataForApi);
         // Backend update initiated. UI is already updated optimistically.
@@ -104,15 +111,13 @@ const CategoryAdminGrid = ({
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
-      zIndex: isDragging ? 1000 : 'auto',
-      opacity: isDragging ? 0.8 : 1,
     };
 
     return (
       <div
         ref={setNodeRef}
         style={style}
-        className={`admin-grid-item bg-white dark:bg-slate-700 rounded-lg border-2 border-gray-300 dark:border-slate-500 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full ${isDragging ? 'dragging' : ''}`}
+        className="admin-grid-item bg-white dark:bg-slate-700 rounded-lg border-2 border-gray-300 dark:border-slate-500 shadow dark:shadow-md overflow-hidden flex-shrink-0 flex flex-col h-full"
         onMouseEnter={() => !isDragging && setHoveredId(category.id)}
         onMouseLeave={() => setHoveredId(null)}
       >
@@ -177,13 +182,14 @@ const CategoryAdminGrid = ({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
             items={displayCategories.map((c) => c.id)} // Use displayCategories for SortableContext items
-            strategy={rectSortingStrategy} // Use grid strategy
+            strategy={rectSortingStrategy} // Use grid strategy with size preservation
           >
-            <div className="admin-grid"> {/* Grid container */}
+            <div className={`admin-grid ${isDragging ? 'dragging' : ''}`}> {/* Grid container */}
               {displayCategories.map((category) => ( // Use displayCategories for mapping
                 <SortableCategoryItem key={category.id} category={category} />
               ))}

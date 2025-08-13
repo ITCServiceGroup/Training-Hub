@@ -41,7 +41,7 @@ class QuizzesService extends BaseService {
 
       // 3. Fetch all relevant categories including section_id
       const { data: categoriesData, error: categoriesError } = await supabase
-        .from('v2_categories')
+        .from('categories')
         .select('id, name, section_id')
         .in('id', allCategoryIds);
 
@@ -54,7 +54,7 @@ class QuizzesService extends BaseService {
       let sectionsMap = {};
       if (allSectionIds.length > 0) {
         const { data: sectionsData, error: sectionsError } = await supabase
-          .from('v2_sections')
+          .from('sections')
           .select('id, name')
           .in('id', allSectionIds);
 
@@ -451,7 +451,7 @@ class QuizzesService extends BaseService {
 
       // Check which categories actually exist
       const { data: existingCategories, error: categoriesError } = await supabase
-        .from('v2_categories')
+        .from('categories')
         .select('id')
         .in('id', categoryIds);
 

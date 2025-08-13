@@ -94,9 +94,9 @@ const CategorySelectionModal = ({
                       <span className="font-medium">{section.name}</span>
                     </div>
                     
-                    {expandedSections[section.id] && section.v2_categories && (
+                    {expandedSections[section.id] && section.categories && (
                       <ul className="pl-6 mt-1 space-y-1">
-                        {section.v2_categories.map(category => (
+                        {section.categories.map(category => (
                           <li 
                             key={category.id}
                             className={`p-2 rounded cursor-pointer ${

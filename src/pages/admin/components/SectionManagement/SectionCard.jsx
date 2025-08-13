@@ -111,7 +111,7 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
         </p>
         <div className="flex items-center text-gray-500 dark:text-gray-300 text-sm mt-2 flex-shrink-0">
           {/* Display category count for SectionCard */}
-          {section.v2_categories?.length || 0} Categories
+          {section.categories?.length || 0} Categories
         </div>
       </div>
 

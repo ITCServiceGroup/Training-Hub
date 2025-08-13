@@ -51,7 +51,7 @@ class StudyGuidesService extends BaseService {
         .from(this.tableName)
         .select(`
           *,
-          v2_categories(*)
+          categories(*)
         `)
         .eq('id', id)
         .single();
@@ -354,10 +354,10 @@ class StudyGuidesService extends BaseService {
         .select(`
           id,
           title,
-          v2_categories(
+          categories(
             id,
             name,
-            v2_sections(
+            sections(
               id,
               name
             )

@@ -204,7 +204,7 @@ const SearchResults = ({
                   key={category.id}
                   className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow`}
                   onClick={() => {
-                    navigate(`/study/${category.v2_sections?.id}/${category.id}`);
+                    navigate(`/study/${category.sections?.id}/${category.id}`);
                     onResultClick();
                   }}
                 >
@@ -217,9 +217,9 @@ const SearchResults = ({
                     </div>
                     <div>
                       <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h4>
-                      {category.v2_sections && (
+                      {category.sections && (
                         <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
-                          {category.v2_sections.name}
+                          {category.sections.name}
                         </p>
                       )}
                     </div>
@@ -253,7 +253,7 @@ const SearchResults = ({
                 key={guide.id}
                 className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow`}
                 onClick={() => {
-                  navigate(`/study/${guide.v2_categories?.v2_sections?.id}/${guide.v2_categories?.id}/${guide.id}`);
+                  navigate(`/study/${guide.categories?.sections?.id}/${guide.categories?.id}/${guide.id}`);
                   onResultClick();
                 }}
               >
@@ -264,14 +264,14 @@ const SearchResults = ({
                   <div className="flex-1">
                     <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{guide.title}</h4>
                     <div className="flex flex-wrap text-xs mb-2">
-                      {guide.v2_categories && (
+                      {guide.categories && (
                         <span className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mr-2`}>
-                          {guide.v2_categories.name}
+                          {guide.categories.name}
                         </span>
                       )}
-                      {guide.v2_categories?.v2_sections && (
+                      {guide.categories?.sections && (
                         <span className={`${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
-                          {guide.v2_categories.v2_sections.name}
+                          {guide.categories.sections.name}
                         </span>
                       )}
                     </div>
@@ -325,7 +325,7 @@ const SearchResults = ({
                   className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow`}
                   onClick={() => {
                     // Navigate to the study guide with search parameters
-                    navigate(`/study/${guide.v2_categories?.v2_sections?.id}/${guide.v2_categories?.id}/${guide.id}?search=${encodeURIComponent(searchQuery)}`);
+                    navigate(`/study/${guide.categories?.sections?.id}/${guide.categories?.id}/${guide.id}?search=${encodeURIComponent(searchQuery)}`);
                     onResultClick();
                   }}
                 >
@@ -343,14 +343,14 @@ const SearchResults = ({
                           )}
                         </div>
                         <div className="flex flex-wrap text-xs mb-2">
-                          {guide.v2_categories && (
+                          {guide.categories && (
                             <span className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mr-2`}>
-                              {guide.v2_categories.name}
+                              {guide.categories.name}
                             </span>
                           )}
-                          {guide.v2_categories?.v2_sections && (
+                          {guide.categories?.sections && (
                             <span className={`${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
-                              {guide.v2_categories.v2_sections.name}
+                              {guide.categories.sections.name}
                             </span>
                           )}
                         </div>

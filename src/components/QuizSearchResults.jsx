@@ -180,7 +180,7 @@ const QuizSearchResults = ({
                   key={category.id}
                   className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow`}
                   onClick={() => {
-                    navigate(`/quiz/practice/${category.v2_sections?.id}/${category.id}`);
+                    navigate(`/quiz/practice/${category.sections?.id}/${category.id}`);
                     onResultClick();
                   }}
                 >
@@ -193,9 +193,9 @@ const QuizSearchResults = ({
                     </div>
                     <div>
                       <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h4>
-                      {category.v2_sections && (
+                      {category.sections && (
                         <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
-                          {category.v2_sections.name}
+                          {category.sections.name}
                         </p>
                       )}
                     </div>

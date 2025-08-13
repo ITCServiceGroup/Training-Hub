@@ -92,7 +92,7 @@ class SearchService {
   async searchSections(query) {
     try {
       const { data, error } = await supabase
-        .from('v2_sections')
+        .from('sections')
         .select('*')
         .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
         .order('display_order', { nullsLast: true });
@@ -116,8 +116,8 @@ class SearchService {
   async searchCategories(query) {
     try {
       const { data, error } = await supabase
-        .from('v2_categories')
-        .select('*, v2_sections(*)')
+        .from('categories')
+        .select('*, sections(*)')
         .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
         .order('display_order', { nullsLast: true });
 
@@ -142,7 +142,7 @@ class SearchService {
     try {
       let queryBuilder = supabase
         .from('v2_study_guides')
-        .select('*, v2_categories(*, v2_sections(*))')
+        .select('*, categories(*, sections(*))')
         .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
         .order('display_order', { nullsLast: true });
 
@@ -252,7 +252,7 @@ class SearchService {
 
       let queryBuilder = supabase
         .from('v2_study_guides')
-        .select('*, v2_categories(*, v2_sections(*))')
+        .select('*, categories(*, sections(*))')
         .or(searchPatterns.join(','))
         .order('display_order', { nullsLast: true });
 
@@ -350,7 +350,7 @@ class SearchService {
       if (allCategoryIds.length > 0) {
         // Fetch all relevant categories including section_id
         const { data: categoriesData, error: categoriesError } = await supabase
-          .from('v2_categories')
+          .from('categories')
           .select('id, name, description, section_id')
           .in('id', allCategoryIds);
 
@@ -362,7 +362,7 @@ class SearchService {
         // Fetch relevant sections
         if (allSectionIds.length > 0) {
           const { data: sectionsData, error: sectionsError } = await supabase
-            .from('v2_sections')
+            .from('sections')
             .select('id, name, description')
             .in('id', allSectionIds);
 

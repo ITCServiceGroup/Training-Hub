@@ -82,8 +82,8 @@ const StudyGuidePage = () => {
       const section = sectionsData.find(sec => sec.id === sectionId);
       console.log('[StudyGuidePage] Found section:', section?.name || 'Not found');
       setCurrentSection(section || { id: sectionId, name: 'Loading...' });
-      setCategories(section?.v2_categories || []);
-      console.log('[StudyGuidePage] Set categories:', section?.v2_categories?.length || 0, 'categories');
+      setCategories(section?.categories || []);
+      console.log('[StudyGuidePage] Set categories:', section?.categories?.length || 0, 'categories');
     } else if (!sectionId) {
       console.log('[StudyGuidePage] No sectionId, clearing section and categories');
       setCurrentSection(null);
@@ -191,11 +191,11 @@ const StudyGuidePage = () => {
 
         setCurrentStudyGuide(guide);
         // Optionally update currentCategory/Section if needed based on guide details, though derivation effects should handle it
-        if (guide && guide.v2_categories && !currentCategory) {
-            setCurrentCategory(guide.v2_categories);
+        if (guide && guide.categories && !currentCategory) {
+            setCurrentCategory(guide.categories);
         }
-        if (guide && guide.v2_categories?.v2_sections && !currentSection) {
-            setCurrentSection(guide.v2_categories.v2_sections);
+        if (guide && guide.categories?.sections && !currentSection) {
+            setCurrentSection(guide.categories.sections);
         }
 
       } catch (error) {

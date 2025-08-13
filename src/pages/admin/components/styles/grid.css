@@ -37,9 +37,16 @@
 /* Draggable item styles */
 /* .admin-grid-item styles moved above for media query width adjustments */
 
-.admin-grid-item.dragging {
-  z-index: 1000;
-  pointer-events: none;
-  opacity: 0.8;
-  transform: scale(1.02) rotate(1deg);
+/* Preserve heights during drag operations */
+.admin-grid-item {
+  /* Use preserved height during drag operations */
+  height: var(--preserved-height, auto);
+  transition: height 0.2s ease;
+}
+
+/* Ensure consistent sizing during drag */
+.admin-grid.dragging .admin-grid-item {
+  height: var(--preserved-height) !important;
+  min-height: var(--preserved-height) !important;
+  max-height: var(--preserved-height) !important;
 }

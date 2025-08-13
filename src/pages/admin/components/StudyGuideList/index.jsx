@@ -657,9 +657,9 @@ const StudyGuideList = ({
 
     // Fall back to context data
     if (!selectedCategory || !sectionsData) return [];
-    const currentSection = sectionsData.find(s => s.v2_categories?.some(c => c.id === selectedCategory.id));
+    const currentSection = sectionsData.find(s => s.categories?.some(c => c.id === selectedCategory.id));
     if (!currentSection) return [];
-    const currentCategory = currentSection.v2_categories.find(c => c.id === selectedCategory.id);
+    const currentCategory = currentSection.categories.find(c => c.id === selectedCategory.id);
     return currentCategory?.study_guides || [];
   }, [sectionsData, selectedCategory, propStudyGuides]); // Include propStudyGuides in dependencies
 
