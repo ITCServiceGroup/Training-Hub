@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -6,9 +6,7 @@ import { useFullscreen } from '../../contexts/FullscreenContext';
 import { createContext } from 'react';
 import { MdDashboard, MdQuiz, MdOutlinePermMedia, MdChevronLeft, MdChevronRight } from 'react-icons/md'; // Added MdOutlinePermMedia
 import { BiBook } from 'react-icons/bi';
-import { BsQuestionCircle } from 'react-icons/bs';
 import { FiSettings } from 'react-icons/fi';
-
 
 // Create a context to share selected category
 export const CategoryContext = createContext({
@@ -43,16 +41,12 @@ const AdminLayout = () => {
     localStorage.setItem('adminSidebarCollapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
-
-
-
   // Determine active tab based on the current path
   const getActiveTab = () => {
     const path = location.pathname;
     if (path === '/admin') return 'dashboard';
     if (path.includes('/admin/study-guides')) return 'study-guides';
-    if (path.includes('/admin/media')) return 'media'; // Added media check
-
+    if (path.includes('/admin/media')) return 'media';
     if (path.includes('/admin/quizzes')) return 'quizzes';
     if (path.includes('/admin/settings')) return 'settings';
     return 'dashboard';
@@ -60,15 +54,12 @@ const AdminLayout = () => {
 
   const activeTab = getActiveTab();
 
-  // Tailwind classes will be used instead of these style objects
-
   // Get page title based on active tab
   const getPageTitle = () => {
     switch (activeTab) {
       case 'dashboard': return 'Admin Dashboard';
       case 'study-guides': return 'Creation Management';
-      case 'media': return 'Media Library'; // Added media title
-
+      case 'media': return 'Media Library';
       case 'quizzes': return 'Quiz Management';
       case 'settings': return 'Settings';
       default: return 'Admin Dashboard';
@@ -112,7 +103,6 @@ const AdminLayout = () => {
                 <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Create</span>
               </Link>
             </li>
-            {/* Media Library Link */}
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'media' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
@@ -125,7 +115,6 @@ const AdminLayout = () => {
                 <span className={`ml-3 transition-all duration-300 whitespace-nowrap ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Media Library</span>
               </Link>
             </li>
-            {/* End Media Library Link */}
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'quizzes' ? 'bg-primary' : 'hover:bg-primary'}`}
             >
