@@ -407,7 +407,7 @@ const QuizPage = () => {
           </div>
         ) : (
           /* Quiz view (section and category selected) */
-          <div>
+          <div className="px-8">
             <div className="flex items-center gap-2 mb-4">
               <button
                 onClick={() => navigate(`/quiz/practice/${sectionId}`)}
