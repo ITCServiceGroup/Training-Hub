@@ -34,7 +34,7 @@ Study guide content organized by categories.
 - `display_order` (INTEGER) - Sort order within category
 - `is_published` (BOOLEAN) - Visibility to public users
 - `description` (TEXT) - Custom description override
-- `linked_quiz_id` (UUID, FK → v2_quizzes) - Optional specific quiz link
+- `linked_quiz_id` (UUID, FK → quizzes) - Optional specific quiz link
 - `created_at`, `updated_at` (TIMESTAMPTZ) - Audit fields
 
 #### study_guide_templates
@@ -50,7 +50,7 @@ Templates for creating new study guides.
 
 ### Quiz System
 
-#### v2_quizzes
+#### quizzes
 Quiz definitions with settings and metadata.
 - `id` (UUID, PK) - Unique identifier
 - `title` (VARCHAR) - Quiz title
@@ -66,7 +66,7 @@ Quiz definitions with settings and metadata.
 - `allow_partial_credit` (BOOLEAN) - Allow partial credit for multi-select
 - `created_at`, `updated_at` (TIMESTAMPTZ) - Audit fields
 
-#### v2_questions
+#### questions
 Question bank organized by categories.
 - `id` (UUID, PK) - Unique identifier
 - `category_id` (UUID, FK → categories) - Question category
@@ -77,10 +77,10 @@ Question bank organized by categories.
 - `explanation` (TEXT) - Optional answer explanation
 - `created_at`, `updated_at` (TIMESTAMPTZ) - Audit fields
 
-#### v2_quiz_questions
+#### quiz_questions
 Junction table linking quizzes to their questions.
-- `quiz_id` (UUID, PK, FK → v2_quizzes) - Quiz reference
-- `question_id` (UUID, PK, FK → v2_questions) - Question reference
+- `quiz_id` (UUID, PK, FK → quizzes) - Quiz reference
+- `question_id` (UUID, PK, FK → questions) - Question reference
 - `order_index` (INTEGER) - Question order in quiz
 - `created_at` (TIMESTAMPTZ) - Creation timestamp
 
@@ -107,7 +107,7 @@ Stores completed quiz attempts.
 Access codes for controlling quiz access.
 - `id` (UUID, PK) - Unique identifier
 - `code` (VARCHAR, UNIQUE) - Access code string
-- `quiz_id` (UUID, FK → v2_quizzes) - Associated quiz
+- `quiz_id` (UUID, FK → quizzes) - Associated quiz
 - `email`, `ldap`, `market`, `supervisor` (VARCHAR) - User info
 - `expires_at` (TIMESTAMPTZ) - Expiration time
 - `is_used` (BOOLEAN) - Whether code has been used
@@ -169,7 +169,7 @@ Media file metadata and storage information.
 ## Key Relationships
 
 1. **Content Hierarchy**: Sections → Categories → (Study Guides + Questions)
-2. **Quiz Structure**: Quizzes ←→ Questions (many-to-many via v2_quiz_questions)
+2. **Quiz Structure**: Quizzes ←→ Questions (many-to-many via quiz_questions)
 3. **Organizational**: Markets → Supervisors (one-to-many)
 4. **User Data**: Users → Dashboards + Initialization (one-to-many, one-to-one)
 5. **Access Control**: Quizzes → Access Codes (one-to-many)

@@ -181,7 +181,7 @@ const QuizHeader = ({ quiz, ldap, timeTaken, companyLogo }) => {
       {/* Report Title Section */}
       <View style={styles.titleSection}>
         <Text style={styles.reportTitle}>Quiz Results Report</Text>
-        <Text style={styles.assessmentTitle}>{quiz.title}</Text>
+        <Text style={styles.assessmentTitle}>{quiz.title || 'Untitled Quiz'}</Text>
       </View>
 
       {/* Professional Information Grid */}
@@ -189,7 +189,7 @@ const QuizHeader = ({ quiz, ldap, timeTaken, companyLogo }) => {
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>LDAP</Text>
-            <Text style={styles.infoValue}>{ldap}</Text>
+            <Text style={styles.infoValue}>{ldap || 'Unknown'}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoItem}>

@@ -258,7 +258,7 @@ class CategoriesService extends BaseService {
   async getQuestionCount(id) {
     try {
       const { count, error } = await supabase
-        .from('v2_questions')
+        .from('questions')
         .select('*', { count: 'exact', head: true })
         .eq('category_id', id);
 

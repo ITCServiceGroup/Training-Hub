@@ -53,7 +53,7 @@ import { supabase } from '../../config/supabase';
 
 class QuizzesService extends BaseService {
   constructor() {
-    super('v2_quizzes');
+    super('quizzes');
   }
 
   /**
@@ -97,7 +97,7 @@ class QuizzesService extends BaseService {
 
           // Count questions in these categories
           const { count, error: countError } = await supabase
-            .from('v2_questions')
+            .from('questions')
             .select('*', { count: 'exact', head: true })
             .in('category_id', categoryIds);
 
@@ -154,7 +154,7 @@ class QuizzesService extends BaseService {
 
       // Get questions for these categories
       const { data: questions, error: questionsError } = await supabase
-        .from('v2_questions')
+        .from('questions')
         .select('*')
         .in('category_id', categoryIds);
 
@@ -329,7 +329,7 @@ import { supabase } from '../../config/supabase';
 
 class QuestionsService extends BaseService {
   constructor() {
-    super('v2_questions');
+    super('questions');
   }
 
   /**

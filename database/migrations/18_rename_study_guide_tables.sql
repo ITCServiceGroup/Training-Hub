@@ -23,7 +23,7 @@ ON DELETE CASCADE;
 
 ALTER TABLE study_guides 
 ADD CONSTRAINT study_guides_linked_quiz_id_fkey 
-FOREIGN KEY (linked_quiz_id) REFERENCES v2_quizzes(id) 
+FOREIGN KEY (linked_quiz_id) REFERENCES quizzes(id) 
 ON DELETE SET NULL;
 
 -- Enable RLS on the renamed tables

@@ -19,7 +19,7 @@ const QuizCategoryValidator = () => {
       
       // Get all quizzes
       const { data: allQuizzes, error: quizzesError } = await supabase
-        .from('v2_quizzes')
+        .from('quizzes')
         .select('*')
         .is('archived_at', null);
 

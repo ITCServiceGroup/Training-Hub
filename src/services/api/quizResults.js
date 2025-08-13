@@ -109,7 +109,7 @@ class QuizResultsService extends BaseService {
   }
 
   /**
-   * Enrich quiz results with metadata from v2_quizzes table
+   * Enrich quiz results with metadata from quizzes table
    * @param {Array} data - Raw quiz results data
    * @returns {Promise<Array>} - Enriched quiz results with metadata
    */
@@ -125,7 +125,7 @@ class QuizResultsService extends BaseService {
       let quizMap = {};
       if (quizIds.length > 0) {
         const { data: quizData, error: quizError } = await supabase
-          .from('v2_quizzes')
+          .from('quizzes')
           .select('id, title, passing_score, time_limit')
           .in('id', quizIds);
 
@@ -157,7 +157,7 @@ class QuizResultsService extends BaseService {
         if (quizTypes.length > 0) {
           // First, get all available quiz titles from database for fuzzy matching
           const { data: allQuizzes, error: allQuizzesError } = await supabase
-            .from('v2_quizzes')
+            .from('quizzes')
             .select('id, title, passing_score, time_limit');
 
           if (!allQuizzesError && allQuizzes) {

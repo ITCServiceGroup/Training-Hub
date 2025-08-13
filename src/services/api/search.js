@@ -321,7 +321,7 @@ class SearchService {
     try {
       // First get all quizzes that match the search query
       const { data: quizzes, error } = await supabase
-        .from('v2_quizzes')
+        .from('quizzes')
         .select('*')
         .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
         .is('archived_at', null)
@@ -389,7 +389,7 @@ class SearchService {
       
       if (quizIds.length > 0) {
         const { data: quizQuestionCounts, error: countError } = await supabase
-          .from('v2_quiz_questions')
+          .from('quiz_questions')
           .select('quiz_id')
           .in('quiz_id', quizIds);
 

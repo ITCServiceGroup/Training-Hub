@@ -126,14 +126,14 @@ class QuestionAnalyticsService {
       } else {
         // Fetch quiz details with questions for modern data
         const { data: quizzes, error: quizzesError } = await supabase
-          .from('v2_quizzes')
+          .from('quizzes')
           .select(`
             id,
             title,
-            v2_quiz_questions(
+            quiz_questions(
               question_id,
               order_index,
-              v2_questions(
+              questions(
                 id,
                 question_text,
                 question_type,
@@ -293,23 +293,23 @@ class QuestionAnalyticsService {
 
       // Fetch quiz details with questions for modern data
       const { data: quizzes, error: quizzesError } = await supabase
-        .from('v2_quizzes')
+        .from('quizzes')
         .select(`
           id,
           title,
-          v2_quiz_questions(
+          quiz_questions(
             question_id,
             order_index,
-            v2_questions(
+            questions(
               id,
               question_text,
               question_type,
               options,
               correct_answer,
-              v2_categories(
+              categories(
                 id,
                 name,
-                v2_sections(
+                sections(
                   id,
                   name
                 )
@@ -356,13 +356,13 @@ class QuestionAnalyticsService {
     // Create a lookup map for quizzes and their questions
     const quizLookup = new Map();
     quizzes.forEach(quiz => {
-      if (quiz.v2_quiz_questions) {
-        quiz.v2_quiz_questions.forEach((qRel, index) => {
-          if (qRel.v2_questions) {
-            const questionKey = `${quiz.id}-${qRel.v2_questions.id}`;
+      if (quiz.quiz_questions) {
+        quiz.quiz_questions.forEach((qRel, index) => {
+          if (qRel.questions) {
+            const questionKey = `${quiz.id}-${qRel.questions.id}`;
             quizLookup.set(questionKey, {
               quiz: quiz,
-              question: qRel.v2_questions,
+              question: qRel.questions,
               orderIndex: qRel.order_index || index
             });
           }

@@ -111,7 +111,7 @@
       ]
     },
     {
-      "table_name": "v2_questions",
+      "table_name": "questions",
       "columns": [
         "category_id uuid",
         "correct_answer jsonb",
@@ -125,7 +125,7 @@
       ]
     },
     {
-      "table_name": "v2_quiz_questions",
+      "table_name": "quiz_questions",
       "columns": [
         "created_at timestamp with time zone",
         "order_index integer",
@@ -134,7 +134,7 @@
       ]
     },
     {
-      "table_name": "v2_quizzes",
+      "table_name": "quizzes",
       "columns": [
         "allow_partial_credit boolean",
         "archived_at timestamp with time zone",
@@ -196,7 +196,7 @@
   ],
   "foreign_keys": [
     {
-      "table_name": "v2_questions",
+      "table_name": "questions",
       "column_name": "category_id",
       "foreign_table_name": "categories",
       "foreign_column_name": "id"
@@ -226,15 +226,15 @@
       "foreign_column_name": "id"
     },
     {
-      "table_name": "v2_quiz_questions",
+      "table_name": "quiz_questions",
       "column_name": "question_id",
-      "foreign_table_name": "v2_questions",
+      "foreign_table_name": "questions",
       "foreign_column_name": "id"
     },
     {
-      "table_name": "v2_quiz_questions",
+      "table_name": "quiz_questions",
       "column_name": "quiz_id",
-      "foreign_table_name": "v2_quizzes",
+      "foreign_table_name": "quizzes",
       "foreign_column_name": "id"
     },
     {

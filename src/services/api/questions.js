@@ -3,7 +3,7 @@ import { supabase } from '../../config/supabase';
 
 class QuestionsService extends BaseService {
   constructor() {
-    super('v2_questions');
+    super('questions');
   }
 
   /**

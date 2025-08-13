@@ -213,13 +213,18 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
 
     switch (question.question_type) {
       case 'multiple_choice':
-        return question.options?.[answer] ?? 'Invalid Answer Index';
+        const optionText = question.options?.[answer];
+        return optionText && optionText.trim() ? optionText.trim() : 'Invalid Answer Index';
       case 'true_false':
         return answer === true ? 'True' : 'False';
       case 'check_all_that_apply':
         if (Array.isArray(answer) && answer.length > 0) {
           // Format as bullet points for better readability
-          return answer.map(idx => `• ${question.options?.[idx] ?? 'Invalid Index'}`).join('\n');
+          const bulletPoints = answer.map(idx => {
+            const optionText = question.options?.[idx];
+            return `• ${optionText && optionText.trim() ? optionText.trim() : 'Invalid Index'}`;
+          }).join('\n');
+          return bulletPoints || 'No Selection';
         }
         return 'No Selection';
       default:
@@ -230,13 +235,18 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
   const getCorrectAnswerText = (question) => {
     switch (question.question_type) {
       case 'multiple_choice':
-        return question.options?.[question.correct_answer] ?? 'N/A';
+        const optionText = question.options?.[question.correct_answer];
+        return optionText && optionText.trim() ? optionText.trim() : 'N/A';
       case 'true_false':
         return question.correct_answer === true ? 'True' : 'False';
       case 'check_all_that_apply':
         if (Array.isArray(question.correct_answer)) {
           // Format as bullet points for better readability
-          return question.correct_answer.map(idx => `• ${question.options?.[idx] ?? 'Invalid Index'}`).join('\n');
+          const bulletPoints = question.correct_answer.map(idx => {
+            const optionText = question.options?.[idx];
+            return `• ${optionText && optionText.trim() ? optionText.trim() : 'Invalid Index'}`;
+          }).join('\n');
+          return bulletPoints || 'N/A';
         }
         return 'N/A';
       default:
@@ -288,7 +298,7 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
 
             {/* Question Text */}
             <Text style={styles.questionText}>
-              {question.question_text}
+              {question.question_text || 'Question text not available'}
             </Text>
 
             {/* Compact Response Layout - Side by Side */}
@@ -319,11 +329,11 @@ const QuizQuestionSection = ({ questions, selectedAnswers, startIndex, isPractic
             </View>
 
             {/* Compact Explanation */}
-            {question.explanation && (
+            {question.explanation && question.explanation.trim().length > 0 && (
               <View style={styles.explanationSection}>
                 <Text style={styles.explanationHeader}>Explanation</Text>
                 <Text style={styles.explanationText}>
-                  {question.explanation}
+                  {question.explanation.trim()}
                 </Text>
               </View>
             )}

@@ -78,7 +78,7 @@ export const accessCodesService = {
     try {
       const { data, error } = await supabase
         .from('access_codes')
-        .select('*, v2_quizzes!inner(*)')
+        .select('*, quizzes!inner(*)')
         .eq('code', code.toUpperCase())
         .single();
 

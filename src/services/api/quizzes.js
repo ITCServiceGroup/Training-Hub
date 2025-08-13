@@ -2,11 +2,11 @@ import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
 
 /**
- * Quizzes service for interacting with v2_quizzes table
+ * Quizzes service for interacting with quizzes table
  */
 class QuizzesService extends BaseService {
   constructor() {
-    super('v2_quizzes');
+    super('quizzes');
   }
 
   /**
@@ -77,7 +77,7 @@ class QuizzesService extends BaseService {
       // 7. Get actual question counts for each quiz from the junction table
       const quizIds = quizzes.map(quiz => quiz.id);
       const { data: quizQuestionCounts, error: countError } = await supabase
-        .from('v2_quiz_questions')
+        .from('quiz_questions')
         .select('quiz_id')
         .in('quiz_id', quizIds);
 
@@ -151,7 +151,7 @@ class QuizzesService extends BaseService {
         }));
 
         const { error: relationsError } = await supabase
-          .from('v2_quiz_questions')
+          .from('quiz_questions')
           .insert(questionRelations);
 
         if (relationsError) throw relationsError;
@@ -188,7 +188,7 @@ class QuizzesService extends BaseService {
 
       // Delete existing question relationships
       const { error: deleteError } = await supabase
-        .from('v2_quiz_questions')
+        .from('quiz_questions')
         .delete()
         .eq('quiz_id', id);
 
@@ -204,7 +204,7 @@ class QuizzesService extends BaseService {
         }));
 
         const { error: relationsError } = await supabase
-          .from('v2_quiz_questions')
+          .from('quiz_questions')
           .insert(questionRelations);
 
         if (relationsError) {
@@ -362,11 +362,11 @@ class QuizzesService extends BaseService {
 
       // Get quiz-question relationships for the specified questions
       const { data: relations, error: relationsError } = await supabase
-        .from('v2_quiz_questions')
+        .from('quiz_questions')
         .select(`
           question_id,
           quiz_id,
-          v2_quizzes!inner(id, title, archived_at)
+          quizzes!inner(id, title, archived_at)
         `)
         .in('question_id', questionIds);
 
@@ -377,10 +377,10 @@ class QuizzesService extends BaseService {
 
       relations.forEach(relation => {
         // Skip archived quizzes
-        if (relation.v2_quizzes.archived_at) return;
+        if (relation.quizzes.archived_at) return;
 
         const questionId = relation.question_id;
-        const quizTitle = relation.v2_quizzes.title;
+        const quizTitle = relation.quizzes.title;
 
         if (!questionQuizMap[questionId]) {
           questionQuizMap[questionId] = [];
@@ -500,7 +500,7 @@ class QuizzesService extends BaseService {
 
       // Get the quiz's questions through the junction table
       const { data: relations, error: relationsError } = await supabase
-        .from('v2_quiz_questions')
+        .from('quiz_questions')
         .select('question_id, order_index')
         .eq('quiz_id', id)
         .order('order_index');
@@ -512,7 +512,7 @@ class QuizzesService extends BaseService {
       if (relations && relations.length > 0) {
         const questionIds = relations.map(r => r.question_id);
         const { data: questionsData, error: questionsError } = await supabase
-          .from('v2_questions')
+          .from('questions')
           .select('*')
           .in('id', questionIds);
 
@@ -547,10 +547,10 @@ class QuizzesService extends BaseService {
         .select(`
           id,
           title,
-          v2_categories(
+          categories(
             id,
             name,
-            v2_sections(
+            sections(
               id,
               name
             )
