@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { hexToRgba, getQuizStateColors } from '../../utils/colorUtils';
 
 const QuestionDisplay = ({
   question,
@@ -18,17 +19,8 @@ const QuestionDisplay = ({
   // Get current theme's primary color
   const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
 
-  // Helper function to convert hex to rgba
-  const hexToRgba = (hex, alpha) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
-
-    const r = parseInt(result[1], 16);
-    const g = parseInt(result[2], 16);
-    const b = parseInt(result[3], 16);
-
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
+  // Get quiz state colors for theming
+  const stateColors = getQuizStateColors(isDark);
   // Local state for check-all-that-apply before submission in practice mode
   const [localCheckAllAnswer, setLocalCheckAllAnswer] = useState([]);
 
@@ -48,7 +40,7 @@ const QuestionDisplay = ({
 
 
   // Handle selecting an answer
-  const handleSelect = (answer) => {
+  const handleSelect = useCallback((answer) => {
     // Prevent action if disabled (covers parentDisabled and practice feedback shown)
     if (isDisabled) return;
 
@@ -83,13 +75,13 @@ const QuestionDisplay = ({
       // For multiple choice and true/false, call parent immediately
       onSelectAnswer(answer);
     }
-  };
+  }, [isDisabled, question, isPractice, selectedAnswer, onSelectAnswer, localCheckAllAnswer]);
 
   // Handle submitting check-all-that-apply in practice mode
-  const handleCheckAllSubmit = () => {
+  const handleCheckAllSubmit = useCallback(() => {
     if (isDisabled) return; // Should not be possible if button isn't rendered, but safe check
     onSelectAnswer(localCheckAllAnswer); // Submit the locally tracked answers
-  };
+  }, [isDisabled, onSelectAnswer, localCheckAllAnswer]);
 
   // Render multiple choice question
   const renderMultipleChoice = () => (
@@ -127,13 +119,13 @@ const QuestionDisplay = ({
             style={{
               backgroundColor: isPractice && showFeedback
                 ? isCorrectAnswer
-                  ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)' // Correct answer
+                  ? stateColors.correct.bg // Correct answer
                   : isSelected && !isCorrectAnswer
-                    ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)' // Incorrect selection
-                    : isDark ? '#1e293b' : '#ffffff' // Default
+                    ? stateColors.incorrect.bg // Incorrect selection
+                    : stateColors.default.bg // Default
                 : isSelected
                   ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15) // Selected with theme color
-                  : isDark ? '#1e293b' : '#ffffff' // Unselected
+                  : stateColors.default.bg // Unselected
             }}
             onClick={() => handleSelect(index)}
             disabled={isDisabled} // Use combined disabled state
@@ -198,10 +190,10 @@ const QuestionDisplay = ({
                 backgroundColor: isSelected && (!isPractice || !showFeedback)
                   ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15)
                   : isPractice && showFeedback && question.correct_answer?.includes(index)
-                    ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)'
+                    ? stateColors.correct.bg
                     : isPractice && showFeedback && isSelected && !question.correct_answer?.includes(index)
-                      ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)'
-                      : isDark ? '#1e293b' : '#ffffff'
+                      ? stateColors.incorrect.bg
+                      : stateColors.default.bg
               }}
               onClick={(e) => {
                 e.preventDefault();
@@ -276,13 +268,13 @@ const QuestionDisplay = ({
           style={{
             backgroundColor: isPractice && showFeedback
               ? trueIsCorrect
-                ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)' // Correct
+                ? stateColors.correct.bg // Correct
                 : trueSelected && !trueIsCorrect
-                  ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)' // Incorrect
-                  : isDark ? '#1e293b' : '#ffffff' // Default
+                  ? stateColors.incorrect.bg // Incorrect
+                  : stateColors.default.bg // Default
               : trueSelected
                 ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15) // Selected with theme color
-                : isDark ? '#1e293b' : '#ffffff' // Unselected
+                : stateColors.default.bg // Unselected
           }}
           onClick={() => handleSelect(true)}
           disabled={isDisabled} // Use combined disabled state
@@ -334,13 +326,13 @@ const QuestionDisplay = ({
           style={{
             backgroundColor: isPractice && showFeedback
               ? falseIsCorrect
-                ? isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.1)' // Correct
+                ? stateColors.correct.bg // Correct
                 : falseSelected && !falseIsCorrect
-                  ? isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)' // Incorrect
-                  : isDark ? '#1e293b' : '#ffffff' // Default
+                  ? stateColors.incorrect.bg // Incorrect
+                  : stateColors.default.bg // Default
               : falseSelected
                 ? hexToRgba(currentPrimaryColor, isDark ? 0.2 : 0.15) // Selected with theme color
-                : isDark ? '#1e293b' : '#ffffff' // Unselected
+                : stateColors.default.bg // Unselected
           }}
           onClick={() => handleSelect(false)}
           disabled={isDisabled} // Use combined disabled state
@@ -457,4 +449,4 @@ QuestionDisplay.propTypes = {
   disabled: PropTypes.bool // Renamed prop
 };
 
-export default QuestionDisplay;
+export default memo(QuestionDisplay);

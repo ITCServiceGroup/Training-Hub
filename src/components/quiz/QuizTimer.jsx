@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 
@@ -25,4 +25,4 @@ QuizTimer.propTypes = {
   isWarning: PropTypes.bool
 };
 
-export default QuizTimer;
+export default memo(QuizTimer);

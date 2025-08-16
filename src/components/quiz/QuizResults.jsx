@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import { useEffect, memo, useCallback, useMemo } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { pdfService } from '../../services/pdfService';
+import { getQuizStateColors } from '../../utils/colorUtils';
 
 const QuizResults = ({
   quiz,
@@ -31,8 +32,11 @@ const QuizResults = ({
     window.scrollTo(0, 0);
   }, []);
 
+  // Get quiz state colors for theming
+  const stateColors = getQuizStateColors(isDark);
+
   // Generate and download PDF using React-PDF
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = useCallback(async () => {
     if (!accessCodeData) {
       console.warn('No access code data available for PDF generation');
       return;
@@ -56,13 +60,13 @@ const QuizResults = ({
       console.error('PDF download failed:', error);
       alert('Failed to generate PDF. Please try again.');
     }
-  };
+  }, [accessCodeData, quiz, selectedAnswers, score, timeTaken, isPractice]);
 
 
 
 
-  // Get result message based on score
-  const getResultMessage = () => {
+  // Get result message based on score (memoized)
+  const resultMessage = useMemo(() => {
     const passingScore = quiz.passing_score || 70;
 
     if (score.percentage >= passingScore) {
@@ -72,18 +76,18 @@ const QuizResults = ({
     }
 
     return 'Keep practicing!';
-  };
+  }, [score.percentage, quiz.passing_score]);
 
-  // Format time taken
-  const formatTimeTaken = () => {
+  // Format time taken (memoized)
+  const formattedTime = useMemo(() => {
     if (!timeTaken || timeTaken <= 0) return 'Not recorded';
     const minutes = Math.floor(timeTaken / 60);
     const seconds = timeTaken % 60;
     return `${minutes}m ${seconds}s`;
-  };
+  }, [timeTaken]);
 
-  // Check if answer was correct
-  const isAnswerCorrect = (question, answerData) => {
+  // Check if answer was correct (memoized)
+  const isAnswerCorrect = useCallback((question, answerData) => {
     if (answerData === undefined) return false;
 
     const answer = isPractice ? answerData.answer : answerData;
@@ -102,7 +106,7 @@ const QuizResults = ({
       default:
         return false;
     }
-  };
+  }, [isPractice]);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -124,7 +128,7 @@ const QuizResults = ({
             ? isDark ? "text-green-400" : "text-green-700"
             : isDark ? "text-amber-400" : "text-amber-700"
         )}>
-          {getResultMessage()}
+          {resultMessage}
         </h2>
 
         <div className={`flex justify-center gap-8 ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
@@ -134,7 +138,7 @@ const QuizResults = ({
           </div>
           <div>
             <p className="text-sm">Time Taken</p>
-            <p className="font-bold">{formatTimeTaken()}</p>
+            <p className="font-bold">{formattedTime}</p>
           </div>
         </div>
       </div>
@@ -364,4 +368,4 @@ QuizResults.propTypes = {
 
 // Removed defaultProps, defaults are now in the function signature
 
-export default QuizResults;
+export default memo(QuizResults);

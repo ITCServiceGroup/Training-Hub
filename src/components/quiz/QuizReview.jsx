@@ -1,20 +1,10 @@
-import React from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { BiSolidError, BiCheck, BiX } from 'react-icons/bi';
 import { useTheme } from '../../contexts/ThemeContext';
+import { hexToRgba } from '../../utils/colorUtils';
 
-// Helper function to convert hex to rgba
-const hexToRgba = (hex, alpha) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
-
-  const r = parseInt(result[1], 16);
-  const g = parseInt(result[2], 16);
-  const b = parseInt(result[3], 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 const QuizReview = ({
   quiz,
@@ -30,33 +20,31 @@ const QuizReview = ({
   // Get current primary color for the theme
   const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
 
-  // Count answered and unanswered questions
-  const countAnswers = () => {
+  // Count answered and unanswered questions (memoized)
+  const { answeredCount, unansweredCount } = useMemo(() => {
     if (quiz.is_practice) {
-      const answeredCount = Object.values(selectedAnswers)
+      const answered = Object.values(selectedAnswers)
         .filter(answer => answer?.answer !== undefined).length;
       return {
-        answered: answeredCount,
-        unanswered: quiz.questions.length - answeredCount
+        answeredCount: answered,
+        unansweredCount: quiz.questions.length - answered
       };
     } else {
-      const answeredCount = Object.keys(selectedAnswers).length;
+      const answered = Object.keys(selectedAnswers).length;
       return {
-        answered: answeredCount,
-        unanswered: quiz.questions.length - answeredCount
+        answeredCount: answered,
+        unansweredCount: quiz.questions.length - answered
       };
     }
-  };
+  }, [quiz.is_practice, quiz.questions.length, selectedAnswers]);
 
-  const { answered: answeredCount, unanswered: unansweredCount } = countAnswers();
-
-  // Format time remaining
-  const formatTimeLeft = () => {
+  // Format time remaining (memoized)
+  const formattedTimeLeft = useMemo(() => {
     if (!timeLeft) return null;
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  }, [timeLeft]);
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
@@ -72,7 +60,7 @@ const QuizReview = ({
           {timeLeft !== null && (
             <div>
               <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Time Remaining</p>
-              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatTimeLeft()}</p>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{formattedTimeLeft}</p>
             </div>
           )}
         </div>
@@ -374,4 +362,4 @@ QuizReview.propTypes = {
   isSubmitting: PropTypes.bool
 };
 
-export default QuizReview;
+export default memo(QuizReview);
