@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '../../contexts/ThemeContext';
 import TemplatePreview from '../TemplatePreview';
 import { performanceLogger } from '../../utils/performanceLogger';
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 
 const LazyTemplatePreview = ({ 
   content, 
@@ -14,103 +16,93 @@ const LazyTemplatePreview = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [isVisible, setIsVisible] = useState(false);
-  const [hasRendered, setHasRendered] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const elementRef = useRef(null);
-  const observerRef = useRef(null);
-  const debounceTimeoutRef = useRef(null);
+  const [renderState, setRenderState] = useState('idle'); // 'idle', 'loading', 'rendered', 'error'
 
-  // Debounced visibility handler
-  const handleVisibilityChange = useCallback((isIntersecting) => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (isIntersecting && !hasRendered) {
-        setIsLoading(true);
+  // Handle intersection with performance tracking
+  const handleIntersection = useCallback((isIntersecting) => {
+    if (isIntersecting && renderState === 'idle') {
+      try {
+        setRenderState('loading');
         const timerLabel = `lazy-template-render-${Date.now()}`;
         performanceLogger.startTimer(timerLabel);
         
-        // Small delay to show loading state
+        // Small delay to show loading state, then render
         setTimeout(() => {
-          setIsVisible(true);
-          setHasRendered(true);
-          setIsLoading(false);
-          
-          // Log performance
-          setTimeout(() => {
+          try {
+            setRenderState('rendered');
+            
+            // Log performance
             const duration = performanceLogger.endTimer(timerLabel);
-            // Note: We don't have template ID here, so we use a generic label
             performanceLogger.logTemplateRender('template', true, false, duration);
-          }, 100);
-          
-          // Once rendered, we can disconnect the observer
-          if (observerRef.current) {
-            observerRef.current.disconnect();
+          } catch (error) {
+            console.error('LazyTemplatePreview: Error during render:', error);
+            setRenderState('error');
+            performanceLogger.endTimer(timerLabel);
           }
         }, 50);
+      } catch (error) {
+        console.error('LazyTemplatePreview: Error during loading:', error);
+        setRenderState('error');
       }
-    }, debounceMs);
-  }, [hasRendered, debounceMs]);
+    }
+  }, [renderState]);
 
+  // Use intersection observer hook
+  const { elementRef, disconnect } = useIntersectionObserver(
+    handleIntersection,
+    { rootMargin, threshold },
+    debounceMs
+  );
+
+  // Auto-disconnect observer when rendered
   useEffect(() => {
-    const element = elementRef.current;
-    if (!element) return;
+    if (renderState === 'rendered') {
+      disconnect();
+    }
+  }, [renderState, disconnect]);
 
-    // Create intersection observer
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        handleVisibilityChange(entry.isIntersecting);
-      },
-      {
-        rootMargin,
-        threshold
-      }
-    );
-
-    observerRef.current.observe(element);
-
-    // Cleanup
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [rootMargin, threshold, handleVisibilityChange]);
-
-  const renderPlaceholder = () => {
+  // Memoized placeholder component
+  const renderPlaceholder = useCallback(() => {
     if (placeholder) {
       return placeholder;
     }
 
-    const loadingText = isLoading ? 'Loading preview...' : 'Preview will load when visible';
-    const showPulse = isLoading;
+    const isLoading = renderState === 'loading';
+    const isError = renderState === 'error';
+    const iconClasses = `text-lg mb-2 ${isLoading ? 'animate-spin' : ''}`;
+    const skeletonClasses = `template-preview-skeleton ${className} ${
+      isDark ? 'bg-slate-800 border-slate-600' : 'bg-white border-gray-200'
+    } rounded border overflow-hidden`;
+    const contentClasses = `${
+      isLoading ? 'animate-pulse' : ''
+    } ${isDark ? 'bg-slate-700' : 'bg-gray-200'} rounded-lg w-full h-full mx-4 my-4 flex items-center justify-center transition-all duration-300`;
+
+    let icon = '📄';
+    let text = 'Preview will load when visible';
+    
+    if (isLoading) {
+      icon = '⚙️';
+      text = 'Loading preview...';
+    } else if (isError) {
+      icon = '⚠️';
+      text = 'Failed to load preview';
+    }
 
     return (
-      <div className={`template-preview-skeleton ${className} ${isDark ? 'bg-slate-800' : 'bg-white'} rounded border ${isDark ? 'border-slate-600' : 'border-gray-200'} overflow-hidden`}>
+      <div className={skeletonClasses}>
         <div className="h-80 flex items-center justify-center">
-          <div className={`${showPulse ? 'animate-pulse' : ''} ${isDark ? 'bg-slate-700' : 'bg-gray-200'} rounded-lg w-full h-full mx-4 my-4 flex items-center justify-center transition-all duration-300`}>
+          <div className={contentClasses}>
             <div className={`text-center ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
-              <div className="text-lg mb-2">
-                {isLoading ? (
-                  <div className="inline-block animate-spin">⚙️</div>
-                ) : (
-                  '📄'
-                )}
+              <div className={iconClasses}>
+                {icon}
               </div>
-              <p className="text-sm">{loadingText}</p>
+              <p className="text-sm">{text}</p>
             </div>
           </div>
         </div>
       </div>
     );
-  };
+  }, [placeholder, renderState, className, isDark]);
 
   return (
     <div 
@@ -123,7 +115,7 @@ const LazyTemplatePreview = ({
         overflow: 'hidden' // This container doesn't need to scroll, the child will handle it
       }}
     >
-      {isVisible ? (
+      {renderState === 'rendered' ? (
         <TemplatePreview 
           content={content} 
           className={className}
@@ -136,4 +128,13 @@ const LazyTemplatePreview = ({
   );
 };
 
-export default LazyTemplatePreview;
+LazyTemplatePreview.propTypes = {
+  content: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+  className: PropTypes.string,
+  rootMargin: PropTypes.string,
+  threshold: PropTypes.number,
+  placeholder: PropTypes.node,
+  debounceMs: PropTypes.number
+};
+
+export default memo(LazyTemplatePreview);
