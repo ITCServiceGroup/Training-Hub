@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import AccessCodeGenerator from './AccessCodeGenerator';
 import AccessCodeList from './AccessCodeList';
@@ -9,11 +9,11 @@ const AccessCodeManager = ({ quizId, quizTitle }) => {
   const [activeTab, setActiveTab] = useState('generate'); // 'list' or 'generate' - Changed default
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleCodeGenerated = () => {
+  const handleCodeGenerated = useCallback(() => {
     // Trigger a refresh of the list when a new code is generated
     setRefreshTrigger(prev => prev + 1);
     setActiveTab('list');
-  };
+  }, []);
 
   return (
     <div className="py-4 max-w-full">
@@ -93,4 +93,4 @@ AccessCodeManager.propTypes = {
   quizTitle: PropTypes.string
 };
 
-export default AccessCodeManager;
+export default memo(AccessCodeManager);

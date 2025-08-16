@@ -1,122 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import { useState, memo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { accessCodesService } from '../../../services/api/accessCodes';
-import { organizationService } from '../../../services/api/organization';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useToast } from '../../common/ToastContainer';
-import { isValidEmail, getEmailErrorMessage } from '../../../utils/validation';
+import { useAccessCodeForm } from '../../../hooks/useAccessCodeForm';
+import GeneratedCodeDisplay from './GeneratedCodeDisplay';
 
 const AccessCodeGenerator = ({ quizId, onGenerated }) => {
   const { isDarkMode } = useTheme();
-  const { showToast } = useToast();
-  const [testTakerInfo, setTestTakerInfo] = useState({
-    ldap: '',
-    email: '',
-    supervisor: '',
-    market: ''
-  });
-  const [supervisors, setSupervisors] = useState([]);
-  const [markets, setMarkets] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [generatedCode, setGeneratedCode] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState(null);
-  const [emailError, setEmailError] = useState(null);
+  
+  const {
+    testTakerInfo,
+    supervisors,
+    markets,
+    isLoading,
+    error,
+    emailError,
+    resetForm,
+    handleChange,
+    validateForm,
+    setError
+  } = useAccessCodeForm();
 
-  useEffect(() => {
-    const fetchOptions = async () => {
-      setIsLoading(true);
-      try {
-        const [supervisorsData, marketsData] = await Promise.all([
-          organizationService.getActiveSupervisors(),
-          organizationService.getMarkets()
-        ]);
-        setSupervisors(supervisorsData);
-        setMarkets(marketsData);
-      } catch (error) {
-        console.error('Failed to fetch organization data:', error);
-        setError('Failed to load supervisor and market options');
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
-    fetchOptions();
-  }, []);
-
-  // Update supervisors when market changes
-  useEffect(() => {
-    const updateSupervisors = async () => {
-      if (testTakerInfo.market && testTakerInfo.market !== '') {
-        try {
-          const marketId = markets.find(m => m.name === testTakerInfo.market)?.id;
-          if (marketId) {
-            const supervisorsForMarket = await organizationService.getSupervisorsByMarket(marketId);
-            setSupervisors(supervisorsForMarket);
-          }
-        } catch (error) {
-          console.error('Failed to fetch supervisors for market:', error);
-        }
-      } else {
-        // If no market selected, show all active supervisors
-        try {
-          const allSupervisors = await organizationService.getActiveSupervisors();
-          setSupervisors(allSupervisors);
-        } catch (error) {
-          console.error('Failed to fetch all supervisors:', error);
-        }
-      }
-    };
-
-    updateSupervisors();
-  }, [testTakerInfo.market, markets]);
-
-  const resetForm = () => {
-    setTestTakerInfo({
-      ldap: '',
-      email: '',
-      supervisor: '',
-      market: ''
-    });
-    setGeneratedCode(null);
-    setError(null);
-    setEmailError(null);
-  };
-
-  const handleChange = (field, value) => {
-    setTestTakerInfo(prev => {
-      const newInfo = { ...prev, [field]: value };
-      
-      // If market changes, reset supervisor selection
-      if (field === 'market') {
-        newInfo.supervisor = '';
-      }
-      
-      return newInfo;
-    });
-    setError(null);
-    
-    // Validate email field in real-time
-    if (field === 'email') {
-      if (value.trim() === '') {
-        setEmailError(null); // Clear error when field is empty
-      } else if (!isValidEmail(value)) {
-        setEmailError(getEmailErrorMessage(value));
-      } else {
-        setEmailError(null);
-      }
-    }
-  };
-
-  const handleGenerateCode = async (e) => {
+  const handleGenerateCode = useCallback(async (e) => {
     e.preventDefault();
     setIsGenerating(true);
     setError(null);
 
-    // Validate email before submission
-    if (!isValidEmail(testTakerInfo.email)) {
-      setEmailError(getEmailErrorMessage(testTakerInfo.email));
+    // Validate form before submission
+    if (!validateForm()) {
       setIsGenerating(false);
       return;
     }
@@ -132,21 +47,12 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [quizId, testTakerInfo, validateForm, onGenerated, setError]);
 
-  const handleCopyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedCode.code);
-      console.log('Copying generated code and showing toast:', generatedCode.code);
-      // Add a small delay to ensure the clipboard operation completes
-      setTimeout(() => {
-        showToast('Access Code copied to clipboard', 'success', 3000);
-      }, 100);
-    } catch (error) {
-      console.error('Failed to copy code:', error);
-      showToast('Failed to copy code', 'error', 3000);
-    }
-  };
+  const handleGenerateAnother = useCallback(() => {
+    resetForm();
+    setGeneratedCode(null);
+  }, [resetForm]);
 
   return (
     <div className="space-y-6">
@@ -159,46 +65,10 @@ const AccessCodeGenerator = ({ quizId, onGenerated }) => {
       )}
 
       {generatedCode ? (
-        <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
-          <h4 className="text-lg font-bold text-green-800 dark:text-green-400 mb-4">Access Code Generated</h4>
-          <div className="text-3xl font-mono font-bold text-center p-4 bg-white dark:bg-slate-800 rounded border border-green-300 dark:border-green-700 mb-4">
-            {generatedCode.code}
-          </div>
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">LDAP Username</p>
-              <p className="font-medium dark:text-slate-200">{generatedCode.ldap}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Email</p>
-              <p className="font-medium dark:text-slate-200">{generatedCode.email}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Supervisor</p>
-              <p className="font-medium dark:text-slate-200">{generatedCode.supervisor}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Market</p>
-              <p className="font-medium dark:text-slate-200">{generatedCode.market}</p>
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <button
-              type="button"
-              className="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors"
-              onClick={() => resetForm()}
-            >
-              Generate Another
-            </button>
-            <button
-              type="button"
-              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
-              onClick={handleCopyCode}
-            >
-              Copy Code
-            </button>
-          </div>
-        </div>
+        <GeneratedCodeDisplay
+          generatedCode={generatedCode}
+          onGenerateAnother={handleGenerateAnother}
+        />
       ) : (
         <form onSubmit={handleGenerateCode} className="space-y-4">
           <div>
@@ -348,4 +218,4 @@ AccessCodeGenerator.propTypes = {
   onGenerated: PropTypes.func
 };
 
-export default AccessCodeGenerator;
+export default memo(AccessCodeGenerator);

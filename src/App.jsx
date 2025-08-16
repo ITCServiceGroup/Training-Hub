@@ -22,7 +22,6 @@ const SettingsPage = lazy(() => import('./pages/admin/SettingsPage')); // Import
 const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const PracticeQuizPage = lazy(() => import('./components/practice-quiz/PracticeQuizPage'));
 
 // Legal pages
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
@@ -86,11 +85,6 @@ function App() {
           <Route path="quiz/:quizId" element={
             <Suspense fallback={<LoadingFallback />}>
               <QuizPage />
-            </Suspense>
-          } />
-          <Route path="practice-quiz/:categoryId" element={
-            <Suspense fallback={<LoadingFallback />}>
-              <PracticeQuizPage />
             </Suspense>
           } />
           <Route path="quiz" element={

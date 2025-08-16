@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { accessCodesService } from '../../../services/api/accessCodes';
 import ConfirmationDialog from '../../common/ConfirmationDialog';
 import LoadingSpinner from '../../common/LoadingSpinner';
 import { useToast } from '../../common/ToastContainer';
+import { useDebounce } from '../../../hooks/useDebounce';
+import StatusBadge from './StatusBadge';
 
 const AccessCodeList = ({ quizId }) => {
   const { showToast } = useToast();
@@ -12,13 +14,14 @@ const AccessCodeList = ({ quizId }) => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'used', 'unused', 'expired'
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, codeId: null });
 
   useEffect(() => {
     loadAccessCodes();
   }, [quizId]);
 
-  const loadAccessCodes = async () => {
+  const loadAccessCodes = useCallback(async () => {
     try {
       const data = await accessCodesService.getByQuizId(quizId);
       setCodes(data);
@@ -27,9 +30,9 @@ const AccessCodeList = ({ quizId }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [quizId]);
 
-  const handleCopyCode = async (code) => {
+  const handleCopyCode = useCallback(async (code) => {
     try {
       await navigator.clipboard.writeText(code);
       console.log('Copying code and showing toast:', code);
@@ -41,71 +44,48 @@ const AccessCodeList = ({ quizId }) => {
       console.error('Failed to copy code:', error);
       showToast('Failed to copy code', 'error', 3000);
     }
-  };
+  }, [showToast]);
 
-  const openDeleteConfirmation = (codeId) => {
+  const openDeleteConfirmation = useCallback((codeId) => {
     setDeleteConfirmation({ isOpen: true, codeId });
-  };
+  }, []);
 
-  const handleDelete = async (codeId) => {
-
+  const handleDelete = useCallback(async (codeId) => {
     try {
       await accessCodesService.delete(codeId);
       await loadAccessCodes();
     } catch (error) {
       setError('Failed to delete access code');
     }
-  };
+  }, [loadAccessCodes]);
 
-  const filteredCodes = codes.filter(code => {
-    const matchesSearch =
-      code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      code.ldap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      code.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      code.supervisor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      code.market.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredCodes = useMemo(() => {
+    return codes.filter(code => {
+      const matchesSearch =
+        code.code.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        code.ldap.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        code.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        code.supervisor.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        code.market.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    const now = new Date();
-    const isExpired = code.expires_at && new Date(code.expires_at) < now;
+      const now = new Date();
+      const isExpired = code.expires_at && new Date(code.expires_at) < now;
 
-    switch (filter) {
-      case 'used':
-        return code.is_used;
-      case 'unused':
-        return !code.is_used && !isExpired;
-      case 'expired':
-        return isExpired;
-      default:
-        return true;
-    }
-  });
+      switch (filter) {
+        case 'used':
+          return code.is_used;
+        case 'unused':
+          return !code.is_used && !isExpired;
+        case 'expired':
+          return isExpired;
+        default:
+          return true;
+      }
+    });
+  }, [codes, debouncedSearchTerm, filter]);
 
-  const getStatusBadge = (code) => {
-    const now = new Date();
-    const isExpired = code.expires_at && new Date(code.expires_at) < now;
-
-    if (code.is_used) {
-      return (
-        <span className="px-2 py-1 text-xs font-medium bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary rounded-full">
-          Used
-        </span>
-      );
-    }
-    if (isExpired) {
-      return (
-        <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">
-          Expired
-        </span>
-      );
-    }
-    return (
-      <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-        Active
-      </span>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -174,7 +154,7 @@ const AccessCodeList = ({ quizId }) => {
                   <td className="px-4 py-3 dark:text-slate-200">{code.ldap}</td>
                   <td className="px-4 py-3 dark:text-slate-200">{code.supervisor}</td>
                   <td className="px-4 py-3 dark:text-slate-200">{code.market}</td>
-                  <td className="px-4 py-3">{getStatusBadge(code)}</td>
+                  <td className="px-4 py-3"><StatusBadge code={code} /></td>
                   <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                     {new Date(code.created_at).toLocaleDateString()}
                   </td>
@@ -225,4 +205,4 @@ AccessCodeList.propTypes = {
   quizId: PropTypes.string.isRequired
 };
 
-export default AccessCodeList;
+export default memo(AccessCodeList);
