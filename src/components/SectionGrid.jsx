@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { FaBook } from 'react-icons/fa';
-import { getIconByName } from '../utils/iconMappings';
+import { getSectionIcon } from '../utils/iconHelpers';
 import LoadingSpinner from './common/LoadingSpinner';
 
 /**
@@ -24,36 +24,6 @@ const SectionGrid = ({ sections, isLoading, searchQuery, navigationPath = 'study
     }
   };
 
-  // Get icon and color based on section data or fallback to name-based detection
-  const getSectionIcon = (section) => {
-    // If the section has a custom icon set, use it
-    if (section.icon) {
-      const { component: IconComponent } = getIconByName(section.icon);
-      return {
-        icon: <IconComponent size={24} color="white" />,
-        color: currentSecondaryColor // Always use secondary color
-      };
-    }
-
-    // Fallback to name-based detection for backward compatibility
-    const name = section.name.toLowerCase();
-    let iconName = 'Book';
-
-    if (name.includes('network')) iconName = 'Network';
-    else if (name.includes('install')) iconName = 'Download';
-    else if (name.includes('service')) iconName = 'Wrench';
-    else if (name.includes('troubleshoot')) iconName = 'Search';
-    else if (name.includes('security')) iconName = 'Lock';
-    else if (name.includes('hardware')) iconName = 'Laptop';
-    else if (name.includes('software')) iconName = 'Chart';
-    else if (name.includes('advanced')) iconName = 'Rocket';
-
-    const { component: IconComponent } = getIconByName(iconName);
-    return {
-      icon: <IconComponent size={24} color="white" />,
-      color: currentSecondaryColor // Always use secondary color
-    };
-  };
 
   if (isLoading) {
     return (
@@ -85,7 +55,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery, navigationPath = 'study
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {filteredSections.map(section => {
-        const { icon, color } = getSectionIcon(section);
+        const { IconComponent, iconProps, color } = getSectionIcon(section, currentSecondaryColor);
         const categoryCount = section.categories?.length || 0;
 
         return (
@@ -98,7 +68,7 @@ const SectionGrid = ({ sections, isLoading, searchQuery, navigationPath = 'study
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: color }}
             >
-              {icon}
+              <IconComponent {...iconProps} />
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1 whitespace-pre-wrap`}>{section.description || 'No description available'}</p>

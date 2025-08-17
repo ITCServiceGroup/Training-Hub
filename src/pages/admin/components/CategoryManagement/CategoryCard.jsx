@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaEdit, FaTrash, FaChevronRight, FaBars } from 'react-icons/fa'; // Added FaBars
-import { getIconByName } from '../../../../utils/iconMappings';
+import { getSearchResultIcon } from '../../../../utils/iconHelpers';
 import CategoryFormModal from '../common/CategoryFormModal';
 
 // Accept sortableProps
@@ -14,29 +14,6 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
   // Get current secondary color for the theme
   const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
-  // Get icon for the category
-  const getCategoryIcon = (category) => {
-    // If the category has a custom icon set, use it
-    if (category.icon) {
-      const { component: IconComponent } = getIconByName(category.icon);
-      return <IconComponent size={20} color="white" />;
-    }
-
-    // Fallback to name-based detection for backward compatibility
-    const name = category.name.toLowerCase();
-    let iconName = 'Book';
-
-    if (name.includes('network')) iconName = 'Network';
-    else if (name.includes('install')) iconName = 'Download';
-    else if (name.includes('service')) iconName = 'Wrench';
-    else if (name.includes('troubleshoot')) iconName = 'Search';
-    else if (name.includes('security')) iconName = 'Lock';
-    else if (name.includes('hardware')) iconName = 'Laptop';
-    else if (name.includes('software')) iconName = 'Chart';
-
-    const { component: IconComponent } = getIconByName(iconName);
-    return <IconComponent size={20} color="white" />;
-  };
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -78,7 +55,10 @@ const CategoryCard = ({ category, section, onUpdate, onDelete, onViewStudyGuides
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: currentSecondaryColor }}
             >
-              {getCategoryIcon(category)}
+{(() => {
+                const { IconComponent, iconProps } = getSearchResultIcon(category, currentSecondaryColor, 'category');
+                return <IconComponent {...iconProps} />;
+              })()}
             </div>
             {/* Title */}
             <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={category.name}>{category.name}</h3>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { FaBook } from 'react-icons/fa';
-import { getIconByName } from '../utils/iconMappings';
+import { getCategoryIcon } from '../utils/iconHelpers';
 import LoadingSpinner from './common/LoadingSpinner';
 
 /**
@@ -24,35 +24,6 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId, navigatio
     }
   };
 
-  // Get icon and color based on category data or fallback to name-based detection
-  const getCategoryIcon = (category) => {
-    // If the category has a custom icon set, use it
-    if (category.icon) {
-      const { component: IconComponent } = getIconByName(category.icon);
-      return {
-        icon: <IconComponent size={24} color="white" />,
-        color: currentSecondaryColor // Always use secondary color
-      };
-    }
-
-    // Fallback to name-based detection for backward compatibility
-    const name = category.name.toLowerCase();
-    let iconName = 'Book';
-
-    if (name.includes('network')) iconName = 'Network';
-    else if (name.includes('install')) iconName = 'Download';
-    else if (name.includes('service')) iconName = 'Wrench';
-    else if (name.includes('troubleshoot')) iconName = 'Search';
-    else if (name.includes('security')) iconName = 'Lock';
-    else if (name.includes('hardware')) iconName = 'Laptop';
-    else if (name.includes('software')) iconName = 'Chart';
-
-    const { component: IconComponent } = getIconByName(iconName);
-    return {
-      icon: <IconComponent size={24} color="white" />,
-      color: currentSecondaryColor // Always use secondary color
-    };
-  };
 
   if (isLoading) {
     return (
@@ -84,7 +55,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId, navigatio
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {filteredCategories.map(category => {
-        const { icon, color } = getCategoryIcon(category);
+        const { IconComponent, iconProps, color } = getCategoryIcon(category, currentSecondaryColor);
 
         // Count based on navigation context
         let itemCount, itemLabel, buttonText;
@@ -110,7 +81,7 @@ const CategoryGrid = ({ categories, isLoading, searchQuery, sectionId, navigatio
               className="w-[50px] h-[50px] rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: color }}
             >
-              {icon}
+              <IconComponent {...iconProps} />
             </div>
             <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
             <p className={`${isDark ? 'text-gray-400' : 'text-slate-500'} mb-4 flex-1 whitespace-pre-wrap`}>{category.description || 'No description available'}</p>

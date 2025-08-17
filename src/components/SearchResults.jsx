@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaBook, FaFolder, FaFile, FaSearch, FaChevronRight } from 'react-icons/fa';
-import { getIconByName } from '../utils/iconMappings';
+import { getSearchResultIcon } from '../utils/iconHelpers';
 import { extractTextFromContent, createSearchSnippet, countSearchTermOccurrences } from '../utils/contentTextExtractor';
 
 /**
@@ -21,64 +21,6 @@ const SearchResults = ({
   // Get current secondary color for the theme
   const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
-  // Helper function to get section icon
-  const getSectionIcon = (section) => {
-    if (section.icon) {
-      const { component: IconComponent } = getIconByName(section.icon);
-      return {
-        icon: <IconComponent size={20} color="white" />,
-        color: currentSecondaryColor // Always use secondary color
-      };
-    }
-
-    // Fallback to name-based detection
-    const name = section.name.toLowerCase();
-    let iconName = 'Book';
-
-    if (name.includes('network')) iconName = 'Network';
-    else if (name.includes('install')) iconName = 'Download';
-    else if (name.includes('service')) iconName = 'Wrench';
-    else if (name.includes('troubleshoot')) iconName = 'Search';
-    else if (name.includes('security')) iconName = 'Lock';
-    else if (name.includes('hardware')) iconName = 'Laptop';
-    else if (name.includes('software')) iconName = 'Chart';
-    else if (name.includes('advanced')) iconName = 'Rocket';
-
-    const { component: IconComponent } = getIconByName(iconName);
-    return {
-      icon: <IconComponent size={20} color="white" />,
-      color: currentSecondaryColor // Always use secondary color
-    };
-  };
-
-  // Helper function to get category icon
-  const getCategoryIcon = (category) => {
-    if (category.icon) {
-      const { component: IconComponent } = getIconByName(category.icon);
-      return {
-        icon: <IconComponent size={20} color="white" />,
-        color: currentSecondaryColor // Always use secondary color
-      };
-    }
-
-    // Fallback to name-based detection
-    const name = category.name.toLowerCase();
-    let iconName = 'Book';
-
-    if (name.includes('network')) iconName = 'Network';
-    else if (name.includes('install')) iconName = 'Download';
-    else if (name.includes('service')) iconName = 'Wrench';
-    else if (name.includes('troubleshoot')) iconName = 'Search';
-    else if (name.includes('security')) iconName = 'Lock';
-    else if (name.includes('hardware')) iconName = 'Laptop';
-    else if (name.includes('software')) iconName = 'Chart';
-
-    const { component: IconComponent } = getIconByName(iconName);
-    return {
-      icon: <IconComponent size={20} color="white" />,
-      color: currentSecondaryColor // Always use secondary color
-    };
-  };
 
   // Helper function to extract a snippet of text from content
   const getContentSnippet = (content, query) => {
@@ -154,7 +96,7 @@ const SearchResults = ({
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {results.sections.map(section => {
-              const { icon, color } = getSectionIcon(section);
+              const { IconComponent, iconProps, color } = getSearchResultIcon(section, currentSecondaryColor, 'section');
               return (
                 <div
                   key={section.id}
@@ -169,7 +111,7 @@ const SearchResults = ({
                       className="w-[40px] h-[40px] rounded-full flex items-center justify-center mr-3"
                       style={{ backgroundColor: color }}
                     >
-                      {icon}
+                      <IconComponent {...iconProps} />
                     </div>
                     <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.name}</h4>
                   </div>
@@ -198,7 +140,7 @@ const SearchResults = ({
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {results.categories.map(category => {
-              const { icon, color } = getCategoryIcon(category);
+              const { IconComponent, iconProps, color } = getSearchResultIcon(category, currentSecondaryColor, 'category');
               return (
                 <div
                   key={category.id}
@@ -213,7 +155,7 @@ const SearchResults = ({
                       className="w-[40px] h-[40px] rounded-full flex items-center justify-center mr-3"
                       style={{ backgroundColor: color }}
                     >
-                      {icon}
+                      <IconComponent {...iconProps} />
                     </div>
                     <div>
                       <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.name}</h4>

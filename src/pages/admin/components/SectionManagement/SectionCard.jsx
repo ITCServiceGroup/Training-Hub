@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { FaEdit, FaTrash, FaChevronRight, FaBars } from 'react-icons/fa'; // Added FaBars
-import { getIconByName } from '../../../../utils/iconMappings';
+import { getSearchResultIcon } from '../../../../utils/iconHelpers';
 import SectionFormModal from '../common/SectionFormModal';
 
 // Accept sortableProps
@@ -17,30 +17,6 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
   // Get current secondary color for the theme
   const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
 
-  // Get icon for the section
-  const getSectionIcon = (section) => {
-    // If the section has a custom icon set, use it
-    if (section.icon) {
-      const { component: IconComponent } = getIconByName(section.icon);
-      return <IconComponent size={20} color="white" />;
-    }
-
-    // Fallback to name-based detection for backward compatibility
-    const name = section.name.toLowerCase();
-    let iconName = 'Book';
-
-    if (name.includes('network')) iconName = 'Network';
-    else if (name.includes('install')) iconName = 'Download';
-    else if (name.includes('service')) iconName = 'Wrench';
-    else if (name.includes('troubleshoot')) iconName = 'Search';
-    else if (name.includes('security')) iconName = 'Lock';
-    else if (name.includes('hardware')) iconName = 'Laptop';
-    else if (name.includes('software')) iconName = 'Chart';
-    else if (name.includes('advanced')) iconName = 'Rocket';
-
-    const { component: IconComponent } = getIconByName(iconName);
-    return <IconComponent size={20} color="white" />;
-  };
 
   // --- Event Handlers ---
   const handleCardClick = (e) => {
@@ -77,7 +53,10 @@ const SectionCard = ({ section, onUpdate, onDelete, onViewCategories, isHovered,
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: currentSecondaryColor }}
             >
-              {getSectionIcon(section)}
+{(() => {
+                const { IconComponent, iconProps } = getSearchResultIcon(section, currentSecondaryColor, 'section');
+                return <IconComponent {...iconProps} />;
+              })()}
             </div>
             {/* Title */}
             <h3 className="text-lg font-bold text-gray-800 dark:text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis" title={section.name}>{section.name}</h3>
