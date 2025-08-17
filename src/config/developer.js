@@ -1,34 +1,12 @@
 /**
  * Developer Configuration
- * Controls developer-only features and settings
+ * Controls debug logging for system templates
  */
 
-export const developerConfig = {
-  // Developer email or identifier (you can change this to your email)
-  developerIdentifier: 'developer@traininghub.com',
-
+const developerConfig = {
   // Enable debug logging for system templates
-  debugSystemTemplates: false,
-
-  // Show development tools
-  showDevTools: true
+  debugSystemTemplates: false
 };
-
-/**
- * Check if current user is a developer
- * You can modify this function to check against your actual user system
- * @param {Object} user - Current user object
- * @returns {boolean} True if user is a developer
- */
-export const isDeveloper = (user) => {
-  // For now, this is a simple check - you can enhance this
-  // to check against your actual authentication system
-  return user?.email === developerConfig.developerIdentifier ||
-         user?.role === 'developer' ||
-         user?.isDeveloper === true;
-};
-
-
 
 /**
  * Log debug information for system templates
@@ -40,5 +18,3 @@ export const debugLog = (message, data = null) => {
     console.log(`[SystemTemplates Debug] ${message}`, data);
   }
 };
-
-export default developerConfig;
