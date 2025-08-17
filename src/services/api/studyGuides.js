@@ -376,6 +376,63 @@ class StudyGuidesService extends BaseService {
       throw error;
     }
   }
+
+  /**
+   * Check if a study guide has a conflicting quiz link
+   * @param {string} studyGuideId - Study guide ID to check
+   * @param {string} newQuizId - New quiz ID that we want to link to
+   * @returns {Promise<Object>} - Conflict information { hasConflict: boolean, existingQuizTitle?: string, existingQuizId?: string }
+   */
+  async checkQuizLinkConflict(studyGuideId, newQuizId) {
+    try {
+      // First get the study guide to see if it has an existing link
+      const { data: studyGuide, error: studyGuideError } = await supabase
+        .from(this.tableName)
+        .select('linked_quiz_id')
+        .eq('id', studyGuideId)
+        .single();
+
+      if (studyGuideError) {
+        throw studyGuideError;
+      }
+
+      // If no existing link, no conflict
+      if (!studyGuide.linked_quiz_id) {
+        return { hasConflict: false };
+      }
+
+      // If existing link is the same as new quiz, no conflict
+      if (studyGuide.linked_quiz_id === newQuizId) {
+        return { hasConflict: false };
+      }
+
+      // Get the title of the existing linked quiz
+      const { data: existingQuiz, error: quizError } = await supabase
+        .from('quizzes')
+        .select('id, title')
+        .eq('id', studyGuide.linked_quiz_id)
+        .single();
+
+      if (quizError) {
+        // If we can't get quiz details, just return conflict without details
+        console.warn('Could not fetch existing quiz details:', quizError.message);
+        return { 
+          hasConflict: true, 
+          existingQuizId: studyGuide.linked_quiz_id,
+          existingQuizTitle: 'Unknown Quiz' 
+        };
+      }
+
+      return {
+        hasConflict: true,
+        existingQuizId: existingQuiz.id,
+        existingQuizTitle: existingQuiz.title
+      };
+    } catch (error) {
+      console.error('Error checking quiz link conflict:', error.message);
+      throw error;
+    }
+  }
 }
 
 export const studyGuidesService = new StudyGuidesService();

@@ -5,6 +5,7 @@ import { sectionsService } from '../../services/api/sections';
 import { categoriesService } from '../../services/api/categories';
 import { studyGuidesService } from '../../services/api/studyGuides';
 import { getFormStyles } from '../../utils/questionFormUtils';
+import ConfirmationDialog from '../common/ConfirmationDialog';
 import toast from 'react-hot-toast';
 
 const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
@@ -16,6 +17,15 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
   const [selectedSectionId, setSelectedSectionId] = useState(null);
   const [studyGuides, setStudyGuides] = useState([]);
   const [linkedStudyGuides, setLinkedStudyGuides] = useState([]);
+  
+  // Conflict confirmation dialog state
+  const [conflictDialog, setConflictDialog] = useState({
+    isOpen: false,
+    studyGuideId: null,
+    studyGuideTitle: null,
+    existingQuizTitle: null,
+    shouldLink: false
+  });
 
   // Fetch sections, categories, and content
   useEffect(() => {
@@ -138,18 +148,68 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
 
     try {
       if (shouldLink) {
-        // Link the content to this quiz
-        await studyGuidesService.updateLinkedQuiz(studyGuideId, quiz.id);
-        setLinkedStudyGuides(prev => [...prev, studyGuideId]);
+        // Check for conflicts before linking
+        const conflictInfo = await studyGuidesService.checkQuizLinkConflict(studyGuideId, quiz.id);
+        
+        if (conflictInfo.hasConflict) {
+          // Get the study guide title for the dialog
+          const studyGuide = studyGuides.find(sg => sg.id === studyGuideId);
+          const studyGuideTitle = studyGuide?.title || 'Unknown Study Guide';
+          
+          // Show confirmation dialog
+          setConflictDialog({
+            isOpen: true,
+            studyGuideId,
+            studyGuideTitle,
+            existingQuizTitle: conflictInfo.existingQuizTitle,
+            shouldLink: true
+          });
+          return; // Stop here and wait for user confirmation
+        }
+        
+        // No conflict, proceed with linking
+        await performStudyGuideLink(studyGuideId, true);
       } else {
         // Unlink the content from this quiz
-        await studyGuidesService.updateLinkedQuiz(studyGuideId, null);
-        setLinkedStudyGuides(prev => prev.filter(id => id !== studyGuideId));
+        await performStudyGuideLink(studyGuideId, false);
       }
     } catch (error) {
       console.error('Error updating content link:', error);
-      // You might want to show a toast notification here
+      toast.error('Failed to update content link');
     }
+  };
+
+  // Separate function to perform the actual linking (used by both normal flow and confirmation)
+  const performStudyGuideLink = async (studyGuideId, shouldLink) => {
+    try {
+      if (shouldLink) {
+        await studyGuidesService.updateLinkedQuiz(studyGuideId, quiz.id);
+        setLinkedStudyGuides(prev => [...prev, studyGuideId]);
+        toast.success('Content linked successfully');
+      } else {
+        await studyGuidesService.updateLinkedQuiz(studyGuideId, null);
+        setLinkedStudyGuides(prev => prev.filter(id => id !== studyGuideId));
+        toast.success('Content unlinked successfully');
+      }
+    } catch (error) {
+      console.error('Error performing content link:', error);
+      toast.error('Failed to update content link');
+      throw error;
+    }
+  };
+
+  // Handle confirmation dialog actions
+  const handleConflictConfirmation = async () => {
+    try {
+      await performStudyGuideLink(conflictDialog.studyGuideId, conflictDialog.shouldLink);
+      setConflictDialog({ isOpen: false, studyGuideId: null, studyGuideTitle: null, existingQuizTitle: null, shouldLink: false });
+    } catch (error) {
+      // Error already handled in performStudyGuideLink
+    }
+  };
+
+  const handleConflictCancel = () => {
+    setConflictDialog({ isOpen: false, studyGuideId: null, studyGuideTitle: null, existingQuizTitle: null, shouldLink: false });
   };
 
   // Handle category selection
@@ -486,6 +546,21 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
           </div>
         )}
       </div>
+
+      {/* Study Guide Conflict Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={conflictDialog.isOpen}
+        onClose={handleConflictCancel}
+        onConfirm={handleConflictConfirmation}
+        title="Reassign Study Guide Link"
+        description={
+          `The study guide "${conflictDialog.studyGuideTitle}" is already linked to "${conflictDialog.existingQuizTitle}". ` +
+          `Do you want to reassign it to this quiz? This will remove the link from the previous quiz.`
+        }
+        confirmButtonText="Reassign"
+        cancelButtonText="Cancel"
+        confirmButtonVariant="primary"
+      />
     </div>
   );
 });
