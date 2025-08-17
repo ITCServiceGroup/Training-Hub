@@ -351,7 +351,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     }
   }, [handleSubmitQuiz]); // Removed stable state setters
 
-  // Timer effect
+  // Timer effect for time limit countdown
   useEffect(() => {
     let timer;
 
@@ -370,7 +370,6 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           }
           return newTime;
         });
-        setTimeTaken(prev => prev + 1);
       }, 1000);
     };
 
@@ -396,6 +395,21 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       }
     };
   }, [quizStarted, quizCompleted, timeLeft, handleTimeout]); // handleTimeout is stable via useCallback
+
+  // Separate timer effect for tracking elapsed time (works for all quizzes)
+  useEffect(() => {
+    let elapsedTimer;
+
+    if (quizStarted && !quizCompleted) {
+      elapsedTimer = setInterval(() => {
+        setTimeTaken(prev => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (elapsedTimer) clearInterval(elapsedTimer);
+    };
+  }, [quizStarted, quizCompleted]);
 
 
   // Format time

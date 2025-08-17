@@ -1,111 +1,83 @@
-import React from 'react';
+import { memo, useCallback } from 'react';
+import PropTypes from 'prop-types';
+import { getFormStyles, validateOptions, optionHelpers, answerHelpers, QUESTION_LIMITS } from '../../../utils/questionFormUtils';
+import OptionInput from './OptionInput';
+import ValidationMessage from './ValidationMessage';
 
-const MultipleChoiceForm = ({ options, correctAnswer, onChange, disabled, isDark }) => {
-  const handleOptionChange = (index, value) => {
-    const newOptions = [...options];
-    newOptions[index] = value;
+const MultipleChoiceForm = memo(({ options, correctAnswer, onChange, disabled = false, isDark = false }) => {
+  const styles = getFormStyles(isDark);
+  const handleOptionChange = useCallback((index, value) => {
+    const newOptions = optionHelpers.updateOption(options, index, value);
     onChange(newOptions, correctAnswer);
-  };
+  }, [options, correctAnswer, onChange]);
 
-  const handleAddOption = () => {
-    onChange([...options, ''], correctAnswer);
-  };
+  const handleAddOption = useCallback(() => {
+    onChange(optionHelpers.addOption(options), correctAnswer);
+  }, [options, correctAnswer, onChange]);
 
-  const handleRemoveOption = (index) => {
-    const newOptions = options.filter((_, i) => i !== index);
-    const newCorrectAnswer = correctAnswer === index
-      ? 0
-      : correctAnswer > index
-        ? correctAnswer - 1
-        : correctAnswer;
+  const handleRemoveOption = useCallback((index) => {
+    const newOptions = optionHelpers.removeOption(options, index);
+    const newCorrectAnswer = answerHelpers.adjustMultipleChoiceAnswer(correctAnswer, index);
     onChange(newOptions, newCorrectAnswer);
-  };
+  }, [options, correctAnswer, onChange]);
 
-  const handleCorrectAnswerChange = (index) => {
+  const handleCorrectAnswerChange = useCallback((index) => {
     onChange(options, index);
-  };
+  }, [options, onChange]);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className={`text-lg font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Answer Options</h3>
+        <h3 className={styles.text.heading}>Answer Options</h3>
         <button
           type="button"
-          className="bg-primary-dark text-white px-3 py-1 rounded text-sm hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className={styles.button.primary}
           onClick={handleAddOption}
-          disabled={disabled || options.length >= 6}
+          disabled={disabled || options.length >= QUESTION_LIMITS.MAX_OPTIONS}
         >
           Add Option
         </button>
       </div>
 
       {options.map((option, index) => (
-        <div key={index} className="mb-2">
-          <div className="flex items-start" style={{ position: 'relative' }}>
-            <div className="pt-2 pr-3">
-              <input
-                type="radio"
-                name="correct-answer"
-                className={`text-primary ${isDark ? 'border-slate-500 bg-slate-700' : 'border-slate-300'}`}
-                checked={correctAnswer === index}
-                onChange={() => handleCorrectAnswerChange(index)}
-                disabled={disabled}
-                required={index === 0}
-              />
-            </div>
-            <div className="flex-1" style={{ paddingRight: '90px' }}>
-              <input
-                type="text"
-                value={option}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-                className={`w-full py-2 px-3 border ${
-                  isDark
-                    ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
-                    : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
-                } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
-                placeholder={`Option ${index + 1}`}
-                required
-                disabled={disabled}
-                style={{ height: '38px' }}
-              />
-            </div>
-            <div style={{ position: 'absolute', right: 0, top: 0 }}>
-              <button
-                type="button"
-                onClick={() => handleRemoveOption(index)}
-                disabled={options.length <= 2 || disabled}
-                className={`${
-                  isDark ? 'text-red-400 hover:text-red-300 border-red-400' : 'text-red-500 hover:text-red-700 border-red-500'
-                } border rounded disabled:opacity-50 disabled:cursor-not-allowed`}
-                style={{
-                  height: '38px',
-                  padding: '0 12px',
-                  marginTop: '0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
+        <OptionInput
+          key={index}
+          index={index}
+          value={option}
+          isCorrect={correctAnswer === index}
+          onValueChange={handleOptionChange}
+          onCorrectChange={handleCorrectAnswerChange}
+          onRemove={handleRemoveOption}
+          disabled={disabled}
+          isDark={isDark}
+          type="multiple_choice"
+          totalOptions={options.length}
+        />
       ))}
 
-      {options.length >= 6 && (
-        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          Maximum of 6 options allowed
-        </p>
-      )}
+      <ValidationMessage
+        type="info"
+        message={options.length >= QUESTION_LIMITS.MAX_OPTIONS ? `Maximum of ${QUESTION_LIMITS.MAX_OPTIONS} options allowed` : null}
+        isDark={isDark}
+      />
 
-      {options.length < 2 && (
-        <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-500'}`}>
-          At least 2 options are required
-        </p>
-      )}
+      <ValidationMessage
+        type="error"
+        message={!validateOptions.hasMinimumOptions(options) ? `At least ${QUESTION_LIMITS.MIN_OPTIONS} options are required` : null}
+        isDark={isDark}
+      />
     </div>
   );
+});
+
+MultipleChoiceForm.displayName = 'MultipleChoiceForm';
+
+MultipleChoiceForm.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  correctAnswer: PropTypes.number,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+  isDark: PropTypes.bool
 };
 
 export default MultipleChoiceForm;
