@@ -1,131 +1,16 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-
-// Preset color themes based on color theory
-const PRESET_THEMES = [
-  {
-    name: 'Ocean Breeze',
-    description: 'Calming teal and coral combination',
-    primary: { light: '#0f766e', dark: '#14b8a6' },   // Teal
-    secondary: { light: '#dc2626', dark: '#ef4444' }  // Red-coral
-  },
-  {
-    name: 'Royal Purple',
-    description: 'Elegant purple and gold pairing',
-    primary: { light: '#7c3aed', dark: '#8b5cf6' },   // Violet
-    secondary: { light: '#d97706', dark: '#f59e0b' }  // Amber-gold
-  },
-  {
-    name: 'Forest Green',
-    description: 'Natural green with warm orange',
-    primary: { light: '#059669', dark: '#10b981' },   // Emerald
-    secondary: { light: '#ea580c', dark: '#fb923c' }  // Orange
-  },
-  {
-    name: 'Midnight Blue',
-    description: 'Professional blue with silver accents',
-    primary: { light: '#1d4ed8', dark: '#3b82f6' },   // Blue
-    secondary: { light: '#6b7280', dark: '#9ca3af' }  // Gray-silver
-  },
-  {
-    name: 'Sunset Glow',
-    description: 'Warm orange and deep pink',
-    primary: { light: '#ea580c', dark: '#fb923c' },   // Orange
-    secondary: { light: '#be185d', dark: '#ec4899' }  // Pink
-  },
-  {
-    name: 'Arctic Frost',
-    description: 'Cool cyan and ice blue',
-    primary: { light: '#0891b2', dark: '#06b6d4' },   // Cyan
-    secondary: { light: '#0284c7', dark: '#0ea5e9' }  // Sky blue
-  },
-  {
-    name: 'Cherry Blossom',
-    description: 'Soft pink with sage green',
-    primary: { light: '#be185d', dark: '#ec4899' },   // Pink
-    secondary: { light: '#059669', dark: '#10b981' }  // Emerald
-  },
-  {
-    name: 'Golden Hour',
-    description: 'Warm amber and deep brown',
-    primary: { light: '#d97706', dark: '#f59e0b' },   // Amber
-    secondary: { light: '#92400e', dark: '#b45309' }  // Brown
-  },
-  {
-    name: 'Electric Storm',
-    description: 'Vibrant purple and electric blue',
-    primary: { light: '#7c3aed', dark: '#8b5cf6' },   // Violet
-    secondary: { light: '#1d4ed8', dark: '#3b82f6' }  // Blue
-  },
-  {
-    name: 'Autumn Leaves',
-    description: 'Rich burgundy and golden yellow',
-    primary: { light: '#991b1b', dark: '#dc2626' },   // Red
-    secondary: { light: '#ca8a04', dark: '#eab308' }  // Yellow
-  }
-];
-
-// Default theme colors (Ocean Breeze as default)
-const DEFAULT_COLORS = PRESET_THEMES[0];
-
-// Default color mode settings
-const DEFAULT_COLOR_MODES = {
-  primary: {
-    autoCalculate: true
-  },
-  secondary: {
-    autoCalculate: true
-  }
-};
+import { 
+  hexToRgb, 
+  rgbToHex, 
+  hexToRgbObject, 
+  rgbObjectToHex, 
+  generateColorVariations, 
+  updateCSSVariables 
+} from '../utils/colorHelpers';
+import { PRESET_THEMES, DEFAULT_COLORS, DEFAULT_COLOR_MODES } from '../constants/themes';
 
 // Create the theme context
 const ThemeContext = createContext(null);
-
-// Helper function to convert hex to RGB
-const hexToRgb = (hex) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
-};
-
-// Helper function to convert RGB to hex
-const rgbToHex = (r, g, b) => {
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-};
-
-// Helper function to convert hex to RGB object for color picker
-const hexToRgbObject = (hex) => {
-  const result = hexToRgb(hex);
-  return result ? { r: result.r, g: result.g, b: result.b, a: 1 } : { r: 0, g: 0, b: 0, a: 1 };
-};
-
-// Helper function to convert RGB object to hex for color picker
-const rgbObjectToHex = (rgbObj) => {
-  return rgbToHex(Math.round(rgbObj.r), Math.round(rgbObj.g), Math.round(rgbObj.b));
-};
-
-// Helper function to generate color variations
-const generateColorVariations = (baseColor) => {
-  const rgb = hexToRgb(baseColor);
-  if (!rgb) return { light: baseColor, dark: baseColor };
-
-  // Generate lighter version for dark mode (increase brightness)
-  const lightR = Math.min(255, Math.round(rgb.r * 1.3));
-  const lightG = Math.min(255, Math.round(rgb.g * 1.3));
-  const lightB = Math.min(255, Math.round(rgb.b * 1.3));
-
-  // Generate darker version for light mode (decrease brightness)
-  const darkR = Math.round(rgb.r * 0.8);
-  const darkG = Math.round(rgb.g * 0.8);
-  const darkB = Math.round(rgb.b * 0.8);
-
-  return {
-    light: baseColor, // Use the base color for light mode
-    dark: rgbToHex(lightR, lightG, lightB) // Use lighter version for dark mode
-  };
-};
 
 // Theme provider component
 export const ThemeProvider = ({ children }) => {
@@ -164,45 +49,6 @@ export const ThemeProvider = ({ children }) => {
     return savedModes ? JSON.parse(savedModes) : DEFAULT_COLOR_MODES;
   });
 
-  // Update CSS variables when colors change
-  const updateCSSVariables = (colors) => {
-    const root = document.documentElement;
-    const isDark = theme === 'dark';
-
-    // Set primary color variables
-    const currentPrimary = colors.primary[isDark ? 'dark' : 'light'];
-    const currentSecondary = colors.secondary[isDark ? 'dark' : 'light'];
-
-    // Set CSS variables on root element with !important to override any CSS class rules
-    const setVariable = (property, value) => {
-      root.style.setProperty(property, value, 'important');
-    };
-
-    setVariable('--primary-color', currentPrimary);
-    setVariable('--color-primary', currentPrimary);
-
-    // Generate lighter and darker versions of the current primary color
-    const rgb = hexToRgb(currentPrimary);
-    if (rgb) {
-      // Create darker version (for hover states)
-      const darkerR = Math.round(rgb.r * 0.8);
-      const darkerG = Math.round(rgb.g * 0.8);
-      const darkerB = Math.round(rgb.b * 0.8);
-      const darkerColor = rgbToHex(darkerR, darkerG, darkerB);
-      setVariable('--primary-dark', darkerColor);
-
-      // Create lighter version (for hover states and accents)
-      const lighterR = Math.min(255, Math.round(rgb.r + (255 - rgb.r) * 0.3));
-      const lighterG = Math.min(255, Math.round(rgb.g + (255 - rgb.g) * 0.3));
-      const lighterB = Math.min(255, Math.round(rgb.b + (255 - rgb.b) * 0.3));
-      const lighterColor = rgbToHex(lighterR, lighterG, lighterB);
-      setVariable('--primary-light', lighterColor);
-    }
-
-    // Set secondary color variables
-    setVariable('--secondary-color', currentSecondary);
-    setVariable('--color-secondary', currentSecondary);
-  };
 
   // Listen for system theme changes
   useEffect(() => {
@@ -238,13 +84,13 @@ export const ThemeProvider = ({ children }) => {
     }
 
     // Update CSS variables with current colors
-    updateCSSVariables(themeColors);
+    updateCSSVariables(themeColors, theme);
   }, [theme, themeColors, themeMode]);
 
   // Update colors in localStorage when they change
   useEffect(() => {
     localStorage.setItem('themeColors', JSON.stringify(themeColors));
-    updateCSSVariables(themeColors);
+    updateCSSVariables(themeColors, theme);
   }, [themeColors, theme]);
 
   // Update color modes in localStorage when they change
