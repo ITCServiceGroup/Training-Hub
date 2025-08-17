@@ -1,18 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
+import { hexToRgba } from '../../utils/colorUtils';
 
-// Helper function to convert hex to rgba
-const hexToRgba = (hex, alpha) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
-
-  const r = parseInt(result[1], 16);
-  const g = parseInt(result[2], 16);
-  const b = parseInt(result[3], 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 // Helper to create initial answers state from questions
 const createInitialAnswers = (questions) => {
@@ -23,7 +14,7 @@ const createInitialAnswers = (questions) => {
   return initial;
 };
 
-const QuizPreview = ({ quiz }) => {
+const QuizPreview = memo(({ quiz }) => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
 
@@ -61,15 +52,15 @@ const QuizPreview = ({ quiz }) => {
   }, [quiz.questions]);
 
   // Format time (seconds) to MM:SS
-  const formatTime = (seconds) => {
+  const formatTime = useCallback((seconds) => {
     if (!seconds) return 'No time limit';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
   // Render question based on its type
-  const renderQuestion = (question) => {
+  const renderQuestion = useCallback((question) => {
     if (!question) return null;
 
     switch (question.question_type) {
@@ -212,7 +203,7 @@ const QuizPreview = ({ quiz }) => {
       default:
         return <p>Unsupported question type</p>;
     }
-  };
+  }, [selectedAnswers, isDark, currentPrimaryColor]);
 
   return (
     <div>
@@ -280,6 +271,24 @@ const QuizPreview = ({ quiz }) => {
       )}
     </div>
   );
+});
+
+QuizPreview.displayName = 'QuizPreview';
+
+QuizPreview.propTypes = {
+  quiz: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    time_limit: PropTypes.number,
+    passing_score: PropTypes.number,
+    questions: PropTypes.arrayOf(PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        id: PropTypes.string.isRequired
+      })
+    ]))
+  }).isRequired
 };
 
 export default QuizPreview;

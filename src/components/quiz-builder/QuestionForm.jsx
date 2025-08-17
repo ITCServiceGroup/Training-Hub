@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getFormStyles } from '../../utils/questionFormUtils';
 import MultipleChoiceForm from './question-types/MultipleChoiceForm';
 import CheckAllThatApplyForm from './question-types/CheckAllThatApplyForm';
 import TrueFalseForm from './question-types/TrueFalseForm';
 
-const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
+const QuestionForm = memo(({ question, categoryId, onSave, onCancel }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const styles = getFormStyles(isDark);
   const [formData, setFormData] = useState({
     question_text: '',
     question_type: 'multiple_choice',
@@ -33,15 +36,15 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
   }, [question, categoryId]);
 
   // Handle form field changes
-  const handleChange = (field, value) => {
+  const handleChange = useCallback((field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -53,10 +56,10 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [onSave, formData]);
 
   // Handle question type change while preserving options when possible
-  const handleQuestionTypeChange = (type) => {
+  const handleQuestionTypeChange = useCallback((type) => {
     setFormData(prev => {
       const prevType = prev.question_type;
       let newOptions = prev.options;
@@ -94,7 +97,7 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
         correct_answer: newCorrectAnswer
       };
     });
-  };
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -107,13 +110,9 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
           Question Text
         </label>
         <textarea
-          className={`w-full py-2 px-3 border ${
-            isDark
-              ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
-              : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
-          } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
+          className={styles.input}
           value={formData.question_text}
-          onChange={(e) => handleChange('question_text', e.target.value)}
+          onChange={useCallback((e) => handleChange('question_text', e.target.value), [handleChange])}
           rows={3}
           required
           disabled={isLoading}
@@ -126,13 +125,9 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
           Question Type
         </label>
         <select
-          className={`w-full py-2 px-3 border ${
-            isDark
-              ? 'border-slate-600 bg-slate-700 text-white'
-              : 'border-slate-300 bg-white text-slate-900'
-          } rounded-md focus:ring-1 focus:ring-primary focus:border-primary`}
+          className={styles.input}
           value={formData.question_type}
-          onChange={(e) => handleQuestionTypeChange(e.target.value)}
+          onChange={useCallback((e) => handleQuestionTypeChange(e.target.value), [handleQuestionTypeChange])}
           required
           disabled={isLoading}
         >
@@ -185,13 +180,9 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
           Explanation (shown for incorrect answers in practice mode)
         </label>
         <textarea
-          className={`w-full py-2 px-3 border ${
-            isDark
-              ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
-              : 'border-slate-300 bg-white text-slate-900 placeholder-slate-400'
-          } rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500`}
+          className={styles.input}
           value={formData.explanation}
-          onChange={(e) => handleChange('explanation', e.target.value)}
+          onChange={useCallback((e) => handleChange('explanation', e.target.value), [handleChange])}
           rows={3}
           disabled={isLoading}
           placeholder="Explain why the correct answer is correct"
@@ -221,6 +212,27 @@ const QuestionForm = ({ question, categoryId, onSave, onCancel }) => {
       </div>
     </form>
   );
+});
+
+QuestionForm.displayName = 'QuestionForm';
+
+QuestionForm.propTypes = {
+  question: PropTypes.shape({
+    id: PropTypes.string,
+    question_text: PropTypes.string,
+    question_type: PropTypes.oneOf(['multiple_choice', 'check_all_that_apply', 'true_false']),
+    category_id: PropTypes.string,
+    options: PropTypes.arrayOf(PropTypes.string),
+    correct_answer: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.arrayOf(PropTypes.number),
+      PropTypes.bool
+    ]),
+    explanation: PropTypes.string
+  }),
+  categoryId: PropTypes.string,
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired
 };
 
 export default QuestionForm;

@@ -35,6 +35,7 @@ export const getFormStyles = (isDark) => ({
   text: {
     heading: `text-lg font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`,
     label: `cursor-pointer ${isDark ? 'text-slate-200' : 'text-slate-700'}`,
+    formLabel: `block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'}`,
     error: `text-sm ${isDark ? 'text-red-400' : 'text-red-500'}`,
     warning: `text-sm ${isDark ? 'text-amber-400' : 'text-amber-500'}`,
     info: `text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`

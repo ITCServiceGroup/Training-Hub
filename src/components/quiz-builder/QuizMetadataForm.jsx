@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { sectionsService } from '../../services/api/sections';
 import { categoriesService } from '../../services/api/categories';
 import { studyGuidesService } from '../../services/api/studyGuides';
+import { getFormStyles } from '../../utils/questionFormUtils';
 import toast from 'react-hot-toast';
 
-const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
+const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const styles = getFormStyles(isDark);
   const [sections, setSections] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedSectionId, setSelectedSectionId] = useState(null);
@@ -74,15 +77,15 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   }, [quiz.id]);
 
   // Handle form field changes (allow normal typing)
-  const handleChange = (field, value) => {
+  const handleChange = useCallback((field, value) => {
     onChange({
       ...quiz,
       [field]: value
     });
-  };
+  }, [quiz, onChange]);
 
   // Handle blur events (clean up on focus loss)
-  const handleBlur = (field, value) => {
+  const handleBlur = useCallback((field, value) => {
     let sanitizedValue = value;
     let wasChanged = false;
     
@@ -123,7 +126,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         [field]: sanitizedValue
       });
     }
-  };
+  }, [onChange, quiz]);
 
   // Handle content linking
   const handleStudyGuideLink = async (studyGuideId, shouldLink) => {
@@ -178,12 +181,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
   return (
     <div className="space-y-6">
       <div>
-        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
+        <label className={`${styles.text.formLabel} mb-1`}>
           Quiz Title
         </label>
         <input
           type="text"
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
+          className={styles.input}
           value={quiz.title}
           onChange={(e) => handleChange('title', e.target.value)}
           onBlur={(e) => handleBlur('title', e.target.value)}
@@ -194,11 +197,11 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       </div>
 
       <div>
-        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
+        <label className={`${styles.text.formLabel} mb-1`}>
           Description
         </label>
         <textarea
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
+          className={styles.input}
           value={quiz.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
           onBlur={(e) => handleBlur('description', e.target.value)}
@@ -210,12 +213,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
+          <label className={`${styles.text.formLabel} mb-1`}>
             Time Limit (minutes)
           </label>
           <input
             type="number"
-            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
+            className={styles.input}
             value={quiz.time_limit ? Math.floor(quiz.time_limit / 60) : ''}
             onChange={(e) => {
               const minutes = parseInt(e.target.value, 10);
@@ -228,12 +231,12 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         </div>
 
         <div>
-          <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
+          <label className={`${styles.text.formLabel} mb-1`}>
             Passing Score (%)
           </label>
           <input
             type="number"
-            className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
+            className={styles.input}
             value={quiz.passing_score || ''}
             onChange={(e) => handleChange('passing_score', parseFloat(e.target.value))}
             min="0"
@@ -363,11 +366,11 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       </div>
 
       <div>
-        <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-1`}>
+        <label className={`${styles.text.formLabel} mb-1`}>
           Filter Categories by Section
         </label>
         <select
-          className={`w-full py-2 px-3 border ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-900'} rounded-md`}
+          className={styles.input}
           value={selectedSectionId || ''}
           onChange={(e) => setSelectedSectionId(e.target.value || null)}
           disabled={isLoading}
@@ -385,7 +388,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       <div className={`grid gap-6 ${quiz.id && (quiz.is_practice || quiz.has_practice_mode) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
         {/* Select Categories */}
         <div>
-          <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
+          <label className={`${styles.text.formLabel} mb-2`}>
             Select Categories
           </label>
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
@@ -416,7 +419,7 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
         {/* Content Linking Section */}
         {(quiz.is_practice || quiz.has_practice_mode) && (
           <div>
-            <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>
+            <label className={`${styles.text.formLabel} mb-2`}>
               Link Content
             </label>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
@@ -485,6 +488,25 @@ const QuizMetadataForm = ({ quiz, onChange, isLoading }) => {
       </div>
     </div>
   );
+});
+
+QuizMetadataForm.displayName = 'QuizMetadataForm';
+
+QuizMetadataForm.propTypes = {
+  quiz: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    category_ids: PropTypes.arrayOf(PropTypes.string),
+    time_limit: PropTypes.number,
+    passing_score: PropTypes.number,
+    is_practice: PropTypes.bool,
+    has_practice_mode: PropTypes.bool,
+    randomize_questions: PropTypes.bool,
+    randomize_answers: PropTypes.bool
+  }).isRequired,
+  onChange: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool
 };
 
 export default QuizMetadataForm;

@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { questionsService } from '../../services/api/questions';
 import { categoriesService } from '../../services/api/categories';
 import { quizzesService } from '../../services/api/quizzes';
+import { hexToRgba } from '../../utils/colorUtils';
 import QuestionForm from './QuestionForm';
 import ConfirmationDialog from '../common/ConfirmationDialog';
 import {
@@ -23,19 +25,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { FaBars } from 'react-icons/fa';
 
-// Helper function to convert hex to rgba
-const hexToRgba = (hex, alpha) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return `rgba(15, 118, 110, ${alpha})`; // fallback to default teal
-
-  const r = parseInt(result[1], 16);
-  const g = parseInt(result[2], 16);
-  const b = parseInt(result[3], 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
-const QuestionManager = ({ quiz, onChange, isLoading }) => {
+const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
 
@@ -50,12 +40,12 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
   const [questionQuizMap, setQuestionQuizMap] = useState({});
 
   // Scroll position preservation - use refs to store positions
-  const scrollPositionsRef = React.useRef({
+  const scrollPositionsRef = useRef({
     selectedQuestions: 0,
     availableQuestions: 0
   });
-  const selectedQuestionsRef = React.useRef(null);
-  const availableQuestionsRef = React.useRef(null);
+  const selectedQuestionsRef = useRef(null);
+  const availableQuestionsRef = useRef(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -66,7 +56,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
   );
 
   // Handle drag end for reordering questions
-  const handleDragEnd = (event) => {
+  const handleDragEnd = useCallback((event) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -82,7 +72,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
         });
       }
     }
-  };
+  }, [quiz, onChange]);
 
   // Fetch questions for selected categories
   useEffect(() => {
@@ -189,7 +179,7 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
   };
 
   // Handle adding a question to the quiz
-  const handleAddQuestion = (questionId) => {
+  const handleAddQuestion = useCallback((questionId) => {
     const existingIds = getQuestionIdsFromQuiz();
     if (!existingIds.includes(questionId)) {
       onChange({
@@ -197,16 +187,16 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
         questions: [...existingIds, questionId]
       });
     }
-  };
+  }, [quiz, onChange]);
 
   // Handle removing a question from the quiz
-  const handleRemoveQuestion = (questionId) => {
+  const handleRemoveQuestion = useCallback((questionId) => {
     const existingIds = getQuestionIdsFromQuiz();
     onChange({
       ...quiz,
       questions: existingIds.filter(id => id !== questionId)
     });
-  };
+  }, [quiz, onChange]);
 
   // Check if a question is included in the quiz
   const isQuestionIncluded = (questionId) => {
@@ -780,6 +770,25 @@ const QuestionManager = ({ quiz, onChange, isLoading }) => {
       />
     </div>
   );
+});
+
+QuestionManager.displayName = 'QuestionManager';
+
+QuestionManager.propTypes = {
+  quiz: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    category_ids: PropTypes.arrayOf(PropTypes.string).isRequired,
+    questions: PropTypes.arrayOf(PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        id: PropTypes.string.isRequired
+      })
+    ])).isRequired,
+    randomize_questions: PropTypes.bool
+  }).isRequired,
+  onChange: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool
 };
 
 export default QuestionManager;

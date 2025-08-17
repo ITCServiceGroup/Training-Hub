@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quizzesService } from '../../services/api/quizzes';
@@ -33,7 +34,7 @@ const getInitialQuizState = () => {
 };
 
 
-const QuizBuilderPage = () => {
+const QuizBuilderPage = memo(() => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { quizId } = useParams();
@@ -71,7 +72,7 @@ const QuizBuilderPage = () => {
   }, [quizId]);
 
   // Handle saving the quiz
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -96,34 +97,34 @@ const QuizBuilderPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [quiz, quizId, navigate, showToast]);
 
   // Update quiz data
-  const handleQuizChange = (updatedQuiz) => {
+  const handleQuizChange = useCallback((updatedQuiz) => {
     setQuiz(updatedQuiz);
-  };
+  }, []);
 
   // Check for unsaved changes
-  const hasUnsavedChanges = () => {
+  const hasUnsavedChanges = useCallback(() => {
     if (!initialQuizState) return false; // No initial state to compare against (e.g., creating new)
     // Simple JSON string comparison for deep equality check
     return JSON.stringify(quiz) !== JSON.stringify(initialQuizState);
-  };
+  }, [quiz, initialQuizState]);
 
   // Handle navigation back to the quiz list
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (hasUnsavedChanges()) {
       setIsConfirmModalOpen(true); // Open the modal instead of window.confirm
     } else {
       navigate('/admin/quizzes');
     }
-  };
+  }, [hasUnsavedChanges, navigate]);
 
   // Action to take when confirming leave in modal
-  const confirmLeave = () => {
+  const confirmLeave = useCallback(() => {
     setIsConfirmModalOpen(false);
     navigate('/admin/quizzes');
-  };
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -255,6 +256,8 @@ const QuizBuilderPage = () => {
       />
     </div>
   );
-};
+});
+
+QuizBuilderPage.displayName = 'QuizBuilderPage';
 
 export default QuizBuilderPage;
