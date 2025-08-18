@@ -469,17 +469,12 @@
 
 /* Renderer styles */
 .craftjs-renderer {
-  background-color: #f9fafb;
   min-height: 500px;
   overflow-y: auto !important; /* Ensure vertical scrolling is enabled */
   overflow-x: hidden !important; /* Prevent horizontal scrolling */
   height: 100% !important; /* Take full height of parent */
   position: relative !important; /* Required for scroll calculations */
   scroll-behavior: smooth; /* Enable smooth scrolling */
-}
-
-.dark .craftjs-renderer {
-  background-color: #1e293b;
 }
 
 /* Component Selection and Hover Styles - Based on Craft.js Landing Example */

@@ -19,7 +19,7 @@ export const Viewport = ({ children }) => {
         <div className="page-container flex flex-1 h-full flex-col overflow-hidden">
           <Header />
           <div
-            className={`craftjs-renderer flex-1 w-full transition overflow-auto ${enabled ? 'bg-gray-100 dark:bg-slate-800' : ''}`}
+            className="craftjs-renderer flex-1 w-full transition overflow-auto bg-gray-100 dark:bg-slate-800"
             ref={(ref) => {
               connectors.select(connectors.hover(ref, null), null);
             }}
