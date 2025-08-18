@@ -127,6 +127,8 @@ export const Container = (props) => {
   }));
 
   const isContainer = data.custom?.isCanvas;
+  // Determine if the container already renders a real border
+  const hasBorder = borderStyle !== 'none' && (parseInt(borderWidth) || 0) > 0;
 
   // Simple debug log function - disabled to reduce console noise
   const debug = false; // process.env.NODE_ENV === 'development';
@@ -291,7 +293,7 @@ export const Container = (props) => {
       >
         <div
           data-can-drop={isContainer && isDragged ? 'true' : undefined}
-          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''} ${flexDirection === 'row' ? 'craft-container-horizontal' : ''} ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
+          className={`craft-container ${isContainer ? 'is-canvas' : ''} ${isDragged ? 'is-dragging' : ''} ${flexDirection === 'row' ? 'craft-container-horizontal' : ''} ${hasBorder ? 'has-border' : ''} ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
           style={{
             display: 'flex',
             justifyContent,

@@ -490,6 +490,19 @@
 }
 
 /* Border style for all selected components using ::after pseudo-element */
+/* Avoid double border on containers that already draw their own border */
+.craft-container.has-border.component-selected::after,
+.craft-container.has-border.component-hovered::after {
+  display: none !important; /* Hide inner dashed pseudo-border */
+}
+
+/* Use outline instead so selection is still visible on bordered containers */
+.craft-container.has-border.component-selected,
+.craft-container.has-border.component-hovered {
+  outline: 2px dashed var(--color-primary) !important;
+  outline-offset: -2px; /* keep it tight against the element border */
+}
+
 .component-selected::after {
   content: ' ';
   border: 2px dashed var(--color-primary); /* Use dynamic primary color */
@@ -887,7 +900,7 @@
 /* Dark mode styling for container */
 .dark .craft-container.component-selected::after {
   border: 2px dashed var(--color-primary) !important;
-  box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.5);
+  box-shadow: none !important; /* Remove outer glow around selection */
 }
 
 .dark .craft-container.component-hovered::after {

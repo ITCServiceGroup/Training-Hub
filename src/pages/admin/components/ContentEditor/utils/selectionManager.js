@@ -26,6 +26,14 @@ export const createSelectionManager = (query, actions, selectedStudyGuide) => {
     const { nodeId } = loadSelectedNode(studyGuideId);
     if (!nodeId) return false;
 
+    // Do not override an existing selection
+    try {
+      const selectedNodes = query.getState().events.selected;
+      if (selectedNodes && selectedNodes.size > 0) {
+        return false;
+      }
+    } catch (_) {}
+
     console.log('ContentEditor: Attempting to restore selection for node:', nodeId);
     isRestoringSelectionRef.current = true;
 
@@ -97,17 +105,12 @@ export const createSelectionManager = (query, actions, selectedStudyGuide) => {
 
     try {
       const selectedNodes = query.getState().events.selected;
-      const isCurrentlySelected = selectedNodes.has(nodeId);
 
-      // If we have a saved selection but nothing is currently selected,
-      // and we're not in the middle of restoring, try to restore again
-      if (!isCurrentlySelected && !isRestoringSelectionRef.current) {
+      // Only attempt to restore if NOTHING is selected
+      if (selectedNodes.size === 0 && !isRestoringSelectionRef.current) {
         const timeSinceLastChange = Date.now() - lastSelectionChangeRef.current;
-
-        // Only restore if enough time has passed since the last change
-        // to avoid interfering with legitimate deselections
         if (timeSinceLastChange > 2000) {
-          console.log('ContentEditor: Detected unexpected deselection, attempting restore');
+          console.log('ContentEditor: No selection detected, attempting restore');
           restoreSelection(studyGuideId);
         }
       }
@@ -129,10 +132,15 @@ export const createSelectionManager = (query, actions, selectedStudyGuide) => {
           saveSelectedNode(studyGuideId, Array.from(selectedNodes)[0], { fromVisibilityChange: true });
         }
       } else {
-        console.log('ContentEditor: Page visible, restoring selection');
-        // Add a small delay to ensure the page is fully loaded
+        // Only restore if nothing is currently selected
         setTimeout(async () => {
-          await restoreSelection(studyGuideId);
+          try {
+            const selectedNodes = query.getState().events.selected;
+            if (selectedNodes.size === 0) {
+              console.log('ContentEditor: Page visible, restoring selection');
+              await restoreSelection(studyGuideId);
+            }
+          } catch (_) {}
         }, 100);
       }
     };
@@ -144,10 +152,15 @@ export const createSelectionManager = (query, actions, selectedStudyGuide) => {
    */
   const createFocusHandler = (studyGuideId) => {
     return async () => {
-      console.log('ContentEditor: Window focused, restoring selection');
-      // Add a small delay to ensure focus is fully established
+      // Only restore if nothing is currently selected
       setTimeout(async () => {
-        await restoreSelection(studyGuideId);
+        try {
+          const selectedNodes = query.getState().events.selected;
+          if (selectedNodes.size === 0) {
+            console.log('ContentEditor: Window focused, restoring selection');
+            await restoreSelection(studyGuideId);
+          }
+        } catch (_) {}
       }, 50);
     };
   };
