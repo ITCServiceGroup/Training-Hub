@@ -2,8 +2,6 @@ import { useEditor } from '@craftjs/core';
 import { createElement } from 'react';
 import classNames from 'classnames';
 
-import { SidebarItem } from './SidebarItem';
-
 export const Sidebar = () => {
   const { active, related, enabled } = useEditor((state, query) => {
     // Get the currently selected node id

@@ -1,5 +1,5 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FaFont, FaSquare, FaImage, FaStar, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns, FaRegStar, FaListOl, FaIdCard, FaMousePointer, FaGripLines } from 'react-icons/fa';
 import { HiViewColumns } from 'react-icons/hi2';
@@ -54,7 +54,7 @@ export const Toolbox = () => {
   }));
 
   // Create component map
-  const componentMap = createComponentMap({
+  const componentMap = useMemo(() => createComponentMap({
     Container,
     Text,
     Image,
@@ -65,10 +65,10 @@ export const Toolbox = () => {
     CollapsibleSection,
     Tabs,
     HorizontalLine
-  });
+  }), []);
 
   // Icon component map
-  const iconMap = {
+  const iconMap = useMemo(() => ({
     FaFont,
     FaSquare,
     FaImage,
@@ -87,7 +87,7 @@ export const Toolbox = () => {
     Columns2Icon,
     Columns3Icon,
     Columns4Icon
-  };
+  }), []);
   // Portal state for 3/4 column hover menu
   const [showPortal, setShowPortal] = useState(false);
   const [portalStyle, setPortalStyle] = useState({ left: 0, top: 0 });

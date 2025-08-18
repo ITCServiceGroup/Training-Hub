@@ -10,14 +10,12 @@ export const Header = () => {
     canRedo: query.history.canRedo(),
   }));
 
-  const [showPreview, setShowPreview] = useState(false);
   const [showJSON, setShowJSON] = useState(false);
 
   const togglePreview = () => {
     actions.setOptions((options) => {
       options.enabled = !options.enabled;
     });
-    setShowPreview(!showPreview);
   };
 
   const copyJSON = () => {
@@ -36,7 +34,6 @@ export const Header = () => {
     setShowJSON(!showJSON);
   };
 
-  // Reset Editor functionality removed
 
   return (
     <div className="header bg-white dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between h-12 px-4">
@@ -112,7 +109,6 @@ export const Header = () => {
         >
           <FaCopy size={14} />
         </button>
-        {/* Reset Editor button removed */}
       </div>
 
       {showJSON && (
