@@ -151,26 +151,26 @@
 
 /* Position the handles */
 .craft-container .container-handle-tl {
-  top: -7px;
-  left: -7px;
+  top: -4px;
+  left: -4px;
   cursor: nw-resize;
 }
 
 .craft-container .container-handle-tr {
-  top: -7px;
-  right: -7px;
+  top: -4px;
+  right: -4px;
   cursor: ne-resize;
 }
 
 .craft-container .container-handle-bl {
-  bottom: -7px;
-  left: -7px;
+  bottom: -4px;
+  left: -4px;
   cursor: sw-resize;
 }
 
 .craft-container .container-handle-br {
-  bottom: -7px;
-  right: -7px;
+  bottom: -4px;
+  right: -4px;
   cursor: se-resize;
 }
 

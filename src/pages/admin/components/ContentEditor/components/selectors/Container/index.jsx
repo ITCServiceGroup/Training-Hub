@@ -246,6 +246,7 @@ export const Container = (props) => {
       <Resizer
         ref={containerRef}
         propKey={{ width: 'width', height: 'height' }}
+        hideOverlayHandles={true}
         style={{
           position: 'relative',
           display: 'flex',

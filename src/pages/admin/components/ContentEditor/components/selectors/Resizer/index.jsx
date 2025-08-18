@@ -13,7 +13,7 @@ import {
 } from '../../../utils/numToMeasurement';
 
 // Convert to forwardRef to properly handle refs
-export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, forwardedRef) => {
+export const Resizer = forwardRef(({ propKey, children, onResize, hideOverlayHandles = false, ...props }, forwardedRef) => {
   const {
     id,
     actions,
@@ -241,9 +241,9 @@ export const Resizer = forwardRef(({ propKey, children, onResize, ...props }, fo
       }}>
         {children}
       </div>
-      {active && !props.className?.includes('craft-table') && !props.className?.includes('craft-collapsible-section') && !props.className?.includes('craft-tabs') && (
+      {active && !hideOverlayHandles && !props.className?.includes('craft-table') && !props.className?.includes('craft-collapsible-section') && !props.className?.includes('craft-tabs') && (
         <>
-          {/* Corner resize handles */}
+          {/* Corner resize handles (visual only) */}
           <div style={{...handleStyles, top: '-5px', left: '-5px', cursor: 'nw-resize'}} />
           <div style={{...handleStyles, top: '-5px', right: '-5px', cursor: 'ne-resize'}} />
           <div style={{...handleStyles, bottom: '-5px', left: '-5px', cursor: 'sw-resize'}} />
