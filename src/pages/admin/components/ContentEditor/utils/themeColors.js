@@ -130,20 +130,6 @@ export const convertToThemeColor = (color, isDark, componentType = 'container') 
         a: alpha
       };
     }
-  }
-  // For text and icon colors, use specific conversion logic
-  else if (componentType === 'text' || componentType === 'icon') {
-    // For dark text/icon in light mode, convert to light text/icon in dark mode
-    const isDarkColor = color.r < 100 && color.g < 100 && color.b < 100;
-    if (isDark && isDarkColor) {
-      return { r: 229, g: 231, b: 235, a: alpha }; // Light gray for dark mode
-    }
-
-    // For light text/icon in dark mode, convert to dark text/icon in light mode
-    const isLightColor = color.r > 200 && color.g > 200 && color.b > 200;
-    if (!isDark && isLightColor) {
-      return { r: 92, g: 90, b: 90, a: alpha }; // Dark gray for light mode
-    }
   } else {
     // For container and other components
     // Skip the early returns for background colors to allow our improved algorithm
@@ -311,25 +297,10 @@ export const convertToThemeColor = (color, isDark, componentType = 'container') 
 
 // Get the appropriate color for the current theme
 export const getThemeColor = (colors, isDark, componentType, autoConvertColors = true) => {
-  // Special debugging for headerTextColor
-  const isHeaderTextColor = componentType === 'text' &&
-                           colors &&
-                           ((colors.light && colors.light.r === 0 && colors.light.g === 0 && colors.light.b === 0) ||
-                            (colors.dark && colors.dark.r === 229 && colors.dark.g === 231 && colors.dark.b === 235));
-
-  // Debug logging removed to reduce console noise
-  // if (isHeaderTextColor) {
-  //   console.log('getThemeColor - headerTextColor detected:', JSON.stringify(colors));
-  //   console.log('isDark:', isDark, 'autoConvertColors:', autoConvertColors);
-  // }
 
   // If no colors provided, use defaults
   if (!colors) {
     const defaultColor = isDark ? darkDefaults[componentType] : lightDefaults[componentType];
-    // Debug logging removed to reduce console noise
-    // if (isHeaderTextColor) {
-    //   console.log('getThemeColor - using default color:', JSON.stringify(defaultColor));
-    // }
     return defaultColor;
   }
 
@@ -337,10 +308,6 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
     // If colors is a simple RGBA object, convert it to theme color
     if ('r' in colors) {
       const result = isDark && autoConvertColors ? convertToThemeColor(colors, true, componentType) : colors;
-      // Debug logging removed to reduce console noise
-      // if (isHeaderTextColor) {
-      //   console.log('getThemeColor - simple RGBA result:', JSON.stringify(result));
-      // }
       return result;
     }
 
@@ -355,10 +322,6 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
       if (typeof themeColor.b === 'undefined') themeColor.b = isDark ? darkDefaults[componentType].b : lightDefaults[componentType].b;
       if (typeof themeColor.a === 'undefined') themeColor.a = 1;
 
-      // Debug logging removed to reduce console noise
-      // if (isHeaderTextColor) {
-      //   console.log('getThemeColor - theme-specific result:', JSON.stringify(themeColor));
-      // }
       return themeColor;
     }
 
@@ -368,25 +331,13 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
         // In dark mode with only light color defined
         if (autoConvertColors) {
           const result = convertToThemeColor(colors.light, true, componentType);
-          // Debug logging removed to reduce console noise
-          // if (isHeaderTextColor) {
-          //   console.log('getThemeColor - light->dark conversion result:', JSON.stringify(result));
-          // }
           return result;
         } else {
           // If auto-convert is disabled, use default dark color
           const result = darkDefaults[componentType];
-          // Debug logging removed to reduce console noise
-          // if (isHeaderTextColor) {
-          //   console.log('getThemeColor - using dark default (auto-convert off):', JSON.stringify(result));
-          // }
           return result;
         }
       } else {
-        // Debug logging removed to reduce console noise
-        // if (isHeaderTextColor) {
-        //   console.log('getThemeColor - using light color directly:', JSON.stringify(colors.light));
-        // }
         return colors.light;
       }
     }
@@ -396,42 +347,22 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
         // In light mode with only dark color defined
         if (autoConvertColors) {
           const result = convertToThemeColor(colors.dark, false, componentType);
-          // Debug logging removed to reduce console noise
-          // if (isHeaderTextColor) {
-          //   console.log('getThemeColor - dark->light conversion result:', JSON.stringify(result));
-          // }
           return result;
         } else {
           // If auto-convert is disabled, use default light color
           const result = lightDefaults[componentType];
-          // Debug logging removed to reduce console noise
-          // if (isHeaderTextColor) {
-          //   console.log('getThemeColor - using light default (auto-convert off):', JSON.stringify(result));
-          // }
           return result;
         }
       } else {
-        // Debug logging removed to reduce console noise
-        // if (isHeaderTextColor) {
-        //   console.log('getThemeColor - using dark color directly:', JSON.stringify(colors.dark));
-        // }
         return colors.dark;
       }
     }
   } catch (error) {
     console.warn('Error in getThemeColor:', error);
-    // Debug logging removed to reduce console noise
-    // if (isHeaderTextColor) {
-    //   console.error('Error processing headerTextColor:', error);
-    // }
   }
 
   // Fallback to defaults
   const defaultColor = isDark ? darkDefaults[componentType] : lightDefaults[componentType];
-  // Debug logging removed to reduce console noise
-  // if (isHeaderTextColor) {
-  //   console.log('getThemeColor - using fallback default:', JSON.stringify(defaultColor));
-  // }
   return defaultColor;
 };
 
@@ -449,14 +380,14 @@ export const COLOR_CONFIGS = {
   ICON: {
     colorKeys: ['iconColor'],
     contextHints: {
-      iconColor: 'button'
+      iconColor: 'container'
     }
   },
   TEXT: {
     colorKeys: ['color', 'iconColor', 'shadow.color'],
     contextHints: {
-      color: 'text',
-      iconColor: 'icon',
+      color: 'container',
+      iconColor: 'container',
       'shadow.color': 'shadow'
     }
   },
