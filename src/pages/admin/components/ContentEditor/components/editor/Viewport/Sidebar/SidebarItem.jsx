@@ -1,5 +1,4 @@
 import { useEditor } from '@craftjs/core';
-import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 
 export const SidebarItem = ({ title, settings: Settings, isDeletable }) => {
@@ -9,10 +8,6 @@ export const SidebarItem = ({ title, settings: Settings, isDeletable }) => {
     };
   });
 
-  // Debug the settings
-  React.useEffect(() => {
-    console.log('SidebarItem settings:', { title, Settings, isDeletable });
-  }, [title, Settings, isDeletable]);
 
   return (
     <div className="sidebar-item mb-4">

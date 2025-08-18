@@ -1,5 +1,5 @@
 import { useEditor } from '@craftjs/core';
-import React from 'react';
+import { createElement } from 'react';
 import classNames from 'classnames';
 
 import { SidebarItem } from './SidebarItem';
@@ -42,7 +42,7 @@ export const Sidebar = () => {
         >
           {active && related && related.toolbar && (
             <div className="settings-toolbar" onClick={(e) => e.stopPropagation()}>
-              {React.createElement(related.toolbar)}
+              {createElement(related.toolbar)}
             </div>
           )}
           {!active && (

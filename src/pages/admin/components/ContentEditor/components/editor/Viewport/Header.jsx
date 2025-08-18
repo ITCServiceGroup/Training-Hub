@@ -1,5 +1,5 @@
 import { useEditor } from '@craftjs/core';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaUndo, FaRedo, FaEye, FaEyeSlash, FaCode, FaCopy } from 'react-icons/fa';
 import classNames from 'classnames';
 

@@ -1,5 +1,4 @@
 import { useEditor } from '@craftjs/core';
-import React from 'react';
 
 import { Toolbox } from './Toolbox';
 import { Sidebar } from './Sidebar';
