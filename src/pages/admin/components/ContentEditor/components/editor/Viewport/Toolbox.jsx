@@ -1,5 +1,6 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FaFont, FaSquare, FaImage, FaStar, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns, FaRegStar, FaListOl, FaIdCard, FaMousePointer, FaGripLines } from 'react-icons/fa';
 import { HiViewColumns } from 'react-icons/hi2';
 import { BsLayoutThreeColumns } from 'react-icons/bs';
@@ -16,7 +17,7 @@ import { CollapsibleSection } from '../../selectors/CollapsibleSection';
 import { Tabs } from '../../selectors/Tabs';
 import { HorizontalLine } from '../../selectors/HorizontalLine';
 import { BASIC_COMPONENTS, SMART_TEMPLATES } from '../../../utils/toolboxTemplates';
-import { generateBasicComponent, generateSmartTemplate, createComponentMap } from '../../../utils/templateGenerator.jsx';
+import { createComponentMap } from '../../../utils/templateGenerator.jsx';
 
 // Cohesive custom icons for 2/3/4 column templates
 const Columns2Icon = ({ size = 24, color = 'currentColor', ...props }) => (
@@ -87,6 +88,31 @@ export const Toolbox = () => {
     Columns3Icon,
     Columns4Icon
   };
+  // Portal state for 3/4 column hover menu
+  const [showPortal, setShowPortal] = useState(false);
+  const [portalStyle, setPortalStyle] = useState({ left: 0, top: 0 });
+  const twoColRef = useRef(null);
+  const portalContainerRef = useRef(null);
+  const closeTimerRef = useRef(null);
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+  const startCloseTimer = () => {
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => setShowPortal(false), 250);
+  };
+
+
+
+  // Prepare column smart templates (2/3/4) for grouped hover UI
+  const twoColumnTemplate = SMART_TEMPLATES.find(t => t.id === 'two-column');
+  const threeColumnTemplate = SMART_TEMPLATES.find(t => t.id === 'three-column');
+  const fourColumnTemplate = SMART_TEMPLATES.find(t => t.id === 'four-column');
+  const otherSmartTemplates = SMART_TEMPLATES.filter(t => !['two-column','three-column','four-column'].includes(t.id));
 
   // Render basic component
   const renderBasicComponent = (config) => {
@@ -187,8 +213,43 @@ export const Toolbox = () => {
           </div>
         </div>
 
-        {/* Smart Templates */}
-        {SMART_TEMPLATES.map(renderSmartTemplate)}
+        {/* Smart Templates (Columns grouped: 3/4 via portal on hover) */}
+        {twoColumnTemplate && (
+          <div
+            ref={twoColRef}
+            className="w-full flex flex-col items-center"
+            onMouseEnter={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setShowPortal(true);
+              setPortalStyle({ left: rect.right + 8, top: rect.top });
+            }}
+            onMouseLeave={() => {
+              // Delay closing to allow cursor to move into the portal without flicker
+              startCloseTimer();
+            }}
+          >
+            {renderSmartTemplate(twoColumnTemplate)}
+          </div>
+        )}
+
+        {/* Render remaining smart templates */}
+        {otherSmartTemplates.map(renderSmartTemplate)}
+
+        {/* Portal content */}
+        {showPortal && createPortal(
+          <div
+            ref={portalContainerRef}
+            style={{ position: 'fixed', left: portalStyle.left, top: portalStyle.top, zIndex: 9999 }}
+            className="flex gap-2"
+            onMouseEnter={() => clearCloseTimer()}
+            onMouseLeave={() => startCloseTimer()}
+          >
+            {threeColumnTemplate && renderSmartTemplate(threeColumnTemplate)}
+            {fourColumnTemplate && renderSmartTemplate(fourColumnTemplate)}
+          </div>,
+          document.body
+        )}
+
       </div>
     </div>
   );
