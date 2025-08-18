@@ -281,7 +281,7 @@ export const CollapsibleSectionSettings = () => {
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
     initializeComponentThemeColors(editorActions, id, isDark, 'COLLAPSIBLE_SECTION');
-  }, [editorActions, id, isDark]);
+  }, [editorActions, id]);
 
   // Legacy useEffect - TODO: Remove after migration verification
   useEffect(() => {
@@ -322,7 +322,7 @@ export const CollapsibleSectionSettings = () => {
 
       return updatedProps;
     });
-  }, [editorActions, id, isDark, themeColors]);
+  }, [editorActions, id, themeColors]);
 
   const handleColorChange = (colorKey, newColor) => {
     // Add debug logging for header text color changes
@@ -567,7 +567,7 @@ export const CollapsibleSectionSettings = () => {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={createAutoConvertHandler(actions, isDark, 'COLLAPSIBLE_SECTION')}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'COLLAPSIBLE_SECTION')(e.target.checked)}
                   className="mr-2 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <label

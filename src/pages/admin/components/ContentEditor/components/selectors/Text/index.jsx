@@ -495,7 +495,7 @@ export const Text = ({
               : `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
             color: (() => {
               try {
-                const textColor = getThemeColor(color, isDark, 'text');
+                const textColor = getThemeColor(color, isDark, 'text', autoConvertColors);
                 return `rgba(${textColor.r}, ${textColor.g}, ${textColor.b}, ${textColor.a})`;
               } catch (error) {
                 console.warn('Error generating text color:', error);

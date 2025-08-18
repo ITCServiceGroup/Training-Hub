@@ -33,7 +33,7 @@ export const IconSettings = () => {
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
     initializeComponentThemeColors(editorActions, id, isDark, 'ICON');
-  }, [editorActions, id, isDark]);
+  }, [editorActions, id]);
 
   const {
     iconName,
@@ -230,7 +230,7 @@ export const IconSettings = () => {
                   type="checkbox"
                   id="autoConvertColorsIcon"
                   checked={autoConvertColors}
-                  onChange={createAutoConvertHandler(actions, isDark, 'ICON')}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'ICON')(e.target.checked)}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColorsIcon" className="text-xs text-gray-700 dark:text-gray-300 mr-1">

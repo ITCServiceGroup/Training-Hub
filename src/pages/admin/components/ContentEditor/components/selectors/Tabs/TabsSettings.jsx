@@ -47,7 +47,7 @@ const {
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
     initializeComponentThemeColors(editorActions, id, isDark, 'TABS');
-  }, [editorActions, id, isDark]);
+  }, [editorActions, id]);
 
   const handleColorChange = (colorKey, newColor) => {
     actions.setProp((props) => {
@@ -257,7 +257,7 @@ const {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={createAutoConvertHandler(actions, isDark, 'TABS')}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'TABS')(e.target.checked)}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">

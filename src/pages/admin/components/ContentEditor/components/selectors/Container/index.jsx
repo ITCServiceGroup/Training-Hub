@@ -305,7 +305,7 @@ export const Container = (props) => {
             minHeight: height === 'auto' ? '50px' : 'auto', // Ensure minimum height for vertical alignment
             background: (() => {
               try {
-                const color = getThemeColor(backgroundProp, isDark, 'container');
+                const color = getThemeColor(backgroundProp, isDark, 'container', autoConvertColors);
                 return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
               } catch (error) {
                 console.warn('Error generating background color:', error);

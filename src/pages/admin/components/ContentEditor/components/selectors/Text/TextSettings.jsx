@@ -58,7 +58,7 @@ export const TextSettings = () => {
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
     initializeComponentThemeColors(editorActions, id, isDark, 'TEXT');
-  }, [editorActions, id, isDark]);
+  }, [editorActions, id]);
 
     const {
       fontSize,
@@ -569,7 +569,7 @@ export const TextSettings = () => {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={createAutoConvertHandler(actions, isDark, 'TEXT')}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'TEXT')(e.target.checked)}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">
