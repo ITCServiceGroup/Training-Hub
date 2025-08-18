@@ -483,7 +483,7 @@ export const SMART_TEMPLATES = [
   {
     id: 'two-column',
     title: 'Two Column Layout',
-    icon: 'FaColumns',
+    icon: 'Columns2Icon',
     children: [
       {
         component: 'Container',
@@ -562,7 +562,7 @@ export const SMART_TEMPLATES = [
   {
     id: 'three-column',
     title: 'Three Column Layout',
-    icon: 'BsLayoutThreeColumns',
+    icon: 'Columns3Icon',
     children: Array.from({ length: 3 }, (_, i) => ({
       component: 'Container',
       props: {
@@ -607,7 +607,7 @@ export const SMART_TEMPLATES = [
   {
     id: 'four-column',
     title: 'Four Column Layout',
-    icon: 'HiViewColumns',
+    icon: 'Columns4Icon',
     children: Array.from({ length: 4 }, (_, i) => ({
       component: 'Container',
       props: {

@@ -18,6 +18,32 @@ import { HorizontalLine } from '../../selectors/HorizontalLine';
 import { BASIC_COMPONENTS, SMART_TEMPLATES } from '../../../utils/toolboxTemplates';
 import { generateBasicComponent, generateSmartTemplate, createComponentMap } from '../../../utils/templateGenerator.jsx';
 
+// Cohesive custom icons for 2/3/4 column templates
+const Columns2Icon = ({ size = 24, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect x="3.5" y="4" width="7" height="16" rx="2" stroke={color} strokeWidth="2" />
+    <rect x="13.5" y="4" width="7" height="16" rx="2" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
+const Columns3Icon = ({ size = 24, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect x="2.5" y="4" width="5" height="16" rx="2" stroke={color} strokeWidth="2" />
+    <rect x="9.5" y="4" width="5" height="16" rx="2" stroke={color} strokeWidth="2" />
+    <rect x="16.5" y="4" width="5" height="16" rx="2" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
+const Columns4Icon = ({ size = 24, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    {/* Increased outer margins and gaps, slightly slimmer columns, smaller radius for clarity */}
+    <rect x="2.5" y="4" width="3.25" height="16" rx="1.5" stroke={color} strokeWidth="2" />
+    <rect x="7.75" y="4" width="3.25" height="16" rx="1.5" stroke={color} strokeWidth="2" />
+    <rect x="13" y="4" width="3.25" height="16" rx="1.5" stroke={color} strokeWidth="2" />
+    <rect x="18.25" y="4" width="3.25" height="16" rx="1.5" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
 export const Toolbox = () => {
   const {
     connectors: { create },
@@ -29,7 +55,7 @@ export const Toolbox = () => {
   // Create component map
   const componentMap = createComponentMap({
     Container,
-    Text, 
+    Text,
     Image,
     Icon,
     Button,
@@ -44,7 +70,7 @@ export const Toolbox = () => {
   const iconMap = {
     FaFont,
     FaSquare,
-    FaImage, 
+    FaImage,
     FaStar,
     FaPuzzlePiece,
     FaTable,
@@ -56,13 +82,16 @@ export const Toolbox = () => {
     FaMousePointer,
     FaGripLines,
     BsLayoutThreeColumns,
-    HiViewColumns
+    HiViewColumns,
+    Columns2Icon,
+    Columns3Icon,
+    Columns4Icon
   };
 
   // Render basic component
   const renderBasicComponent = (config) => {
     const IconComponent = iconMap[config.icon];
-    const Component = componentMap[config.id] || componentMap[config.id.replace('-', '')];  
+    const Component = componentMap[config.id] || componentMap[config.id.replace('-', '')];
 
     if (!Component) {
       console.warn(`Component '${config.id}' not found`);
