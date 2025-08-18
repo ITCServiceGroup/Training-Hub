@@ -482,6 +482,9 @@ Container.craft = {
     borderColor: defaultProps.borderColor,
     // Handle backward compatibility by converting single color to theme-aware format
     get background() {
+      if (defaultProps.background.light && defaultProps.background.dark) {
+        return defaultProps.background;
+      }
       const lightColor = defaultProps.background.light;
       return {
         light: lightColor,

@@ -21,9 +21,10 @@ export const ContainerSettings = () => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   // Initialize theme colors for existing components when first loaded
-  useEffect(() => {
-    initializeComponentThemeColors(editorActions, id, isDark, 'CONTAINER');
-  }, [editorActions, id]);
+  // COMMENTED OUT: Container already has proper theme-aware default props
+  // useEffect(() => {
+  //   initializeComponentThemeColors(editorActions, id, isDark, 'CONTAINER');
+  // }, [editorActions, id]);
 
   const {
     background,

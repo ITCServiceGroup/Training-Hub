@@ -279,9 +279,10 @@ export const CollapsibleSectionSettings = () => {
   });
 
   // Initialize theme colors for existing components when first loaded
-  useEffect(() => {
-    initializeComponentThemeColors(editorActions, id, isDark, 'COLLAPSIBLE_SECTION');
-  }, [editorActions, id]);
+  // COMMENTED OUT: CollapsibleSection already has proper theme-aware default props
+  // useEffect(() => {
+  //   initializeComponentThemeColors(editorActions, id, isDark, 'COLLAPSIBLE_SECTION');
+  // }, [editorActions, id]);
 
   // Legacy useEffect - TODO: Remove after migration verification
   useEffect(() => {

@@ -45,9 +45,10 @@ const {
   }));
 
   // Initialize theme colors for existing components when first loaded
-  useEffect(() => {
-    initializeComponentThemeColors(editorActions, id, isDark, 'TABS');
-  }, [editorActions, id]);
+  // COMMENTED OUT: Tabs already has proper theme-aware default props
+  // useEffect(() => {
+  //   initializeComponentThemeColors(editorActions, id, isDark, 'TABS');
+  // }, [editorActions, id]);
 
   const handleColorChange = (colorKey, newColor) => {
     actions.setProp((props) => {
