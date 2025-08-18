@@ -434,3 +434,250 @@ export const getThemeColor = (colors, isDark, componentType, autoConvertColors =
   // }
   return defaultColor;
 };
+
+// Component color configurations for ensureThemeColors function
+export const COLOR_CONFIGS = {
+  BUTTON: {
+    colorKeys: ['background', 'color', 'hoverBackground', 'hoverColor'],
+    contextHints: {
+      background: 'button',
+      color: 'text',
+      hoverBackground: 'button',
+      hoverColor: 'text'
+    }
+  },
+  ICON: {
+    colorKeys: ['iconColor'],
+    contextHints: {
+      iconColor: 'button'
+    }
+  },
+  TEXT: {
+    colorKeys: ['color', 'iconColor', 'shadow.color'],
+    contextHints: {
+      color: 'text',
+      iconColor: 'icon',
+      'shadow.color': 'shadow'
+    }
+  },
+  TABLE: {
+    colorKeys: ['borderColor', 'headerBackgroundColor', 'alternateRowColor', 'linkColor', 'linkHoverColor'],
+    contextHints: {
+      borderColor: 'container',
+      headerBackgroundColor: 'container',
+      alternateRowColor: 'container',
+      linkColor: 'text',
+      linkHoverColor: 'text'
+    },
+    defaultValues: {
+      borderColor: {
+        light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
+        dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
+      },
+      headerBackgroundColor: {
+        light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
+        dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
+      },
+      alternateRowColor: {
+        light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
+        dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
+      },
+      linkColor: {
+        light: { r: 59, g: 130, b: 246, a: 1 }, // #3b82f6
+        dark: { r: 96, g: 165, b: 250, a: 1 } // #60a5fa
+      },
+      linkHoverColor: {
+        light: { r: 29, g: 78, b: 216, a: 1 }, // #1d4ed8
+        dark: { r: 59, g: 130, b: 246, a: 1 } // #3b82f6
+      }
+    }
+  },
+  CONTAINER: {
+    colorKeys: ['background', 'borderColor'],
+    contextHints: {
+      background: 'container',
+      borderColor: 'container'
+    }
+  },
+  TABS: {
+    colorKeys: ['background', 'color', 'activeBackground', 'activeColor', 'borderColor'],
+    contextHints: {
+      background: 'container',
+      color: 'text',
+      activeBackground: 'container',
+      activeColor: 'text',
+      borderColor: 'container'
+    }
+  },
+  COLLAPSIBLE_SECTION: {
+    colorKeys: ['background', 'color', 'headerBackground', 'headerTextColor', 'stepButtonColor', 'stepIndicatorColor'],
+    contextHints: {
+      background: 'container',
+      color: 'text',
+      headerBackground: 'container',
+      headerTextColor: 'text',
+      stepButtonColor: 'button',
+      stepIndicatorColor: 'button'
+    }
+  },
+  HORIZONTAL_LINE: {
+    colorKeys: ['color'],
+    contextHints: {
+      color: 'container'
+    },
+    defaultValues: {
+      color: {
+        light: { r: 156, g: 163, b: 175, a: 1 }, // gray-400
+        dark: { r: 107, g: 114, b: 128, a: 1 } // gray-500
+      }
+    }
+  },
+  IMAGE: {
+    colorKeys: ['border.color'],
+    contextHints: {
+      'border.color': 'container'
+    },
+    defaultValues: {
+      'border.color': {
+        light: { r: 0, g: 0, b: 0, a: 1 }, // black
+        dark: { r: 255, g: 255, b: 255, a: 1 } // white
+      }
+    }
+  }
+};
+
+// Unified function to ensure all component colors have both light and dark theme variants
+export const ensureThemeColors = (props, isDark, componentType, themeColors = null) => {
+  const config = COLOR_CONFIGS[componentType];
+  if (!config) {
+    console.warn(`ensureThemeColors: Unknown component type '${componentType}'`);
+    return props;
+  }
+
+  const currentTheme = isDark ? 'dark' : 'light';
+  const oppositeTheme = isDark ? 'light' : 'dark';
+
+  // Process each color property for this component type
+  config.colorKeys.forEach(colorKey => {
+    // Handle nested properties like 'shadow.color'
+    const keyParts = colorKey.split('.');
+    let target = props;
+    
+    // Navigate to the parent object for nested properties
+    for (let i = 0; i < keyParts.length - 1; i++) {
+      if (!target[keyParts[i]]) {
+        target[keyParts[i]] = {};
+      }
+      target = target[keyParts[i]];
+    }
+    
+    const finalKey = keyParts[keyParts.length - 1];
+    
+    // Skip if the property doesn't exist
+    if (!target[finalKey]) {
+      // Add default values for Table component if specified
+      if (config.defaultValues && config.defaultValues[colorKey]) {
+        target[finalKey] = { ...config.defaultValues[colorKey] };
+      }
+      return;
+    }
+
+    // Handle legacy format (single RGBA object) - convert to theme format
+    if ('r' in target[finalKey]) {
+      const oldColor = { ...target[finalKey] };
+      const contextHint = config.contextHints?.[colorKey] || 'container';
+      target[finalKey] = {
+        [currentTheme]: oldColor,
+        [oppositeTheme]: convertToThemeColor(oldColor, !isDark, contextHint)
+      };
+    }
+
+    // Ensure both light and dark properties exist
+    if (target[finalKey] && typeof target[finalKey] === 'object') {
+      if (!target[finalKey].light) {
+        if (config.defaultValues && config.defaultValues[colorKey]) {
+          target[finalKey].light = { ...config.defaultValues[colorKey].light };
+        } else {
+          // Generate light color from dark color if available
+          if (target[finalKey].dark) {
+            const contextHint = config.contextHints?.[colorKey] || 'container';
+            target[finalKey].light = convertToThemeColor(target[finalKey].dark, false, contextHint);
+          }
+        }
+      }
+
+      if (!target[finalKey].dark) {
+        if (config.defaultValues && config.defaultValues[colorKey]) {
+          target[finalKey].dark = { ...config.defaultValues[colorKey].dark };
+        } else {
+          // Generate dark color from light color if available
+          if (target[finalKey].light) {
+            const contextHint = config.contextHints?.[colorKey] || 'container';
+            target[finalKey].dark = convertToThemeColor(target[finalKey].light, true, contextHint);
+          }
+        }
+      }
+    }
+  });
+
+  return props;
+};
+
+// Helper function for standardized theme initialization in settings useEffect
+export const initializeComponentThemeColors = (editorActions, id, isDark, componentType, themeColors = null) => {
+  if (id && editorActions) {
+    try {
+      editorActions.history.ignore().setProp(id, (props) => {
+        return ensureThemeColors(props, isDark, componentType, themeColors);
+      });
+    } catch (error) {
+      console.warn(`${componentType}Settings: Error initializing theme colors:`, error);
+    }
+  }
+};
+
+// Helper function to create auto-convert checkbox change handler
+export const createAutoConvertHandler = (actions, isDark, componentType) => {
+  return (isChecked) => {
+    const config = COLOR_CONFIGS[componentType];
+    if (!config) {
+      console.warn(`createAutoConvertHandler: Unknown component type '${componentType}'`);
+      return;
+    }
+
+    actions.setProp((props) => {
+      props.autoConvertColors = isChecked;
+
+      const currentTheme = isDark ? 'dark' : 'light';
+      const oppositeTheme = isDark ? 'light' : 'dark';
+
+      // If turning auto-convert on, update all colors
+      if (isChecked) {
+        config.colorKeys.forEach(colorKey => {
+          // Handle nested properties like 'shadow.color'
+          const keyParts = colorKey.split('.');
+          let target = props;
+          
+          // Navigate to the target object for nested properties
+          for (let i = 0; i < keyParts.length - 1; i++) {
+            if (!target[keyParts[i]]) return; // Skip if parent doesn't exist
+            target = target[keyParts[i]];
+          }
+          
+          const finalKey = keyParts[keyParts.length - 1];
+          
+          if (target[finalKey] && target[finalKey][currentTheme]) {
+            const currentColor = target[finalKey][currentTheme];
+            const contextHint = config.contextHints?.[colorKey] || 'container';
+            target[finalKey][oppositeTheme] = convertToThemeColor(currentColor, !isDark, contextHint);
+          }
+        });
+      } else {
+        // When turning auto-convert off, ensure both theme colors exist
+        return ensureThemeColors(props, isDark, componentType);
+      }
+
+      return props;
+    });
+  };
+};

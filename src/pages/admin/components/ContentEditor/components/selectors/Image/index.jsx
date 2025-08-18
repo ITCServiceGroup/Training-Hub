@@ -2,6 +2,8 @@ import { useNode } from '@craftjs/core';
 import { Resizer } from '../Resizer';
 import React from 'react';
 import { ImageSettings } from './ImageSettings';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor } from '../../../utils/themeColors';
 
 export const Image = ({
   src = 'https://placehold.co/300x200',
@@ -27,8 +29,12 @@ export const Image = ({
     color: { r: 0, g: 0, b: 0, a: 0.15 }
   },
   backgroundColor = { r: 255, g: 255, b: 255, a: 0 },
-  aspectRatio = 'auto'
+  aspectRatio = 'auto',
+  autoConvertColors = true
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
   const {
     connectors: { connect, drag },
     selected,
@@ -38,8 +44,11 @@ export const Image = ({
     hovered: node.events.hovered
   }));
 
+  // Get the appropriate border color for the current theme
+  const borderColor = getThemeColor(border.color, isDark, 'container', autoConvertColors);
+  
   const borderStyle = border.style !== 'none'
-    ? `${border.width}px ${border.style} rgba(${Object.values(border.color)})`
+    ? `${border.width}px ${border.style} rgba(${Object.values(borderColor)})`
     : 'none';
 
   const shadowStyle = shadow.enabled
@@ -143,7 +152,10 @@ Image.craft = {
     border: {
       style: 'none',
       width: 0,
-      color: { r: 0, g: 0, b: 0, a: 1 }
+      color: {
+        light: { r: 0, g: 0, b: 0, a: 1 },
+        dark: { r: 255, g: 255, b: 255, a: 1 }
+      }
     },
     objectFit: 'none',
     shadow: {
@@ -155,7 +167,8 @@ Image.craft = {
       color: { r: 0, g: 0, b: 0, a: 0.15 }
     },
     backgroundColor: { r: 255, g: 255, b: 255, a: 0 },
-    aspectRatio: 'auto'
+    aspectRatio: 'auto',
+    autoConvertColors: true
   },
   rules: {
     canDrag: () => true,

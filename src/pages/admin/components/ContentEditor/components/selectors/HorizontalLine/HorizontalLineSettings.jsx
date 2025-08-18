@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
-import { useNode } from '@craftjs/core';
+import React, { useState, useEffect } from 'react';
+import { useNode, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
+import { getThemeColor, convertToThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 import { FaChevronDown } from 'react-icons/fa';
 
 export const HorizontalLineSettings = () => {
-  const { actions } = useNode((node) => ({
-    props: node.data.props
+  const { actions, id } = useNode((node) => ({
+    id: node.id
   }));
-
+  const { actions: editorActions } = useEditor();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   // Collapsible sections state
   const [showAppearance, setShowAppearance] = useState(true);
   const [showSpacing, setShowSpacing] = useState(false);
+
+  // Initialize theme colors for existing components when first loaded
+  useEffect(() => {
+    initializeComponentThemeColors(editorActions, id, isDark, 'HORIZONTAL_LINE');
+  }, [editorActions, id, isDark]);
 
   const {
     width,
@@ -154,6 +159,22 @@ export const HorizontalLineSettings = () => {
               </div>
             </div>
 
+            {/* Auto Convert Colors Toggle */}
+            <div className="mb-3">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="autoConvertColors"
+                  checked={autoConvertColors}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'HORIZONTAL_LINE')(e.target.checked)}
+                  className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
+                />
+                <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300">
+                  Auto convert colors between light and dark mode
+                </label>
+              </div>
+            </div>
+
             {/* Color */}
             <div className="mb-3">
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -161,7 +182,7 @@ export const HorizontalLineSettings = () => {
               </label>
               <div className="flex items-center">
                 <ColorPicker
-                  color={getThemeColor(colorProp, isDark, 'line')}
+                  color={getThemeColor(colorProp, isDark, 'container', autoConvertColors)}
                   onChange={(newColor) => {
                     actions.setProp((props) => {
                       // Ensure color has the expected structure
@@ -177,23 +198,80 @@ export const HorizontalLineSettings = () => {
                         const oldColor = { ...props.color };
                         props.color = {
                           light: oldColor,
-                          dark: convertToThemeColor(oldColor, true, 'line')
+                          dark: convertToThemeColor(oldColor, true, 'container')
                         };
                       }
 
-                      // Update the appropriate theme color
-                      if (isDark) {
-                        props.color.dark = newColor;
+                      // Ensure both light and dark properties exist
+                      if (!props.color.light) {
+                        props.color.light = { r: 156, g: 163, b: 175, a: 1 };
+                      }
+                      if (!props.color.dark) {
+                        props.color.dark = { r: 107, g: 114, b: 128, a: 1 };
+                      }
+
+                      const currentTheme = isDark ? 'dark' : 'light';
+                      const oppositeTheme = isDark ? 'light' : 'dark';
+
+                      if (props.autoConvertColors) {
+                        // Auto-convert the color for the opposite theme
+                        const oppositeColor = convertToThemeColor(newColor, !isDark, 'container');
+                        props.color = {
+                          ...props.color,
+                          [currentTheme]: newColor,
+                          [oppositeTheme]: oppositeColor
+                        };
                       } else {
-                        props.color.light = newColor;
+                        // Only update the current theme's color
+                        props.color = {
+                          ...props.color,
+                          [currentTheme]: newColor
+                        };
                       }
                     });
                   }}
                 />
               </div>
+
+              {!autoConvertColors && (
+                <div className="mt-3">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                  </label>
+                  <div className="flex items-center">
+                    <ColorPicker
+                      color={(() => {
+                        try {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+                          return colorProp[oppositeTheme] || { r: 156, g: 163, b: 175, a: 1 };
+                        } catch (e) {
+                          return { r: 156, g: 163, b: 175, a: 1 };
+                        }
+                      })()}
+                      onChange={(newColor) => {
+                        actions.setProp((props) => {
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+
+                          // Ensure color has the expected structure
+                          if (!props.color) {
+                            props.color = {
+                              light: { r: 156, g: 163, b: 175, a: 1 },
+                              dark: { r: 107, g: 114, b: 128, a: 1 }
+                            };
+                          }
+
+                          props.color = {
+                            ...props.color,
+                            [oppositeTheme]: newColor
+                          };
+                        });
+                      }}
+                      componentType="container"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-
-
 
             {/* Alignment */}
             <div className="mb-3">

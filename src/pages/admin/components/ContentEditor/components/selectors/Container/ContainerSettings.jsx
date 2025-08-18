@@ -1,80 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNode } from '@craftjs/core';
+import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown } from 'react-icons/fa';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
+import { getThemeColor, convertToThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
-// Helper function to ensure both theme colors exist
-const ensureThemeColors = (props, isDark) => {
-  const currentTheme = isDark ? 'dark' : 'light';
-  const oppositeTheme = isDark ? 'light' : 'dark';
-
-  // Ensure background color has both themes
-  if (props.background) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.background) {
-      const oldColor = { ...props.background };
-      props.background = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'container')
-      };
-    } else {
-      // If one theme is missing, generate it from the other
-      if (props.background[currentTheme] && !props.background[oppositeTheme]) {
-        props.background[oppositeTheme] = convertToThemeColor(props.background[currentTheme], !isDark, 'container');
-      } else if (props.background[oppositeTheme] && !props.background[currentTheme]) {
-        props.background[currentTheme] = convertToThemeColor(props.background[oppositeTheme], isDark, 'container');
-      }
-    }
-  }
-
-  // Ensure border color has both themes
-  if (props.borderColor) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.borderColor) {
-      const oldColor = { ...props.borderColor };
-      props.borderColor = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'container')
-      };
-    } else {
-      // If one theme is missing, generate it from the other
-      if (props.borderColor[currentTheme] && !props.borderColor[oppositeTheme]) {
-        props.borderColor[oppositeTheme] = convertToThemeColor(props.borderColor[currentTheme], !isDark, 'container');
-      } else if (props.borderColor[oppositeTheme] && !props.borderColor[currentTheme]) {
-        props.borderColor[currentTheme] = convertToThemeColor(props.borderColor[oppositeTheme], isDark, 'container');
-      }
-    }
-  }
-
-  // Ensure shadow color has both themes
-  if (props.shadow && props.shadow.color) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.shadow.color) {
-      const oldColor = { ...props.shadow.color };
-      props.shadow.color = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'shadow')
-      };
-    } else {
-      // If one theme is missing, generate it from the other
-      if (props.shadow.color[currentTheme] && !props.shadow.color[oppositeTheme]) {
-        props.shadow.color[oppositeTheme] = convertToThemeColor(props.shadow.color[currentTheme], !isDark, 'shadow');
-      } else if (props.shadow.color[oppositeTheme] && !props.shadow.color[currentTheme]) {
-        props.shadow.color[currentTheme] = convertToThemeColor(props.shadow.color[oppositeTheme], isDark, 'shadow');
-      }
-    }
-  }
-
-  return props;
-};
 
 export const ContainerSettings = () => {
-  const { actions } = useNode((node) => ({
-    selected: node.id,
+  const { actions, id } = useNode((node) => ({
+    id: node.id,
   }));
-
+  const { actions: editorActions } = useEditor();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -86,10 +22,8 @@ export const ContainerSettings = () => {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    actions.setProp((props) => {
-      return ensureThemeColors(props, isDark);
-    });
-  }, [actions, isDark]);
+    initializeComponentThemeColors(editorActions, id, isDark, 'CONTAINER');
+  }, [editorActions, id, isDark]);
 
   const {
     background,
@@ -322,41 +256,7 @@ export const ContainerSettings = () => {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    actions.setProp((props) => {
-                      props.autoConvertColors = isChecked;
-
-                      const currentTheme = isDark ? 'dark' : 'light';
-                      const oppositeTheme = isDark ? 'light' : 'dark';
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        // Update background color
-                        if (props.background && props.background[currentTheme]) {
-                          const currentColor = props.background[currentTheme];
-                          props.background[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'container');
-                        }
-
-                        // Update border color
-                        if (props.borderColor && props.borderColor[currentTheme]) {
-                          const currentBorderColor = props.borderColor[currentTheme];
-                          props.borderColor[oppositeTheme] = convertToThemeColor(currentBorderColor, !isDark, 'container');
-                        }
-
-                        // Update shadow color
-                        if (props.shadow && props.shadow.color && props.shadow.color[currentTheme]) {
-                          const currentShadowColor = props.shadow.color[currentTheme];
-                          props.shadow.color[oppositeTheme] = convertToThemeColor(currentShadowColor, !isDark, 'shadow');
-                        }
-                      } else {
-                        // When turning auto-convert off, ensure both theme colors exist
-                        return ensureThemeColors(props, isDark);
-                      }
-
-                      return props;
-                    });
-                  }}
+                  onChange={createAutoConvertHandler(actions, isDark, 'CONTAINER')}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">

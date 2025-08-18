@@ -6,11 +6,9 @@ import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor } from '../../../utils/themeColors';
 
 import { ButtonSettings } from './ButtonSettings';
-import { Text } from '../Text';
 
 export const Button = ({
   text = 'Button',
-  textComponent = {},
   color = {
     light: { r: 255, g: 255, b: 255, a: 1 },
     dark: { r: 255, g: 255, b: 255, a: 1 }

@@ -1,75 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNode } from '@craftjs/core';
+import { useNode, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
+import { getThemeColor, convertToThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import { FaChevronDown, FaListUl, FaListOl, FaTimes } from 'react-icons/fa';
 import { ICONS, ICON_CATEGORIES } from '@/components/icons';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
-// Helper function to ensure both theme colors exist
-const ensureThemeColors = (props, isDark) => {
-  const currentTheme = isDark ? 'dark' : 'light';
-  const oppositeTheme = isDark ? 'light' : 'dark';
-
-  // Ensure text color has both themes
-  if (props.color) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.color) {
-      const oldColor = { ...props.color };
-      props.color = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'text')
-      };
-    } else {
-      // If one theme is missing, generate it from the other
-      if (props.color[currentTheme] && !props.color[oppositeTheme]) {
-        props.color[oppositeTheme] = convertToThemeColor(props.color[currentTheme], !isDark, 'text');
-      } else if (props.color[oppositeTheme] && !props.color[currentTheme]) {
-        props.color[currentTheme] = convertToThemeColor(props.color[oppositeTheme], isDark, 'text');
-      }
-    }
-  }
-
-  // Ensure icon color has both themes
-  if (props.iconColor) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.iconColor) {
-      const oldColor = { ...props.iconColor };
-      props.iconColor = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'icon')
-      };
-    } else {
-      // If one theme is missing, generate it from the other
-      if (props.iconColor[currentTheme] && !props.iconColor[oppositeTheme]) {
-        props.iconColor[oppositeTheme] = convertToThemeColor(props.iconColor[currentTheme], !isDark, 'icon');
-      } else if (props.iconColor[oppositeTheme] && !props.iconColor[currentTheme]) {
-        props.iconColor[currentTheme] = convertToThemeColor(props.iconColor[oppositeTheme], isDark, 'icon');
-      }
-    }
-  }
-
-  // Ensure shadow color has both themes
-  if (props.shadow && props.shadow.color) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.shadow.color) {
-      const oldColor = { ...props.shadow.color };
-      props.shadow.color = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'shadow')
-      };
-    } else {
-      // If one theme is missing, generate it from the other
-      if (props.shadow.color[currentTheme] && !props.shadow.color[oppositeTheme]) {
-        props.shadow.color[oppositeTheme] = convertToThemeColor(props.shadow.color[currentTheme], !isDark, 'shadow');
-      } else if (props.shadow.color[oppositeTheme] && !props.shadow.color[currentTheme]) {
-        props.shadow.color[currentTheme] = convertToThemeColor(props.shadow.color[oppositeTheme], isDark, 'shadow');
-      }
-    }
-  }
-
-  return props;
-};
 
 // Helper function to check if text contains links
 const hasLinksInText = (text) => {
@@ -80,10 +16,10 @@ const hasLinksInText = (text) => {
 };
 
 export const TextSettings = () => {
-  const { actions } = useNode((node) => ({
-    selected: node.id,
+  const { actions, id } = useNode((node) => ({
+    id: node.id
   }));
-
+  const { actions: editorActions } = useEditor();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -121,10 +57,8 @@ export const TextSettings = () => {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    actions.setProp((props) => {
-      return ensureThemeColors(props, isDark);
-    });
-  }, [actions, isDark]);
+    initializeComponentThemeColors(editorActions, id, isDark, 'TEXT');
+  }, [editorActions, id, isDark]);
 
     const {
       fontSize,
@@ -635,41 +569,7 @@ export const TextSettings = () => {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    actions.setProp((props) => {
-                      props.autoConvertColors = isChecked;
-
-                      const currentTheme = isDark ? 'dark' : 'light';
-                      const oppositeTheme = isDark ? 'light' : 'dark';
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        // Update text color
-                        if (props.color && props.color[currentTheme]) {
-                          const currentColor = props.color[currentTheme];
-                          props.color[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'text');
-                        }
-
-                        // Update icon color
-                        if (props.iconColor && props.iconColor[currentTheme]) {
-                          const currentIconColor = props.iconColor[currentTheme];
-                          props.iconColor[oppositeTheme] = convertToThemeColor(currentIconColor, !isDark, 'icon');
-                        }
-
-                        // Update shadow color
-                        if (props.shadow && props.shadow.color && props.shadow.color[currentTheme]) {
-                          const currentShadowColor = props.shadow.color[currentTheme];
-                          props.shadow.color[oppositeTheme] = convertToThemeColor(currentShadowColor, !isDark, 'shadow');
-                        }
-                      } else {
-                        // When turning auto-convert off, ensure both theme colors exist
-                        return ensureThemeColors(props, isDark);
-                      }
-
-                      return props;
-                    });
-                  }}
+                  onChange={createAutoConvertHandler(actions, isDark, 'TEXT')}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">

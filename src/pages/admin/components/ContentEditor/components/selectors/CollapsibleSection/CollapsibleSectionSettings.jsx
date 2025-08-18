@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown, FaInfoCircle } from 'react-icons/fa';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
+import { convertToThemeColor, getThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
-// Helper function to ensure theme colors are properly initialized
-const ensureThemeColors = (props, isDark, themeColors) => {
+// Helper function to ensure theme colors are properly initialized (to be replaced with shared utility)
+const ensureThemeColorsLocal = (props, isDark, themeColors) => {
   // Helper to get theme primary color for a specific mode
   const getThemePrimaryColorForMode = (forDarkMode = false) => {
     try {
@@ -18,7 +18,7 @@ const ensureThemeColors = (props, isDark, themeColors) => {
       const b = parseInt(hex.substring(4, 6), 16);
       return { r, g, b, a: 1 };
     } catch (error) {
-      console.warn('Error getting theme primary color:', error);
+      // Error getting theme primary color, using fallback
       // Fallback to hardcoded primary color
       return forDarkMode ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 };
     }
@@ -26,8 +26,6 @@ const ensureThemeColors = (props, isDark, themeColors) => {
   const currentTheme = isDark ? 'dark' : 'light';
   const oppositeTheme = isDark ? 'light' : 'dark';
 
-  // Add debug logging for headerTextColor
-  console.log('ensureThemeColors - initial headerTextColor:', JSON.stringify(props.headerTextColor));
 
   // List of color properties to check and update
   const colorKeys = ['background', 'color', 'headerBackground', 'headerTextColor', 'stepButtonColor', 'stepIndicatorColor'];
@@ -149,12 +147,6 @@ const ensureThemeColors = (props, isDark, themeColors) => {
     }
   }
 
-  // Final check for headerTextColor to ensure it's properly set
-  if (props.headerTextColor) {
-    console.log('ensureThemeColors - final headerTextColor:', JSON.stringify(props.headerTextColor));
-  } else {
-    console.warn('ensureThemeColors - headerTextColor is still missing after initialization');
-  }
 
   return props;
 };
@@ -188,7 +180,7 @@ export const CollapsibleSectionSettings = () => {
       const b = parseInt(hex.substring(4, 6), 16);
       return { r, g, b, a: 1 };
     } catch (error) {
-      console.warn('Error getting theme primary color:', error);
+      // Error getting theme primary color, using fallback
       // Fallback to hardcoded primary color
       return forDarkMode ? { r: 20, g: 184, b: 166, a: 1 } : { r: 15, g: 118, b: 110, a: 1 };
     }
@@ -288,12 +280,14 @@ export const CollapsibleSectionSettings = () => {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
+    initializeComponentThemeColors(editorActions, id, isDark, 'COLLAPSIBLE_SECTION');
+  }, [editorActions, id, isDark]);
+
+  // Legacy useEffect - TODO: Remove after migration verification
+  useEffect(() => {
     // Use history.ignore to prevent automatic theme color initialization from being tracked in undo history
     editorActions.history.ignore().setProp(id, (props) => {
-      // Add console logging to debug header text color
-      console.log('Before ensureThemeColors - headerTextColor:', JSON.stringify(props.headerTextColor));
-      const updatedProps = ensureThemeColors(props, isDark, themeColors);
-      console.log('After ensureThemeColors - headerTextColor:', JSON.stringify(updatedProps.headerTextColor));
+      const updatedProps = ensureThemeColorsLocal(props, isDark, themeColors);
 
       // Also update step colors to use theme colors if they are using hardcoded defaults
       const isDefaultStepColor = (color) => {
@@ -573,48 +567,7 @@ export const CollapsibleSectionSettings = () => {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    actions.setProp((props) => {
-                      // Update the autoConvertColors flag
-                      props.autoConvertColors = isChecked;
-
-                      // When disabling auto-convert, make sure both light and dark theme colors are properly set
-                      if (!isChecked) {
-                        // Use the ensureThemeColors helper to ensure both light and dark colors are set
-                        return ensureThemeColors(props, isDark, themeColors);
-                      }
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        const currentTheme = isDark ? 'dark' : 'light';
-                        const oppositeTheme = isDark ? 'light' : 'dark';
-                        const colorKeys = ['background', 'color', 'headerBackground', 'headerTextColor'];
-
-                        colorKeys.forEach(colorKey => {
-                          // If the current theme color exists, update the opposite theme color
-                          if (props[colorKey] && props[colorKey][currentTheme]) {
-                            const currentColor = props[colorKey][currentTheme];
-                            props[colorKey][oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'container');
-                          }
-                        });
-
-                        // Handle border color
-                        if (props.border && props.border.color && props.border.color[currentTheme]) {
-                          const currentColor = props.border.color[currentTheme];
-                          props.border.color[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'container');
-                        }
-
-                        // Handle shadow color
-                        if (props.shadow && props.shadow.color && props.shadow.color[currentTheme]) {
-                          const currentColor = props.shadow.color[currentTheme];
-                          props.shadow.color[oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'shadow');
-                        }
-                      }
-
-                      return props;
-                    });
-                  }}
+                  onChange={createAutoConvertHandler(actions, isDark, 'COLLAPSIBLE_SECTION')}
                   className="mr-2 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <label

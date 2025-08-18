@@ -1,143 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNode } from '@craftjs/core';
+import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown } from 'react-icons/fa';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
+import { convertToThemeColor, getThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
-// Helper function to ensure both theme colors exist
-const ensureThemeColors = (props, isDark) => {
-  const currentTheme = isDark ? 'dark' : 'light';
-  const oppositeTheme = isDark ? 'light' : 'dark';
-  const colorKeys = ['background', 'color', 'tabBackground', 'activeTabBackground'];
-
-  colorKeys.forEach(colorKey => {
-    // Ensure the color property has the expected structure
-    if (!props[colorKey]) {
-      // Set default values based on the color key
-      if (colorKey === 'background') {
-        props[colorKey] = {
-          light: { r: 255, g: 255, b: 255, a: 1 },
-          dark: { r: 31, g: 41, b: 55, a: 1 }
-        };
-      } else if (colorKey === 'color') {
-        props[colorKey] = {
-          light: { r: 0, g: 0, b: 0, a: 1 },
-          dark: { r: 229, g: 231, b: 235, a: 1 }
-        };
-      } else if (colorKey === 'tabBackground') {
-        props[colorKey] = {
-          light: { r: 245, g: 247, b: 250, a: 1 },
-          dark: { r: 51, g: 65, b: 85, a: 1 }
-        };
-      } else if (colorKey === 'activeTabBackground') {
-        props[colorKey] = {
-          light: { r: 255, g: 255, b: 255, a: 1 },
-          dark: { r: 31, g: 41, b: 55, a: 1 }
-        };
-      }
-    }
-
-    // Handle legacy format (single RGBA object)
-    if ('r' in props[colorKey]) {
-      const oldColor = { ...props[colorKey] };
-      props[colorKey] = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, colorKey === 'color' ? 'text' : 'tabs')
-      };
-    }
-
-    // Ensure both light and dark properties exist
-    if (!props[colorKey].light) {
-      if (colorKey === 'background') {
-        props[colorKey].light = { r: 255, g: 255, b: 255, a: 1 };
-      } else if (colorKey === 'color') {
-        props[colorKey].light = { r: 0, g: 0, b: 0, a: 1 };
-      } else if (colorKey === 'tabBackground') {
-        props[colorKey].light = { r: 245, g: 247, b: 250, a: 1 };
-      } else if (colorKey === 'activeTabBackground') {
-        props[colorKey].light = { r: 255, g: 255, b: 255, a: 1 };
-      }
-    }
-
-    if (!props[colorKey].dark) {
-      if (colorKey === 'background') {
-        props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 };
-      } else if (colorKey === 'color') {
-        props[colorKey].dark = { r: 229, g: 231, b: 235, a: 1 };
-      } else if (colorKey === 'tabBackground') {
-        props[colorKey].dark = { r: 51, g: 65, b: 85, a: 1 };
-      } else if (colorKey === 'activeTabBackground') {
-        props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 };
-      }
-    }
-
-    // If one theme is missing, generate it from the other
-    if (props[colorKey][currentTheme] && !props[colorKey][oppositeTheme]) {
-      props[colorKey][oppositeTheme] = convertToThemeColor(props[colorKey][currentTheme], !isDark, colorKey === 'color' ? 'text' : 'tabs');
-    } else if (props[colorKey][oppositeTheme] && !props[colorKey][currentTheme]) {
-      props[colorKey][currentTheme] = convertToThemeColor(props[colorKey][oppositeTheme], isDark, colorKey === 'color' ? 'text' : 'tabs');
-    }
-  });
-
-  // Handle border color separately
-  if (props.border && props.border.color) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.border.color) {
-      const oldColor = { ...props.border.color };
-      props.border.color = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'tabs')
-      };
-    }
-
-    // Ensure both light and dark properties exist
-    if (!props.border.color.light) {
-      props.border.color.light = { r: 204, g: 204, b: 204, a: 1 };
-    }
-
-    if (!props.border.color.dark) {
-      props.border.color.dark = { r: 75, g: 85, b: 99, a: 1 };
-    }
-
-    // If one theme is missing, generate it from the other
-    if (props.border.color[currentTheme] && !props.border.color[oppositeTheme]) {
-      props.border.color[oppositeTheme] = convertToThemeColor(props.border.color[currentTheme], !isDark, 'tabs');
-    } else if (props.border.color[oppositeTheme] && !props.border.color[currentTheme]) {
-      props.border.color[currentTheme] = convertToThemeColor(props.border.color[oppositeTheme], isDark, 'tabs');
-    }
-  }
-
-  // Handle shadow color
-  if (props.shadow && props.shadow.color) {
-    // Handle legacy format (single RGBA object)
-    if ('r' in props.shadow.color) {
-      const oldColor = { ...props.shadow.color };
-      props.shadow.color = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'shadow')
-      };
-    }
-
-    // Ensure both light and dark properties exist
-    if (!props.shadow.color.light) {
-      props.shadow.color.light = { r: 0, g: 0, b: 0, a: 0.15 };
-    }
-
-    if (!props.shadow.color.dark) {
-      props.shadow.color.dark = { r: 0, g: 0, b: 0, a: 0.25 };
-    }
-
-    // If one theme is missing, generate it from the other
-    if (props.shadow.color[currentTheme] && !props.shadow.color[oppositeTheme]) {
-      props.shadow.color[oppositeTheme] = convertToThemeColor(props.shadow.color[currentTheme], !isDark, 'shadow');
-    } else if (props.shadow.color[oppositeTheme] && !props.shadow.color[currentTheme]) {
-      props.shadow.color[currentTheme] = convertToThemeColor(props.shadow.color[oppositeTheme], isDark, 'shadow');
-    }
-  }
-
-  return props;
-};
 
 export const TabsSettings = () => {
   // Get theme context
@@ -150,7 +17,10 @@ export const TabsSettings = () => {
   const [showSpacing, setShowSpacing] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const { actions } = useNode();
+  const { actions, id } = useNode((node) => ({
+    id: node.id
+  }));
+  const { actions: editorActions } = useEditor();
 
 const {
   background,
@@ -176,10 +46,8 @@ const {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    actions.setProp((props) => {
-      return ensureThemeColors(props, isDark);
-    });
-  }, [actions, isDark]);
+    initializeComponentThemeColors(editorActions, id, isDark, 'TABS');
+  }, [editorActions, id, isDark]);
 
   const handleColorChange = (colorKey, newColor) => {
     actions.setProp((props) => {
@@ -389,50 +257,7 @@ const {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    actions.setProp((props) => {
-                      // Update the autoConvertColors flag
-                      props.autoConvertColors = isChecked;
-
-                      // When disabling auto-convert, make sure both light and dark theme colors are properly set
-                      if (!isChecked) {
-                        // Use the ensureThemeColors helper to ensure both light and dark colors are set
-                        return ensureThemeColors(props, isDark);
-                      }
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        const currentTheme = isDark ? 'dark' : 'light';
-                        const oppositeTheme = isDark ? 'light' : 'dark';
-                        const colorKeys = ['background', 'color', 'tabBackground', 'activeTabBackground'];
-
-                        colorKeys.forEach(colorKey => {
-                          // If the current theme color exists, update the opposite theme color
-                          if (props[colorKey] && props[colorKey][currentTheme]) {
-                            const currentColor = props[colorKey][currentTheme];
-                            props[colorKey][oppositeTheme] = convertToThemeColor(
-                              currentColor,
-                              !isDark,
-                              colorKey === 'color' ? 'text' : 'tabs'
-                            );
-                          }
-                        });
-
-                        // Handle border color separately
-                        if (props.border && props.border.color && props.border.color[currentTheme]) {
-                          props.border.color[oppositeTheme] = convertToThemeColor(props.border.color[currentTheme], !isDark, 'tabs');
-                        }
-
-                        // Handle shadow color
-                        if (props.shadow && props.shadow.color && props.shadow.color[currentTheme]) {
-                          props.shadow.color[oppositeTheme] = convertToThemeColor(props.shadow.color[currentTheme], !isDark, 'shadow');
-                        }
-                      }
-
-                      return props;
-                    });
-                  }}
+                  onChange={createAutoConvertHandler(actions, isDark, 'TABS')}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">

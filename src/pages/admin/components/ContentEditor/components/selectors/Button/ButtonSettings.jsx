@@ -2,53 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown, FaQuestionCircle } from 'react-icons/fa';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
+import { getThemeColor, convertToThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 import StudyGuideSelector from './StudyGuideSelector';
 
-// Helper function to ensure both theme colors exist
-const ensureThemeColors = (props, isDark) => {
-  const currentTheme = isDark ? 'dark' : 'light';
-  const oppositeTheme = isDark ? 'light' : 'dark';
-
-  // Ensure background has both themes
-  if (props.background && 'r' in props.background) {
-    const oldColor = { ...props.background };
-    props.background = {
-      [currentTheme]: oldColor,
-      [oppositeTheme]: convertToThemeColor(oldColor, !isDark, 'button')
-    };
-  }
-
-  // Ensure color has both themes
-  if (props.color && 'r' in props.color) {
-    const oldColor = { ...props.color };
-    props.color = {
-      [currentTheme]: oldColor,
-      [oppositeTheme]: convertToThemeColor(oldColor, !isDark, 'text')
-    };
-  }
-
-  // Ensure hoverBackground has both themes
-  if (props.hoverBackground && 'r' in props.hoverBackground) {
-    const oldColor = { ...props.hoverBackground };
-    props.hoverBackground = {
-      [currentTheme]: oldColor,
-      [oppositeTheme]: convertToThemeColor(oldColor, !isDark, 'button')
-    };
-  }
-
-  // Ensure hoverColor has both themes
-  if (props.hoverColor && 'r' in props.hoverColor) {
-    const oldColor = { ...props.hoverColor };
-    props.hoverColor = {
-      [currentTheme]: oldColor,
-      [oppositeTheme]: convertToThemeColor(oldColor, !isDark, 'text')
-    };
-  }
-
-  return props;
-};
 
 export const ButtonSettings = () => {
   const { actions, id } = useNode((node) => ({
@@ -67,17 +24,7 @@ export const ButtonSettings = () => {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    // Use history.ignore to prevent automatic theme color initialization from being tracked in undo history
-    // and use the node ID directly to avoid race conditions
-    if (id && editorActions) {
-      try {
-        editorActions.history.ignore().setProp(id, (props) => {
-          return ensureThemeColors(props, isDark);
-        });
-      } catch (error) {
-        console.warn('ButtonSettings: Error initializing theme colors:', error);
-      }
-    }
+    initializeComponentThemeColors(editorActions, id, isDark, 'BUTTON');
   }, [editorActions, id, isDark]);
 
   const {
@@ -402,45 +349,8 @@ export const ButtonSettings = () => {
                   id="autoConvertColors"
                   checked={autoConvertColors}
                   onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    actions.setProp((props) => {
-                      props.autoConvertColors = isChecked;
-
-                      const currentTheme = isDark ? 'dark' : 'light';
-                      const oppositeTheme = isDark ? 'light' : 'dark';
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        // Update background color
-                        if (props.background && props.background[currentTheme]) {
-                          const currentBgColor = props.background[currentTheme];
-                          props.background[oppositeTheme] = convertToThemeColor(currentBgColor, !isDark, 'button');
-                        }
-
-                        // Update text color
-                        if (props.color && props.color[currentTheme]) {
-                          const currentTextColor = props.color[currentTheme];
-                          props.color[oppositeTheme] = convertToThemeColor(currentTextColor, !isDark, 'text');
-                        }
-
-                        // Update hover background color
-                        if (props.hoverBackground && props.hoverBackground[currentTheme]) {
-                          const currentHoverBgColor = props.hoverBackground[currentTheme];
-                          props.hoverBackground[oppositeTheme] = convertToThemeColor(currentHoverBgColor, !isDark, 'button');
-                        }
-
-                        // Update hover text color
-                        if (props.hoverColor && props.hoverColor[currentTheme]) {
-                          const currentHoverTextColor = props.hoverColor[currentTheme];
-                          props.hoverColor[oppositeTheme] = convertToThemeColor(currentHoverTextColor, !isDark, 'text');
-                        }
-                      } else {
-                        // When turning auto-convert off, ensure both theme colors exist
-                        return ensureThemeColors(props, isDark);
-                      }
-
-                      return props;
-                    });
+                    const autoConvertHandler = createAutoConvertHandler(actions, isDark, 'BUTTON');
+                    autoConvertHandler(e.target.checked);
                   }}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />

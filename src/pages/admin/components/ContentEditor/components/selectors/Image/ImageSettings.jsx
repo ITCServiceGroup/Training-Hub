@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
-import { useNode } from '@craftjs/core';
+import React, { useState, useEffect } from 'react';
+import { useNode, useEditor } from '@craftjs/core';
 import { FaImage, FaChevronDown } from 'react-icons/fa';
 import { MediaLibrarySelector } from './MediaLibrarySelector';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
+import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import { getThemeColor, convertToThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 
 export const ImageSettings = () => {
-  const { actions } = useNode((node) => ({
-    selected: node.id,
+  const { actions, id } = useNode((node) => ({
+    id: node.id,
   }));
+  const { actions: editorActions } = useEditor();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Toggle sections
   const [showImageSource, setShowImageSource] = useState(true);
@@ -16,6 +21,11 @@ export const ImageSettings = () => {
   const [showSpacing, setShowSpacing] = useState(true);
 
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+
+  // Initialize theme colors for existing components when first loaded
+  useEffect(() => {
+    initializeComponentThemeColors(editorActions, id, isDark, 'IMAGE');
+  }, [editorActions, id, isDark]);
 
   const {
     src,
@@ -30,6 +40,7 @@ export const ImageSettings = () => {
     padding,
     shadow,
     aspectRatio,
+    autoConvertColors,
   } = useNode((node) => {
     const props = node.data.props || {};
     return {
@@ -42,7 +53,10 @@ export const ImageSettings = () => {
       border: props.border || {
         style: 'none',
         width: 0,
-        color: { r: 0, g: 0, b: 0, a: 1 },
+        color: {
+          light: { r: 0, g: 0, b: 0, a: 1 },
+          dark: { r: 255, g: 255, b: 255, a: 1 }
+        },
       },
       objectFit: props.objectFit || 'none',
       margin: props.margin || ['0', '0', '0', '0'],
@@ -56,6 +70,7 @@ export const ImageSettings = () => {
         color: { r: 0, g: 0, b: 0, a: 0.15 },
       },
       aspectRatio: props.aspectRatio || 'auto',
+      autoConvertColors: props.autoConvertColors !== undefined ? props.autoConvertColors : true,
     };
   });
 
@@ -505,6 +520,22 @@ export const ImageSettings = () => {
 
         {showBorderEffects && (
           <div className="space-y-3 px-1 py-3 bg-white dark:bg-slate-700 border-t border-gray-200 dark:border-slate-600">
+            {/* Auto Convert Colors Toggle */}
+            <div className="mb-3">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="autoConvertColorsImage"
+                  checked={autoConvertColors}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'IMAGE')(e.target.checked)}
+                  className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
+                />
+                <label htmlFor="autoConvertColorsImage" className="text-xs text-gray-700 dark:text-gray-300">
+                  Auto convert colors between light and dark mode
+                </label>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Border Style
@@ -570,16 +601,100 @@ export const ImageSettings = () => {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Border Color
+                    Border Color {isDark ? '(Dark Mode)' : '(Light Mode)'}
                   </label>
                   <div className="flex items-center">
                     <ColorPicker
-                      color={border.color}
-                      onChange={(newColor) => actions.setProp((props) => {
-                        props.border.color = newColor;
-                      })}
+                      color={getThemeColor(border.color, isDark, 'container', autoConvertColors)}
+                      onChange={(newColor) => {
+                        actions.setProp((props) => {
+                          // Ensure border.color has the expected structure
+                          if (!props.border.color) {
+                            props.border.color = {
+                              light: { r: 0, g: 0, b: 0, a: 1 },
+                              dark: { r: 255, g: 255, b: 255, a: 1 }
+                            };
+                          }
+
+                          // Handle legacy format (single RGBA object)
+                          if ('r' in props.border.color) {
+                            const oldColor = { ...props.border.color };
+                            props.border.color = {
+                              light: oldColor,
+                              dark: convertToThemeColor(oldColor, true, 'container')
+                            };
+                          }
+
+                          // Ensure both light and dark properties exist
+                          if (!props.border.color.light) {
+                            props.border.color.light = { r: 0, g: 0, b: 0, a: 1 };
+                          }
+                          if (!props.border.color.dark) {
+                            props.border.color.dark = { r: 255, g: 255, b: 255, a: 1 };
+                          }
+
+                          const currentTheme = isDark ? 'dark' : 'light';
+                          const oppositeTheme = isDark ? 'light' : 'dark';
+
+                          if (props.autoConvertColors) {
+                            // Auto-convert the color for the opposite theme
+                            const oppositeColor = convertToThemeColor(newColor, !isDark, 'container');
+                            props.border.color = {
+                              ...props.border.color,
+                              [currentTheme]: newColor,
+                              [oppositeTheme]: oppositeColor
+                            };
+                          } else {
+                            // Only update the current theme's color
+                            props.border.color = {
+                              ...props.border.color,
+                              [currentTheme]: newColor
+                            };
+                          }
+                        });
+                      }}
+                      componentType="container"
                     />
                   </div>
+
+                  {!autoConvertColors && (
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Border Color {!isDark ? '(Dark Mode)' : '(Light Mode)'}
+                      </label>
+                      <div className="flex items-center">
+                        <ColorPicker
+                          color={(() => {
+                            try {
+                              const oppositeTheme = isDark ? 'light' : 'dark';
+                              return border.color[oppositeTheme] || { r: 0, g: 0, b: 0, a: 1 };
+                            } catch (e) {
+                              return { r: 0, g: 0, b: 0, a: 1 };
+                            }
+                          })()}
+                          onChange={(newColor) => {
+                            actions.setProp((props) => {
+                              const oppositeTheme = isDark ? 'light' : 'dark';
+
+                              // Ensure border.color has the expected structure
+                              if (!props.border.color) {
+                                props.border.color = {
+                                  light: { r: 0, g: 0, b: 0, a: 1 },
+                                  dark: { r: 255, g: 255, b: 255, a: 1 }
+                                };
+                              }
+
+                              props.border.color = {
+                                ...props.border.color,
+                                [oppositeTheme]: newColor
+                              };
+                            });
+                          }}
+                          componentType="container"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}

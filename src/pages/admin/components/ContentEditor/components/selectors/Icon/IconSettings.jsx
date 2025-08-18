@@ -1,38 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { getThemeColor, convertToThemeColor } from '../../../utils/themeColors';
+import { getThemeColor, convertToThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler, COLOR_CONFIGS } from '../../../utils/themeColors';
 import { FaChevronDown, FaQuestionCircle } from 'react-icons/fa';
 import { ICONS, ICON_CATEGORIES } from '@/components/icons';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
-// Helper function to ensure both theme colors exist
-const ensureThemeColors = (props, isDark) => {
-  const currentTheme = isDark ? 'dark' : 'light';
-  const oppositeTheme = isDark ? 'light' : 'dark';
-
-  // Ensure iconColor has both themes
-  if (props.iconColor) {
-    if ('r' in props.iconColor) {
-      // Legacy format - convert to theme format
-      const oldColor = { ...props.iconColor };
-      props.iconColor = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'icon')
-      };
-    } else {
-      // Ensure both themes exist
-      if (!props.iconColor.light) {
-        props.iconColor.light = { r: 92, g: 90, b: 90, a: 1 };
-      }
-      if (!props.iconColor.dark) {
-        props.iconColor.dark = { r: 229, g: 231, b: 235, a: 1 };
-      }
-    }
-  }
-
-  return props;
-};
 
 export const IconSettings = () => {
   const { actions, id } = useNode((node) => ({
@@ -59,17 +32,7 @@ export const IconSettings = () => {
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    // Use history.ignore to prevent automatic theme color initialization from being tracked in undo history
-    // and use the node ID directly to avoid race conditions
-    if (id && editorActions) {
-      try {
-        editorActions.history.ignore().setProp(id, (props) => {
-          return ensureThemeColors(props, isDark);
-        });
-      } catch (error) {
-        console.warn('IconSettings: Error initializing theme colors:', error);
-      }
-    }
+    initializeComponentThemeColors(editorActions, id, isDark, 'ICON');
   }, [editorActions, id, isDark]);
 
   const {
@@ -267,29 +230,7 @@ export const IconSettings = () => {
                   type="checkbox"
                   id="autoConvertColorsIcon"
                   checked={autoConvertColors}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    actions.setProp((props) => {
-                      props.autoConvertColors = isChecked;
-
-                      const currentTheme = isDark ? 'dark' : 'light';
-                      const oppositeTheme = isDark ? 'light' : 'dark';
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        // Update icon color
-                        if (props.iconColor && props.iconColor[currentTheme]) {
-                          const currentIconColor = props.iconColor[currentTheme];
-                          props.iconColor[oppositeTheme] = convertToThemeColor(currentIconColor, !isDark, 'icon');
-                        }
-                      } else {
-                        // When turning auto-convert off, ensure both theme colors exist
-                        return ensureThemeColors(props, isDark);
-                      }
-
-                      return props;
-                    });
-                  }}
+                  onChange={createAutoConvertHandler(actions, isDark, 'ICON')}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColorsIcon" className="text-xs text-gray-700 dark:text-gray-300 mr-1">

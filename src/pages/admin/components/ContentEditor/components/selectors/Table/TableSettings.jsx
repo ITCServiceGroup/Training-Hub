@@ -3,7 +3,7 @@ import { useNode, useEditor } from '@craftjs/core';
 import { FaChevronDown, FaPlus, FaMinus } from 'react-icons/fa';
 import { captureTableToolbar, restoreTableToolbar, preventCellSelection } from './TableFixHack';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
-import { convertToThemeColor, getThemeColor } from '../../../utils/themeColors';
+import { convertToThemeColor, getThemeColor, ensureThemeColors, initializeComponentThemeColors, createAutoConvertHandler } from '../../../utils/themeColors';
 import ColorPicker from '../../../../../../../components/common/ColorPicker';
 
 // Helper function to check if table contains links
@@ -23,97 +23,11 @@ const hasLinksInTable = (tableData) => {
   return false;
 };
 
-// Helper function to ensure both theme colors exist
-const ensureThemeColors = (props, isDark) => {
-  const currentTheme = isDark ? 'dark' : 'light';
-  const oppositeTheme = isDark ? 'light' : 'dark';
-  const colorKeys = ['borderColor', 'headerBackgroundColor', 'alternateRowColor', 'linkColor', 'linkHoverColor'];
-
-  colorKeys.forEach(colorKey => {
-    // Ensure the color property has the expected structure
-    if (!props[colorKey]) {
-      // Set default values based on the color key
-      if (colorKey === 'borderColor') {
-        props[colorKey] = {
-          light: { r: 229, g: 231, b: 235, a: 1 }, // #e5e7eb
-          dark: { r: 75, g: 85, b: 99, a: 1 } // #4b5563
-        };
-      } else if (colorKey === 'headerBackgroundColor') {
-        props[colorKey] = {
-          light: { r: 243, g: 244, b: 246, a: 1 }, // #f3f4f6
-          dark: { r: 31, g: 41, b: 55, a: 1 } // #1f2937
-        };
-      } else if (colorKey === 'alternateRowColor') {
-        props[colorKey] = {
-          light: { r: 249, g: 250, b: 251, a: 1 }, // #f9fafb
-          dark: { r: 17, g: 24, b: 39, a: 0.5 } // #111827
-        };
-      } else if (colorKey === 'linkColor') {
-        props[colorKey] = {
-          light: { r: 59, g: 130, b: 246, a: 1 }, // Blue-500
-          dark: { r: 96, g: 165, b: 250, a: 1 }   // Blue-400
-        };
-      } else if (colorKey === 'linkHoverColor') {
-        props[colorKey] = {
-          light: { r: 37, g: 99, b: 235, a: 1 },  // Blue-600
-          dark: { r: 59, g: 130, b: 246, a: 1 }   // Blue-500
-        };
-      }
-    }
-
-    // Handle legacy format (single RGBA object)
-    if ('r' in props[colorKey]) {
-      const oldColor = { ...props[colorKey] };
-      props[colorKey] = {
-        light: oldColor,
-        dark: convertToThemeColor(oldColor, true, 'table')
-      };
-    }
-
-    // Ensure both light and dark properties exist with appropriate defaults
-    if (!props[colorKey].light) {
-      if (colorKey === 'borderColor') {
-        props[colorKey].light = { r: 229, g: 231, b: 235, a: 1 }; // #e5e7eb
-      } else if (colorKey === 'headerBackgroundColor') {
-        props[colorKey].light = { r: 243, g: 244, b: 246, a: 1 }; // #f3f4f6
-      } else if (colorKey === 'alternateRowColor') {
-        props[colorKey].light = { r: 249, g: 250, b: 251, a: 1 }; // #f9fafb
-      } else if (colorKey === 'linkColor') {
-        props[colorKey].light = { r: 59, g: 130, b: 246, a: 1 }; // Blue-500
-      } else if (colorKey === 'linkHoverColor') {
-        props[colorKey].light = { r: 37, g: 99, b: 235, a: 1 }; // Blue-600
-      }
-    }
-
-    if (!props[colorKey].dark) {
-      if (colorKey === 'borderColor') {
-        props[colorKey].dark = { r: 75, g: 85, b: 99, a: 1 }; // #4b5563
-      } else if (colorKey === 'headerBackgroundColor') {
-        props[colorKey].dark = { r: 31, g: 41, b: 55, a: 1 }; // #1f2937
-      } else if (colorKey === 'alternateRowColor') {
-        props[colorKey].dark = { r: 17, g: 24, b: 39, a: 0.5 }; // #111827
-      } else if (colorKey === 'linkColor') {
-        props[colorKey].dark = { r: 96, g: 165, b: 250, a: 1 }; // Blue-400
-      } else if (colorKey === 'linkHoverColor') {
-        props[colorKey].dark = { r: 59, g: 130, b: 246, a: 1 }; // Blue-500
-      }
-    }
-
-    // If one theme is missing, generate it from the other
-    if (props[colorKey][currentTheme] && !props[colorKey][oppositeTheme]) {
-      props[colorKey][oppositeTheme] = convertToThemeColor(props[colorKey][currentTheme], !isDark, 'table');
-    } else if (props[colorKey][oppositeTheme] && !props[colorKey][currentTheme]) {
-      props[colorKey][currentTheme] = convertToThemeColor(props[colorKey][oppositeTheme], isDark, 'table');
-    }
-  });
-
-  return props;
-};
 
 export const TableSettings = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { actions: { setProp }, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, columnWidths, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, linkColor, linkHoverColor, radius, shadow, autoConvertColors } = useNode((node) => ({
+  const { actions, id, borderStyle, borderWidth, borderColor, headerBackgroundColor, alternateRowColor, cellPadding, cellAlignment, tableData, columnWidths, padding, margin, width, height, fontSize, headerFontSize, textAlign, headerTextAlign, linkColor, linkHoverColor, radius, shadow, autoConvertColors } = useNode((node) => ({
     id: node.id,
     borderStyle: node.data.props.borderStyle,
     borderWidth: node.data.props.borderWidth,
@@ -146,15 +60,13 @@ export const TableSettings = () => {
   }));
 
   // Get editor actions for selecting nodes and history.ignore functionality
-  const { actions } = useEditor();
+  const { actions: editorActions } = useEditor();
+  const { setProp } = actions;
 
   // Initialize theme colors for existing components when first loaded
   useEffect(() => {
-    // Use history.ignore to prevent automatic theme color initialization from being tracked in undo history
-    actions.history.ignore().setProp(id, (props) => {
-      return ensureThemeColors(props, isDark);
-    });
-  }, [actions, id, isDark]);
+    initializeComponentThemeColors(editorActions, id, isDark, 'TABLE');
+  }, [editorActions, id, isDark]);
 
   const handleColorChange = (colorKey, newColor) => {
     setProp((props) => {
@@ -860,36 +772,7 @@ export const TableSettings = () => {
                   type="checkbox"
                   id="autoConvertColors"
                   checked={autoConvertColors}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    setProp((props) => {
-                      // Update the autoConvertColors flag
-                      props.autoConvertColors = isChecked;
-
-                      // When disabling auto-convert, make sure both light and dark theme colors are properly set
-                      if (!isChecked) {
-                        // Use the ensureThemeColors helper to ensure both light and dark colors are set
-                        return ensureThemeColors(props, isDark);
-                      }
-
-                      // If turning auto-convert on, update all colors
-                      if (isChecked) {
-                        const currentTheme = isDark ? 'dark' : 'light';
-                        const oppositeTheme = isDark ? 'light' : 'dark';
-                        const colorKeys = ['borderColor', 'headerBackgroundColor', 'alternateRowColor'];
-
-                        colorKeys.forEach(colorKey => {
-                          // If the current theme color exists, update the opposite theme color
-                          if (props[colorKey] && props[colorKey][currentTheme]) {
-                            const currentColor = props[colorKey][currentTheme];
-                            props[colorKey][oppositeTheme] = convertToThemeColor(currentColor, !isDark, 'table');
-                          }
-                        });
-                      }
-
-                      return props;
-                    });
-                  }}
+                  onChange={(e) => createAutoConvertHandler(actions, isDark, 'TABLE')(e.target.checked)}
                   className="mr-2 h-4 w-4 text-primary border-gray-300 rounded"
                 />
                 <label htmlFor="autoConvertColors" className="text-xs text-gray-700 dark:text-gray-300 mr-1">
