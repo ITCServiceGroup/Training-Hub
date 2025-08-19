@@ -33,7 +33,7 @@ import { HorizontalLine } from './components/selectors/HorizontalLine';
 
 // Import utilities
 import { deepParseJsonStrings, safeParseJson, sanitizeEditorJson } from './utils/jsonParser';
-import { saveDraft, loadDraft, clearDraft } from './utils/draftManager';
+import { saveDraft, loadDraft, clearDraft, clearSelectedNode } from './utils/draftManager';
 import { createSelectionManager } from './utils/selectionManager';
 import TemplateCreationModal from './components/TemplateCreationModal';
 
