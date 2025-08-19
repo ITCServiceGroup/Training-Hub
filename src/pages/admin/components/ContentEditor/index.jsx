@@ -4,6 +4,7 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 import { useFullscreen } from '../../../../contexts/FullscreenContext';
 import { useToast } from '../../../../components/common/ToastContainer';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
+import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import { FaFileAlt } from 'react-icons/fa';
 import { Viewport } from './components/editor/Viewport';
 import { RenderNode } from './components/editor/RenderNode';
@@ -55,6 +56,8 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     message: '',
     title: ''
   });
+  // Show a loading overlay when editing an existing guide until content is deserialized
+  const [isInitialLoading, setIsInitialLoading] = useState(!isNew);
 
   // Initialize selection manager
   const selectionManager = useMemo(() => 
@@ -129,6 +132,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
                     const sanitizedContent = sanitizeEditorJson(deepParsedContent, componentMap);
                     actions.deserialize(sanitizedContent);
                     contentLoaded = true;
+                    setIsInitialLoading(false);
                     // Track that we've processed this draft content
                     lastProcessedDraftRef.current = draft.content;
                 } else {
@@ -147,6 +151,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
                             const sanitizedContent = sanitizeEditorJson(deepParsedContent, componentMap);
                             actions.deserialize(sanitizedContent);
                             contentLoaded = true;
+                            setIsInitialLoading(false);
                             lastProcessedDraftRef.current = draft.content;
                         } else {
                             console.error("Fallback parsing also failed for draft content.");
@@ -217,6 +222,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     if (!editorJson || !actions) return;
     if (prevEditorJsonRef.current === editorJson && query.getNodes() && Object.keys(query.getNodes()).length > 1) {
       console.log("Skipping deserialize of editorJson prop, content string is identical and editor not empty.");
+      setIsInitialLoading(false);
       return;
     }
     prevEditorJsonRef.current = editorJson;
@@ -231,17 +237,22 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
         if (deepParsedData.ROOT) {
             const sanitizedData = sanitizeEditorJson(deepParsedData, componentMap);
             actions.deserialize(sanitizedData);
+            setIsInitialLoading(false);
         } else if (Object.keys(deepParsedData).length === 0 && (editorJson === '{}' || (typeof editorJson === 'object' && Object.keys(editorJson).length === 0))) {
             console.log("Received empty object for editorJson. Craft.js will load default if this is initial.");
             actions.deserialize(deepParsedData);
+            setIsInitialLoading(false);
         } else if (!deepParsedData.ROOT) {
             console.warn("Parsed editorJson does not contain ROOT node after all parsing. Skipping deserialize. Final parsedData:", deepParsedData);
+            setIsInitialLoading(false);
         }
       } else {
         console.error("editorJson could not be resolved to an object for processing.");
+        setIsInitialLoading(false);
       }
     } catch (error) {
       console.warn('EditorInner: Error deserializing content from editorJson prop:', error);
+      setIsInitialLoading(false);
     }
   }, [editorJson, actions, query, componentMap]);
 
@@ -460,24 +471,37 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
       </div>
 
       {/* Editor area - takes all available space */}
-      <div className="flex flex-1 gap-4 overflow-hidden" style={{ minHeight: 0, paddingBottom: '70px' }}>
+      <div className="relative flex flex-1 gap-4 overflow-hidden" style={{ minHeight: 0, paddingBottom: '70px' }}>
         <CraftJsDirectPatch />
         {useCollapsibleSectionPatch()}
-        <Viewport>
-          <CraftFrame>
-            <CraftElement
-              canvas
-              is={Container}
-              width="100%"
-              height="auto"
-              background={{ r: 255, g: 255, b: 255, a: 1 }}
-              padding={['20', '20', '20', '20']}
-              custom={{ displayName: 'Root Container', isCanvas: true }}
-            >
-              <Text fontSize="20" fontWeight="400" text="Click to edit this text" />
-            </CraftElement>
-          </CraftFrame>
-        </Viewport>
+        <div className={`flex-1 ${isInitialLoading && !isNew ? 'opacity-0 pointer-events-none' : ''}`}>
+          <Viewport>
+            <CraftFrame>
+              <CraftElement
+                canvas
+                is={Container}
+                width="100%"
+                height="auto"
+                background={{ r: 255, g: 255, b: 255, a: 1 }}
+                padding={['20', '20', '20', '20']}
+                custom={{ displayName: 'Root Container', isCanvas: true }}
+              >
+                {isNew && (
+                <Text
+                  fontSize="20"
+                  fontWeight="400"
+                  text="Drag components from the sidebar to begin building your content"
+                />
+              )}
+              </CraftElement>
+            </CraftFrame>
+          </Viewport>
+        </div>
+        {isInitialLoading && !isNew && (
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <LoadingSpinner size="lg" text="Loading content..." />
+          </div>
+        )}
       </div>
 
       {/* Action buttons - absolutely positioned at bottom */}
