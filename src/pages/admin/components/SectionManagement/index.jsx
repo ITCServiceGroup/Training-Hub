@@ -5,6 +5,7 @@ import { questionsService } from '../../../../services/api/questions';
 import BreadcrumbNav from '../BreadcrumbNav';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
+import { useNetworkStatus } from '../../../../contexts/NetworkContext';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
@@ -13,6 +14,7 @@ const RedBoldNum = ({ children }) => (
 const SectionManagement = ({ onViewCategories }) => {
   // Remove the non-existent optimisticallyUpdateSectionsOrder from context
   const { sectionsData } = useContext(CategoryContext);
+  const { isOnline, reconnectCount } = useNetworkStatus();
   const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,18 +31,43 @@ const SectionManagement = ({ onViewCategories }) => {
   }, []);
 
   const loadSections = async () => {
+    console.log('[SECTION MANAGEMENT] Loading sections');
     setIsLoading(true);
     try {
       const data = await sectionsService.getSectionsWithCategories();
       setSections(data);
       setError(null);
+      console.log('[SECTION MANAGEMENT] Successfully loaded', data.length, 'sections');
     } catch (err) {
-      console.error('Error loading sections:', err);
-      setError('Failed to load sections');
+      console.error('[SECTION MANAGEMENT] Error loading sections:', err);
+      // Check if this is a network-related error
+      const isNetworkError = !isOnline || 
+        err.message?.includes('fetch') || 
+        err.message?.includes('network') ||
+        err.message?.includes('Failed to fetch') ||
+        err.code === 'NetworkError';
+      
+      if (isNetworkError) {
+        setError('Failed to load sections - Check your internet connection');
+        console.log('[SECTION MANAGEMENT] Network error detected, will retry when connection is restored');
+      } else {
+        setError('Failed to load sections');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Network retry: when reconnectCount changes, retry loading sections if there was an error
+  useEffect(() => {
+    console.log('[SECTION MANAGEMENT] Retry effect triggered - reconnectCount:', reconnectCount, 'error:', !!error);
+    if (reconnectCount > 0 && error) {
+      console.log('[SECTION MANAGEMENT] Network reconnected, retrying sections load...');
+      // Clear error immediately when retry starts
+      setError(null);
+      loadSections();
+    }
+  }, [reconnectCount]);
 
   // Define optimistic update function locally
   const optimisticallyUpdateSectionsOrder = (newSectionsOrder) => {

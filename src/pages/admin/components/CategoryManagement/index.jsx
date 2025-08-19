@@ -5,6 +5,7 @@ import { questionsService } from '../../../../services/api/questions';
 import BreadcrumbNav from '../BreadcrumbNav';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import QuestionMigrationDialog from '../QuestionMigrationDialog';
+import { useNetworkStatus } from '../../../../contexts/NetworkContext';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
@@ -16,6 +17,7 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const { isOnline, reconnectCount } = useNetworkStatus();
   const [deleteModalState, setDeleteModalState] = useState({
     isOpen: false,
     categoryId: null,
@@ -36,18 +38,55 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   }, [section]);
 
   const loadCategories = async () => {
+    console.log('[CATEGORY MANAGEMENT] Loading categories for section:', section?.id);
     setIsLoading(true);
     try {
       const data = await categoriesService.getBySectionId(section.id);
       setCategories(data);
       setError(null);
+      console.log('[CATEGORY MANAGEMENT] Successfully loaded', data.length, 'categories');
     } catch (err) {
-      console.error('Error loading categories:', err);
-      setError('Failed to load categories');
+      console.error('[CATEGORY MANAGEMENT] Error loading categories:', err);
+      // Check if this is a network-related error
+      const isNetworkError = !isOnline || 
+        err.message?.includes('fetch') || 
+        err.message?.includes('network') ||
+        err.message?.includes('Failed to fetch') ||
+        err.code === 'NetworkError';
+      
+      if (isNetworkError) {
+        setError('Failed to load categories - Check your internet connection');
+        console.log('[CATEGORY MANAGEMENT] Network error detected, will retry when connection is restored');
+      } else {
+        setError('Failed to load categories');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Simple network retry: when reconnectCount changes, retry loading categories if there was an error
+  useEffect(() => {
+    console.log('[CATEGORY MANAGEMENT] Retry effect triggered - reconnectCount:', reconnectCount, 'section:', !!section, 'error:', !!error, 'error value:', error);
+    if (reconnectCount > 0) {
+      console.log('[CATEGORY MANAGEMENT] Network reconnected! reconnectCount > 0');
+      if (section) {
+        console.log('[CATEGORY MANAGEMENT] Section exists');
+        if (error) {
+          console.log('[CATEGORY MANAGEMENT] Error exists, retrying categories load...');
+          // Clear error immediately when retry starts
+          setError(null);
+          loadCategories();
+        } else {
+          console.log('[CATEGORY MANAGEMENT] No error present, not retrying');
+        }
+      } else {
+        console.log('[CATEGORY MANAGEMENT] No section, not retrying');
+      }
+    } else {
+      console.log('[CATEGORY MANAGEMENT] reconnectCount is 0, not retrying');
+    }
+  }, [reconnectCount]); // Only depend on reconnectCount to avoid loops
 
   // Define local optimistic update function for categories
   const optimisticallyUpdateCategoriesOrder = (newCategoriesOrder) => {

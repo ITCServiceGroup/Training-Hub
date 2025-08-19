@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { FullscreenProvider } from './contexts/FullscreenContext';
 import { ToastProvider } from './components/common/ToastContainer';
+import { NetworkProvider } from './contexts/NetworkContext';
 import './utils/debugHelper';
 
 console.log('Main.jsx is executing...');
@@ -30,9 +31,11 @@ try {
         <AuthProvider>
           <ThemeProvider>
             <FullscreenProvider>
-              <ToastProvider>
-                <App />
-              </ToastProvider>
+              <NetworkProvider>
+                <ToastProvider>
+                  <App />
+                </ToastProvider>
+              </NetworkProvider>
             </FullscreenProvider>
           </ThemeProvider>
         </AuthProvider>
@@ -55,9 +58,11 @@ try {
       >
         <ThemeProvider>
           <FullscreenProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
+            <NetworkProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </NetworkProvider>
           </FullscreenProvider>
         </ThemeProvider>
       </HashRouter>

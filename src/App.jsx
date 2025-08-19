@@ -9,6 +9,10 @@ import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
+// Network Error Handling
+import NetworkErrorBoundary from './components/common/NetworkErrorBoundary';
+import AutoReload from './components/common/AutoReload';
+
 // Lazy load page components to reduce initial load time
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -28,12 +32,43 @@ const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 const ContactUsPage = lazy(() => import('./pages/ContactUsPage'));
 
-// Loading fallback
-const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <LoadingSpinner size="lg" text="Loading..." />
-  </div>
-);
+// Enhanced loading fallback with network error detection
+const LoadingFallback = () => {
+  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingTimeout(true);
+    }, 10000); // Show timeout message after 10 seconds
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (loadingTimeout) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center max-w-md">
+          <LoadingSpinner size="lg" text="Still loading..." />
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            This is taking longer than usual. Check your internet connection.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <LoadingSpinner size="lg" text="Loading..." />
+    </div>
+  );
+};
 
 function App() {
   const { loading } = useAuth();
@@ -44,8 +79,10 @@ function App() {
   }
 
   return (
-    <div className={`w-full ${theme === 'dark' ? 'dark' : ''}`} style={{ minHeight: 'auto' }}>
-      <Routes>
+    <NetworkErrorBoundary>
+      <AutoReload>
+        <div className={`w-full ${theme === 'dark' ? 'dark' : ''}`} style={{ minHeight: 'auto' }}>
+          <Routes>
         {/* Main app routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={
@@ -160,8 +197,10 @@ function App() {
             </Suspense>
           } />
         </Route>
-      </Routes>
-    </div>
+          </Routes>
+        </div>
+      </AutoReload>
+    </NetworkErrorBoundary>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useFullscreen } from '../../contexts/FullscreenContext';
+import { useNetworkStatus } from '../../contexts/NetworkContext';
 
 import ContentEditor from './components/ContentEditor';
 import StudyGuideManagement from './components/StudyGuideManagement';
@@ -186,6 +187,7 @@ const getInitialJson = (studyGuide, isCreatingFlag) => {
 const StudyGuides = () => {
   const { isFullscreen, exitFullscreen } = useFullscreen();
   const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
+  const { isOnline, reconnectCount } = useNetworkStatus();
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -286,18 +288,43 @@ const StudyGuides = () => {
   const loadStudyGuides = async () => {
     if (!selectedCategory) return;
 
+    console.log('[STUDY GUIDES] Loading study guides for category:', selectedCategory.id);
     setIsLoading(true);
     try {
       const guides = await studyGuidesService.getByCategoryId(selectedCategory.id);
       setStudyGuides(guides.sort((a, b) => a.display_order - b.display_order));
       setError(null);
+      console.log('[STUDY GUIDES] Successfully loaded', guides.length, 'study guides');
     } catch (err) {
-      console.error('Error loading study guides:', err);
-      setError('Failed to load study guides');
+      console.error('[STUDY GUIDES] Error loading study guides:', err);
+      // Check if this is a network-related error
+      const isNetworkError = !isOnline || 
+        err.message?.includes('fetch') || 
+        err.message?.includes('network') ||
+        err.message?.includes('Failed to fetch') ||
+        err.code === 'NetworkError';
+      
+      if (isNetworkError) {
+        setError('Failed to load study guides - Check your internet connection');
+        console.log('[STUDY GUIDES] Network error detected, will retry when connection is restored');
+      } else {
+        setError('Failed to load study guides');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Network retry: when reconnectCount changes, retry loading study guides if there was an error
+  useEffect(() => {
+    console.log('[STUDY GUIDES] Retry effect triggered - reconnectCount:', reconnectCount, 'selectedCategory:', !!selectedCategory, 'error:', !!error);
+    if (reconnectCount > 0 && selectedCategory && error) {
+      console.log('[STUDY GUIDES] Network reconnected, retrying study guides load...');
+      // Clear error immediately when retry starts
+      setError(null);
+      loadStudyGuides();
+    }
+  }, [reconnectCount]);
 
   const loadSection = async (sectionId) => {
     try {
