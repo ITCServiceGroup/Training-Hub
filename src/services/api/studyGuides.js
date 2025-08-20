@@ -188,6 +188,27 @@ class StudyGuidesService extends BaseService {
   }
 
   /**
+   * Batch fetch content for multiple study guides by IDs (id, content only)
+   * Intended for generating previews on lists without loading joins
+   * @param {string[]} ids
+   * @returns {Promise<Array<{id: string, content: string}>>}
+   */
+  async getContentsByIds(ids = []) {
+    if (!Array.isArray(ids) || ids.length === 0) return [];
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('id, content')
+        .in('id', ids);
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching study guide contents by IDs:', error.message);
+      return [];
+    }
+  }
+
+  /**
    * Copy a study guide to the same or different category
    * @param {string} id - Study guide ID to copy
    * @param {string} targetCategoryId - Target category ID

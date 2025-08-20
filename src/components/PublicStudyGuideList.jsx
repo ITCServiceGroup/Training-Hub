@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from './common/LoadingSpinner';
+import { studyGuidesService } from '../services/api/studyGuides';
 
 // Helper function to decode HTML entities
 const decodeHtmlEntities = (text) => {
@@ -340,7 +341,7 @@ const formatDate = (dateString) => {
 };
 
 // Simplified Item Component (based on SortableStudyGuideItem)
-const PublicStudyGuideItem = ({ guide, onSelect }) => {
+const PublicStudyGuideItem = ({ guide, onSelect, previewText }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   return (
@@ -356,7 +357,7 @@ const PublicStudyGuideItem = ({ guide, onSelect }) => {
             </h3>
           </div>
           <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-4 h-12 overflow-hidden`}>
-            {guide.description || extractPreview(guide.preview) || extractPreview(guide.content)}
+            {guide.description || previewText || extractPreview(guide.preview) || extractPreview(guide.content)}
           </div>
         </div>
         <div className={`${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-100'} p-2 px-4 border-t flex justify-between items-center`}>
@@ -376,6 +377,42 @@ const PublicStudyGuideItem = ({ guide, onSelect }) => {
 const PublicStudyGuideList = ({ studyGuides = [], onSelect, isLoading, error }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [previews, setPreviews] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPreviews = async () => {
+      // Collect IDs needing previews
+      const toFetch = (studyGuides || [])
+        .filter(g => !g?.description && !previews[g.id])
+        .map(g => g.id);
+
+      if (toFetch.length === 0) return;
+
+      try {
+        // Batch fetch contents in a single query
+        const rows = await studyGuidesService.getContentsByIds(toFetch);
+        if (cancelled) return;
+        const next = {};
+        for (const row of rows) {
+          const text = extractPreview(row?.content || '');
+          if (text) next[row.id] = text;
+        }
+        if (Object.keys(next).length > 0) {
+          setPreviews(prev => ({ ...prev, ...next }));
+        }
+      } catch (e) {
+        // ignore batch errors to avoid UI disruption
+      }
+    };
+
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      loadPreviews();
+    }
+
+    return () => { cancelled = true; };
+  }, [studyGuides]);
 
   if (isLoading) {
     return (
@@ -407,6 +444,7 @@ const PublicStudyGuideList = ({ studyGuides = [], onSelect, isLoading, error }) 
         <PublicStudyGuideItem
           key={guide.id}
           guide={guide}
+          previewText={previews[guide.id] || ''}
           onSelect={onSelect} // Pass the handler down
         />
       ))}

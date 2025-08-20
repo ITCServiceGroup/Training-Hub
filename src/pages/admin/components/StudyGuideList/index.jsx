@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import { FaCopy, FaArrowRight, FaEllipsisV } from 'react-icons/fa';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
+import { studyGuidesService } from '../../../../services/api/studyGuides';
 
 // Helper function to extract a preview from HTML or JSON content
 const extractPreview = (content, maxLength = 150) => {
@@ -345,7 +346,8 @@ const SortableStudyGuideItem = React.memo(({
   setHoveredId,
   onCopy,
   onMove,
-  onUpdateDescription
+  onUpdateDescription,
+  previewText
 }) => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
@@ -630,7 +632,7 @@ const SortableStudyGuideItem = React.memo(({
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
                 Content Preview:
               </span>
-{extractPreview(guide.preview || guide.content) || "Content preview will appear when text is added"}
+              {previewText || extractPreview(guide.preview || guide.content) || "Content preview will appear when text is added"}
             </div>
           )}
         </div>
@@ -679,6 +681,7 @@ const StudyGuideList = ({
   const [hoveredId, setHoveredId] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const { sectionsData, selectedCategory } = useContext(CategoryContext);
+  const [previews, setPreviews] = useState({});
 
   // Combine prop data with context data
   const studyGuidesToDisplay = React.useMemo(() => {
@@ -694,6 +697,36 @@ const StudyGuideList = ({
     const currentCategory = currentSection.categories.find(c => c.id === selectedCategory.id);
     return currentCategory?.study_guides || [];
   }, [sectionsData, selectedCategory, propStudyGuides]); // Include propStudyGuides in dependencies
+
+  // Batch-load previews for guides without custom descriptions
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPreviews = async () => {
+      const ids = (studyGuidesToDisplay || [])
+        .filter(g => !g?.description && !previews[g.id])
+        .map(g => g.id);
+      if (ids.length === 0) return;
+      try {
+        const rows = await studyGuidesService.getContentsByIds(ids);
+        if (cancelled) return;
+        const next = {};
+        for (const row of rows) {
+          const text = extractPreview(row?.content || '');
+          if (text) next[row.id] = text;
+        }
+        if (Object.keys(next).length) setPreviews(prev => ({ ...prev, ...next }));
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      loadPreviews();
+    }
+
+    return () => { cancelled = true; };
+  }, [studyGuidesToDisplay]);
 
   // Optimize sensors for better performance
   const sensors = useSensors(
@@ -814,6 +847,7 @@ const StudyGuideList = ({
               onCopy={onCopy}
               onMove={onMove}
               onUpdateDescription={onUpdateDescription}
+              previewText={previews[guide.id] || ''}
             />
           ))}
         </div>
