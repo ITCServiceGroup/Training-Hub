@@ -24,6 +24,7 @@ import { Container } from './components/selectors/Container';
 import { Text } from './components/selectors/Text';
 import { Button } from './components/selectors/Button';
 import { Image } from './components/selectors/Image';
+import { Video } from './components/selectors/Video';
 import { Icon } from './components/selectors/Icon';
 import { Interactive } from './components/selectors/Interactive';
 import { Table } from './components/selectors/Table';
@@ -99,6 +100,7 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
     'Text': Text,
     'Button': Button,
     'Image': Image,
+    'Video': Video,
     'Interactive': Interactive,
     'Table': Table,
     'Table Text': TableText,
@@ -588,7 +590,7 @@ const ContentEditor = ({ initialTitle = '', editorJson, onJsonChange, onSave, on
       <ToolbarZIndexProvider>
         <Editor
           resolver={{
-            Container, Text, Button, Image, Icon, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs, HorizontalLine, 'Horizontal Line': HorizontalLine
+            Container, Text, Button, Image, Video, Icon, Interactive, Table, TableText, CollapsibleSection, 'Collapsible Section': CollapsibleSection, Tabs, HorizontalLine, 'Horizontal Line': HorizontalLine
           }}
           enabled={true}
           onRender={RenderNode}

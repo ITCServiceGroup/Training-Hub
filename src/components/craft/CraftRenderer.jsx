@@ -10,6 +10,7 @@ import { Text } from '../../pages/admin/components/ContentEditor/components/sele
 import { CollapsibleSection } from '../../pages/admin/components/ContentEditor/components/selectors/CollapsibleSection';
 import { Button } from '../../pages/admin/components/ContentEditor/components/selectors/Button';
 import { Image } from '../../pages/admin/components/ContentEditor/components/selectors/Image';
+import { ViewerVideo } from '../../pages/admin/components/ContentEditor/components/selectors/Video/ViewerVideo';
 import { Interactive } from '../../pages/admin/components/ContentEditor/components/selectors/Interactive';
 import { Table } from '../../pages/admin/components/ContentEditor/components/selectors/Table';
 import { TableText } from '../../pages/admin/components/ContentEditor/components/selectors/Table/TableText';
@@ -245,7 +246,7 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
       // Validate that all component types in the content are registered
       const validateComponents = (nodes) => {
         const resolver = {
-          Container, Text, Button, Image, Interactive, Table, TableText,
+          Container, Text, Button, Image, Video: ViewerVideo, Interactive, Table, TableText,
           CollapsibleSection, 'Collapsible Section': CollapsibleSection,
           Tabs, HorizontalLine, 'Horizontal Line': HorizontalLine, Icon
         };
@@ -308,6 +309,7 @@ const CraftRenderer = React.forwardRef(({ jsonContent, searchTerm }, ref) => {
             Text,
             Button,
             Image,
+            Video: ViewerVideo,
             Interactive,
             Table,
             TableText,

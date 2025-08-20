@@ -38,6 +38,19 @@ export const BASIC_COMPONENTS = [
     }
   },
   {
+    id: 'video',
+    title: 'Video',
+    icon: 'FaPlay',
+    props: {
+      src: '',
+      embedUrl: '',
+      alt: 'Video',
+      width: '100%',
+      aspectRatio: '16/9',
+      controls: true
+    }
+  },
+  {
     id: 'icon',
     title: 'Icon',
     icon: 'FaStar',
@@ -656,6 +669,7 @@ export const ICON_IMPORTS = {
   'FaFont': 'FaFont',
   'FaSquare': 'FaSquare', 
   'FaImage': 'FaImage',
+  'FaPlay': 'FaPlay',
   'FaStar': 'FaStar',
   'FaPuzzlePiece': 'FaPuzzlePiece',
   'FaTable': 'FaTable',

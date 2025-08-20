@@ -1,7 +1,7 @@
 import { Element as CraftElement, useEditor } from '@craftjs/core';
 import React, { useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { FaFont, FaSquare, FaImage, FaStar, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns, FaRegStar, FaListOl, FaIdCard, FaMousePointer, FaGripLines } from 'react-icons/fa';
+import { FaFont, FaSquare, FaImage, FaPlay, FaStar, FaPuzzlePiece, FaTable, FaChevronDown, FaColumns, FaRegStar, FaListOl, FaIdCard, FaMousePointer, FaGripLines } from 'react-icons/fa';
 import { HiViewColumns } from 'react-icons/hi2';
 import { BsLayoutThreeColumns } from 'react-icons/bs';
 import classNames from 'classnames';
@@ -9,6 +9,7 @@ import classNames from 'classnames';
 import { Container } from '../../selectors/Container';
 import { Text } from '../../selectors/Text';
 import { Image } from '../../selectors/Image';
+import { Video } from '../../selectors/Video';
 import { Icon } from '../../selectors/Icon';
 import { Button } from '../../selectors/Button';
 import { Interactive } from '../../selectors/Interactive';
@@ -58,6 +59,7 @@ export const Toolbox = () => {
     Container,
     Text,
     Image,
+    Video,
     Icon,
     Button,
     Interactive,
@@ -72,6 +74,7 @@ export const Toolbox = () => {
     FaFont,
     FaSquare,
     FaImage,
+    FaPlay,
     FaStar,
     FaPuzzlePiece,
     FaTable,

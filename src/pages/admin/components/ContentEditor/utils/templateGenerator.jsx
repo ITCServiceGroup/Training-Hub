@@ -138,6 +138,7 @@ export const createComponentMap = (components) => {
     Container: components.Container,
     Text: components.Text,
     Image: components.Image,
+    Video: components.Video,
     Icon: components.Icon,
     Button: components.Button,
     'horizontal-line': components.HorizontalLine,
@@ -153,6 +154,7 @@ export const createComponentMap = (components) => {
     'container': components.Container,
     'text': components.Text,
     'image': components.Image,
+    'video': components.Video,
     'icon': components.Icon,
     'button': components.Button,
     'table': components.Table

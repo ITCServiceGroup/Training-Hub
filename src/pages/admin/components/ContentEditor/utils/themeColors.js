@@ -474,6 +474,18 @@ export const COLOR_CONFIGS = {
         dark: { r: 255, g: 255, b: 255, a: 1 } // white
       }
     }
+  },
+  VIDEO: {
+    colorKeys: ['border.color'],
+    contextHints: {
+      'border.color': 'container'
+    },
+    defaultValues: {
+      'border.color': {
+        light: { r: 0, g: 0, b: 0, a: 1 }, // black
+        dark: { r: 255, g: 255, b: 255, a: 1 } // white
+      }
+    }
   }
 };
 
