@@ -69,7 +69,9 @@ class SectionsService extends BaseService {
           *,
           categories (
             *,
-            study_guides (*)
+            study_guides (
+              id, category_id, title, description, is_published, display_order, updated_at
+            )
           )
         `)
         // Order sections first, then categories within sections, then study guides within categories

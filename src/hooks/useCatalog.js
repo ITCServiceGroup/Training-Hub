@@ -31,19 +31,17 @@ export function useCatalog({ mode = 'public' } = {}) {
       description: c.description,
       icon: c.icon,
       display_order: c.display_order,
-      study_guides: (c.study_guides || []).map(g => {
-        return ({
-          id: g.id,
-          category_id: g.category_id,
-          title: g.title,
-          description: g.description || '',
-          // Pass raw preview/content data to components, let them extract text
-          preview: g.preview || g.content || '',
-          is_published: !!g.is_published,
-          display_order: g.display_order,
-          updated_at: g.updated_at
-        });
-      })
+      study_guides: (c.study_guides || []).map(g => ({
+        id: g.id,
+        category_id: g.category_id,
+        title: g.title,
+        description: g.description || '',
+        // Keep cache small: do not store content; leave preview empty
+        preview: '',
+        is_published: !!g.is_published,
+        display_order: g.display_order,
+        updated_at: g.updated_at
+      }))
     }))
   }));
 

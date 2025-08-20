@@ -1,4 +1,4 @@
-const KEY = { public: 'catalog_public_v2', admin: 'catalog_admin_v2' };
+const KEY = { public: 'catalog_public_v3', admin: 'catalog_admin_v3' };
 const TTL_MS = 60 * 60 * 1000; // 1 hour
 
 /**
