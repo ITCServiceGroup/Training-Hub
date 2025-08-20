@@ -341,7 +341,7 @@ const formatDate = (dateString) => {
 };
 
 // Simplified Item Component (based on SortableStudyGuideItem)
-const PublicStudyGuideItem = ({ guide, onSelect, previewText }) => {
+const PublicStudyGuideItem = ({ guide, onSelect, previewText, showPreviewSkeleton }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   return (
@@ -356,8 +356,20 @@ const PublicStudyGuideItem = ({ guide, onSelect, previewText }) => {
               {guide.title || 'Untitled Guide'}
             </h3>
           </div>
-          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-4 h-12 overflow-hidden`}>
-            {guide.description || previewText || extractPreview(guide.preview) || extractPreview(guide.content)}
+          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} min-h-[3rem] overflow-hidden`}>
+            {guide.description ? (
+              guide.description
+            ) : previewText ? (
+              previewText
+            ) : showPreviewSkeleton ? (
+              <div className="animate-pulse space-y-2">
+                <div className={`h-3 rounded ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`}></div>
+                <div className={`h-3 w-11/12 rounded ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`}></div>
+                <div className={`h-3 w-9/12 rounded ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`}></div>
+              </div>
+            ) : (
+              extractPreview(guide.preview) || extractPreview(guide.content)
+            )}
           </div>
         </div>
         <div className={`${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-100'} p-2 px-4 border-t flex justify-between items-center`}>
@@ -445,6 +457,7 @@ const PublicStudyGuideList = ({ studyGuides = [], onSelect, isLoading, error }) 
           key={guide.id}
           guide={guide}
           previewText={previews[guide.id] || ''}
+          showPreviewSkeleton={!guide.description && !previews[guide.id]}
           onSelect={onSelect} // Pass the handler down
         />
       ))}
