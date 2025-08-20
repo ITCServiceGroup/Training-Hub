@@ -12,6 +12,7 @@ import PublicStudyGuideList from '../components/PublicStudyGuideList'; // Main c
 import StudyGuideViewer from '../components/StudyGuideViewer';
 import SearchResults from '../components/SearchResults';
 import { useCatalog } from '../hooks/useCatalog';
+import { useNetworkStatus } from '../contexts/NetworkContext';
 
 const StudyGuidePage = () => {
   const { theme } = useTheme();
@@ -28,6 +29,7 @@ const StudyGuidePage = () => {
 
   // Catalog (cached) for public Learn
   const { sections, loading: isLoadingSections, getCategoriesBySection, getGuidesByCategory } = useCatalog({ mode: 'public' });
+  const { isOnline, reconnectCount } = useNetworkStatus();
   const [sectionsError, setSectionsError] = useState(null);
   // Local state for guides and current items derived from context/params
   const [studyGuides, setStudyGuides] = useState([]);
@@ -88,6 +90,13 @@ const StudyGuidePage = () => {
     setIsLoadingStudyGuides(false);
   }, [categoryId, getGuidesByCategory]);
 
+  // Clear transient errors when the connection is restored
+  useEffect(() => {
+    if (isOnline) {
+      setStudyGuidesError(null);
+      setStudyGuideError(null);
+    }
+  }, [isOnline, reconnectCount]);
 
   // Fetch specific study guide when studyGuideId changes
   useEffect(() => {
