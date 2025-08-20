@@ -224,32 +224,58 @@ const extractPreview = (content, maxLength = 150) => {
 
       // Try to extract any text from the JSON string as a last resort
       if (typeof content === 'string') {
-        // Look for text patterns in the JSON string
-        const textMatches = content.match(/"text":"([^"]+)"/g);
+        // Look for text patterns in the JSON string - improved regex
+        const textMatches = content.match(/"text"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/g);
         if (textMatches && textMatches.length > 0) {
           const extractedTexts = textMatches.map(match => {
-            return match.replace(/"text":"/, '').replace(/"$/, '');
-          });
+            // More robust extraction
+            const textMatch = match.match(/"text"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+            return textMatch ? textMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' ').replace(/\\t/g, ' ') : '';
+          }).filter(text => text.trim().length > 0);
 
           if (extractedTexts.length > 0) {
-            const preview = extractedTexts.join(' ').replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
+            const preview = extractedTexts.join(' ').replace(/\s+/g, ' ').trim();
             return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
           }
         }
 
         // Try to handle double-escaped JSON strings
         if (content.includes('\\"text\\"')) {
-          const doubleEscapedMatches = content.match(/\\"text\\":\\"([^\\]+)\\"/g);
+          const doubleEscapedMatches = content.match(/\\"text\\"\\s*:\\s*\\"([^\\]*(?:\\\\.[^\\]*)*)\\"}/g);
           if (doubleEscapedMatches && doubleEscapedMatches.length > 0) {
             const extractedTexts = doubleEscapedMatches.map(match => {
-              return match.replace(/\\"text\\":\\"/, '').replace(/\\"$/, '');
-            });
+              const textMatch = match.match(/\\"text\\"\\s*:\\s*\\"([^\\]*(?:\\\\.[^\\]*)*)\\"}/);
+              return textMatch ? textMatch[1].replace(/\\\\/g, '\\').replace(/\\"/g, '"') : '';
+            }).filter(text => text.trim().length > 0);
 
             if (extractedTexts.length > 0) {
-              const preview = extractedTexts.join(' ').replace(/\\\\/g, '\\').replace(/\s+/g, ' ').trim();
+              const preview = extractedTexts.join(' ').replace(/\s+/g, ' ').trim();
               return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
             }
           }
+        }
+      }
+
+      // Last resort: try to find any text content in the JSON using simple string methods
+      if (typeof content === 'string') {
+        // Remove JSON structure chars and look for potential text
+        let potentialText = content
+          .replace(/[{}[\]"\\]/g, ' ')  // Remove JSON syntax
+          .replace(/\b(ROOT|root|resolvedName|type|props|nodes|linkedNodes|displayName)\b/g, ' ')  // Remove Craft.js keywords
+          .replace(/\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b/gi, ' ')  // Remove UUIDs
+          .replace(/\s+/g, ' ')
+          .trim();
+          
+        // Look for meaningful text (more than 10 chars, contains letters)
+        const words = potentialText.split(/\s+/).filter(word => 
+          word.length > 2 && 
+          /[a-zA-Z]/.test(word) && 
+          !word.match(/^(true|false|null|undefined|NaN)$/i)
+        );
+        
+        if (words.length >= 3) {
+          const preview = words.slice(0, 20).join(' ').trim();
+          return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
         }
       }
 
@@ -281,6 +307,12 @@ const extractPreview = (content, maxLength = 150) => {
     }
     return preview.length > maxLength ? preview.substring(0, maxLength) + '...' : preview;
   } catch (error) {
+    // If HTML parsing fails, check if this is JSON content that wasn't caught earlier
+    if (typeof content === 'string' && (content.includes('{"ROOT"') || content.includes('resolvedName') || content.includes('"text"'))) {
+      return "Interactive content created with Content Editor";
+    }
+    
+    // Basic text content fallback for non-JSON content
     const textContent = content
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
@@ -598,7 +630,7 @@ const SortableStudyGuideItem = React.memo(({
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
                 Content Preview:
               </span>
-              {extractPreview(guide.content)}
+{extractPreview(guide.preview || guide.content) || "Content preview will appear when text is added"}
             </div>
           )}
         </div>

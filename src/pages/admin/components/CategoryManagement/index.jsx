@@ -6,13 +6,14 @@ import BreadcrumbNav from '../BreadcrumbNav';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import QuestionMigrationDialog from '../QuestionMigrationDialog';
 import { useNetworkStatus } from '../../../../contexts/NetworkContext';
+import { useCatalog } from '../../../../hooks/useCatalog';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
 );
 
 const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
-  // Note: No longer using CategoryContext for category management
+  const { getCategoriesBySection, refresh } = useCatalog({ mode: 'admin' });
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,60 +34,19 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
 
   useEffect(() => {
     if (section) {
-      loadCategories();
-    }
-  }, [section]);
-
-  const loadCategories = async () => {
-    console.log('[CATEGORY MANAGEMENT] Loading categories for section:', section?.id);
-    setIsLoading(true);
-    try {
-      const data = await categoriesService.getBySectionId(section.id);
-      setCategories(data);
+      setIsLoading(true);
+      // derive from catalog (works offline)
+      const cats = getCategoriesBySection(section.id) || [];
+      setCategories(cats);
       setError(null);
-      console.log('[CATEGORY MANAGEMENT] Successfully loaded', data.length, 'categories');
-    } catch (err) {
-      console.error('[CATEGORY MANAGEMENT] Error loading categories:', err);
-      // Check if this is a network-related error
-      const isNetworkError = !isOnline || 
-        err.message?.includes('fetch') || 
-        err.message?.includes('network') ||
-        err.message?.includes('Failed to fetch') ||
-        err.code === 'NetworkError';
-      
-      if (isNetworkError) {
-        setError('Failed to load categories - Check your internet connection');
-        console.log('[CATEGORY MANAGEMENT] Network error detected, will retry when connection is restored');
-      } else {
-        setError('Failed to load categories');
-      }
-    } finally {
       setIsLoading(false);
     }
-  };
+  }, [section, getCategoriesBySection]);
 
-  // Simple network retry: when reconnectCount changes, retry loading categories if there was an error
+  // Hook handles reconnect refresh globally; keep UI soft if offline
   useEffect(() => {
-    console.log('[CATEGORY MANAGEMENT] Retry effect triggered - reconnectCount:', reconnectCount, 'section:', !!section, 'error:', !!error, 'error value:', error);
-    if (reconnectCount > 0) {
-      console.log('[CATEGORY MANAGEMENT] Network reconnected! reconnectCount > 0');
-      if (section) {
-        console.log('[CATEGORY MANAGEMENT] Section exists');
-        if (error) {
-          console.log('[CATEGORY MANAGEMENT] Error exists, retrying categories load...');
-          // Clear error immediately when retry starts
-          setError(null);
-          loadCategories();
-        } else {
-          console.log('[CATEGORY MANAGEMENT] No error present, not retrying');
-        }
-      } else {
-        console.log('[CATEGORY MANAGEMENT] No section, not retrying');
-      }
-    } else {
-      console.log('[CATEGORY MANAGEMENT] reconnectCount is 0, not retrying');
-    }
-  }, [reconnectCount]); // Only depend on reconnectCount to avoid loops
+    if (!isOnline) setError(null);
+  }, [isOnline]);
 
   // Define local optimistic update function for categories
   const optimisticallyUpdateCategoriesOrder = (newCategoriesOrder) => {
@@ -111,55 +71,24 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
 
   const handleUpdateCategory = async (id, formData) => {
     try {
-      // Use updateBasicInfo instead of update to avoid schema cache issues
-      await categoriesService.updateBasicInfo(id, {
-        ...formData,
-        section_id: section.id
-      });
-
-      // Create an updated category object with the new data
-      const updatedCategory = {
-        id,
-        ...formData,
-        section_id: section.id
-      };
-
-      // Update local state
-      setCategories(prev => prev.map(c =>
-        c.id === id ? { ...c, ...updatedCategory } : c
-      ));
+      await categoriesService.updateBasicInfo(id, { ...formData, section_id: section.id });
+      await refresh();
+      setCategories(getCategoriesBySection(section.id));
     } catch (err) {
       console.error('Error updating category:', err);
-      // Revert to server state on error
-      await loadCategories();
+      await refresh();
       throw err;
     }
   };
 
   const handleUpdateOrder = async (updates) => {
     try {
-      // Update local order first
-      const updatedCategories = [...categories];
-      updates.forEach(update => {
-        const category = updatedCategories.find(c => c.id === update.id);
-        if (category) {
-          category.display_order = update.display_order;
-        }
-      });
-      // Sort by display_order
-      updatedCategories.sort((a, b) => a.display_order - b.display_order);
-
-      // Update local state
-      setCategories(updatedCategories);
-
-      // Note: If sidebar needs to be updated with section changes, implement that separately
-
-      // Update the server
       await categoriesService.updateOrder(updates);
+      await refresh();
+      setCategories(getCategoriesBySection(section.id));
     } catch (err) {
       console.error('Error updating category order:', err);
-      // Revert to server state on error
-      await loadCategories();
+      await refresh();
       throw err;
     }
   };
@@ -254,10 +183,11 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
 
       // Make API call
       await categoriesService.delete(id);
+      await refresh();
+      setCategories(getCategoriesBySection(section.id));
     } catch (err) {
       console.error('Error deleting category:', err);
-      // Revert to server state on error
-      await loadCategories();
+      await refresh();
       throw err;
     } finally {
       setDeleteModalState({ isOpen: false, categoryId: null, description: "", canDelete: true });

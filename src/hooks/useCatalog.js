@@ -1,0 +1,113 @@
+import { useEffect, useMemo, useState } from 'react';
+import { sectionsService } from '../services/api/sections';
+import { catalogCache } from '../services/cache/catalogCache';
+import { useNetworkStatus } from '../contexts/NetworkContext';
+
+/**
+ * Shared catalog hook for Sections -> Categories -> Study Guides list (metadata only)
+ * Supports offline (localStorage) and online refresh + reconnect auto-refresh.
+ *
+ * mode: 'public' | 'admin'
+ *  - public: publishedOnly=true for study_guides
+ *  - admin: include all
+ */
+export function useCatalog({ mode = 'public' } = {}) {
+  const publishedOnly = mode === 'public';
+  const { isOnline, reconnectCount } = useNetworkStatus();
+
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const toSlim = (data) => (data || []).map(s => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    icon: s.icon,
+    display_order: s.display_order,
+    categories: (s.categories || []).map(c => ({
+      id: c.id,
+      section_id: c.section_id,
+      name: c.name,
+      description: c.description,
+      icon: c.icon,
+      display_order: c.display_order,
+      study_guides: (c.study_guides || []).map(g => {
+        return ({
+          id: g.id,
+          category_id: g.category_id,
+          title: g.title,
+          description: g.description || '',
+          // Pass raw preview/content data to components, let them extract text
+          preview: g.preview || g.content || '',
+          is_published: !!g.is_published,
+          display_order: g.display_order,
+          updated_at: g.updated_at
+        });
+      })
+    }))
+  }));
+
+  const load = async (preferCache = false) => {
+    const cached = catalogCache.get(mode);
+
+    // If offline or preferCache, return cached immediately
+    if (preferCache || !isOnline) {
+      setSections(cached?.data || []);
+      setLoading(false);
+      return;
+    }
+
+    // If online but have cache, render it first for instant UI, then refresh in background
+    if (cached?.data && !preferCache) {
+      setSections(cached.data);
+      setLoading(false);
+      try {
+        const fresh = await sectionsService.getSectionsWithCategories(publishedOnly);
+        const slim = toSlim(fresh);
+        setSections(slim);
+        catalogCache.set(mode, slim);
+      } catch (e) {
+        // keep cached view
+        console.warn('[useCatalog] Background refresh failed:', e);
+      }
+      return;
+    }
+
+    // No cache -> fetch
+    try {
+      const data = await sectionsService.getSectionsWithCategories(publishedOnly);
+      const slim = toSlim(data);
+      setSections(slim);
+      catalogCache.set(mode, slim);
+    } catch (e) {
+      console.warn('[useCatalog] Initial fetch failed, using cache if any');
+      setSections(cached?.data || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(false); }, [mode, isOnline]);
+  useEffect(() => { if (reconnectCount > 0) load(false); }, [reconnectCount]);
+
+  const refresh = () => load(false);
+
+  const getCategoriesBySection = useMemo(
+    () => (sectionId) => (sections || []).find(s => s.id === sectionId)?.categories || [],
+    [sections]
+  );
+
+  const getGuidesByCategory = useMemo(
+    () => (categoryId, onlyPublished = publishedOnly) => {
+      const category = (sections || []).flatMap(s => s.categories || []).find(c => c.id === categoryId);
+      const guides = category?.study_guides || [];
+      return onlyPublished ? guides.filter(g => g.is_published) : guides;
+    },
+    [sections, publishedOnly]
+  );
+
+  return { sections, loading, getCategoriesBySection, getGuidesByCategory, refresh };
+}
+
+export default useCatalog;
+

@@ -4,7 +4,6 @@ import { useFullscreen } from '../contexts/FullscreenContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 import { studyGuidesService } from '../services/api/studyGuides';
-import { sectionsService } from '../services/api/sections';
 import { searchService } from '../services/api/search';
 import SectionGrid from '../components/SectionGrid';
 import CategoryGrid from '../components/CategoryGrid';
@@ -12,6 +11,7 @@ import StudyGuideList from '../components/StudyGuideList'; // Sidebar list
 import PublicStudyGuideList from '../components/PublicStudyGuideList'; // Main content list
 import StudyGuideViewer from '../components/StudyGuideViewer';
 import SearchResults from '../components/SearchResults';
+import { useCatalog } from '../hooks/useCatalog';
 
 const StudyGuidePage = () => {
   const { theme } = useTheme();
@@ -26,35 +26,9 @@ const StudyGuidePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isHeaderScrolledAway, setIsHeaderScrolledAway] = useState(false); // State for header scroll
 
-  // Manage sections data locally instead of from context
-  const [sectionsData, setSectionsData] = useState([]);
-  const [isLoadingSections, setIsLoadingSections] = useState(true);
+  // Catalog (cached) for public Learn
+  const { sections, loading: isLoadingSections, getCategoriesBySection, getGuidesByCategory } = useCatalog({ mode: 'public' });
   const [sectionsError, setSectionsError] = useState(null);
-
-  // Effect to fetch sections data
-  useEffect(() => {
-    const fetchSections = async () => {
-      console.log('[StudyGuidePage] Starting to fetch sections...');
-      setIsLoadingSections(true);
-      setSectionsError(null);
-      try {
-        // For public pages, only show published study guides
-        const data = await sectionsService.getSectionsWithCategories(true);
-        console.log('[StudyGuidePage] Sections data received:', data?.length || 0, 'sections');
-        setSectionsData(data || []);
-      } catch (error) {
-        console.error('[StudyGuidePage] Error loading sections:', error);
-        setSectionsError('Failed to load sections. Please try again later.');
-      } finally {
-        console.log('[StudyGuidePage] Setting isLoadingSections to false');
-        setIsLoadingSections(false);
-      }
-    };
-
-    console.log('[StudyGuidePage] Initial sections fetch effect running');
-    fetchSections();
-  }, []); // Only fetch once on mount
-
   // Local state for guides and current items derived from context/params
   const [studyGuides, setStudyGuides] = useState([]);
   const [currentStudyGuide, setCurrentStudyGuide] = useState(null);
@@ -70,30 +44,17 @@ const StudyGuidePage = () => {
   const [studyGuidesError, setStudyGuidesError] = useState(null);
   const [studyGuideError, setStudyGuideError] = useState(null);
 
-  // Derive current section and its categories from sections data when sectionId or sectionsData changes
+  // Derive current section and its categories from catalog when sectionId changes
    useEffect(() => {
-    console.log('[StudyGuidePage] Section derivation effect running:', {
-      sectionId,
-      'sectionsData.length': sectionsData?.length || 0,
-      isLoadingSections
-    });
-
-    if (sectionId && sectionsData.length > 0) {
-      const section = sectionsData.find(sec => sec.id === sectionId);
-      console.log('[StudyGuidePage] Found section:', section?.name || 'Not found');
-      setCurrentSection(section || { id: sectionId, name: 'Loading...' });
+    if (sectionId) {
+      const section = sections.find(sec => sec.id === sectionId);
+      setCurrentSection(section || (isLoadingSections ? { id: sectionId, name: 'Loading...' } : null));
       setCategories(section?.categories || []);
-      console.log('[StudyGuidePage] Set categories:', section?.categories?.length || 0, 'categories');
-    } else if (!sectionId) {
-      console.log('[StudyGuidePage] No sectionId, clearing section and categories');
+    } else {
       setCurrentSection(null);
       setCategories([]);
-    } else if (sectionId && isLoadingSections) {
-      console.log('[StudyGuidePage] Sections still loading, showing loading state');
-      setCurrentSection({ id: sectionId, name: 'Loading...' });
-      setCategories([]);
     }
-  }, [sectionId, sectionsData, isLoadingSections]);
+  }, [sectionId, sections, isLoadingSections]);
 
   // Derive current category when categoryId or categories change
   useEffect(() => {
@@ -110,49 +71,22 @@ const StudyGuidePage = () => {
   }, [categoryId, categories, isLoadingSections]);
 
 
-  // Fetch study guides list when categoryId changes (and categories are available or loading)
+  // Derive study guides list from catalog when categoryId changes (no network)
   useEffect(() => {
-    // Allow fetch if categoryId exists, unless sections have loaded AND categories are confirmed empty
-    if (!categoryId || (!isLoadingSections && categories.length === 0 && !categories.some(cat => cat.id === categoryId))) {
+    setIsLoadingStudyGuides(true);
+    setStudyGuidesError(null);
+
+    if (!categoryId) {
       setStudyGuides([]);
-      // Don't clear currentCategory here, let the other effect handle it
-      return; // Exit if no categoryId, or if sections loaded but this category isn't in the derived list
+      setIsLoadingStudyGuides(false);
+      return;
     }
 
-    // Check if the current category actually exists in the derived list
-    const categoryExists = categories.some(cat => cat.id === categoryId);
-    if (!categoryExists && !isLoadingSections) { // Avoid fetching if category isn't valid (and sections aren't loading)
-        setStudyGuides([]);
-        setStudyGuidesError(`Category with ID ${categoryId} not found.`);
-        return;
-    }
-
-
-    const fetchStudyGuides = async () => {
-      setIsLoadingStudyGuides(true);
-      setStudyGuidesError(null);
-
-      try {
-        // Fetch guides only if categoryId is valid and derived category exists or sections are still loading
-        if (categoryId && (categoryExists || isLoadingSections)) {
-            // For public pages, only show published study guides
-            const guides = await studyGuidesService.getByCategoryId(categoryId, true);
-            setStudyGuides(guides);
-        } else if (!isLoadingSections) {
-             // If sections finished loading but category doesn't exist, clear guides
-             setStudyGuides([]);
-        }
-      } catch (error) {
-        console.error('Error fetching study guides:', error);
-        setStudyGuidesError('Failed to load study guides. Please try again later.');
-      } finally {
-        setIsLoadingStudyGuides(false);
-      }
-    };
-
-    fetchStudyGuides();
-  // Depend on categoryId and the derived categories list, and isLoadingSections
-  }, [categoryId, categories, isLoadingSections]);
+    // Only published for public Learn
+    const guides = getGuidesByCategory(categoryId, true);
+    setStudyGuides(guides || []);
+    setIsLoadingStudyGuides(false);
+  }, [categoryId, getGuidesByCategory]);
 
 
   // Fetch specific study guide when studyGuideId changes
@@ -394,7 +328,7 @@ const StudyGuidePage = () => {
 
       {/* Error messages */}
       <div className="px-8">
-        {sectionsError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{sectionsError}</div>}
+        {/* sectionsError rarely needed because catalog provides cached data; keep placeholder if needed */}
         {studyGuidesError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuidesError}</div>}
         {studyGuideError && <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-3 rounded-lg mb-2 text-sm`}>{studyGuideError}</div>}
       </div>
@@ -428,8 +362,8 @@ const StudyGuidePage = () => {
             <div className="px-8">
               <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a section below to start learning.</p>
               <SectionGrid
-                sections={sectionsData} // Use context data
-                isLoading={isLoadingSections} // Use context loading state
+                sections={sections}
+                isLoading={isLoadingSections}
                 searchQuery={searchQuery}
               />
             </div>
@@ -438,9 +372,9 @@ const StudyGuidePage = () => {
             <div className="px-8">
               <p className={`text-sm ${isDark ? 'text-gray-300' : ''} mt-1 mb-2`}>Select a category below to view study guides.</p>
               <CategoryGrid
-                categories={categories} // Use derived categories state
+                categories={categories}
                 sectionId={sectionId}
-                isLoading={isLoadingSections} // Still depends on sections loading
+                isLoading={isLoadingSections}
                 searchQuery={searchQuery}
               />
             </div>

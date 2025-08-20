@@ -356,7 +356,7 @@ const PublicStudyGuideItem = ({ guide, onSelect }) => {
             </h3>
           </div>
           <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-4 h-12 overflow-hidden`}>
-            {guide.description || extractPreview(guide.content)}
+            {guide.description || extractPreview(guide.preview) || extractPreview(guide.content)}
           </div>
         </div>
         <div className={`${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-100'} p-2 px-4 border-t flex justify-between items-center`}>

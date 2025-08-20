@@ -13,6 +13,7 @@ import StudyGuideTemplateModal from './components/StudyGuideTemplateModal';
 import { studyGuidesService } from '../../services/api/studyGuides';
 import { sectionsService } from '../../services/api/sections';
 import { CategoryContext } from '../../components/layout/AdminLayout';
+import { useCatalog } from '../../hooks/useCatalog';
 
 // Helper function to handle content initialization and validation
 const getInitialJson = (studyGuide, isCreatingFlag) => {
@@ -188,6 +189,7 @@ const StudyGuides = () => {
   const { isFullscreen, exitFullscreen } = useFullscreen();
   const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
+  const { getGuidesByCategory, refresh } = useCatalog({ mode: 'admin' });
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -275,56 +277,20 @@ const StudyGuides = () => {
 
   useEffect(() => {
     if (selectedCategory) {
-      loadStudyGuides();
-
+      // derive from catalog (works offline)
+      setStudyGuides(getGuidesByCategory(selectedCategory.id, false));
       if (!selectedSection && selectedCategory.section_id) {
         loadSection(selectedCategory.section_id);
       }
     } else {
       setStudyGuides([]);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, getGuidesByCategory]);
 
-  const loadStudyGuides = async () => {
-    if (!selectedCategory) return;
-
-    console.log('[STUDY GUIDES] Loading study guides for category:', selectedCategory.id);
-    setIsLoading(true);
-    try {
-      const guides = await studyGuidesService.getByCategoryId(selectedCategory.id);
-      setStudyGuides(guides.sort((a, b) => a.display_order - b.display_order));
-      setError(null);
-      console.log('[STUDY GUIDES] Successfully loaded', guides.length, 'study guides');
-    } catch (err) {
-      console.error('[STUDY GUIDES] Error loading study guides:', err);
-      // Check if this is a network-related error
-      const isNetworkError = !isOnline || 
-        err.message?.includes('fetch') || 
-        err.message?.includes('network') ||
-        err.message?.includes('Failed to fetch') ||
-        err.code === 'NetworkError';
-      
-      if (isNetworkError) {
-        setError('Failed to load study guides - Check your internet connection');
-        console.log('[STUDY GUIDES] Network error detected, will retry when connection is restored');
-      } else {
-        setError('Failed to load study guides');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Network retry: when reconnectCount changes, retry loading study guides if there was an error
+  // With useCatalog, list reloads automatically on reconnect via hook.
   useEffect(() => {
-    console.log('[STUDY GUIDES] Retry effect triggered - reconnectCount:', reconnectCount, 'selectedCategory:', !!selectedCategory, 'error:', !!error);
-    if (reconnectCount > 0 && selectedCategory && error) {
-      console.log('[STUDY GUIDES] Network reconnected, retrying study guides load...');
-      // Clear error immediately when retry starts
-      setError(null);
-      loadStudyGuides();
-    }
-  }, [reconnectCount]);
+    if (!isOnline) setError(null);
+  }, [isOnline]);
 
   const loadSection = async (sectionId) => {
     try {
@@ -335,10 +301,26 @@ const StudyGuides = () => {
     }
   };
 
-  const handleStudyGuideSelect = (studyGuide) => {
-    setSelectedStudyGuide(studyGuide);
+  const handleStudyGuideSelect = async (studyGuide) => {
     setIsCreating(false);
-    // State update happens via useEffect watching selectedStudyGuide
+    setIsLoading(true);
+    try {
+      let full = studyGuide;
+      if (!studyGuide?.content) {
+        // Fetch full record with content for editor
+        full = await studyGuidesService.getById(studyGuide.id);
+      }
+      setSelectedStudyGuide(full);
+      setError(null);
+      // Ensure editor has initial JSON promptly
+      const initJson = getInitialJson(full, false);
+      setCurrentEditorJson(initJson);
+    } catch (err) {
+      console.error('Error loading study guide details:', err);
+      setError('Failed to load study guide content.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCreateNew = () => {
@@ -410,9 +392,11 @@ const StudyGuides = () => {
       // Reset state
       setSelectedStudyGuide(null);
       setCurrentEditorJson(null); // Clear editor state
+      await refresh();
+      setStudyGuides(selectedCategory ? getGuidesByCategory(selectedCategory.id, false) : []);
     } catch (error) {
       console.error('Error deleting study guide:', error);
-      await loadStudyGuides(); // Revert on error
+      await refresh();
       setIsDeleteConfirmOpen(false);
       throw error;
     }
@@ -526,10 +510,8 @@ const StudyGuides = () => {
           display_order
         });
 
-        // Update local state with real ID
-        setStudyGuides(prev => prev.map(guide =>
-          guide.id === tempId ? savedGuide : guide
-        ));
+        await refresh();
+        setStudyGuides(getGuidesByCategory(selectedCategory.id, false));
 
         // Update context with real ID
         const finalSectionsData = sectionsData?.map(section => {
@@ -607,6 +589,8 @@ const StudyGuides = () => {
 
         // Make API call
         savedGuide = await studyGuidesService.update(selectedStudyGuide.id, dataToSaveApi);
+        await refresh();
+        setStudyGuides(getGuidesByCategory(selectedCategory.id, false));
 
         // Only exit if shouldExit is true
         if (shouldExit) {
@@ -624,7 +608,8 @@ const StudyGuides = () => {
       }
     } catch (error) {
       console.error('Error saving study guide:', error);
-      await loadStudyGuides(); // Revert on error
+      await refresh();
+      setStudyGuides(selectedCategory ? getGuidesByCategory(selectedCategory.id, false) : []);
       alert('Failed to save study guide');
     }
   };
@@ -706,9 +691,11 @@ const StudyGuides = () => {
 
       // Make API call
       await studyGuidesService.update(guideId, { description });
+      await refresh();
+      setStudyGuides(getGuidesByCategory(selectedCategory.id, false));
     } catch (error) {
       console.error('Error updating study guide description:', error);
-      await loadStudyGuides(); // Revert on error
+      await refresh();
     }
   };
 
@@ -981,9 +968,11 @@ const StudyGuides = () => {
                   category_id: selectedCategory.id
                 }));
                 await studyGuidesService.updateOrder(updatesWithCategory);
+                await refresh();
+                setStudyGuides(getGuidesByCategory(selectedCategory.id, false));
               } catch (err) {
                 console.error('Error updating order:', err);
-                await loadStudyGuides(); // Revert on error
+                await refresh();
                 alert('Failed to update order');
               }
             }}

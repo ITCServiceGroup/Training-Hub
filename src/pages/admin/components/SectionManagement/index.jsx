@@ -6,6 +6,7 @@ import BreadcrumbNav from '../BreadcrumbNav';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import { useNetworkStatus } from '../../../../contexts/NetworkContext';
+import { useCatalog } from '../../../../hooks/useCatalog';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
@@ -15,8 +16,7 @@ const SectionManagement = ({ onViewCategories }) => {
   // Remove the non-existent optimisticallyUpdateSectionsOrder from context
   const { sectionsData } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
-  const [sections, setSections] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { sections, loading: isLoading, refresh } = useCatalog({ mode: 'admin' });
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteModalState, setDeleteModalState] = useState({
@@ -26,58 +26,23 @@ const SectionManagement = ({ onViewCategories }) => {
     canDelete: true
   });
 
+  // With useCatalog, initial load and reconnect refresh are handled by the hook
   useEffect(() => {
-    loadSections();
-  }, []);
-
-  const loadSections = async () => {
-    console.log('[SECTION MANAGEMENT] Loading sections');
-    setIsLoading(true);
-    try {
-      const data = await sectionsService.getSectionsWithCategories();
-      setSections(data);
+    if (!isOnline) {
+      // show a soft hint instead of blocking UI; lists still work from cache
       setError(null);
-      console.log('[SECTION MANAGEMENT] Successfully loaded', data.length, 'sections');
-    } catch (err) {
-      console.error('[SECTION MANAGEMENT] Error loading sections:', err);
-      // Check if this is a network-related error
-      const isNetworkError = !isOnline || 
-        err.message?.includes('fetch') || 
-        err.message?.includes('network') ||
-        err.message?.includes('Failed to fetch') ||
-        err.code === 'NetworkError';
-      
-      if (isNetworkError) {
-        setError('Failed to load sections - Check your internet connection');
-        console.log('[SECTION MANAGEMENT] Network error detected, will retry when connection is restored');
-      } else {
-        setError('Failed to load sections');
-      }
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  // Network retry: when reconnectCount changes, retry loading sections if there was an error
-  useEffect(() => {
-    console.log('[SECTION MANAGEMENT] Retry effect triggered - reconnectCount:', reconnectCount, 'error:', !!error);
-    if (reconnectCount > 0 && error) {
-      console.log('[SECTION MANAGEMENT] Network reconnected, retrying sections load...');
-      // Clear error immediately when retry starts
-      setError(null);
-      loadSections();
-    }
-  }, [reconnectCount]);
+  }, [isOnline]);
 
   // Define optimistic update function locally
-  const optimisticallyUpdateSectionsOrder = (newSectionsOrder) => {
-    setSections(newSectionsOrder);
+  const optimisticallyUpdateSectionsOrder = async (newSectionsOrder) => {
+    // We keep optimistic update for UI responsiveness, but rely on refresh() after server call
   };
 
   const handleAddSection = async (formData) => {
     try {
       await sectionsService.create(formData);
-      await loadSections();
+      await refresh();
       setIsCreating(false);
     } catch (err) {
       console.error('Error creating section:', err);
@@ -87,44 +52,22 @@ const SectionManagement = ({ onViewCategories }) => {
 
   const handleUpdateSection = async (id, formData) => {
     try {
-      const updatedSection = await sectionsService.update(id, formData);
-
-      // Update local state
-      setSections(prev => prev.map(s =>
-        s.id === id ? { ...s, ...updatedSection } : s
-      ));
+      await sectionsService.update(id, formData);
+      await refresh();
     } catch (err) {
       console.error('Error updating section:', err);
-      // Revert to server state on error
-      await loadSections();
+      await refresh();
       throw err;
     }
   };
 
   const handleUpdateOrder = async (updates) => {
     try {
-      // Update local order first
-      const updatedSections = [...sections];
-      updates.forEach(update => {
-        const section = updatedSections.find(s => s.id === update.id);
-        if (section) {
-          section.display_order = update.display_order;
-        }
-      });
-      // Sort by display_order
-      updatedSections.sort((a, b) => a.display_order - b.display_order);
-
-      // Update local state
-      setSections(updatedSections);
-
-      // Note: If sidebar needs to be updated, we'll need to implement that separately
-
-      // Update the server
       await sectionsService.updateOrder(updates);
+      await refresh();
     } catch (err) {
       console.error('Error updating section order:', err);
-      // Revert to server state on error
-      await loadSections();
+      await refresh();
       throw err;
     }
   };
@@ -202,25 +145,16 @@ const SectionManagement = ({ onViewCategories }) => {
 
   const handleDeleteSection = async (id) => {
     try {
-      // Check if section has quiz questions before attempting deletion
       const questionCount = await questionsService.getCountBySection(id);
       if (questionCount > 0) {
-        // Don't proceed with deletion, just close the modal
         setDeleteModalState({ isOpen: false, sectionId: null, description: "", canDelete: true });
         return;
       }
-
-      // Optimistically update local state
-      setSections(prev => prev.filter(s => s.id !== id));
-
-      // Note: If sidebar needs to be updated, we'll need to implement that separately
-
-      // Make API call
       await sectionsService.delete(id);
+      await refresh();
     } catch (err) {
       console.error('Error deleting section:', err);
-      // Revert to server state on error
-      await loadSections();
+      await refresh();
       throw err;
     } finally {
       setDeleteModalState({ isOpen: false, sectionId: null, description: "", canDelete: true });
