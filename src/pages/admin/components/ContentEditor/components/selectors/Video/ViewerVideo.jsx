@@ -38,16 +38,42 @@ export const ViewerVideo = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [isPlaying, setIsPlaying] = useState(false);
-  const [shouldShowIframe, setShouldShowIframe] = useState(false);
   const iframeRef = React.useRef(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
-  // Delay iframe creation slightly to ensure page context is ready
+  // Try aggressive autoplay approach
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setShouldShowIframe(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+    if (autoplay && iframeLoaded && iframeRef.current) {
+      const tryAutoplay = () => {
+        try {
+          // Multiple aggressive attempts to trigger autoplay
+          const iframe = iframeRef.current;
+          
+          // Method 1: YouTube API commands
+          iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+          iframe.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+          
+          // Method 2: Try to programmatically click the iframe
+          const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+          iframe.dispatchEvent(event);
+          
+          // Method 3: Focus and try keyboard
+          iframe.focus();
+          const spaceEvent = new KeyboardEvent('keydown', { key: ' ', code: 'Space' });
+          iframe.dispatchEvent(spaceEvent);
+          
+        } catch (e) {
+          console.log('Autoplay attempt failed:', e);
+        }
+      };
+
+      // Try multiple times with different delays
+      setTimeout(tryAutoplay, 100);
+      setTimeout(tryAutoplay, 500);
+      setTimeout(tryAutoplay, 1000);
+      setTimeout(tryAutoplay, 2000);
+    }
+  }, [autoplay, iframeLoaded]);
 
 
   // Get the appropriate border color for the current theme
@@ -72,29 +98,42 @@ export const ViewerVideo = ({
   const isYouTube = embedUrl && (embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be'));
   const isExternalEmbed = !!embedUrl;
 
-  // Convert YouTube URL to embed format
+  // Convert YouTube URL to embed format and extract video ID
   const getYouTubeEmbedUrl = (url) => {
-    if (!url) return '';
+    if (!url) return { embedUrl: '', videoId: '' };
+    
+    let videoId = '';
     
     // Handle youtu.be links
     if (url.includes('youtu.be/')) {
-      const videoId = url.split('youtu.be/')[1].split(/[?&]/)[0];
-      return `https://www.youtube.com/embed/${videoId}?rel=0`;
+      videoId = url.split('youtu.be/')[1].split(/[?&]/)[0];
+      return { 
+        embedUrl: `https://www.youtube.com/embed/${videoId}?rel=0`,
+        videoId 
+      };
     }
     
     // Handle youtube.com/watch links
     if (url.includes('youtube.com/watch')) {
       const urlParams = new URLSearchParams(url.split('?')[1]);
-      const videoId = urlParams.get('v');
-      return `https://www.youtube.com/embed/${videoId}?rel=0`;
+      videoId = urlParams.get('v');
+      return { 
+        embedUrl: `https://www.youtube.com/embed/${videoId}?rel=0`,
+        videoId 
+      };
     }
     
-    // If already an embed URL, return as is
+    // If already an embed URL, extract video ID
     if (url.includes('youtube.com/embed/')) {
-      return url;
+      const match = url.match(/embed\/([^?&]+)/);
+      videoId = match ? match[1] : '';
+      return { 
+        embedUrl: url,
+        videoId 
+      };
     }
     
-    return url;
+    return { embedUrl: url, videoId: '' };
   };
 
   // Get video styles
@@ -131,17 +170,41 @@ export const ViewerVideo = ({
 
     if (isExternalEmbed) {
       // Render YouTube or other external embeds
-      const embedSrc = isYouTube ? getYouTubeEmbedUrl(embedUrl) : embedUrl;
+      const { embedUrl: embedSrc, videoId } = isYouTube ? getYouTubeEmbedUrl(embedUrl) : { embedUrl: embedUrl, videoId: '' };
       
-      // Use IDENTICAL logic to editor - build parameters exactly the same way
+      // Aggressive YouTube autoplay parameters
       const viewerParams = new URLSearchParams();
-      viewerParams.set('autoplay', autoplay ? '1' : '0'); // Identical to editor
-      viewerParams.set('mute', muted ? '1' : '0'); // Identical to editor
-      if (loop && isYouTube) viewerParams.set('loop', '1');
+      
+      if (autoplay) {
+        viewerParams.set('autoplay', '1');
+        viewerParams.set('playsinline', '1');
+        // Force start playing immediately
+        viewerParams.set('start', '0');
+        if (isYouTube) {
+          // Enable JavaScript API for programmatic control
+          viewerParams.set('enablejsapi', '1');
+          viewerParams.set('version', '3');
+          // Add origin for security
+          viewerParams.set('origin', window.location.origin);
+          // Try forcing autoplay with additional params
+          viewerParams.set('fs', '0'); // No fullscreen to avoid conflicts
+          viewerParams.set('iv_load_policy', '3'); // Hide annotations
+        }
+      }
+      
+      // Only mute if explicitly requested
+      if (muted) viewerParams.set('mute', '1');
+      
+      // Fix loop parameter - YouTube requires playlist parameter for loop to work
+      if (loop && isYouTube && videoId) {
+        viewerParams.set('loop', '1');
+        viewerParams.set('playlist', videoId); // Required for loop to work on YouTube
+      }
+      
       if (!controls && isYouTube) viewerParams.set('controls', '0');
       if (isYouTube) {
-        viewerParams.set('modestbranding', '1'); // Same as editor
-        viewerParams.set('rel', '0'); // Same as editor
+        viewerParams.set('modestbranding', '1');
+        viewerParams.set('rel', '0');
       }
       
       const finalEmbedUrl = `${embedSrc}${embedSrc.includes('?') ? '&' : '?'}${viewerParams.toString()}`;
@@ -149,15 +212,6 @@ export const ViewerVideo = ({
       console.log('ViewerVideo: Autoplay setting:', autoplay);
       console.log('ViewerVideo: Base URL:', embedSrc);
       console.log('ViewerVideo: Final embed URL:', finalEmbedUrl);
-
-      // Show loading placeholder until iframe is ready
-      if (!shouldShowIframe) {
-        return (
-          <div className="w-full h-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
-            <div className="text-gray-500 dark:text-gray-400">Loading video...</div>
-          </div>
-        );
-      }
 
       return (
         <iframe
@@ -168,6 +222,10 @@ export const ViewerVideo = ({
           allowFullScreen
           title={alt}
           className="viewer-video-iframe"
+          onLoad={() => {
+            console.log('ViewerVideo: Iframe loaded, setting loaded state');
+            setIframeLoaded(true);
+          }}
         />
       );
     } else {
