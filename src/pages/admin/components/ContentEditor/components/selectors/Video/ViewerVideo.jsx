@@ -41,17 +41,24 @@ export const ViewerVideo = ({
   const iframeRef = React.useRef(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
-  // Try aggressive autoplay approach
+  // Try aggressive autoplay approach and handle mute state
   React.useEffect(() => {
-    if (autoplay && iframeLoaded && iframeRef.current) {
+    if (iframeLoaded && iframeRef.current) {
+      const iframe = iframeRef.current;
+      
       const tryAutoplay = () => {
         try {
-          // Multiple aggressive attempts to trigger autoplay
-          const iframe = iframeRef.current;
-          
-          // Method 1: YouTube API commands
-          iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-          iframe.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+          if (autoplay) {
+            // Multiple aggressive attempts to trigger autoplay
+            iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            
+            // Handle mute state
+            if (muted) {
+              iframe.contentWindow?.postMessage('{"event":"command","func":"mute","args":""}', '*');
+            } else {
+              iframe.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+            }
+          }
           
           // Method 2: Try to programmatically click the iframe
           const event = new MouseEvent('click', { bubbles: true, cancelable: true });
@@ -63,7 +70,7 @@ export const ViewerVideo = ({
           iframe.dispatchEvent(spaceEvent);
           
         } catch (e) {
-          console.log('Autoplay attempt failed:', e);
+          console.log('Video control attempt failed:', e);
         }
       };
 
@@ -73,7 +80,7 @@ export const ViewerVideo = ({
       setTimeout(tryAutoplay, 1000);
       setTimeout(tryAutoplay, 2000);
     }
-  }, [autoplay, iframeLoaded]);
+  }, [autoplay, muted, iframeLoaded]);
 
 
   // Get the appropriate border color for the current theme
@@ -192,8 +199,10 @@ export const ViewerVideo = ({
         }
       }
       
-      // Only mute if explicitly requested
-      if (muted) viewerParams.set('mute', '1');
+      // Set mute parameter explicitly for YouTube
+      if (isYouTube) {
+        viewerParams.set('mute', muted ? '1' : '0');
+      }
       
       // Fix loop parameter - YouTube requires playlist parameter for loop to work
       if (loop && isYouTube && videoId) {
