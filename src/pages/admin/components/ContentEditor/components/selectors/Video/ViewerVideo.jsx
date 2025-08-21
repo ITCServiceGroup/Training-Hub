@@ -281,7 +281,7 @@ export const ViewerVideo = ({
       const containerRatio = aspectRatio && aspectRatio !== 'auto' ? (() => { try { const [w,h] = String(aspectRatio).split('/'); const wn = parseFloat(w); const hn = parseFloat(h); return (wn && hn) ? (wn/hn) : null; } catch { return null; } })() : null;
       const targetRatio = 16/9;
 
-      const wrapperStyle = { position: 'relative', width: '100%', height: '100%', overflow: 'hidden' };
+      const wrapperStyle = { position: 'relative', width: '100%', height: '100%', overflow: 'hidden', borderRadius: `${radius}px`, border: borderStyle, boxShadow: shadowStyle };
       let iframeStyle;
       if (objectFit === 'cover' || objectFit === 'fill') {
         if (containerRatio) {

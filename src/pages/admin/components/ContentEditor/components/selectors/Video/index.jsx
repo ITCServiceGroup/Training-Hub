@@ -211,7 +211,10 @@ export const Video = ({
         width: '100%',
         ...(formattedAspectRatio !== 'auto' ? { aspectRatio: formattedAspectRatio } : { minHeight: '315px' }),
         overflow: 'hidden',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        borderRadius: `${radius}px`,
+        border: borderStyle,
+        boxShadow: shadowStyle
       };
 
       let iframeStyle;
@@ -249,6 +252,7 @@ export const Video = ({
               allowFullScreen
               title={alt}
               className="craft-video-iframe"
+              sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
             />
           </div>
           {(selected || hovered) && (
