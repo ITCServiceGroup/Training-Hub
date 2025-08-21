@@ -1,6 +1,6 @@
 import { useNode } from '@craftjs/core';
 import { Resizer } from '../Resizer';
-import React, { useState } from 'react';
+import React from 'react';
 import { VideoSettings } from './VideoSettings';
 import { useTheme } from '../../../../../../../contexts/ThemeContext';
 import { getThemeColor } from '../../../utils/themeColors';
@@ -40,8 +40,7 @@ export const Video = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [isPlaying, setIsPlaying] = useState(false);
-  
+
   const {
     connectors: { connect, drag },
     selected,
@@ -53,7 +52,7 @@ export const Video = ({
 
   // Get the appropriate border color for the current theme
   const borderColor = getThemeColor(border.color, isDark, 'container', autoConvertColors);
-  
+
   const borderStyle = border.style !== 'none'
     ? `${border.width}px ${border.style} rgba(${Object.values(borderColor)})`
     : 'none';
@@ -64,7 +63,7 @@ export const Video = ({
 
   const bgColor = `rgba(${Object.values(backgroundColor)})`;
 
-  const formattedAspectRatio = aspectRatio !== 'auto' 
+  const formattedAspectRatio = aspectRatio !== 'auto'
     ? aspectRatio.replace('/', ' / ')
     : 'auto';
 
@@ -76,41 +75,105 @@ export const Video = ({
   // Convert YouTube URL to embed format
   const getYouTubeEmbedUrl = (url) => {
     if (!url) return '';
-    
+
     // Handle youtu.be links
     if (url.includes('youtu.be/')) {
       const videoId = url.split('youtu.be/')[1].split(/[?&]/)[0];
       return `https://www.youtube.com/embed/${videoId}?rel=0`;
     }
-    
+
     // Handle youtube.com/watch links
     if (url.includes('youtube.com/watch')) {
       const urlParams = new URLSearchParams(url.split('?')[1]);
       const videoId = urlParams.get('v');
       return `https://www.youtube.com/embed/${videoId}?rel=0`;
     }
-    
+
     // If already an embed URL, return as is
     if (url.includes('youtube.com/embed/')) {
       return url;
     }
-    
+
     return url;
   };
+
+
+	  // Infer MIME type from URL extension for <source> tag and compatibility hints
+	  const getMimeFromUrl = (url) => {
+	    if (!url) return '';
+	    const clean = url.split('?')[0].split('#')[0];
+	    const ext = clean.split('.').pop()?.toLowerCase();
+	    switch (ext) {
+	      case 'mp4': return 'video/mp4';
+	      case 'webm': return 'video/webm';
+	      case 'ogg':
+	      case 'ogv': return 'video/ogg';
+	      case 'mov': return 'video/quicktime';
+	      case 'mkv': return 'video/x-matroska';
+	      default: return '';
+	    }
+	  };
+	  const inferredMime = getMimeFromUrl(src);
+	  const [loadError, setLoadError] = React.useState(false);
+
+
+	  // Match Image component behavior for object-fit/aspect-ratio
+	  const needsConstraints = objectFit && objectFit !== 'none';
+	  const hasExplicitDimensions = (width && width !== 'auto') || (height && height !== 'auto');
+	  const hasAspectRatio = aspectRatio && aspectRatio !== 'auto';
 
   // Get video styles
   const getVideoStyles = () => {
     const baseStyles = {
-      borderRadius: `${radius}px`,
-      border: borderStyle,
-      boxShadow: shadowStyle,
       objectFit,
       aspectRatio: formattedAspectRatio,
-      width: '100%',
-      height: '100%'
+      borderRadius: `${radius}px`,
+      border: borderStyle,
+      boxShadow: shadowStyle
     };
 
-    return baseStyles;
+    if (needsConstraints && (hasExplicitDimensions || hasAspectRatio)) {
+      if (isExternalEmbed) {
+        // Special-case iframes: they don't respect object-fit reliably
+        if (objectFit === 'contain') {
+          return {
+            ...baseStyles,
+            width: '100%',
+            height: 'auto'
+          };
+        } else {
+          return {
+            ...baseStyles,
+            width: '100%',
+            height: '100%'
+          };
+        }
+      } else {
+        // Native <video> behaves like <img>
+        if (objectFit === 'contain') {
+          return {
+            ...baseStyles,
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto'
+          };
+        } else {
+          return {
+            ...baseStyles,
+            width: '100%',
+            height: '100%'
+          };
+        }
+      }
+    } else {
+      // Default: responsive width, natural height
+      return {
+        ...baseStyles,
+        width: '100%',
+        height: 'auto'
+      };
+    }
   };
 
   // Render video content
@@ -134,7 +197,7 @@ export const Video = ({
     if (isExternalEmbed) {
       // Render YouTube or other external embeds - NO playback settings in editor mode
       const embedSrc = isYouTube ? getYouTubeEmbedUrl(embedUrl) : embedUrl;
-      
+
       // In editor mode, disable autoplay for editing experience but test if URL would work
       const editorParams = new URLSearchParams();
       editorParams.set('autoplay', '0'); // Always disabled in editor
@@ -144,48 +207,72 @@ export const Video = ({
         editorParams.set('modestbranding', '1'); // Less YouTube branding
         editorParams.set('rel', '0'); // No related videos
       }
-      
+
       const finalEmbedUrl = `${embedSrc}${embedSrc.includes('?') ? '&' : '?'}${editorParams.toString()}`;
 
+      // Wrapper to emulate object-fit for iframes reliably
+      const containerRatio = aspectRatio && aspectRatio !== 'auto' ? (() => { try { const [w,h] = String(aspectRatio).split('/'); const wn = parseFloat(w); const hn = parseFloat(h); return (wn && hn) ? (wn/hn) : null; } catch { return null; } })() : null;
+      const targetRatio = 16/9; // assume YouTube player content ratio
+
+      const wrapperStyle = {
+        position: 'relative',
+        width: '100%',
+        ...(formattedAspectRatio !== 'auto' ? { aspectRatio: formattedAspectRatio } : { minHeight: '315px' }),
+        overflow: 'hidden',
+        cursor: 'pointer'
+      };
+
+      let iframeStyle;
+      if (objectFit === 'cover' || objectFit === 'fill') {
+        // Oversize the iframe to crop and cover the container
+        if (containerRatio) {
+          const scaleByWidth = containerRatio <= targetRatio; // narrow container
+          iframeStyle = scaleByWidth
+            ? { width: '100%', height: `${Math.ceil((1 / (containerRatio / targetRatio)) * 100)}%` }
+            : { width: `${Math.ceil((containerRatio / targetRatio) * 100)}%`, height: '100%' };
+        } else {
+          iframeStyle = { width: '100%', height: '100%' };
+        }
+        iframeStyle = {
+          ...iframeStyle,
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          border: 0,
+          pointerEvents: 'none'
+        };
+      } else {
+        // contain and default: let full iframe show (letterbox inside player)
+        iframeStyle = { width: '100%', height: '100%', border: 0, pointerEvents: 'none' };
+      }
+
       return (
-        <div 
-          ref={drag}
-          className="relative w-full h-full"
-          style={{ cursor: 'pointer' }}
-        >
-          <iframe
-            src={finalEmbedUrl}
-            style={{
-              ...getVideoStyles(),
-              pointerEvents: 'none' // Always disabled in editor mode
-            }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={alt}
-            className="craft-video-iframe"
-          />
-          {/* Selection indicator overlay */}
-          {(selected || hovered) && (
-            <div 
-              className="absolute inset-0 border-2 border-blue-500 pointer-events-none"
-              style={{ 
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                zIndex: 2
-              }}
+        <div ref={drag} className="relative w-full" style={{ height: height === 'auto' ? 'auto' : height }}>
+          <div style={wrapperStyle}>
+            <iframe
+              src={finalEmbedUrl}
+              style={iframeStyle}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={alt}
+              className="craft-video-iframe"
             />
+          </div>
+          {(selected || hovered) && (
+            <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', zIndex: 2 }} />
           )}
         </div>
       );
     } else {
       // Render local video element
       return (
-        <div 
+        <div
           ref={drag}
           className="relative w-full h-full"
           style={{ cursor: 'pointer' }}
         >
           <video
-            src={src}
             style={{
               ...getVideoStyles(),
               pointerEvents: 'none' // Disable interaction in editor mode
@@ -195,16 +282,23 @@ export const Video = ({
             loop={loop}
             muted={true} // Always muted in editor mode
             poster={poster}
+            preload="auto"
+            playsInline
             className="craft-video"
+            onError={() => setLoadError(true)}
           >
+            {/* Use <source> with inferred type for better compatibility */}
+            {src && <source src={src} type={inferredMime || undefined} />}
             <track kind="captions" />
+            {/* Show a hint if load failed */}
+            {loadError && <span style={{ display: 'none' }}>Failed to load video</span>}
             Your browser does not support the video tag.
           </video>
           {/* Selection indicator overlay */}
           {(selected || hovered) && (
-            <div 
+            <div
               className="absolute inset-0 border-2 border-blue-500 pointer-events-none"
-              style={{ 
+              style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 zIndex: 2
               }}
@@ -225,12 +319,12 @@ export const Video = ({
         backgroundColor: bgColor,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: alignment === 'left' ? 'flex-start' : 
+        justifyContent: alignment === 'left' ? 'flex-start' :
                        alignment === 'right' ? 'flex-end' : 'center',
         width: width,
         height: height,
         position: 'relative',
-        overflow: 'hidden'
+        ...(needsConstraints && hasExplicitDimensions ? { overflow: 'hidden' } : {})
       }}
       className={`craft-video-container ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
     >

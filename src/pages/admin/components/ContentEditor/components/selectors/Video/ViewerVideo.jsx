@@ -45,13 +45,13 @@ export const ViewerVideo = ({
   React.useEffect(() => {
     if (iframeLoaded && iframeRef.current) {
       const iframe = iframeRef.current;
-      
+
       const tryAutoplay = () => {
         try {
           if (autoplay) {
             // Multiple aggressive attempts to trigger autoplay
             iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-            
+
             // Handle mute state
             if (muted) {
               iframe.contentWindow?.postMessage('{"event":"command","func":"mute","args":""}', '*');
@@ -59,16 +59,16 @@ export const ViewerVideo = ({
               iframe.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
             }
           }
-          
+
           // Method 2: Try to programmatically click the iframe
           const event = new MouseEvent('click', { bubbles: true, cancelable: true });
           iframe.dispatchEvent(event);
-          
+
           // Method 3: Focus and try keyboard
           iframe.focus();
           const spaceEvent = new KeyboardEvent('keydown', { key: ' ', code: 'Space' });
           iframe.dispatchEvent(spaceEvent);
-          
+
         } catch (e) {
           console.log('Video control attempt failed:', e);
         }
@@ -85,7 +85,7 @@ export const ViewerVideo = ({
 
   // Get the appropriate border color for the current theme
   const borderColor = getThemeColor(border.color, isDark, 'container', autoConvertColors);
-  
+
   const borderStyle = border.style !== 'none'
     ? `${border.width}px ${border.style} rgba(${Object.values(borderColor)})`
     : 'none';
@@ -96,7 +96,7 @@ export const ViewerVideo = ({
 
   const bgColor = `rgba(${Object.values(backgroundColor)})`;
 
-  const formattedAspectRatio = aspectRatio !== 'auto' 
+  const formattedAspectRatio = aspectRatio !== 'auto'
     ? aspectRatio.replace('/', ' / ')
     : 'auto';
 
@@ -108,54 +108,117 @@ export const ViewerVideo = ({
   // Convert YouTube URL to embed format and extract video ID
   const getYouTubeEmbedUrl = (url) => {
     if (!url) return { embedUrl: '', videoId: '' };
-    
+
     let videoId = '';
-    
+
     // Handle youtu.be links
     if (url.includes('youtu.be/')) {
       videoId = url.split('youtu.be/')[1].split(/[?&]/)[0];
-      return { 
+      return {
         embedUrl: `https://www.youtube.com/embed/${videoId}?rel=0`,
-        videoId 
+        videoId
       };
     }
-    
+
     // Handle youtube.com/watch links
     if (url.includes('youtube.com/watch')) {
       const urlParams = new URLSearchParams(url.split('?')[1]);
       videoId = urlParams.get('v');
-      return { 
+      return {
         embedUrl: `https://www.youtube.com/embed/${videoId}?rel=0`,
-        videoId 
+        videoId
       };
     }
-    
+
     // If already an embed URL, extract video ID
     if (url.includes('youtube.com/embed/')) {
       const match = url.match(/embed\/([^?&]+)/);
       videoId = match ? match[1] : '';
-      return { 
+      return {
         embedUrl: url,
-        videoId 
+        videoId
       };
     }
-    
+
     return { embedUrl: url, videoId: '' };
   };
 
-  // Get video styles
+
+	  // Infer MIME type from URL extension for <source> tag compatibility
+	  const getMimeFromUrl = (url) => {
+	    if (!url) return '';
+	    const clean = url.split('?')[0].split('#')[0];
+	    const ext = clean.split('.').pop()?.toLowerCase();
+	    switch (ext) {
+	      case 'mp4': return 'video/mp4';
+	      case 'webm': return 'video/webm';
+	      case 'ogg':
+	      case 'ogv': return 'video/ogg';
+	      case 'mov': return 'video/quicktime';
+	      case 'mkv': return 'video/x-matroska';
+	      default: return '';
+	    }
+	  };
+	  const inferredMime = getMimeFromUrl(src);
+	  const [loadError, setLoadError] = React.useState(false);
+
+  // Determine if we need to constrain the video for object-fit to work (same logic as Image)
+  const needsConstraints = objectFit && objectFit !== 'none';
+  const hasExplicitDimensions = (width && width !== 'auto') || (height && height !== 'auto');
+  const hasAspectRatio = aspectRatio && aspectRatio !== 'auto';
+
+  // Calculate video styles based on object-fit requirements (same logic as Image)
   const getVideoStyles = () => {
     const baseStyles = {
-      borderRadius: `${radius}px`,
-      border: borderStyle,
-      boxShadow: shadowStyle,
       objectFit,
       aspectRatio: formattedAspectRatio,
-      width: '100%',
-      height: '100%'
+      borderRadius: `${radius}px`,
+      border: borderStyle,
+      boxShadow: shadowStyle
     };
 
-    return baseStyles;
+    if (needsConstraints && (hasExplicitDimensions || hasAspectRatio)) {
+      if (isExternalEmbed) {
+        // iframes don't support object-fit; emulate size behavior
+        if (objectFit === 'contain') {
+          return {
+            ...baseStyles,
+            width: '100%',
+            height: 'auto'
+          };
+        } else {
+          return {
+            ...baseStyles,
+            width: '100%',
+            height: '100%'
+          };
+        }
+      } else {
+        // Native <video> behaves like <img>
+        if (objectFit === 'contain') {
+          return {
+            ...baseStyles,
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto'
+          };
+        } else {
+          return {
+            ...baseStyles,
+            width: '100%',
+            height: '100%'
+          };
+        }
+      }
+    } else {
+      // Default behavior
+      return {
+        ...baseStyles,
+        width: '100%',
+        height: 'auto'
+      };
+    }
   };
 
   // Render video content
@@ -178,10 +241,10 @@ export const ViewerVideo = ({
     if (isExternalEmbed) {
       // Render YouTube or other external embeds
       const { embedUrl: embedSrc, videoId } = isYouTube ? getYouTubeEmbedUrl(embedUrl) : { embedUrl: embedUrl, videoId: '' };
-      
+
       // Aggressive YouTube autoplay parameters
       const viewerParams = new URLSearchParams();
-      
+
       if (autoplay) {
         viewerParams.set('autoplay', '1');
         viewerParams.set('playsinline', '1');
@@ -198,50 +261,70 @@ export const ViewerVideo = ({
           viewerParams.set('iv_load_policy', '3'); // Hide annotations
         }
       }
-      
+
       // Set mute parameter explicitly for YouTube
       if (isYouTube) {
         viewerParams.set('mute', muted ? '1' : '0');
       }
-      
+
       // Fix loop parameter - YouTube requires playlist parameter for loop to work
       if (loop && isYouTube && videoId) {
         viewerParams.set('loop', '1');
         viewerParams.set('playlist', videoId); // Required for loop to work on YouTube
       }
-      
+
       if (!controls && isYouTube) viewerParams.set('controls', '0');
       if (isYouTube) {
         viewerParams.set('modestbranding', '1');
         viewerParams.set('rel', '0');
       }
-      
+
       const finalEmbedUrl = `${embedSrc}${embedSrc.includes('?') ? '&' : '?'}${viewerParams.toString()}`;
-      
+
       console.log('ViewerVideo: Autoplay setting:', autoplay);
       console.log('ViewerVideo: Base URL:', embedSrc);
       console.log('ViewerVideo: Final embed URL:', finalEmbedUrl);
 
+      // Emulate object fit in viewer with a wrapper
+      const containerRatio = aspectRatio && aspectRatio !== 'auto' ? (() => { try { const [w,h] = String(aspectRatio).split('/'); const wn = parseFloat(w); const hn = parseFloat(h); return (wn && hn) ? (wn/hn) : null; } catch { return null; } })() : null;
+      const targetRatio = 16/9;
+
+      const wrapperStyle = { position: 'relative', width: '100%', height: '100%', overflow: 'hidden' };
+      let iframeStyle;
+      if (objectFit === 'cover' || objectFit === 'fill') {
+        if (containerRatio) {
+          const scaleByWidth = containerRatio <= targetRatio;
+          iframeStyle = scaleByWidth
+            ? { width: '100%', height: `${Math.ceil((1 / (containerRatio / targetRatio)) * 100)}%` }
+            : { width: `${Math.ceil((containerRatio / targetRatio) * 100)}%`, height: '100%' };
+        } else {
+          iframeStyle = { width: '100%', height: '100%' };
+        }
+        iframeStyle = { ...iframeStyle, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', border: 0 };
+      } else {
+        iframeStyle = { width: '100%', height: '100%', border: 0 };
+      }
+
       return (
-        <iframe
-          ref={iframeRef}
-          src={finalEmbedUrl}
-          style={getVideoStyles()}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title={alt}
-          className="viewer-video-iframe"
-          onLoad={() => {
-            console.log('ViewerVideo: Iframe loaded, setting loaded state');
-            setIframeLoaded(true);
-          }}
-        />
+        <div style={{ ...wrapperStyle, ...(formattedAspectRatio !== 'auto' ? { aspectRatio: formattedAspectRatio } : { minHeight: '315px' }) }}>
+          <iframe
+            ref={iframeRef}
+            src={finalEmbedUrl}
+            style={iframeStyle}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title={alt}
+            className="viewer-video-iframe"
+            onLoad={() => {
+              setIframeLoaded(true);
+            }}
+          />
+        </div>
       );
     } else {
       // Render local video element
       return (
         <video
-          src={src}
           style={getVideoStyles()}
           controls={controls}
           autoPlay={autoplay}
@@ -251,8 +334,12 @@ export const ViewerVideo = ({
           className="viewer-video"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onError={() => setLoadError(true)}
         >
+          {/* Provide <source> with a type for better compatibility, especially for .mov */}
+          {src && <source src={src} type={inferredMime || undefined} />}
           <track kind="captions" />
+          {loadError && <span style={{ display: 'none' }}>Failed to load video</span>}
           Your browser does not support the video tag.
         </video>
       );
@@ -267,12 +354,13 @@ export const ViewerVideo = ({
         backgroundColor: bgColor,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: alignment === 'left' ? 'flex-start' : 
+        justifyContent: alignment === 'left' ? 'flex-start' :
                        alignment === 'right' ? 'flex-end' : 'center',
         width: width,
         height: height,
         position: 'relative',
-        overflow: 'hidden'
+        // Ensure container has proper dimensions for object-fit (same as Image)
+        ...(needsConstraints && hasExplicitDimensions ? { overflow: 'hidden' } : {})
       }}
       className="viewer-video-container"
     >

@@ -83,7 +83,11 @@ export const uploadMedia = async (file, userId, metadata = {}) => {
   // 1. Upload the file to Supabase Storage
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from(BUCKET_NAME)
-    .upload(filePath, file);
+    .upload(filePath, file, {
+      contentType: file.type || 'application/octet-stream',
+      cacheControl: '3600',
+      upsert: false,
+    });
 
   if (uploadError) {
     console.error('Error uploading file to storage:', uploadError);
