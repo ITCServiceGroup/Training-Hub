@@ -134,20 +134,12 @@ export const Video = ({
 
     if (needsConstraints && (hasExplicitDimensions || hasAspectRatio)) {
       if (isExternalEmbed) {
-        // Special-case iframes: they don't respect object-fit reliably
-        if (objectFit === 'contain') {
-          return {
-            ...baseStyles,
-            width: '100%',
-            height: 'auto'
-          };
-        } else {
-          return {
-            ...baseStyles,
-            width: '100%',
-            height: '100%'
-          };
-        }
+        // For external embeds, we ignore objectFit and let the player size within our wrapper
+        return {
+          ...baseStyles,
+          width: '100%',
+          height: '100%'
+        };
       } else {
         // Native <video> behaves like <img>
         if (objectFit === 'contain') {

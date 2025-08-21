@@ -97,6 +97,10 @@ export const VideoSettings = () => {
     }
   };
 
+
+	  // For external embeds (YouTube/Vimeo/etc.), object-fit is not applicable
+	  const isExternalEmbed = !!embedUrl;
+
   return (
     <div className="video-settings" style={{ '--input-height': '30px' }}>
       {/* Video Source Section */}
@@ -123,8 +127,8 @@ export const VideoSettings = () => {
               <input
                 type="text"
                 value={embedUrl}
-                onChange={(e) => actions.setProp((props) => { 
-                  props.embedUrl = e.target.value; 
+                onChange={(e) => actions.setProp((props) => {
+                  props.embedUrl = e.target.value;
                   if (e.target.value) props.src = ''; // Clear local src when setting embed URL
                 })}
                 className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
@@ -149,8 +153,8 @@ export const VideoSettings = () => {
                 <input
                   type="text"
                   value={src}
-                  onChange={(e) => actions.setProp((props) => { 
-                    props.src = e.target.value; 
+                  onChange={(e) => actions.setProp((props) => {
+                    props.src = e.target.value;
                     if (e.target.value) props.embedUrl = ''; // Clear embed URL when setting local src
                   })}
                   className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
@@ -297,22 +301,29 @@ export const VideoSettings = () => {
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Object Fit
               </label>
-              <div className="flex gap-1">
-                {['cover', 'contain', 'fill', 'none'].map((fit) => (
-                  <button
-                    key={fit}
-                    className={`flex-1 px-1 py-0.5 text-xs rounded capitalize ${
-                      objectFit === fit
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
-                    }`}
-                    onClick={() => actions.setProp((props) => { props.objectFit = fit; })}
-                    style={{ fontSize: '10px' }}
-                  >
-                    {fit}
-                  </button>
-                ))}
-              </div>
+              {isExternalEmbed ? (
+                <div className="text-[11px] p-2 rounded bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700">
+                  For embedded videos (e.g., YouTube), object fit is not supported. The player controls its own layout.
+                </div>
+              ) : (
+                <div className="flex gap-1">
+                  {['cover', 'contain', 'fill', 'none'].map((fit) => (
+                    <button
+                      key={fit}
+                      className={`flex-1 px-1 py-0.5 text-xs rounded capitalize ${
+                        objectFit === fit
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-white'
+                      } ${isExternalEmbed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() => actions.setProp((props) => { if (!isExternalEmbed) props.objectFit = fit; })}
+                      disabled={isExternalEmbed}
+                      style={{ fontSize: '10px' }}
+                    >
+                      {fit}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
