@@ -596,6 +596,23 @@
   overflow: visible !important;
 }
 
+/* Ensure embedded video resizable never bleeds outside the editor column */
+.craft-video-container.react-resizable {
+  overflow: hidden !important;
+  max-width: 100% !important;
+}
+
+/* Defensive: make sure inner video wrapper and iframe cannot overflow */
+.craft-video-container > div { /* inner wrapper added by Resizer */
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+.craft-video-container .craft-video-iframe,
+.craft-video-container .viewer-video-iframe {
+  max-width: 100% !important;
+  display: block !important;
+}
+
 /* Special handling for re-resizable elements inside tables */
 .table-fix:not(.component-selected) .react-resizable,
 .table-fix:not(.component-selected) .react-resizable-handle {

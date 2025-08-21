@@ -101,6 +101,69 @@ export const VideoSettings = () => {
 	  // For external embeds (YouTube/Vimeo/etc.), object-fit is not applicable
 	  const isExternalEmbed = !!embedUrl;
 
+
+  // Normalize dimension input so changes take effect immediately
+  const normalizeDimensionInput = (value) => {
+    if (value === '' || value == null) return 'auto';
+    const v = String(value).trim();
+    if (v.toLowerCase() === 'auto') return 'auto';
+    if (v.includes('%') || v.toLowerCase().includes('px')) return v;
+    const num = parseFloat(v);
+    return isNaN(num) ? v : `${num}px`;
+  };
+
+  const isCompleteMeasure = (value) => {
+    if (!value && value !== 0) return false;
+    const v = String(value).trim();
+    if (v.toLowerCase() === 'auto') return true;
+    return /^[0-9]+(px|%)$/i.test(v);
+  };
+
+
+
+  // Local input state to avoid mutating the text mid-typing (e.g., 9 -> 9px)
+  const [widthInput, setWidthInput] = useState(width);
+  const [heightInput, setHeightInput] = useState(height);
+
+  useEffect(() => {
+    setWidthInput(width);
+  }, [width]);
+
+  useEffect(() => {
+    setHeightInput(height);
+  }, [height]);
+
+  const [isEditingWidth, setIsEditingWidth] = useState(false);
+  const [isEditingHeight, setIsEditingHeight] = useState(false);
+
+  // Keep input in sync with props when not editing
+  useEffect(() => {
+    if (!isEditingWidth) setWidthInput(width);
+  }, [width, isEditingWidth]);
+
+  useEffect(() => {
+    if (!isEditingHeight) setHeightInput(height);
+  }, [height, isEditingHeight]);
+
+  // Debounced commit while typing to update preview without corrupting input text
+  useEffect(() => {
+    if (!isEditingWidth) return;
+    if (!isCompleteMeasure(widthInput)) return; // don't apply mid-typing like '9'
+    const t = setTimeout(() => {
+      actions.setProp((props) => { props.width = normalizeDimensionInput(widthInput); });
+    }, 150);
+    return () => clearTimeout(t);
+  }, [widthInput, isEditingWidth, actions]);
+
+  useEffect(() => {
+    if (!isEditingHeight) return;
+    const t = setTimeout(() => {
+      actions.setProp((props) => { props.height = normalizeDimensionInput(heightInput); });
+    }, 350);
+    return () => clearTimeout(t);
+  }, [heightInput, isEditingHeight, actions]);
+
+
   return (
     <div className="video-settings" style={{ '--input-height': '30px' }}>
       {/* Video Source Section */}
@@ -356,14 +419,21 @@ export const VideoSettings = () => {
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Width</label>
                   <input
                     type="text"
-                    value={width}
-                    onChange={(e) => actions.setProp((props) => { props.width = e.target.value; })}
-                    onBlur={(e) => {
-                      let value = e.target.value;
-                      if (value && !isNaN(value) && !value.includes('px') && !value.includes('%') && value !== 'auto') {
-                        value = value + 'px';
-                        actions.setProp((props) => { props.width = value; });
+                    value={widthInput}
+                    onChange={(e) => setWidthInput(e.target.value)}
+                    onFocus={() => setIsEditingWidth(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setIsEditingWidth(false);
+                        actions.setProp((props) => { props.width = normalizeDimensionInput(widthInput); });
+                      } else if (e.key === 'Escape') {
+                        setIsEditingWidth(false);
+                        setWidthInput(width);
                       }
+                    }}
+                    onBlur={() => {
+                      setIsEditingWidth(false);
+                      actions.setProp((props) => { props.width = normalizeDimensionInput(widthInput); });
                     }}
                     className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
                     placeholder="100%, 300px"
@@ -373,14 +443,21 @@ export const VideoSettings = () => {
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Height</label>
                   <input
                     type="text"
-                    value={height}
-                    onChange={(e) => actions.setProp((props) => { props.height = e.target.value; })}
-                    onBlur={(e) => {
-                      let value = e.target.value;
-                      if (value && !isNaN(value) && !value.includes('px') && !value.includes('%') && value !== 'auto') {
-                        value = value + 'px';
-                        actions.setProp((props) => { props.height = value; });
+                    value={heightInput}
+                    onChange={(e) => setHeightInput(e.target.value)}
+                    onFocus={() => setIsEditingHeight(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setIsEditingHeight(false);
+                        actions.setProp((props) => { props.height = normalizeDimensionInput(heightInput); });
+                      } else if (e.key === 'Escape') {
+                        setIsEditingHeight(false);
+                        setHeightInput(height);
                       }
+                    }}
+                    onBlur={() => {
+                      setIsEditingHeight(false);
+                      actions.setProp((props) => { props.height = normalizeDimensionInput(heightInput); });
                     }}
                     className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white"
                     placeholder="auto, 200px"

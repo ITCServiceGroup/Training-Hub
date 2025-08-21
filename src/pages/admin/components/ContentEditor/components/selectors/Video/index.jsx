@@ -206,15 +206,18 @@ export const Video = ({
       const containerRatio = aspectRatio && aspectRatio !== 'auto' ? (() => { try { const [w,h] = String(aspectRatio).split('/'); const wn = parseFloat(w); const hn = parseFloat(h); return (wn && hn) ? (wn/hn) : null; } catch { return null; } })() : null;
       const targetRatio = 16/9; // assume YouTube player content ratio
 
+      const hasExplicitHeight = height && height !== 'auto';
       const wrapperStyle = {
         position: 'relative',
         width: '100%',
-        ...(formattedAspectRatio !== 'auto' ? { aspectRatio: formattedAspectRatio } : { minHeight: '315px' }),
+        ...(hasExplicitHeight ? { height: '100%' } : {}),
+        ...(!hasExplicitHeight && formattedAspectRatio !== 'auto' ? { aspectRatio: formattedAspectRatio } : { minHeight: '315px' }),
         overflow: 'hidden',
         cursor: 'pointer',
         borderRadius: `${radius}px`,
         border: borderStyle,
-        boxShadow: shadowStyle
+        boxShadow: shadowStyle,
+        maxWidth: '100%'
       };
 
       let iframeStyle;
@@ -238,12 +241,12 @@ export const Video = ({
           pointerEvents: 'none'
         };
       } else {
-        // contain and default: let full iframe show (letterbox inside player)
-        iframeStyle = { width: '100%', height: '100%', border: 0, pointerEvents: 'none' };
+        // contain and default: fill wrapper; letterboxing handled by player itself
+        iframeStyle = { width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: 0, pointerEvents: 'none' };
       }
 
       return (
-        <div ref={drag} className="relative w-full" style={{ height: height === 'auto' ? 'auto' : height }}>
+        <div ref={drag} className="relative w-full" style={{ height: hasExplicitHeight ? '100%' : 'auto' }}>
           <div style={wrapperStyle}>
             <iframe
               src={finalEmbedUrl}
@@ -265,7 +268,7 @@ export const Video = ({
       return (
         <div
           ref={drag}
-          className="relative w-full h-full"
+          className="relative w-full"
           style={{ cursor: 'pointer' }}
         >
           <video
@@ -306,26 +309,32 @@ export const Video = ({
   };
 
   return (
-    <Resizer
-      propKey={{ width: 'width', height: 'height' }}
-      ref={connect}
-      style={{
-        margin: margin.map(m => `${parseInt(m)}px`).join(' '),
-        padding: padding.map(p => `${parseInt(p)}px`).join(' '),
-        backgroundColor: bgColor,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: alignment === 'left' ? 'flex-start' :
-                       alignment === 'right' ? 'flex-end' : 'center',
-        width: width,
-        height: height,
-        position: 'relative',
-        ...(needsConstraints && hasExplicitDimensions ? { overflow: 'hidden' } : {})
-      }}
-      className={`craft-video-container ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
-    >
-      {renderVideoContent()}
-    </Resizer>
+    <div className="craft-video-margin-wrapper" style={{ margin: margin.map(m => `${parseInt(m)}px`).join(' '), width: '100%' }}>
+      <div className="craft-video-outer-clamp" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+        <Resizer
+          propKey={{ width: 'width', height: 'height' }}
+          ref={connect}
+          style={{
+            padding: padding.map(p => `${parseInt(p)}px`).join(' '),
+            backgroundColor: bgColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: alignment === 'left' ? 'flex-start' :
+                           alignment === 'right' ? 'flex-end' : 'center',
+            width: width,
+            height: height,
+            position: 'relative',
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+            ...(needsConstraints && hasExplicitDimensions ? { overflow: 'hidden' } : {})
+          }}
+          className={`craft-video-container ${selected ? 'component-selected' : ''} ${hovered ? 'component-hovered' : ''}`}
+        >
+          {renderVideoContent()}
+        </Resizer>
+      </div>
+    </div>
   );
 };
 
