@@ -3,6 +3,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDashboardPreferences } from '../../contexts/DashboardPreferencesContext';
+import { useRBAC } from '../../contexts/RBACContext';
 import { supabase } from '../../config/supabase';
 import { quizzesService } from '../../services/api/quizzes';
 
@@ -54,6 +55,7 @@ const SettingsPage = () => {
   const [isLoadingOrganization, setIsLoadingOrganization] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const { user } = useAuth();
+  const { isAdmin: isAdminRole, loading: rbacLoading } = useRBAC();
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -74,6 +76,7 @@ const SettingsPage = () => {
     showNewPassword: false,
     showConfirmPassword: false
   });
+  const canViewRestrictedSections = !rbacLoading && isAdminRole();
 
   // Password strength validation
   const validatePassword = (password) => {
@@ -160,7 +163,13 @@ const SettingsPage = () => {
   }, []);
 
   // Function to handle section navigation
+  const restrictedSections = ['quiz', 'organization'];
+
   const navigateToSection = (sectionId) => {
+    if (!canViewRestrictedSections && restrictedSections.includes(sectionId)) {
+      setActiveSection('account');
+      return;
+    }
     setActiveSection(sectionId);
   };
 
@@ -170,11 +179,11 @@ const SettingsPage = () => {
       case 'account':
         return renderAccountSection();
       case 'quiz':
-        return renderQuizSection();
+        return canViewRestrictedSections ? renderQuizSection() : renderAccountSection();
       case 'dashboard':
         return renderDashboardSection();
       case 'organization':
-        return renderOrganizationSection();
+        return canViewRestrictedSections ? renderOrganizationSection() : renderAccountSection();
       case 'system':
         return renderSystemSection();
       default:
@@ -1442,18 +1451,20 @@ const SettingsPage = () => {
               User Account
             </button>
           </li>
-          <li>
-            <button
-              onClick={() => navigateToSection('quiz')}
-              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
-                activeSection === 'quiz'
-                  ? 'bg-primary text-white'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Quiz Preferences
-            </button>
-          </li>
+          {canViewRestrictedSections && (
+            <li>
+              <button
+                onClick={() => navigateToSection('quiz')}
+                className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                  activeSection === 'quiz'
+                    ? 'bg-primary text-white'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                Quiz Preferences
+              </button>
+            </li>
+          )}
           <li>
             <button
               onClick={() => navigateToSection('dashboard')}
@@ -1466,18 +1477,20 @@ const SettingsPage = () => {
               Dashboard Defaults
             </button>
           </li>
-          <li>
-            <button
-              onClick={() => navigateToSection('organization')}
-              className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
-                activeSection === 'organization'
-                  ? 'bg-primary text-white'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Organization Management
-            </button>
-          </li>
+          {canViewRestrictedSections && (
+            <li>
+              <button
+                onClick={() => navigateToSection('organization')}
+                className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                  activeSection === 'organization'
+                    ? 'bg-primary text-white'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                Organization Management
+              </button>
+            </li>
+          )}
           <li>
             <button
               onClick={() => navigateToSection('system')}
