@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { useDashboardPreferences } from '../../../../contexts/DashboardPreferencesContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import { filterDataForChart } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
@@ -8,18 +9,15 @@ import { FaToggleOn, FaToggleOff, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const TopBottomPerformersChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
+  const { dashboardPreferences } = useDashboardPreferences();
   const isDark = theme === 'dark';
   const { getFiltersForChart, shouldFilterChart } = useDashboard();
   const [showTopPerformers, setShowTopPerformers] = useState(true);
-  const [anonymizeNames, setAnonymizeNames] = useState(() => {
-    // Load default from localStorage (set in Settings)
-    try {
-      const savedDefault = localStorage.getItem('dashboardDefaultShowNames');
-      return savedDefault !== null ? !JSON.parse(savedDefault) : true; // true = anonymous, false = show names
-    } catch (error) {
-      return true; // Default to anonymous
-    }
-  });
+  const [anonymizeNames, setAnonymizeNames] = useState(() => !dashboardPreferences.defaultShowNames);
+
+  useEffect(() => {
+    setAnonymizeNames(!dashboardPreferences.defaultShowNames);
+  }, [dashboardPreferences.defaultShowNames]);
   const [performerCount, setPerformerCount] = useState(10);
 
   // Enhanced anonymization function

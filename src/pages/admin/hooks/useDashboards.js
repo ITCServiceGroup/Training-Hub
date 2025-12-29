@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useDashboardPreferences } from '../../../contexts/DashboardPreferencesContext';
 import {
   getUserDashboards,
   getUserDashboard,
@@ -21,6 +22,7 @@ import {
  */
 export const useDashboards = () => {
   const { user } = useAuth();
+  const { dashboardPreferences, updateDashboardPreferences } = useDashboardPreferences();
   
   // State
   const [dashboards, setDashboards] = useState([]);
@@ -52,12 +54,23 @@ export const useDashboards = () => {
       setDashboards(userDashboards);
       console.log('✅ Loaded', userDashboards.length, 'dashboards');
 
-      // Set the default dashboard as active, or the first dashboard if no default exists
+      // Set the preferred/default dashboard as active if not already set
       if (userDashboards.length > 0 && !activeDashboard) {
-        const defaultDashboard = userDashboards.find(d => d.is_default);
-        const dashboardToActivate = defaultDashboard || userDashboards[0];
-        setActiveDashboard(dashboardToActivate);
-        console.log('📋 Set dashboard as active:', dashboardToActivate.name, defaultDashboard ? '(default)' : '(first)');
+        const preferredName = dashboardPreferences.defaultDashboard;
+        const preferredDashboard = preferredName
+          ? userDashboards.find(d => d.name === preferredName)
+          : null;
+        const schemaDefault = userDashboards.find(d => d.is_default);
+        const dashboardToActivate = preferredDashboard || schemaDefault || userDashboards[0];
+
+        if (dashboardToActivate) {
+          setActiveDashboard(dashboardToActivate);
+          console.log('📋 Set dashboard as active:', dashboardToActivate.name);
+
+          if (!preferredName) {
+            await updateDashboardPreferences({ defaultDashboard: dashboardToActivate.name });
+          }
+        }
       }
 
     } catch (err) {
@@ -66,7 +79,13 @@ export const useDashboards = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, initialized, activeDashboard]);
+  }, [
+    user?.id,
+    initialized,
+    activeDashboard,
+    dashboardPreferences.defaultDashboard,
+    updateDashboardPreferences
+  ]);
 
   /**
    * Load a specific dashboard and set it as active
@@ -290,14 +309,7 @@ export const useDashboards = () => {
         if (activeDashboard?.is_default) {
           setActiveDashboard(prev => ({ ...prev, is_default: false }));
         }
-
-        // Clear localStorage
-        try {
-          localStorage.setItem('dashboardDefaultDashboard', '');
-        } catch (error) {
-          console.warn('Failed to update localStorage default dashboard setting:', error);
-        }
-
+        await updateDashboardPreferences({ defaultDashboard: '' });
         console.log('✅ Default dashboard unset');
         return null;
       } else {
@@ -317,14 +329,7 @@ export const useDashboards = () => {
         if (activeDashboard?.id === dashboardId) {
           setActiveDashboard(prev => ({ ...prev, is_default: true }));
         }
-
-        // Update localStorage to sync with Settings page
-        try {
-          localStorage.setItem('dashboardDefaultDashboard', updatedDashboard.name);
-        } catch (error) {
-          console.warn('Failed to update localStorage default dashboard setting:', error);
-        }
-
+        await updateDashboardPreferences({ defaultDashboard: updatedDashboard.name });
         console.log('✅ Dashboard set as default:', updatedDashboard.name);
         return updatedDashboard;
       }
@@ -335,7 +340,7 @@ export const useDashboards = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, activeDashboard]);
+  }, [user?.id, activeDashboard, updateDashboardPreferences]);
 
   // Load dashboards when user changes
   useEffect(() => {
@@ -348,6 +353,33 @@ export const useDashboards = () => {
       setInitialized(false);
     }
   }, [user?.id, loadDashboards]);
+
+  // Sync active dashboard when user preference changes
+  useEffect(() => {
+    if (!dashboards.length) return;
+
+    const preferredName = dashboardPreferences.defaultDashboard;
+    if (!preferredName) return;
+
+    const preferredDashboard = dashboards.find(d => d.name === preferredName);
+
+    if (preferredDashboard) {
+      if (!activeDashboard || activeDashboard.id !== preferredDashboard.id) {
+        setActiveDashboard(preferredDashboard);
+      }
+    } else if (dashboards.length > 0) {
+      const fallbackDashboard = dashboards[0];
+      if (!activeDashboard || activeDashboard.id !== fallbackDashboard.id) {
+        setActiveDashboard(fallbackDashboard);
+      }
+      updateDashboardPreferences({ defaultDashboard: fallbackDashboard.name });
+    }
+  }, [
+    dashboards,
+    dashboardPreferences.defaultDashboard,
+    activeDashboard?.id,
+    updateDashboardPreferences
+  ]);
 
   return {
     // State

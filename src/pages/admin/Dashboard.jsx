@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useDashboardPreferences } from '../../contexts/DashboardPreferencesContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDashboards } from './hooks/useDashboards';
 import { useDashboard } from './contexts/DashboardContext';
@@ -417,6 +418,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { dashboardPreferences } = useDashboardPreferences();
 
   // Simplified dashboard system
   const {
@@ -454,34 +456,14 @@ const Dashboard = () => {
   const [tileOrder, setTileOrder] = useState([]);
 
   // Global filters state (initialized from preset or saved layout)
-  const [globalFilters, setGlobalFilters] = useState(() => {
-    try {
-      // Get defaults from localStorage (set in Settings)
-      const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
-      const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
-      const defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
-      
-      return {
-        dateRange: savedTimePeriod,
-        quickPreset: savedTimePeriod,
-        markets: defaultMarkets,
-        supervisors: [],
-        ldaps: [],
-        quizTypes: []
-      };
-    } catch (error) {
-      console.error('Error loading dashboard defaults from localStorage:', error);
-      // Fallback to default values if localStorage is corrupted
-      return {
-        dateRange: 'last-30-days',
-        quickPreset: 'last-30-days',
-        markets: [],
-        supervisors: [],
-        ldaps: [],
-        quizTypes: []
-      };
-    }
-  });
+  const [globalFilters, setGlobalFilters] = useState(() => ({
+    dateRange: dashboardPreferences.defaultTimePeriod || 'last-30-days',
+    quickPreset: dashboardPreferences.defaultTimePeriod || 'last-30-days',
+    markets: dashboardPreferences.defaultMarkets || [],
+    supervisors: [],
+    ldaps: [],
+    quizTypes: []
+  }));
 
   // UI state - simplified (removed complex configuration management)
   const [showExportModal, setShowExportModal] = useState(false);
@@ -491,10 +473,9 @@ const Dashboard = () => {
   const [timePeriodDropdownOpen, setTimePeriodDropdownOpen] = useState(false);
 
   // Separate UI state for dropdown display (doesn't trigger data fetching)
-  const [timePeriodDropdownValue, setTimePeriodDropdownValue] = useState(() => {
-    const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
-    return savedTimePeriod;
-  });
+  const [timePeriodDropdownValue, setTimePeriodDropdownValue] = useState(
+    dashboardPreferences.defaultTimePeriod || 'last-30-days'
+  );
 
   // Handle PDF view
   const handleViewPDF = useCallback((url) => {
@@ -650,32 +631,26 @@ const Dashboard = () => {
         console.log('📋 Applying user-customized dashboard filters:', dashboardFilters);
         setGlobalFilters(dashboardFilters);
       } else {
-        // No saved dashboard filters, apply user's default settings from localStorage
-        console.log('📋 No saved dashboard filters, applying user defaults from localStorage');
-        try {
-          const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod');
-          const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
-          
-          console.log('📋 User defaults found:', { savedTimePeriod, savedMarkets });
-          
-          if (savedTimePeriod || savedMarkets) {
-            const newFilters = {
-              dateRange: savedTimePeriod || 'last-30-days',
-              quickPreset: savedTimePeriod || 'last-30-days',
-              markets: savedMarkets ? JSON.parse(savedMarkets) : [],
-              supervisors: [],
-              ldaps: [],
-              quizTypes: []
-            };
-            console.log('📋 Setting global filters to user defaults:', newFilters);
-            setGlobalFilters(newFilters);
-          }
-        } catch (error) {
-          console.error('Error applying dashboard defaults:', error);
-        }
+        // No saved dashboard filters, apply user's default settings from preferences
+        console.log('📋 No saved dashboard filters, applying user defaults from preferences');
+        const preferredTimePeriod = dashboardPreferences.defaultTimePeriod || 'last-30-days';
+        const preferredMarkets = dashboardPreferences.defaultMarkets || [];
+
+        const newFilters = {
+          dateRange: preferredTimePeriod,
+          quickPreset: preferredTimePeriod,
+          markets: preferredMarkets,
+          supervisors: [],
+          ldaps: [],
+          quizTypes: []
+        };
+
+        console.log('📋 Setting global filters to user defaults:', newFilters);
+        setGlobalFilters(newFilters);
+        setTimePeriodDropdownValue(preferredTimePeriod);
       }
     }
-  }, [activeDashboard]);
+  }, [activeDashboard, dashboardPreferences.defaultTimePeriod, dashboardPreferences.defaultMarkets]);
 
   // Charts are now loaded directly (lazy loading to be implemented later)
 
@@ -1550,16 +1525,8 @@ const Dashboard = () => {
                     setGlobalFilters(prevFilters => {
                       const dashboardFilters = activeDashboard?.filters || {};
                       
-                      // Get user defaults from localStorage
-                      let defaultTimePeriod = 'last-30-days';
-                      let defaultMarkets = [];
-                      try {
-                        defaultTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod') || 'last-30-days';
-                        const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
-                        defaultMarkets = savedMarkets ? JSON.parse(savedMarkets) : [];
-                      } catch (error) {
-                        console.error('Error loading user defaults during reset:', error);
-                      }
+                      const defaultTimePeriod = dashboardPreferences.defaultTimePeriod || 'last-30-days';
+                      const defaultMarkets = dashboardPreferences.defaultMarkets || [];
                       
                       const newFilters = { 
                         ...dashboardFilters, 
@@ -1577,6 +1544,7 @@ const Dashboard = () => {
                       setTimeout(() => {
                         setRefreshTrigger(prev => prev + 1);
                       }, 100);
+                      setTimePeriodDropdownValue(defaultTimePeriod);
                       
                       return newFilters;
                     });

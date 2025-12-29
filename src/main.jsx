@@ -10,6 +10,7 @@ const basename = import.meta.env.BASE_URL === '/' ? '/' : '';
 import { AuthProvider } from './contexts/AuthContext';
 import { RBACProvider } from './contexts/RBACContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { DashboardPreferencesProvider } from './contexts/DashboardPreferencesContext';
 import { FullscreenProvider } from './contexts/FullscreenContext';
 import { ToastProvider } from './components/common/ToastContainer';
 import { NetworkProvider } from './contexts/NetworkContext';
@@ -32,13 +33,15 @@ try {
         <AuthProvider>
           <RBACProvider>
             <ThemeProvider>
-              <FullscreenProvider>
-                <NetworkProvider>
-                  <ToastProvider>
-                    <App />
-                  </ToastProvider>
-                </NetworkProvider>
-              </FullscreenProvider>
+              <DashboardPreferencesProvider>
+                <FullscreenProvider>
+                  <NetworkProvider>
+                    <ToastProvider>
+                      <App />
+                    </ToastProvider>
+                  </NetworkProvider>
+                </FullscreenProvider>
+              </DashboardPreferencesProvider>
             </ThemeProvider>
           </RBACProvider>
         </AuthProvider>
@@ -61,13 +64,15 @@ try {
       >
         <RBACProvider>
           <ThemeProvider>
-            <FullscreenProvider>
-              <NetworkProvider>
-                <ToastProvider>
-                  <App />
-                </ToastProvider>
-              </NetworkProvider>
-            </FullscreenProvider>
+            <DashboardPreferencesProvider>
+              <FullscreenProvider>
+                <NetworkProvider>
+                  <ToastProvider>
+                    <App />
+                  </ToastProvider>
+                </NetworkProvider>
+              </FullscreenProvider>
+            </DashboardPreferencesProvider>
           </ThemeProvider>
         </RBACProvider>
       </HashRouter>

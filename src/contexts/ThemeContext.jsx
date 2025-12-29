@@ -8,7 +8,7 @@ import {
   updateCSSVariables
 } from '../utils/colorHelpers';
 import { PRESET_THEMES, DEFAULT_COLORS, DEFAULT_COLOR_MODES } from '../constants/themes';
-import { getUserPreferences, updateUserPreferences } from '../services/api/preferences';
+import { getUserPreferences, updatePreference } from '../services/api/preferences';
 import { useAuth } from './AuthContext';
 
 // Create the theme context
@@ -120,12 +120,10 @@ export const ThemeProvider = ({ children }) => {
     if (!user || !preferencesLoaded) return;
 
     const saveTimeout = setTimeout(async () => {
-      await updateUserPreferences({
-        theme: {
-          themeMode,
-          themeColors,
-          colorModes
-        }
+      await updatePreference('theme', {
+        themeMode,
+        themeColors,
+        colorModes
       });
     }, 500); // Debounce for 500ms
 

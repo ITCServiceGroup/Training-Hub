@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { ResponsiveLine } from '@nivo/line';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { useDashboardPreferences } from '../../../../contexts/DashboardPreferencesContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaUser, FaUsers, FaChartLine, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -8,6 +9,7 @@ import { filterDataForChart, createTimeRangeFilter, isHoverDrillDownDisabled } f
 
 const ScoreTrendChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
+  const { dashboardPreferences } = useDashboardPreferences();
   const isDark = theme === 'dark';
   const { getFiltersForChart, getCombinedFilters, shouldFilterChart, applyBrushSelection, brushSelection } = useDashboard();
 
@@ -29,15 +31,11 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
     const saved = localStorage.getItem('scoreTrendAnalysisMode');
     return saved && ['aggregate', 'individual', 'cohort'].includes(saved) ? saved : 'aggregate';
   });
-  const [anonymizeNames, setAnonymizeNames] = useState(() => {
-    // Load default from localStorage (set in Settings)
-    try {
-      const savedDefault = localStorage.getItem('dashboardDefaultShowNames');
-      return savedDefault !== null ? !JSON.parse(savedDefault) : true; // true = anonymous, false = show names
-    } catch (error) {
-      return true; // Default to anonymous
-    }
-  });
+  const [anonymizeNames, setAnonymizeNames] = useState(() => !dashboardPreferences.defaultShowNames);
+
+  useEffect(() => {
+    setAnonymizeNames(!dashboardPreferences.defaultShowNames);
+  }, [dashboardPreferences.defaultShowNames]);
 
   // Save analysis mode to localStorage when it changes
   useEffect(() => {

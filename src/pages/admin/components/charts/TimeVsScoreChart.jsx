@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ResponsiveScatterPlot } from '@nivo/scatterplot';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { useDashboardPreferences } from '../../../../contexts/DashboardPreferencesContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
 import { FaExpand, FaCompress, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -8,6 +9,7 @@ import { filterDataForChart } from '../../utils/dashboardFilters';
 
 const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) => {
   const { theme } = useTheme();
+  const { dashboardPreferences } = useDashboardPreferences();
   const isDark = theme === 'dark';
   const { getFiltersForChart, getCombinedFilters, shouldFilterChart } = useDashboardFilters();
 
@@ -83,15 +85,11 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
 
   // Efficiency quadrant analysis
   const [showQuadrants, setShowQuadrants] = useState(true);
-  const [anonymizeNames, setAnonymizeNames] = useState(() => {
-    // Load default from localStorage (set in Settings)
-    try {
-      const savedDefault = localStorage.getItem('dashboardDefaultShowNames');
-      return savedDefault !== null ? !JSON.parse(savedDefault) : true; // true = anonymous, false = show names
-    } catch (error) {
-      return true; // Default to anonymous
-    }
-  });
+  const [anonymizeNames, setAnonymizeNames] = useState(() => !dashboardPreferences.defaultShowNames);
+
+  useEffect(() => {
+    setAnonymizeNames(!dashboardPreferences.defaultShowNames);
+  }, [dashboardPreferences.defaultShowNames]);
 
   // Anonymization function (defined after anonymizeNames state)
   const anonymizeName = useCallback((ldap) => {

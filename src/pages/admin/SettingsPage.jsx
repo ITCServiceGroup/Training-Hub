@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useDashboardPreferences } from '../../contexts/DashboardPreferencesContext';
 import { supabase } from '../../config/supabase';
 import { quizzesService } from '../../services/api/quizzes';
 
@@ -49,6 +50,7 @@ const SettingsPage = () => {
   
   // Get user dashboards for the default dashboard setting
   const { dashboards, loading: dashboardsLoading, setAsDefaultDashboard } = useDashboards();
+  const { dashboardPreferences, updateDashboardPreferences } = useDashboardPreferences();
   const [isLoadingOrganization, setIsLoadingOrganization] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const { user } = useAuth();
@@ -335,76 +337,46 @@ const SettingsPage = () => {
       defaultAnswerRandomization: savedARand !== null ? JSON.parse(savedARand) : prev.defaultAnswerRandomization,
     }));
 
-    // Load dashboard settings from localStorage
-    try {
-      const savedTimePeriod = localStorage.getItem('dashboardDefaultTimePeriod');
-      const savedMarkets = localStorage.getItem('dashboardDefaultMarkets');
-      const savedShowNames = localStorage.getItem('dashboardDefaultShowNames');
-      const savedDefaultDashboard = localStorage.getItem('dashboardDefaultDashboard');
-      const savedDisableHoverDrillDown = localStorage.getItem('dashboardDisableHoverDrillDown');
-
-      setDashboardSettings(prev => ({
-        ...prev,
-        defaultTimePeriod: savedTimePeriod || prev.defaultTimePeriod,
-        defaultMarkets: savedMarkets ? JSON.parse(savedMarkets) : prev.defaultMarkets,
-        defaultShowNames: savedShowNames !== null ? JSON.parse(savedShowNames) : prev.defaultShowNames,
-        defaultDashboard: savedDefaultDashboard || prev.defaultDashboard,
-        disableHoverDrillDown: savedDisableHoverDrillDown !== null ? JSON.parse(savedDisableHoverDrillDown) : prev.disableHoverDrillDown,
-      }));
-    } catch (error) {
-      console.error('Error loading dashboard settings from localStorage:', error);
-    }
-
     fetchArchivedQuizzes();
     fetchOrganizationData();
   }, [fetchArchivedQuizzes, fetchOrganizationData]);
 
-  // Listen for localStorage changes from other parts of the app (like dashboard dropdown)
   useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'dashboardDefaultDashboard' && e.newValue !== null) {
-        setDashboardSettings(prev => ({
-          ...prev,
-          defaultDashboard: e.newValue
-        }));
+    setDashboardSettings(prev => ({
+      ...prev,
+      defaultTimePeriod: dashboardPreferences.defaultTimePeriod || 'last-30-days',
+      defaultMarkets: dashboardPreferences.defaultMarkets || [],
+      defaultShowNames: dashboardPreferences.defaultShowNames ?? false,
+      defaultDashboard: dashboardPreferences.defaultDashboard || '',
+      disableHoverDrillDown: dashboardPreferences.disableHoverDrillDown ?? false
+    }));
+  }, [dashboardPreferences]);
+
+
+  // Ensure the stored default dashboard is valid
+  useEffect(() => {
+    if (dashboards.length === 0) return;
+
+    if (dashboardPreferences.defaultDashboard) {
+      const defaultExists = dashboards.some(
+        dashboard => dashboard.name === dashboardPreferences.defaultDashboard
+      );
+
+      if (!defaultExists) {
+        const fallback = dashboards[0];
+        if (fallback) {
+          console.log('Default dashboard missing, falling back to:', fallback.name);
+          updateDashboardPreferences({ defaultDashboard: fallback.name });
+        }
       }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Validate that the stored default dashboard still exists when dashboards change
-  useEffect(() => {
-    if (dashboards.length > 0) {
-      if (dashboardSettings.defaultDashboard) {
-        const defaultExists = dashboards.some(dashboard => dashboard.name === dashboardSettings.defaultDashboard);
-        if (!defaultExists) {
-          // The stored default dashboard no longer exists, set to first available dashboard
-          const firstDashboard = dashboards[0];
-          console.log('Default dashboard no longer exists, setting to first available:', firstDashboard.name);
-          setDashboardSettings(prev => ({ ...prev, defaultDashboard: firstDashboard.name }));
-          try {
-            localStorage.setItem('dashboardDefaultDashboard', firstDashboard.name);
-          } catch (error) {
-            console.error("Failed to update default dashboard in localStorage", error);
-          }
-        }
-      } else {
-        // No default set, use the first dashboard or the one marked as default
-        const defaultDashboard = dashboards.find(d => d.is_default) || dashboards[0];
-        if (defaultDashboard) {
-          console.log('No default set, using:', defaultDashboard.name);
-          setDashboardSettings(prev => ({ ...prev, defaultDashboard: defaultDashboard.name }));
-          try {
-            localStorage.setItem('dashboardDefaultDashboard', defaultDashboard.name);
-          } catch (error) {
-            console.error("Failed to set default dashboard in localStorage", error);
-          }
-        }
+    } else {
+      const fallback = dashboards.find(d => d.is_default) || dashboards[0];
+      if (fallback) {
+        console.log('No default dashboard set, using:', fallback.name);
+        updateDashboardPreferences({ defaultDashboard: fallback.name });
       }
     }
-  }, [dashboards]);
+  }, [dashboards, dashboardPreferences.defaultDashboard, updateDashboardPreferences]);
 
   useEffect(() => {
     if (user) {
@@ -449,46 +421,27 @@ const SettingsPage = () => {
   };
 
   const handleDashboardSettingChange = async (name, value) => {
-    setDashboardSettings(prevSettings => {
-      const updatedSettings = {
-        ...prevSettings,
-        [name]: value,
-      };
+    setDashboardSettings(prevSettings => ({
+      ...prevSettings,
+      [name]: value,
+    }));
 
-      try {
-        if (name === 'defaultTimePeriod') {
-          localStorage.setItem('dashboardDefaultTimePeriod', value);
-        } else if (name === 'defaultMarkets') {
-          localStorage.setItem('dashboardDefaultMarkets', JSON.stringify(value));
-        } else if (name === 'defaultShowNames') {
-          localStorage.setItem('dashboardDefaultShowNames', JSON.stringify(value));
-        } else if (name === 'disableHoverDrillDown') {
-          localStorage.setItem('dashboardDisableHoverDrillDown', JSON.stringify(value));
-        } else if (name === 'defaultDashboard') {
-          // Update the database to sync with dashboard dropdown
-          // The setAsDefaultDashboard function will also update localStorage, so we don't need to do it here
-          if (value) {
-            // Find the dashboard ID by name
-            const selectedDashboard = dashboards.find(d => d.name === value);
-            if (selectedDashboard) {
-              setAsDefaultDashboard(selectedDashboard.id)
-                .then(() => {
-                  console.log('✅ Updated default dashboard in database from Settings');
-                })
-                .catch(error => {
-                  console.error('❌ Failed to update default dashboard in database:', error);
-                  // If database update fails, still update localStorage
-                  localStorage.setItem('dashboardDefaultDashboard', value);
-                });
-            }
+    try {
+      if (name === 'defaultDashboard') {
+        if (value) {
+          const selectedDashboard = dashboards.find(d => d.name === value);
+          if (selectedDashboard) {
+            await setAsDefaultDashboard(selectedDashboard.id);
           }
+        } else {
+          await setAsDefaultDashboard(null);
         }
-      } catch (error) {
-        console.error("Failed to save dashboard setting preference to localStorage", error);
+      } else {
+        await updateDashboardPreferences({ [name]: value });
       }
-
-      return updatedSettings;
-    });
+    } catch (error) {
+      console.error('Failed to save dashboard preference:', error);
+    }
   };
 
 

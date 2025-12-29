@@ -1,3 +1,5 @@
+import { getDashboardPreferenceStore } from './dashboardPreferenceStore';
+
 /**
  * Utility functions for filtering dashboard data based on drill-down and cross-filter state
  */
@@ -380,11 +382,6 @@ export const createPassFailClassificationFilter = (classification, data = []) =>
  * @returns {boolean} True if hover drill-down is disabled, false otherwise
  */
 export const isHoverDrillDownDisabled = () => {
-  try {
-    const savedSetting = localStorage.getItem('dashboardDisableHoverDrillDown');
-    return savedSetting !== null ? JSON.parse(savedSetting) : false;
-  } catch (error) {
-    console.error('Error reading hover drill-down setting from localStorage:', error);
-    return false; // Default to enabled on error
-  }
+  const preferences = getDashboardPreferenceStore();
+  return preferences.disableHoverDrillDown || false;
 };
