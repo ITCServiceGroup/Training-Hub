@@ -23,8 +23,6 @@ export const getUserPreferences = async () => {
       .single();
 
     if (error) throw error;
-
-    console.log('[Preferences] Loaded preferences for user:', user.id, data?.preferences);
     return { data: data?.preferences || {}, error: null };
   } catch (error) {
     console.error('Error fetching user preferences:', error);

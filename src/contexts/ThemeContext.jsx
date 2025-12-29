@@ -44,6 +44,7 @@ export const ThemeProvider = ({ children }) => {
     const loadPreferences = async () => {
       if (user) {
         const { data } = await getUserPreferences();
+
         if (data && data.theme) {
           const { themeMode: savedMode, themeColors: savedColors, colorModes: savedModes } = data.theme;
 
