@@ -356,21 +356,15 @@
   background-color: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
 }
 
-/* Add a subtle pulse animation for containers during drag */
-@keyframes containerPulse {
-  0% {
-    outline-color: rgba(13, 148, 136, 0.3);
-  }
-  50% {
-    outline-color: rgba(13, 148, 136, 0.7);
-  }
-  100% {
-    outline-color: rgba(13, 148, 136, 0.3);
-  }
-}
-
+/*
+ * PERFORMANCE NOTE: Removed containerPulse animation during drag operations
+ * Continuous CSS animations on multiple elements cause significant performance
+ * degradation during drag operations, especially on extended drags.
+ * Using static outline styling instead for better performance.
+ */
 .craft-container[data-can-drop="true"] {
-  animation: containerPulse 1.5s infinite;
+  /* Static outline instead of animated - better performance */
+  outline-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
 }
 
 /* Element being hovered over during drag */
@@ -1351,18 +1345,18 @@
 }
 
 /* Wireframe styles for special components during drag operations */
+/* PERFORMANCE: Removed animations to prevent lag during extended drags */
 .craft-tabs[data-wireframe-visible="true"],
 .craft-collapsible-section[data-wireframe-visible="true"] {
   outline: 2px dashed color-mix(in srgb, var(--color-primary) 50%, transparent) !important;
   outline-offset: -2px;
-  transition: all 0.2s ease !important;
-  animation: containerPulse 1.5s infinite;
+  /* Using will-change for GPU acceleration on outline changes */
+  will-change: outline-color;
 }
 
 /* Special wireframe styling for tables during drag operations */
 .craft-table[data-wireframe-visible="true"] {
   position: relative !important;
-  animation: containerPulse 1.5s infinite;
 }
 
 /* Create a visible wireframe border that sits on top of table content */
@@ -1377,5 +1371,4 @@
   pointer-events: none;
   z-index: 1000;
   border-radius: 4px;
-  transition: all 0.2s ease !important;
 }

@@ -1,6 +1,8 @@
 /**
  * This file contains a patch for the CollapsibleSection component to ensure
  * that components dropped into a step get the correct data-step attribute.
+ *
+ * PERFORMANCE: Console.log statements removed to reduce overhead during drag operations.
  */
 
 import { useEditor } from '@craftjs/core';
@@ -10,8 +12,6 @@ export const useCollapsibleSectionPatch = () => {
   const { actions, query } = useEditor();
 
   useEffect(() => {
-    console.log('CollapsibleSectionPatch: Initializing...');
-
     // Function to handle the drop event
     const handleDrop = (e) => {
       try {
@@ -27,8 +27,6 @@ export const useCollapsibleSectionPatch = () => {
         const nodeId = e.dataTransfer.getData('node-id');
         if (!nodeId) return;
 
-        console.log(`CollapsibleSectionPatch: Component ${nodeId} dropped into step ${stepNumber}`);
-
         // Set the data-step attribute on the dropped component
         setTimeout(() => {
           try {
@@ -43,7 +41,6 @@ export const useCollapsibleSectionPatch = () => {
               actions.setProp(nodeId, (props) => {
                 props['data-step'] = parseInt(stepNumber);
               });
-              console.log(`CollapsibleSectionPatch: Set data-step=${stepNumber} on component ${nodeId}`);
             }
           } catch (error) {
             console.error('CollapsibleSectionPatch: Error setting data-step attribute:', error);

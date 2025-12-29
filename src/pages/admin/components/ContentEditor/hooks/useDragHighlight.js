@@ -8,6 +8,12 @@ import { useEditor } from '@craftjs/core';
  *
  * IMPORTANT: This hook only adds visual styling and does NOT
  * interfere with craft.js's drag and drop functionality
+ *
+ * PERFORMANCE OPTIMIZATIONS:
+ * - Throttled dragover handler to reduce CPU usage during extended drags
+ * - Cached DOM queries to avoid repeated lookups
+ * - Uses requestAnimationFrame for smooth scrolling
+ * - Minimizes style recalculations during drag
  */
 export const useDragHighlight = () => {
   const { query } = useEditor((state) => ({
@@ -24,11 +30,19 @@ export const useDragHighlight = () => {
   const rendererRef = useRef(null); // Cache renderer element
   const isScrollingRef = useRef(false); // Track if actively scrolling
 
+  // Performance optimization refs
+  const lastDragOverTimeRef = useRef(0);
+  const lastHoveredContainerRef = useRef(null);
+  const containersRef = useRef(null); // Cache container elements
+  const dragOverThrottleRef = useRef(null); // For throttling dragover
+
   // Auto-scroll constants - optimized for performance
-  const SCROLL_SPEED = 4; // Reduced for smoother scrolling
-  const SCROLL_BOUNDARY = 150; // Distance from edge to trigger scrolling
-  const TARGET_FRAME_TIME = 16; // Slightly faster than 60fps for responsiveness
+  const SCROLL_SPEED = 5; // Slightly increased for better responsiveness
+  const SCROLL_BOUNDARY = 100; // Reduced zone size for more precise control
+  const HIGH_SPEED_BOUNDARY = 40; // Inner zone for faster scrolling
+  const TARGET_FRAME_TIME = 16; // 60fps target
   const MAX_FRAME_TIME = 32; // Cap frame time to prevent large jumps
+  const DRAG_OVER_THROTTLE_MS = 16; // Throttle dragover to ~60fps max
 
   // Optimized scroll animation loop
   const scrollAnimationLoop = useCallback((currentTime) => {
@@ -189,7 +203,7 @@ export const useDragHighlight = () => {
     });
   }, [stopAutoScroll]);
 
-  // Simple auto-scroll function
+  // Optimized auto-scroll function with high-speed zone
   const autoScroll = useCallback((clientY) => {
     // If not dragging, stop any scrolling
     if (!isDraggingRef.current) {
@@ -197,55 +211,87 @@ export const useDragHighlight = () => {
       return;
     }
 
-    const renderer = document.querySelector('.craftjs-renderer');
+    // Use cached renderer
+    const renderer = rendererRef.current;
     if (!renderer) return;
 
     // Get renderer's position relative to the viewport
     const rect = renderer.getBoundingClientRect();
     const topBoundary = rect.top + SCROLL_BOUNDARY;
     const bottomBoundary = rect.bottom - SCROLL_BOUNDARY;
-
-    // Remove any existing scroll indicator classes
-    renderer.classList.remove('scroll-near-top', 'scroll-near-bottom');
+    const topHighSpeedBoundary = rect.top + HIGH_SPEED_BOUNDARY;
+    const bottomHighSpeedBoundary = rect.bottom - HIGH_SPEED_BOUNDARY;
 
     if (clientY < topBoundary) {
-      // Scroll up - calculate speed based on distance from boundary
+      // Scroll up - use high-speed zone for faster scrolling near edge
+      const isInHighSpeedZone = clientY < topHighSpeedBoundary;
       const distance = Math.max(1, topBoundary - clientY);
       const factor = Math.min(distance / SCROLL_BOUNDARY, 1);
-      const speed = Math.ceil(SCROLL_SPEED * factor);
+      // Double speed in high-speed zone
+      const speed = Math.ceil(SCROLL_SPEED * factor * (isInHighSpeedZone ? 2 : 1));
 
       updateScrollParams(-1, speed); // -1 for up direction
-      renderer.classList.add('scroll-near-top');
+
+      // Only update class if not already set (reduces DOM writes)
+      if (!renderer.classList.contains('scroll-near-top')) {
+        renderer.classList.remove('scroll-near-bottom');
+        renderer.classList.add('scroll-near-top');
+      }
 
     } else if (clientY > bottomBoundary) {
-      // Scroll down - calculate speed based on distance from boundary
+      // Scroll down - use high-speed zone for faster scrolling near edge
+      const isInHighSpeedZone = clientY > bottomHighSpeedBoundary;
       const distance = Math.max(1, clientY - bottomBoundary);
       const factor = Math.min(distance / SCROLL_BOUNDARY, 1);
-      const speed = Math.ceil(SCROLL_SPEED * factor);
+      // Double speed in high-speed zone
+      const speed = Math.ceil(SCROLL_SPEED * factor * (isInHighSpeedZone ? 2 : 1));
 
       updateScrollParams(1, speed); // 1 for down direction
-      renderer.classList.add('scroll-near-bottom');
+
+      // Only update class if not already set (reduces DOM writes)
+      if (!renderer.classList.contains('scroll-near-bottom')) {
+        renderer.classList.remove('scroll-near-top');
+        renderer.classList.add('scroll-near-bottom');
+      }
 
     } else {
       // In the middle - stop scrolling
       stopAutoScroll();
+      renderer.classList.remove('scroll-near-top', 'scroll-near-bottom');
     }
   }, [updateScrollParams, stopAutoScroll]);
 
-  // Handler for drag over
+  // Optimized handler for drag over with throttling
   const handleDragOver = useCallback((e) => {
     e.preventDefault(); // Necessary to allow dropping
 
-    const targetContainer = e.target.closest('.craft-container.is-canvas');
-    const allContainers = document.querySelectorAll('.craft-container.is-canvas');
+    const now = performance.now();
 
-    allContainers.forEach(container => {
-      if (container === targetContainer) {
-        container.classList.add('drag-hover');
-      } else {
-        container.classList.remove('drag-hover');
+    // Throttle the expensive operations
+    if (now - lastDragOverTimeRef.current < DRAG_OVER_THROTTLE_MS) {
+      // Still need to handle auto-scroll even when throttled
+      autoScroll(e.clientY);
+      return;
+    }
+    lastDragOverTimeRef.current = now;
+
+    // Find target container - use event target for efficiency
+    const targetContainer = e.target.closest('.craft-container.is-canvas');
+
+    // Only update classes if the hovered container changed
+    if (targetContainer !== lastHoveredContainerRef.current) {
+      // Remove drag-hover from previous container
+      if (lastHoveredContainerRef.current) {
+        lastHoveredContainerRef.current.classList.remove('drag-hover');
       }
-    });
+
+      // Add drag-hover to new container
+      if (targetContainer) {
+        targetContainer.classList.add('drag-hover');
+      }
+
+      lastHoveredContainerRef.current = targetContainer;
+    }
 
     // Trigger auto-scrolling based on mouse position
     autoScroll(e.clientY);
@@ -262,8 +308,11 @@ export const useDragHighlight = () => {
     lastFrameTimeRef.current = 0;
     isScrollingRef.current = false;
 
-    // Clear cached renderer
+    // Clear cached elements and state
     rendererRef.current = null;
+    containersRef.current = null;
+    lastHoveredContainerRef.current = null;
+    lastDragOverTimeRef.current = 0;
 
     // Cancel animation frame
     if (scrollAnimationRef.current) {
@@ -313,6 +362,9 @@ export const useDragHighlight = () => {
       lastFrameTimeRef.current = 0;
       isScrollingRef.current = false;
       rendererRef.current = null;
+      containersRef.current = null;
+      lastHoveredContainerRef.current = null;
+      lastDragOverTimeRef.current = 0;
 
       if (scrollAnimationRef.current) {
         cancelAnimationFrame(scrollAnimationRef.current);

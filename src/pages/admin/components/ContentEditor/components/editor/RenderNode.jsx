@@ -21,7 +21,10 @@ export const RenderNode = ({ render }) => {
     data: node.data,
   }));
 
-  const { actions, query } = useEditor();
+  // Get isDragging from editor state - this is more efficient than calling query.getState() in useEffect
+  const { actions, query, isDragging } = useEditor((state) => ({
+    isDragging: state.events.dragged.size > 0,
+  }));
 
   // Check if the node is a container and can accept drops
   const isContainer = data.name === 'Container';
@@ -161,8 +164,8 @@ export const RenderNode = ({ render }) => {
     }
 
     // Handle drop target state for containers
+    // Using isDragging from editor state (more efficient than query.getState())
     if (canAcceptDrop) {
-      const isDragging = query.getState().events.dragged.size > 0;
       if (isDragging && !isDragged) {
         dom.setAttribute('data-can-drop', 'true');
 
@@ -194,7 +197,7 @@ export const RenderNode = ({ render }) => {
         }
       }
     };
-  }, [dom, canAcceptDrop, isDragged, isDropTarget, query, id]);
+  }, [dom, canAcceptDrop, isDragged, isDragging, isDropTarget, query, id]);
 
   // Helper function to determine container nesting depth
   const getContainerDepth = (nodeId, query) => {

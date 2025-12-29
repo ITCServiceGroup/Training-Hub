@@ -1,5 +1,10 @@
 /**
  * Styles for immediate visual feedback during drag operations
+ *
+ * PERFORMANCE OPTIMIZATIONS:
+ * - Removed transitions to prevent continuous repaints during drag
+ * - Using will-change for GPU acceleration on elements that change during drag
+ * - Simplified selectors for faster style matching
  */
 
 /* Global styles when dragging is active */
@@ -7,27 +12,27 @@ body.craftjs-dragging {
   cursor: grabbing !important;
 }
 
-/* Highlight potential drop targets immediately */
+/* Highlight potential drop targets immediately - no transitions for performance */
 body.craftjs-dragging .craft-container.is-canvas {
   outline: 2px dashed color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
   outline-offset: -2px;
-  transition: all 0.1s ease-in-out;
+  will-change: outline-color, background-color;
 }
 
-/* Style for the container being dragged over */
+/* Style for the container being dragged over - GPU accelerated */
 .craft-container.drag-hover {
   background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
   outline: 2px solid color-mix(in srgb, var(--color-primary) 80%, transparent) !important;
   outline-offset: -2px;
-  transition: all 0.1s ease-in-out;
+  will-change: outline-color, background-color;
 }
 
-/* Make the indicator more visible */
+/* Make the indicator more visible - GPU accelerated */
 .indicator-box {
-  background-color: rgba(0, 85, 255, 0.8) !important; /* Orange color */
-  border: 2px solid rgb(0, 85, 255) !important; /* Orange color */
+  background-color: rgba(0, 85, 255, 0.8) !important;
+  border: 2px solid rgb(0, 85, 255) !important;
   box-shadow: 0 0 8px rgba(255, 152, 0, 0.5) !important;
-  transition: all 0.1s ease-in-out;
+  will-change: transform;
 }
 
 /* Wireframe styles for special components during drag operations */
@@ -35,7 +40,6 @@ body.craftjs-dragging .craft-container.is-canvas {
 .craft-collapsible-section[data-wireframe-visible="true"] {
   outline: 2px dashed color-mix(in srgb, var(--color-primary) 50%, transparent) !important;
   outline-offset: -2px;
-  transition: all 0.1s ease-in-out;
 }
 
 /* Special wireframe styling for tables during drag operations */
@@ -55,5 +59,4 @@ body.craftjs-dragging .craft-container.is-canvas {
   pointer-events: none;
   z-index: 1000;
   border-radius: 4px;
-  transition: all 0.1s ease-in-out;
 }

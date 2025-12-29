@@ -76,6 +76,17 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       return {
         ...provided,
         flexWrap: count > 1 ? 'wrap' : 'nowrap',
+        padding: '2px 8px',
+        alignItems: count > 1 ? 'flex-start' : 'center',
+      };
+    },
+    indicatorsContainer: (provided, state) => {
+      const val = state.selectProps && state.selectProps.value;
+      const count = Array.isArray(val) ? val.length : (val ? 1 : 0);
+      return {
+        ...provided,
+        alignSelf: count > 1 ? 'flex-start' : 'center',
+        paddingTop: count > 1 ? '2px' : '0px',
       };
     },
     menu: (provided) => ({
@@ -146,12 +157,8 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     }),
     inputContainer: (provided) => ({
       ...provided,
-      width: 0,
-      minWidth: 0,
-      flex: '0 0 0',
       margin: 0,
       padding: 0,
-      overflow: 'hidden',
     }),
     input: (provided) => ({
       ...provided,
@@ -159,10 +166,6 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
       fontSize: '12px',
       margin: 0,
       padding: 0,
-      width: 0,
-      minWidth: 0,
-      flex: '0 0 0',
-      lineHeight: 1,
     }),
     placeholder: (provided) => ({
       ...provided,
@@ -246,6 +249,30 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
     );
   };
 
+  // Custom ValueContainer that positions the input absolutely when there are values
+  // This prevents the input from taking up space and causing extra whitespace
+  const ValueContainer = ({ children, ...props }) => {
+    const hasValue = props.hasValue;
+    const count = props.getValue().length;
+
+    return (
+      <components.ValueContainer {...props}>
+        {React.Children.map(children, (child, index) => {
+          // The last child in ValueContainer is always the Input wrapper div
+          // When we have multiple values, hide it to prevent extra whitespace
+          if (hasValue && count > 1 && index === React.Children.count(children) - 1) {
+            return (
+              <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
+                {child}
+              </div>
+            );
+          }
+          return child;
+        })}
+      </components.ValueContainer>
+    );
+  };
+
   return (
     <div className="space-y-1 w-full">
       {!hideLabel && (
@@ -267,7 +294,8 @@ const MultiSelect = ({ type, value, onChange, hideLabel = false }) => {
         className="w-full"
         classNamePrefix="react-select"
         components={{
-          MultiValue
+          MultiValue,
+          ValueContainer
         }}
         menuPortalTarget={null} // Explicitly disable portal rendering
         menuShouldScrollIntoView={false}
