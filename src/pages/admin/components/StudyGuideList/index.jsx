@@ -21,6 +21,7 @@ import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import { FaCopy, FaArrowRight, FaEllipsisV } from 'react-icons/fa';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import { studyGuidesService } from '../../../../services/api/studyGuides';
+import VisibilityBadge from '../../../../components/common/VisibilityBadge';
 
 // Helper function to extract a preview from HTML or JSON content
 const extractPreview = (content, maxLength = 150) => {
@@ -515,10 +516,13 @@ const SortableStudyGuideItem = React.memo(({
       <div className={innerClassName}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
-              {guide.title}
-            </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1 overflow-hidden">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
+                {guide.title}
+              </h3>
+              <VisibilityBadge content={guide} size="sm" />
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
               {/* Actions menu button */}
               <div
                 className={`relative text-gray-400 p-1 rounded ${hoveredId === guide.id ? 'visible' : 'invisible'} ${isDark ? 'hover:bg-slate-600' : 'hover:bg-gray-200'}`}

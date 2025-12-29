@@ -1,19 +1,24 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { 
-  hexToRgb, 
-  rgbToHex, 
-  hexToRgbObject, 
-  rgbObjectToHex, 
-  generateColorVariations, 
-  updateCSSVariables 
+import {
+  hexToRgb,
+  rgbToHex,
+  hexToRgbObject,
+  rgbObjectToHex,
+  generateColorVariations,
+  updateCSSVariables
 } from '../utils/colorHelpers';
 import { PRESET_THEMES, DEFAULT_COLORS, DEFAULT_COLOR_MODES } from '../constants/themes';
+import { getUserPreferences, updateUserPreferences } from '../services/api/preferences';
+import { useAuth } from './AuthContext';
 
 // Create the theme context
 const ThemeContext = createContext(null);
 
 // Theme provider component
 export const ThemeProvider = ({ children }) => {
+  const { user } = useAuth();
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+
   // Helper to get system theme preference
   const getSystemTheme = () => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -22,32 +27,56 @@ export const ThemeProvider = ({ children }) => {
     return 'light';
   };
 
-  // Initialize theme mode from localStorage or default to 'system'
-  const [themeMode, setThemeModeState] = useState(() => {
-    const savedThemeMode = localStorage.getItem('themeMode');
-    return savedThemeMode || 'system';
-  });
+  // Initialize theme mode from defaults
+  const [themeMode, setThemeModeState] = useState('system');
 
   // Initialize actual theme based on mode
-  const [theme, setTheme] = useState(() => {
-    const savedThemeMode = localStorage.getItem('themeMode') || 'system';
-    if (savedThemeMode === 'system') {
-      return getSystemTheme();
-    }
-    return savedThemeMode;
-  });
+  const [theme, setTheme] = useState(getSystemTheme());
 
-  // Initialize theme colors from localStorage or defaults
-  const [themeColors, setThemeColors] = useState(() => {
-    const savedColors = localStorage.getItem('themeColors');
-    return savedColors ? JSON.parse(savedColors) : DEFAULT_COLORS;
-  });
+  // Initialize theme colors from defaults
+  const [themeColors, setThemeColors] = useState(DEFAULT_COLORS);
 
-  // Initialize color modes from localStorage or defaults
-  const [colorModes, setColorModes] = useState(() => {
-    const savedModes = localStorage.getItem('colorModes');
-    return savedModes ? JSON.parse(savedModes) : DEFAULT_COLOR_MODES;
-  });
+  // Initialize color modes from defaults
+  const [colorModes, setColorModes] = useState(DEFAULT_COLOR_MODES);
+
+  // Load preferences from database when user logs in
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (user) {
+        const { data } = await getUserPreferences();
+        if (data && data.theme) {
+          const { themeMode: savedMode, themeColors: savedColors, colorModes: savedModes } = data.theme;
+
+          if (savedMode) {
+            setThemeModeState(savedMode);
+            if (savedMode === 'system') {
+              setTheme(getSystemTheme());
+            } else {
+              setTheme(savedMode);
+            }
+          }
+
+          if (savedColors) {
+            setThemeColors(savedColors);
+          }
+
+          if (savedModes) {
+            setColorModes(savedModes);
+          }
+        }
+        setPreferencesLoaded(true);
+      } else {
+        // User logged out, reset to defaults
+        setThemeModeState('system');
+        setTheme(getSystemTheme());
+        setThemeColors(DEFAULT_COLORS);
+        setColorModes(DEFAULT_COLOR_MODES);
+        setPreferencesLoaded(false);
+      }
+    };
+
+    loadPreferences();
+  }, [user]);
 
 
   // Listen for system theme changes
@@ -72,10 +101,8 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [themeMode]);
 
-  // Update theme in localStorage and apply CSS classes when it changes
+  // Apply theme CSS classes when it changes
   useEffect(() => {
-    localStorage.setItem('themeMode', themeMode);
-
     // Apply theme class to document element for global CSS variables
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -85,18 +112,24 @@ export const ThemeProvider = ({ children }) => {
 
     // Update CSS variables with current colors
     updateCSSVariables(themeColors, theme);
-  }, [theme, themeColors, themeMode]);
+  }, [theme, themeColors]);
 
-  // Update colors in localStorage when they change
+  // Save preferences to database when they change (debounced)
   useEffect(() => {
-    localStorage.setItem('themeColors', JSON.stringify(themeColors));
-    updateCSSVariables(themeColors, theme);
-  }, [themeColors, theme]);
+    if (!user || !preferencesLoaded) return;
 
-  // Update color modes in localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('colorModes', JSON.stringify(colorModes));
-  }, [colorModes]);
+    const saveTimeout = setTimeout(async () => {
+      await updateUserPreferences({
+        theme: {
+          themeMode,
+          themeColors,
+          colorModes
+        }
+      });
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(saveTimeout);
+  }, [themeMode, themeColors, colorModes, user, preferencesLoaded]);
 
   // Toggle theme function
   const toggleTheme = () => {

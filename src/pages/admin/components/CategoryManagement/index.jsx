@@ -7,6 +7,7 @@ import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import QuestionMigrationDialog from '../QuestionMigrationDialog';
 import { useNetworkStatus } from '../../../../contexts/NetworkContext';
 import { useCatalog } from '../../../../hooks/useCatalog';
+import { useContentVisibility } from '../../../../hooks/useContentVisibility';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
@@ -14,6 +15,7 @@ const RedBoldNum = ({ children }) => (
 
 const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
   const { getCategoriesBySection, refresh } = useCatalog({ mode: 'admin' });
+  const { getNewContentDefaults } = useContentVisibility();
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,8 +57,12 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
 
   const handleAddCategory = async (formData) => {
     try {
+      // Get RBAC defaults for new content
+      const rbacDefaults = getNewContentDefaults();
+
       const newCategory = await categoriesService.create({
         ...formData,
+        ...rbacDefaults,
         section_id: section.id
       });
 

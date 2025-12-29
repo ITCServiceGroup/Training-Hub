@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRBAC } from '../../contexts/RBACContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useFullscreen } from '../../contexts/FullscreenContext';
 import { createContext } from 'react';
-import { MdDashboard, MdQuiz, MdOutlinePermMedia, MdChevronLeft, MdChevronRight } from 'react-icons/md'; // Added MdOutlinePermMedia
+import { MdDashboard, MdQuiz, MdOutlinePermMedia, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { BiBook } from 'react-icons/bi';
-import { FiSettings } from 'react-icons/fi';
+import { FiSettings, FiUsers, FiCheckCircle } from 'react-icons/fi';
 
 // Create a context to share selected category
 export const CategoryContext = createContext({
@@ -18,6 +19,7 @@ export const CategoryContext = createContext({
 
 const AdminLayout = () => {
   const { user } = useAuth();
+  const { canManageUsers, isAdmin } = useRBAC();
   const { theme } = useTheme();
   const { isFullscreen, exitFullscreen } = useFullscreen();
   const location = useLocation();
@@ -48,6 +50,8 @@ const AdminLayout = () => {
     if (path.includes('/admin/study-guides')) return 'study-guides';
     if (path.includes('/admin/media')) return 'media';
     if (path.includes('/admin/quizzes')) return 'quizzes';
+    if (path.includes('/admin/users')) return 'users';
+    if (path.includes('/admin/approvals')) return 'approvals';
     if (path.includes('/admin/settings')) return 'settings';
     return 'dashboard';
   };
@@ -61,6 +65,8 @@ const AdminLayout = () => {
       case 'study-guides': return 'Creation Management';
       case 'media': return 'Media Library';
       case 'quizzes': return 'Quiz Management';
+      case 'users': return 'User Management';
+      case 'approvals': return 'Approval Queue';
       case 'settings': return 'Settings';
       default: return 'Admin Dashboard';
     }
@@ -127,6 +133,34 @@ const AdminLayout = () => {
                 <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Quiz</span>
               </Link>
             </li>
+            {canManageUsers() && (
+              <li
+                className={`group cursor-pointer transition-colors ${activeTab === 'users' ? 'bg-primary' : 'hover:bg-primary'}`}
+              >
+                <Link
+                  to="/admin/users"
+                  className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'users' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                  title={sidebarCollapsed ? 'Users' : ''}
+                >
+                  <FiUsers className="text-lg flex-shrink-0" />
+                  <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Users</span>
+                </Link>
+              </li>
+            )}
+            {isAdmin() && (
+              <li
+                className={`group cursor-pointer transition-colors ${activeTab === 'approvals' ? 'bg-primary' : 'hover:bg-primary'}`}
+              >
+                <Link
+                  to="/admin/approvals"
+                  className={`no-underline hover:no-underline flex items-center px-6 w-full py-3 ${activeTab === 'approvals' ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-white'}`}
+                  title={sidebarCollapsed ? 'Approvals' : ''}
+                >
+                  <FiCheckCircle className="text-lg flex-shrink-0" />
+                  <span className={`ml-3 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>Approvals</span>
+                </Link>
+              </li>
+            )}
             <li
               className={`group cursor-pointer transition-colors ${activeTab === 'settings' ? 'bg-primary' : 'hover:bg-primary'}`}
             >

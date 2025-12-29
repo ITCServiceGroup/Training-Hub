@@ -32,6 +32,12 @@ const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 const ContactUsPage = lazy(() => import('./pages/ContactUsPage'));
 
+// RBAC pages
+const UnauthorizedPage = lazy(() => import('./pages/UnauthorizedPage'));
+const AccountInactivePage = lazy(() => import('./pages/AccountInactivePage'));
+const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
+const ApprovalQueue = lazy(() => import('./pages/admin/ApprovalQueue'));
+
 // Enhanced loading fallback with network error detection
 const LoadingFallback = () => {
   const [loadingTimeout, setLoadingTimeout] = React.useState(false);
@@ -147,6 +153,18 @@ function App() {
             </Suspense>
           } />
 
+          {/* RBAC Error Pages */}
+          <Route path="unauthorized" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <UnauthorizedPage />
+            </Suspense>
+          } />
+          <Route path="account-inactive" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <AccountInactivePage />
+            </Suspense>
+          } />
+
           {/* Admin Routes (Protected) */}
           <Route path="admin" element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
@@ -177,6 +195,20 @@ function App() {
               <Route path="media" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <MediaLibraryPage />
+                </Suspense>
+              } />
+
+              {/* User Management Route (Admin only) */}
+              <Route path="users" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <UserManagement />
+                </Suspense>
+              } />
+
+              {/* Approval Queue Route (Admin only) */}
+              <Route path="approvals" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ApprovalQueue />
                 </Suspense>
               } />
 

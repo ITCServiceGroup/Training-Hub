@@ -7,6 +7,7 @@ import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import { useNetworkStatus } from '../../../../contexts/NetworkContext';
 import { useCatalog } from '../../../../hooks/useCatalog';
+import { useContentVisibility } from '../../../../hooks/useContentVisibility';
 
 const RedBoldNum = ({ children }) => (
   <span className="text-red-600 font-bold">{children}</span>
@@ -17,6 +18,7 @@ const SectionManagement = ({ onViewCategories }) => {
   const { sectionsData } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
   const { sections, loading: isLoading, refresh } = useCatalog({ mode: 'admin' });
+  const { getNewContentDefaults } = useContentVisibility();
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteModalState, setDeleteModalState] = useState({
@@ -41,7 +43,13 @@ const SectionManagement = ({ onViewCategories }) => {
 
   const handleAddSection = async (formData) => {
     try {
-      await sectionsService.create(formData);
+      // Get RBAC defaults for new content
+      const rbacDefaults = getNewContentDefaults();
+
+      await sectionsService.create({
+        ...formData,
+        ...rbacDefaults
+      });
       await refresh();
       setIsCreating(false);
     } catch (err) {

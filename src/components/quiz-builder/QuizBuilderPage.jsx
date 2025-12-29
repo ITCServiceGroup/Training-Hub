@@ -9,6 +9,8 @@ import QuizMetadataForm from './QuizMetadataForm';
 import QuestionManager from './QuestionManager';
 import QuizPreview from './QuizPreview';
 import ConfirmationDialog from '../common/ConfirmationDialog'; // Import the new modal
+import { useContentVisibility } from '../../hooks/useContentVisibility';
+import RequestApprovalButton from '../common/RequestApprovalButton';
 
 // Helper function to get initial state with preferences
 const getInitialQuizState = () => {
@@ -40,6 +42,7 @@ const QuizBuilderPage = memo(() => {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { getNewContentDefaults } = useContentVisibility();
   // Initialize state using the helper function
   const [quiz, setQuiz] = useState(getInitialQuizState());
   const [initialQuizState, setInitialQuizState] = useState(null); // Store initial state for change detection
@@ -85,7 +88,14 @@ const QuizBuilderPage = memo(() => {
         setInitialQuizState(JSON.parse(JSON.stringify(savedQuizData)));
         setQuiz(savedQuizData); // Ensure local state matches saved state
       } else {
-        savedQuizData = await quizzesService.create(quiz);
+        // Get RBAC defaults for new content
+        const rbacDefaults = getNewContentDefaults();
+
+        // Create quiz with RBAC fields
+        savedQuizData = await quizzesService.create({
+          ...quiz,
+          ...rbacDefaults
+        });
         // Show success toast for new quiz creation
         showToast('Quiz created successfully!', 'success');
         // Navigate back to quiz list after creating new quiz
@@ -97,7 +107,7 @@ const QuizBuilderPage = memo(() => {
     } finally {
       setIsLoading(false);
     }
-  }, [quiz, quizId, navigate, showToast]);
+  }, [quiz, quizId, navigate, showToast, getNewContentDefaults]);
 
   // Update quiz data
   const handleQuizChange = useCallback((updatedQuiz) => {
@@ -157,13 +167,24 @@ const QuizBuilderPage = memo(() => {
             </h3>
           )}
         </div>
-        <button
-          className="bg-primary-dark hover:bg-primary text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={handleSave}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Saving...' : 'Save Quiz'}
-        </button>
+        <div className="flex items-center gap-3">
+          {quizId && quiz && (
+            <RequestApprovalButton
+              content={quiz}
+              contentType="quiz"
+              onRequestSuccess={() => {
+                showToast('Approval request submitted successfully', 'success');
+              }}
+            />
+          )}
+          <button
+            className="bg-primary-dark hover:bg-primary text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSave}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : 'Save Quiz'}
+          </button>
+        </div>
       </div>
 
       {error && (

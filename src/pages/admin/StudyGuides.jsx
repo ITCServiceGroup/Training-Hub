@@ -14,6 +14,7 @@ import { studyGuidesService } from '../../services/api/studyGuides';
 import { sectionsService } from '../../services/api/sections';
 import { CategoryContext } from '../../components/layout/AdminLayout';
 import { useCatalog } from '../../hooks/useCatalog';
+import { useContentVisibility } from '../../hooks/useContentVisibility';
 
 // Helper function to handle content initialization and validation
 const getInitialJson = (studyGuide, isCreatingFlag) => {
@@ -190,6 +191,7 @@ const StudyGuides = () => {
   const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
   const { getGuidesByCategory, refresh } = useCatalog({ mode: 'admin' });
+  const { getNewContentDefaults } = useContentVisibility();
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -469,11 +471,15 @@ const StudyGuides = () => {
       };
 
       if (isCreating) {
+        // Get RBAC defaults for new content
+        const rbacDefaults = getNewContentDefaults();
+
         // Optimistically update the UI before API call
         const tempId = 'temp-' + Date.now();
         const newGuide = {
           id: tempId,
           ...dataToSaveApi, // Use API payload
+          ...rbacDefaults, // Add RBAC fields
           category_id: selectedCategory.id,
           display_order,
           created_at: new Date().toISOString(),
@@ -503,9 +509,10 @@ const StudyGuides = () => {
         });
         if (tempSectionsData) optimisticallyUpdateSectionsOrder(tempSectionsData);
 
-        // Make API call
+        // Make API call with RBAC fields
         savedGuide = await studyGuidesService.create({
           ...dataToSaveApi, // Use API payload
+          ...rbacDefaults, // Add RBAC fields
           category_id: selectedCategory.id,
           display_order
         });

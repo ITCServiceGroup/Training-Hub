@@ -5,6 +5,7 @@ import { useFullscreen } from '../../../../contexts/FullscreenContext';
 import { useToast } from '../../../../components/common/ToastContainer';
 import ConfirmationDialog from '../../../../components/common/ConfirmationDialog';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
+import RequestApprovalButton from '../../../../components/common/RequestApprovalButton';
 import { FaFileAlt } from 'react-icons/fa';
 import { Viewport } from './components/editor/Viewport';
 import { RenderNode } from './components/editor/RenderNode';
@@ -528,6 +529,16 @@ const EditorInner = ({ editorJson, initialTitle, onSave, onCancel, onDelete, isN
           <FaFileAlt />
           Save as Template
         </button>
+
+        {!isNew && selectedStudyGuide && (
+          <RequestApprovalButton
+            content={selectedStudyGuide}
+            contentType="study_guide"
+            onRequestSuccess={() => {
+              showToast('Approval request submitted successfully', 'success');
+            }}
+          />
+        )}
 
         <div className="flex-1"></div>
         <button type="button" onClick={handleCancelClick} className={`py-2 px-4 bg-secondary hover:bg-secondary/80 text-white border border-transparent rounded-md text-sm cursor-pointer transition-all hover:-translate-y-0.5`}>Cancel</button>

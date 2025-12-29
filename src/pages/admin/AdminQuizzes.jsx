@@ -6,6 +6,7 @@ import { quizzesService } from '../../services/api/quizzes';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import VisibilityBadge from '../../components/common/VisibilityBadge';
 
 const AdminQuizzes = () => {
   const navigate = useNavigate();
@@ -608,7 +609,10 @@ const AdminQuizzes = () => {
               {filteredQuizzes.map(quiz => (
               <tr key={quiz.id} className={isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}>
                 <td className="px-4 py-4">
-                  <div className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{quiz.title}</div>
+                  <div className="flex items-center gap-2">
+                    <div className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{quiz.title}</div>
+                    <VisibilityBadge content={quiz} size="sm" />
+                  </div>
                   {quiz.description && (
                     <div className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{quiz.description}</div>
                   )}
