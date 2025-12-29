@@ -37,6 +37,78 @@
       autoplay=*
     ">
     <!-- Removed GrapesJS local CSS link -->
+    <script>
+      (function() {
+        const STORAGE_KEY = 'codexThemePreferences';
+
+        const hexToRgb = (hex) => {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+          return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+          } : null;
+        };
+
+        const rgbToHex = (r, g, b) => {
+          return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        };
+
+        const applyThemeClass = (theme) => {
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        };
+
+        const setVariable = (name, value) => {
+          if (!value) return;
+          document.documentElement.style.setProperty(name, value, 'important');
+        };
+
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (!stored) return;
+
+          const prefs = JSON.parse(stored) || {};
+          const themeMode = prefs.themeMode || 'system';
+          const resolvedTheme = themeMode === 'system'
+            ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : themeMode;
+
+          applyThemeClass(resolvedTheme);
+
+          const colors = prefs.themeColors;
+          if (colors && colors.primary && colors.secondary) {
+            const isDark = resolvedTheme === 'dark';
+            const currentPrimary = colors.primary[isDark ? 'dark' : 'light'];
+            const currentSecondary = colors.secondary[isDark ? 'dark' : 'light'];
+
+            setVariable('--primary-color', currentPrimary);
+            setVariable('--color-primary', currentPrimary);
+
+            const rgb = hexToRgb(currentPrimary);
+            if (rgb) {
+              const darkerR = Math.round(rgb.r * 0.8);
+              const darkerG = Math.round(rgb.g * 0.8);
+              const darkerB = Math.round(rgb.b * 0.8);
+              setVariable('--primary-dark', rgbToHex(darkerR, darkerG, darkerB));
+
+              const lighterR = Math.min(255, Math.round(rgb.r + (255 - rgb.r) * 0.3));
+              const lighterG = Math.min(255, Math.round(rgb.g + (255 - rgb.g) * 0.3));
+              const lighterB = Math.min(255, Math.round(rgb.b + (255 - rgb.b) * 0.3));
+              setVariable('--primary-light', rgbToHex(lighterR, lighterG, lighterB));
+            }
+
+            setVariable('--secondary-color', currentSecondary);
+            setVariable('--color-secondary', currentSecondary);
+          }
+        } catch (error) {
+          console.warn('Theme preload failed:', error);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

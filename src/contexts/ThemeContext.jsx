@@ -14,9 +14,31 @@ import { useAuth } from './AuthContext';
 // Create the theme context
 const ThemeContext = createContext(null);
 
+const THEME_STORAGE_KEY = 'codexThemePreferences';
+
+const loadStoredTheme = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn('Failed to load stored theme preference:', error);
+    return null;
+  }
+};
+
+const persistStoredTheme = (themeState) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeState));
+  } catch (error) {
+    console.warn('Failed to persist theme preference:', error);
+  }
+};
+
 // Theme provider component
 export const ThemeProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   // Helper to get system theme preference
@@ -27,21 +49,31 @@ export const ThemeProvider = ({ children }) => {
     return 'light';
   };
 
-  // Initialize theme mode from defaults
-  const [themeMode, setThemeModeState] = useState('system');
+  const [initialThemeState] = useState(() => {
+    const stored = loadStoredTheme();
+    const storedMode = stored?.themeMode || 'system';
+    const systemTheme = getSystemTheme();
 
-  // Initialize actual theme based on mode
-  const [theme, setTheme] = useState(getSystemTheme());
+    return {
+      themeMode: storedMode,
+      theme: stored?.theme || (storedMode === 'system' ? systemTheme : storedMode),
+      themeColors: stored?.themeColors || DEFAULT_COLORS,
+      colorModes: stored?.colorModes || DEFAULT_COLOR_MODES
+    };
+  });
 
-  // Initialize theme colors from defaults
-  const [themeColors, setThemeColors] = useState(DEFAULT_COLORS);
-
-  // Initialize color modes from defaults
-  const [colorModes, setColorModes] = useState(DEFAULT_COLOR_MODES);
+  const [themeMode, setThemeModeState] = useState(initialThemeState.themeMode);
+  const [theme, setTheme] = useState(initialThemeState.theme);
+  const [themeColors, setThemeColors] = useState(initialThemeState.themeColors);
+  const [colorModes, setColorModes] = useState(initialThemeState.colorModes);
 
   // Load preferences from database when user logs in
   useEffect(() => {
     const loadPreferences = async () => {
+      if (authLoading) {
+        return;
+      }
+
       if (user) {
         const { data } = await getUserPreferences();
 
@@ -77,7 +109,7 @@ export const ThemeProvider = ({ children }) => {
     };
 
     loadPreferences();
-  }, [user]);
+  }, [user, authLoading]);
 
 
   // Listen for system theme changes
@@ -114,6 +146,11 @@ export const ThemeProvider = ({ children }) => {
     // Update CSS variables with current colors
     updateCSSVariables(themeColors, theme);
   }, [theme, themeColors]);
+
+  // Persist current theme locally for instant reload application
+  useEffect(() => {
+    persistStoredTheme({ themeMode, theme, themeColors, colorModes });
+  }, [themeMode, theme, themeColors, colorModes]);
 
   // Save preferences to database when they change (debounced)
   useEffect(() => {
