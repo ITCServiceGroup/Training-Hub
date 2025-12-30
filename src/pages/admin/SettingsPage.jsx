@@ -361,32 +361,6 @@ const SettingsPage = () => {
     }));
   }, [dashboardPreferences]);
 
-
-  // Ensure the stored default dashboard is valid
-  useEffect(() => {
-    if (dashboards.length === 0) return;
-
-    if (dashboardPreferences.defaultDashboard) {
-      const defaultExists = dashboards.some(
-        dashboard => dashboard.name === dashboardPreferences.defaultDashboard
-      );
-
-      if (!defaultExists) {
-        const fallback = dashboards[0];
-        if (fallback) {
-          console.log('Default dashboard missing, falling back to:', fallback.name);
-          updateDashboardPreferences({ defaultDashboard: fallback.name });
-        }
-      }
-    } else {
-      const fallback = dashboards.find(d => d.is_default) || dashboards[0];
-      if (fallback) {
-        console.log('No default dashboard set, using:', fallback.name);
-        updateDashboardPreferences({ defaultDashboard: fallback.name });
-      }
-    }
-  }, [dashboards, dashboardPreferences.defaultDashboard, updateDashboardPreferences]);
-
   useEffect(() => {
     if (user) {
       setProfileData({

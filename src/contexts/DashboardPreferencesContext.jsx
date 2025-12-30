@@ -13,6 +13,7 @@ export const DashboardPreferencesProvider = ({ children }) => {
   const { user } = useAuth();
   const [dashboardPreferences, setDashboardPreferences] = useState(DEFAULT_DASHBOARD_PREFERENCES);
   const [loading, setLoading] = useState(true);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const preferencesRef = useRef(DEFAULT_DASHBOARD_PREFERENCES);
 
   const applyPreferences = useCallback((preferences) => {
@@ -30,6 +31,7 @@ export const DashboardPreferencesProvider = ({ children }) => {
       applyPreferences(DEFAULT_DASHBOARD_PREFERENCES);
       resetDashboardPreferenceStore();
       setLoading(false);
+      setPreferencesLoaded(false);
       return;
     }
 
@@ -48,6 +50,7 @@ export const DashboardPreferencesProvider = ({ children }) => {
       applyPreferences(DEFAULT_DASHBOARD_PREFERENCES);
     } finally {
       setLoading(false);
+      setPreferencesLoaded(true);
     }
   }, [user, applyPreferences]);
 
@@ -55,7 +58,22 @@ export const DashboardPreferencesProvider = ({ children }) => {
     loadPreferences();
   }, [loadPreferences]);
 
-  const updateDashboardPreferences = useCallback(async (updates = {}) => {
+  // Save preferences to database when they change (debounced)
+  useEffect(() => {
+    if (!user || !preferencesLoaded) return;
+
+    const saveTimeout = setTimeout(async () => {
+      try {
+        await updatePreference('dashboard', dashboardPreferences);
+      } catch (error) {
+        console.error('Error saving dashboard preferences:', error);
+      }
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(saveTimeout);
+  }, [dashboardPreferences, user, preferencesLoaded]);
+
+  const updateDashboardPreferences = useCallback((updates = {}) => {
     if (!user) return preferencesRef.current;
 
     const nextPreferences = {
@@ -66,12 +84,6 @@ export const DashboardPreferencesProvider = ({ children }) => {
     preferencesRef.current = nextPreferences;
     setDashboardPreferences(nextPreferences);
     setDashboardPreferenceStore(nextPreferences);
-
-    try {
-      await updatePreference('dashboard', nextPreferences);
-    } catch (error) {
-      console.error('Error updating dashboard preferences:', error);
-    }
 
     return nextPreferences;
   }, [user]);

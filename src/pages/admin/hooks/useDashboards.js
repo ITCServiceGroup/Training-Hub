@@ -66,10 +66,6 @@ export const useDashboards = () => {
         if (dashboardToActivate) {
           setActiveDashboard(dashboardToActivate);
           console.log('📋 Set dashboard as active:', dashboardToActivate.name);
-
-          if (!preferredName) {
-            await updateDashboardPreferences({ defaultDashboard: dashboardToActivate.name });
-          }
         }
       }
 
@@ -83,8 +79,7 @@ export const useDashboards = () => {
     user?.id,
     initialized,
     activeDashboard,
-    dashboardPreferences.defaultDashboard,
-    updateDashboardPreferences
+    dashboardPreferences.defaultDashboard
   ]);
 
   /**
@@ -309,7 +304,7 @@ export const useDashboards = () => {
         if (activeDashboard?.is_default) {
           setActiveDashboard(prev => ({ ...prev, is_default: false }));
         }
-        await updateDashboardPreferences({ defaultDashboard: '' });
+        updateDashboardPreferences({ defaultDashboard: '' });
         console.log('✅ Default dashboard unset');
         return null;
       } else {
@@ -329,7 +324,7 @@ export const useDashboards = () => {
         if (activeDashboard?.id === dashboardId) {
           setActiveDashboard(prev => ({ ...prev, is_default: true }));
         }
-        await updateDashboardPreferences({ defaultDashboard: updatedDashboard.name });
+        updateDashboardPreferences({ defaultDashboard: updatedDashboard.name });
         console.log('✅ Dashboard set as default:', updatedDashboard.name);
         return updatedDashboard;
       }
@@ -372,13 +367,11 @@ export const useDashboards = () => {
       if (!activeDashboard || activeDashboard.id !== fallbackDashboard.id) {
         setActiveDashboard(fallbackDashboard);
       }
-      updateDashboardPreferences({ defaultDashboard: fallbackDashboard.name });
     }
   }, [
     dashboards,
     dashboardPreferences.defaultDashboard,
-    activeDashboard?.id,
-    updateDashboardPreferences
+    activeDashboard?.id
   ]);
 
   return {
