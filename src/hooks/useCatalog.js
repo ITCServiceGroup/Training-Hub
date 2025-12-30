@@ -52,7 +52,8 @@ export function useCatalog({ mode = 'public' } = {}) {
         // RBAC fields
         is_nationwide: g.is_nationwide,
         market_id: g.market_id,
-        created_by: g.created_by
+        created_by: g.created_by,
+        markets: g.markets // Include market name for visibility badge
       }))
     }))
   }));
