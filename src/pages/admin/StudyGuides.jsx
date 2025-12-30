@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useFullscreen } from '../../contexts/FullscreenContext';
 import { useNetworkStatus } from '../../contexts/NetworkContext';
 
@@ -187,10 +188,11 @@ const getInitialJson = (studyGuide, isCreatingFlag) => {
 
 
 const StudyGuides = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isFullscreen, exitFullscreen } = useFullscreen();
   const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
-  const { getGuidesByCategory, refresh } = useCatalog({ mode: 'admin' });
+  const { sections, getGuidesByCategory, refresh } = useCatalog({ mode: 'admin' });
   const { getNewContentDefaults } = useContentVisibility();
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);
@@ -293,6 +295,64 @@ const StudyGuides = () => {
   useEffect(() => {
     if (!isOnline) setError(null);
   }, [isOnline]);
+
+  // Handle URL parameter to open specific study guide
+  useEffect(() => {
+    const contentId = searchParams.get('contentId');
+
+    if (contentId && sections && sections.length > 0) {
+      // Find the study guide across all sections/categories
+      let foundGuide = null;
+      let foundCategory = null;
+      let foundSection = null;
+
+      for (const section of sections) {
+        for (const category of section.categories || []) {
+          const guide = (category.study_guides || []).find(g => g.id === contentId);
+          if (guide) {
+            foundGuide = guide;
+            foundCategory = category;
+            foundSection = section;
+            break;
+          }
+        }
+        if (foundGuide) break;
+      }
+
+      if (foundGuide && foundCategory) {
+        // Set the section and category to display the guide in context
+        setSelectedSection(foundSection);
+        setSelectedCategory(foundCategory);
+
+        // Load the study guide
+        const loadGuide = async () => {
+          setIsCreating(false);
+          setIsLoading(true);
+          try {
+            let full = foundGuide;
+            if (!foundGuide?.content) {
+              // Fetch full record with content for editor
+              full = await studyGuidesService.getById(foundGuide.id);
+            }
+            setSelectedStudyGuide(full);
+            setError(null);
+            // Ensure editor has initial JSON promptly
+            const initJson = getInitialJson(full, false);
+            setCurrentEditorJson(initJson);
+          } catch (err) {
+            console.error('Error loading study guide details:', err);
+            setError('Failed to load study guide content.');
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        loadGuide();
+        // Clear the URL parameter
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, sections, setSearchParams]);
 
   const loadSection = async (sectionId) => {
     try {

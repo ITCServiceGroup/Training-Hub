@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useRBAC } from '../../contexts/RBACContext';
 import { approvalsService } from '../../services/api/approvals';
 import { studyGuidesService } from '../../services/api/studyGuides';
@@ -10,6 +11,7 @@ import { useToast } from '../../components/common/ToastContainer';
 const ApprovalQueue = () => {
   const { isAdmin, getRoleDisplayName } = useRBAC();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -140,6 +142,20 @@ const ApprovalQueue = () => {
       showToast('Failed to reject request', 'error');
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleViewContent = (approval) => {
+    // Navigate to the appropriate editor based on content type
+    switch (approval.content_type) {
+      case 'study_guide':
+        navigate(`/admin/study-guides?contentId=${approval.content_id}`);
+        break;
+      case 'quiz':
+        navigate(`/admin/quizzes?quizId=${approval.content_id}`);
+        break;
+      default:
+        showToast('Viewing this content type is not yet supported', 'info');
     }
   };
 
@@ -278,7 +294,7 @@ const ApprovalQueue = () => {
                     <span className="mx-2">•</span>
                     <span>{approval.requester?.markets?.name || 'No Market'}</span>
                     <span className="mx-2">•</span>
-                    <span>{new Date(approval.created_at).toLocaleDateString()}</span>
+                    <span>{approval.requested_at ? new Date(approval.requested_at).toLocaleDateString() : 'N/A'}</span>
                   </div>
 
                   {/* Requester Notes */}
@@ -300,7 +316,7 @@ const ApprovalQueue = () => {
                         approval.status === 'approved' ? 'text-green-900 dark:text-green-400' : 'text-red-900 dark:text-red-400'
                       }`}>
                         {approval.status === 'approved' ? 'Approved' : 'Rejected'} by {approval.reviewer.display_name}
-                        {' '}on {new Date(approval.reviewed_at).toLocaleDateString()}
+                        {approval.reviewed_at && <>{' '}on {new Date(approval.reviewed_at).toLocaleDateString()}</>}
                       </p>
                       {approval.review_notes && (
                         <p className={`text-sm mt-1 ${
@@ -315,6 +331,18 @@ const ApprovalQueue = () => {
                   {/* Action Buttons (only for pending) */}
                   {approval.status === 'pending' && (
                     <div className="space-y-3">
+                      {/* View Content Button */}
+                      <button
+                        onClick={() => handleViewContent(approval)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                        </svg>
+                        View & Edit Content
+                      </button>
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Review Notes {approval.status === 'pending' && '(required for rejection)'}
