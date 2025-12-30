@@ -90,6 +90,12 @@ class NetworkErrorBoundaryClass extends React.Component {
 const NetworkErrorFallback = ({ error, onRetry, onReload, retryCount }) => {
   const { isOnline, reconnectCount } = useNetworkStatus();
 
+  // Detect if this is a chunk loading error specifically
+  const isChunkError = error && error.message && (
+    error.message.includes('dynamically imported module') ||
+    error.message.includes('Loading chunk')
+  );
+
   React.useEffect(() => {
     if (reconnectCount > 0 && retryCount < 3) {
       console.log('[NETWORK ERROR BOUNDARY] Network reconnected, auto-retrying...');
@@ -118,13 +124,15 @@ const NetworkErrorFallback = ({ error, onRetry, onReload, retryCount }) => {
               />
             </svg>
           </div>
-          
+
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Connection Problem
+            {isChunkError ? 'Page Update Required' : 'Connection Problem'}
           </h3>
-          
+
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            {!isOnline 
+            {isChunkError
+              ? "The app has been updated. Please refresh the page to load the latest version."
+              : !isOnline
               ? "You're currently offline. The app will automatically retry when your connection is restored."
               : "There was a problem loading the app. This usually happens after your device goes to sleep."
             }
@@ -133,7 +141,7 @@ const NetworkErrorFallback = ({ error, onRetry, onReload, retryCount }) => {
           {/* Network status indicator */}
           <div className="flex items-center justify-center mb-6">
             <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium ${
-              isOnline 
+              isOnline
                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                 : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
             }`}>
@@ -145,21 +153,42 @@ const NetworkErrorFallback = ({ error, onRetry, onReload, retryCount }) => {
           </div>
 
           <div className="space-y-3">
-            {isOnline && (
-              <button
-                onClick={onRetry}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-              >
-                Try Again
-              </button>
+            {isChunkError ? (
+              // For chunk errors, prioritize reload over retry
+              <>
+                <button
+                  onClick={onReload}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                >
+                  Refresh Page
+                </button>
+                <button
+                  onClick={onRetry}
+                  className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                >
+                  Try Without Refreshing
+                </button>
+              </>
+            ) : (
+              // For other network errors, prioritize retry
+              <>
+                {isOnline && (
+                  <button
+                    onClick={onRetry}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                  >
+                    Try Again
+                  </button>
+                )}
+
+                <button
+                  onClick={onReload}
+                  className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                >
+                  Reload Page
+                </button>
+              </>
             )}
-            
-            <button
-              onClick={onReload}
-              className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-            >
-              Reload Page
-            </button>
           </div>
 
           {retryCount > 0 && (

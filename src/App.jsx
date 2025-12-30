@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useTheme } from './contexts/ThemeContext';
@@ -13,30 +13,33 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import NetworkErrorBoundary from './components/common/NetworkErrorBoundary';
 import AutoReload from './components/common/AutoReload';
 
-// Lazy load page components to reduce initial load time
-const HomePage = lazy(() => import('./pages/HomePage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
-const AdminStudyGuides = lazy(() => import('./pages/admin/StudyGuides'));
-const AdminQuizzes = lazy(() => import('./pages/admin/AdminQuizzes'));
-const QuizBuilderPage = lazy(() => import('./components/quiz-builder/QuizBuilderPage'));
-const MediaLibraryPage = lazy(() => import('./pages/admin/MediaLibraryPage'));
+// Lazy retry utility for robust chunk loading
+import lazyRetry from './utils/lazyRetry';
 
-const SettingsPage = lazy(() => import('./pages/admin/SettingsPage')); // Import SettingsPage
-const StudyGuidePage = lazy(() => import('./pages/StudyGuidePage'));
-const QuizPage = lazy(() => import('./pages/QuizPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+// Lazy load page components with automatic retry on failure
+const HomePage = lazyRetry(() => import('./pages/HomePage'));
+const LoginPage = lazyRetry(() => import('./pages/LoginPage'));
+const AdminDashboard = lazyRetry(() => import('./pages/admin/Dashboard'));
+const AdminStudyGuides = lazyRetry(() => import('./pages/admin/StudyGuides'));
+const AdminQuizzes = lazyRetry(() => import('./pages/admin/AdminQuizzes'));
+const QuizBuilderPage = lazyRetry(() => import('./components/quiz-builder/QuizBuilderPage'));
+const MediaLibraryPage = lazyRetry(() => import('./pages/admin/MediaLibraryPage'));
+
+const SettingsPage = lazyRetry(() => import('./pages/admin/SettingsPage'));
+const StudyGuidePage = lazyRetry(() => import('./pages/StudyGuidePage'));
+const QuizPage = lazyRetry(() => import('./pages/QuizPage'));
+const NotFoundPage = lazyRetry(() => import('./pages/NotFoundPage'));
 
 // Legal pages
-const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
-const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
-const ContactUsPage = lazy(() => import('./pages/ContactUsPage'));
+const PrivacyPolicyPage = lazyRetry(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazyRetry(() => import('./pages/TermsOfServicePage'));
+const ContactUsPage = lazyRetry(() => import('./pages/ContactUsPage'));
 
 // RBAC pages
-const UnauthorizedPage = lazy(() => import('./pages/UnauthorizedPage'));
-const AccountInactivePage = lazy(() => import('./pages/AccountInactivePage'));
-const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
-const ApprovalQueue = lazy(() => import('./pages/admin/ApprovalQueue'));
+const UnauthorizedPage = lazyRetry(() => import('./pages/UnauthorizedPage'));
+const AccountInactivePage = lazyRetry(() => import('./pages/AccountInactivePage'));
+const UserManagement = lazyRetry(() => import('./pages/admin/UserManagement'));
+const ApprovalQueue = lazyRetry(() => import('./pages/admin/ApprovalQueue'));
 
 // Enhanced loading fallback with network error detection
 const LoadingFallback = () => {
