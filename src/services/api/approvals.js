@@ -9,17 +9,20 @@ import { supabase } from '../../config/supabase';
  * Create a new approval request
  * @param {string} contentType - Type of content ('study_guide', 'quiz', 'section', 'category')
  * @param {number} contentId - ID of the content item
- * @param {string} notes - Optional notes for the request
  * @returns {Promise<{data: object, error: object}>}
  */
-export const createApprovalRequest = async (contentType, contentId, notes = null) => {
+export const createApprovalRequest = async (contentType, contentId) => {
   try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data: request, error } = await supabase
       .from('content_approval_requests')
       .insert({
         content_type: contentType,
         content_id: contentId,
-        notes,
+        requested_by: user.id,
         status: 'pending'
       })
       .select('*')
