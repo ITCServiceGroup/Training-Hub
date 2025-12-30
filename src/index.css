@@ -161,10 +161,30 @@ a:hover {
 button { /* Uncommented custom CSS */
   cursor: pointer;
   border-radius: var(--border-radius);
-  padding: 0.5rem 1rem;
   font-size: 1rem;
+  /* Default padding for buttons that don't have explicit padding classes */
+  padding: 0.5rem 1rem;
   /* Removed background-color and color to allow Tailwind classes to take precedence */
   transition: background-color 0.2s ease;
+}
+
+/* Override padding for buttons with Tailwind padding classes */
+button[class*="p-"],
+button[class*="px-"],
+button[class*="py-"] {
+  /* Tailwind padding classes will take precedence */
+}
+
+/* Force password toggle buttons to have zero padding and proper sizing */
+.relative button[type="button"][aria-label*="password"] {
+  padding: 0 !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: inherit !important;
+  border-radius: 0 !important;
 }
 
 button:hover { /* Uncommented custom CSS */
@@ -176,25 +196,14 @@ button:disabled { /* Uncommented custom CSS */
   cursor: not-allowed;
 }
 
-input, textarea, select { /* Uncommented custom CSS */
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  background-color: white;
-  color: #374151;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
+/* REMOVED ALL GLOBAL INPUT STYLES - LET TAILWIND HANDLE EVERYTHING */
+/* This prevents conflicts with absolutely positioned icons inside inputs */
 
-/* Dark mode form elements */
-.dark input,
+/* Only keep dark mode color overrides if absolutely needed */
+.dark input:not([type="checkbox"]):not([type="radio"]),
 .dark textarea,
 .dark select {
-  background-color: #475569;
-  color: #f8fafc;
-  border-color: #64748b;
+  /* Tailwind handles everything, only override what's necessary */
 }
 
 .dark input::placeholder,
@@ -352,7 +361,53 @@ label { /* Uncommented custom CSS */
 .login-card { /* Uncommented custom CSS */
   width: 100%;
   max-width: 400px;
-  padding: 2rem;
+  padding: 2.5rem;
+  /* Enhanced shadows for depth */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  /* Animation on load */
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Slide up animation for login card */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced hover effect */
+.login-card:hover {
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15), 0 10px 15px -6px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Dark mode enhancements */
+.dark .login-card {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .login-card:hover {
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.5), 0 10px 15px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .login-card {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .login-page {
+    padding: 1rem;
+  }
 }
 
 /* Flatpickr Calendar Styling */

@@ -19,6 +19,7 @@ import lazyRetry from './utils/lazyRetry';
 // Lazy load page components with automatic retry on failure
 const HomePage = lazyRetry(() => import('./pages/HomePage'));
 const LoginPage = lazyRetry(() => import('./pages/LoginPage'));
+const ResetPasswordPage = lazyRetry(() => import('./pages/ResetPasswordPage'));
 const AdminDashboard = lazyRetry(() => import('./pages/admin/Dashboard'));
 const AdminStudyGuides = lazyRetry(() => import('./pages/admin/StudyGuides'));
 const AdminQuizzes = lazyRetry(() => import('./pages/admin/AdminQuizzes'));
@@ -103,6 +104,12 @@ function App() {
           <Route path="login" element={
             <Suspense fallback={<LoadingFallback />}>
               <LoginPage />
+            </Suspense>
+          } />
+
+          <Route path="reset-password" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ResetPasswordPage />
             </Suspense>
           } />
 

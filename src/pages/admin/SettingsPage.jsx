@@ -637,7 +637,8 @@ const SettingsPage = () => {
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('showCurrentPassword')}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0 flex items-center justify-center h-5 w-5 text-slate-400 dark:text-slate-500
+                          hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
                 {passwordData.showCurrentPassword ? (
                   <AiOutlineEyeInvisible className="h-5 w-5" />
@@ -666,7 +667,8 @@ const SettingsPage = () => {
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('showNewPassword')}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0 flex items-center justify-center h-5 w-5 text-slate-400 dark:text-slate-500
+                          hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
                 {passwordData.showNewPassword ? (
                   <AiOutlineEyeInvisible className="h-5 w-5" />
@@ -730,7 +732,8 @@ const SettingsPage = () => {
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('showConfirmPassword')}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 dark:text-slate-500"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0 flex items-center justify-center h-5 w-5 text-slate-400 dark:text-slate-500
+                          hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
                 {passwordData.showConfirmPassword ? (
                   <AiOutlineEyeInvisible className="h-5 w-5" />
