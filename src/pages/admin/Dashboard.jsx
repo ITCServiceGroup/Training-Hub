@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from '
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDashboardPreferences } from '../../contexts/DashboardPreferencesContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRBAC } from '../../contexts/RBACContext';
 import { useDashboards } from './hooks/useDashboards';
 import { useDashboard } from './contexts/DashboardContext';
 import { quizResultsService } from '../../services/api/quizResults';
@@ -416,6 +417,7 @@ import PDFModal from './components/PDFModal';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { isSuperAdmin } = useRBAC();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { dashboardPreferences } = useDashboardPreferences();
@@ -1238,27 +1240,29 @@ const Dashboard = () => {
                 rawData={results}
               />
 
-              {/* Data Quality Button */}
-              <button
-                onClick={() => setShowDataQualityModal(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
-                style={{
-                  backgroundColor: 'var(--primary-color)',
-                  '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--primary-dark)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'var(--primary-color)';
-                }}
-                title="View data quality diagnostics"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ background: 'transparent' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Data Quality
-              </button>
+              {/* Data Quality Button - Super Admin Only */}
+              {isSuperAdmin() && (
+                <button
+                  onClick={() => setShowDataQualityModal(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white text-sm"
+                  style={{
+                    backgroundColor: 'var(--primary-color)',
+                    '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-dark)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-color)';
+                  }}
+                  title="View data quality diagnostics"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ background: 'transparent' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span className="whitespace-nowrap">Data Quality</span>
+                </button>
+              )}
             </div>
 
             {/* Right Side - Global Filters */}
