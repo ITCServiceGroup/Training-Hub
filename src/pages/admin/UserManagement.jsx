@@ -142,14 +142,14 @@ const UserManagement = () => {
 
   const getRoleBadgeColor = (role) => {
     const colors = {
-      super_admin: 'bg-purple-100 text-purple-800',
-      admin: 'bg-red-100 text-red-800',
-      aom: 'bg-blue-100 text-blue-800',
-      supervisor: 'bg-green-100 text-green-800',
-      lead_tech: 'bg-yellow-100 text-yellow-800',
-      technician: 'bg-gray-100 text-gray-800'
+      super_admin: 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-200',
+      admin: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200',
+      aom: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200',
+      supervisor: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200',
+      lead_tech: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-100',
+      technician: 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-100'
     };
-    return colors[role] || 'bg-gray-100 text-gray-800';
+    return colors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-100';
   };
 
   if (loading) {
@@ -168,12 +168,12 @@ const UserManagement = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage user accounts, roles, and permissions</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage user accounts, roles, and permissions</p>
         </div>
         <button
           onClick={handleCreateUser}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
           + Create User
         </button>
@@ -182,21 +182,21 @@ const UserManagement = () => {
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-600">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-600">Active</p>
-            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-300">{stats.active}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-600">Inactive</p>
-            <p className="text-2xl font-bold text-red-600">{stats.inactive}</p>
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-300">{stats.inactive}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-600">Admins</p>
-            <p className="text-2xl font-bold text-purple-600">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Admins</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-300">
               {(stats.byRole.super_admin || 0) + (stats.byRole.admin || 0)}
             </p>
           </div>
@@ -204,10 +204,10 @@ const UserManagement = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-4 border border-slate-100 dark:border-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Search
             </label>
             <input
@@ -215,17 +215,17 @@ const UserManagement = () => {
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-slate-400"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Role
             </label>
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-white"
             >
               <option value="all">All Roles</option>
               <option value="super_admin">Super Admin</option>
@@ -237,13 +237,13 @@ const UserManagement = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Status
             </label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-white"
             >
               <option value="all">All</option>
               <option value="active">Active</option>
@@ -255,50 +255,50 @@ const UserManagement = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg">
           {error}
         </div>
       )}
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow overflow-hidden border border-slate-100 dark:border-slate-800">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800">
+          <thead className="bg-gray-50 dark:bg-slate-800/70">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 User
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Role
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Market
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Reports To
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-800">
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                   No users found matching your filters.
                 </td>
               </tr>
             ) : (
               filteredUsers.map((user) => (
-                <tr key={user.user_id} className="hover:bg-gray-50">
+                <tr key={user.user_id} className="hover:bg-gray-50 dark:hover:bg-slate-800/70">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="font-medium text-gray-900">{user.display_name}</div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{user.display_name}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -306,17 +306,17 @@ const UserManagement = () => {
                       {getRoleDisplayName(user.role)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.markets?.name || <span className="text-gray-400">Nationwide</span>}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    {user.markets?.name || <span className="text-gray-400 dark:text-gray-500">Nationwide</span>}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.reports_to?.display_name || <span className="text-gray-400">—</span>}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    {user.reports_to?.display_name || <span className="text-gray-400 dark:text-gray-500">—</span>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200'
+                        : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200'
                     }`}>
                       {user.is_active ? 'Active' : 'Inactive'}
                     </span>
@@ -327,20 +327,20 @@ const UserManagement = () => {
                         <>
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-blue-600 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-200"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleToggleActive(user)}
-                            className={user.is_active ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}
+                            className={user.is_active ? 'text-orange-600 hover:text-orange-900 dark:text-orange-300 dark:hover:text-orange-200' : 'text-green-600 hover:text-green-900 dark:text-green-300 dark:hover:text-green-200'}
                           >
                             {user.is_active ? 'Deactivate' : 'Activate'}
                           </button>
                           {user.user_id !== profile.user_id && (
                             <button
                               onClick={() => handleDeleteUser(user)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
                             >
                               Delete
                             </button>
@@ -348,7 +348,7 @@ const UserManagement = () => {
                         </>
                       )}
                       {!canManageSpecificUser(user) && (
-                        <span className="text-gray-400">No access</span>
+                        <span className="text-gray-400 dark:text-gray-500">No access</span>
                       )}
                     </div>
                   </td>
