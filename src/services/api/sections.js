@@ -70,7 +70,7 @@ class SectionsService extends BaseService {
           categories (
             *,
             study_guides (
-              id, category_id, title, description, is_published, display_order, updated_at
+              id, category_id, title, description, is_published, display_order, updated_at, is_nationwide, market_id, created_by
             )
           )
         `)

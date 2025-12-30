@@ -135,7 +135,8 @@ export const useContentVisibility = () => {
     }
 
     // Try to get market name from content
-    const marketName = content.markets?.name || content.market_name || `Market ${content.market_id}`;
+    const marketName = content.markets?.name || content.market_name ||
+                       (content.market_id ? `Market ${content.market_id}` : 'Unknown Market');
 
     return {
       label: marketName,

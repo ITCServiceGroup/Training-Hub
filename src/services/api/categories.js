@@ -18,7 +18,7 @@ class CategoriesService extends BaseService {
       // First get all categories
       const { data: categories, error } = await supabase
         .from(this.tableName)
-        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at, is_nationwide, market_id, created_by')
         .order('display_order', { nullsLast: true });
 
       if (error) {
@@ -61,7 +61,7 @@ class CategoriesService extends BaseService {
     try {
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at, is_nationwide, market_id, created_by')
         .eq('id', id)
         .single();
 
@@ -90,7 +90,7 @@ class CategoriesService extends BaseService {
       // First get the categories
       const { data: categories, error } = await supabase
         .from(this.tableName)
-        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at, is_nationwide, market_id, created_by')
         .eq('section_id', sectionId)
         .order('display_order', { nullsLast: true });
 
@@ -102,7 +102,7 @@ class CategoriesService extends BaseService {
       for (const category of categories) {
         const { data: studyGuides, error: studyGuidesError } = await supabase
           .from('study_guides')
-          .select('*')
+          .select('id, title, content, description, category_id, display_order, is_published, linked_quiz_id, created_at, updated_at, is_nationwide, market_id, created_by')
           .eq('category_id', category.id)
           .order('display_order', { nullsLast: true });
 
@@ -130,7 +130,7 @@ class CategoriesService extends BaseService {
       // First get all categories
       const { data: categories, error } = await supabase
         .from(this.tableName)
-        .select('id, name, description, section_id, icon, display_order, created_at, updated_at')
+        .select('id, name, description, section_id, icon, display_order, created_at, updated_at, is_nationwide, market_id, created_by')
         .order('display_order', { nullsLast: true });
 
       if (error) {
@@ -160,7 +160,7 @@ class CategoriesService extends BaseService {
         // Get study guides
         const { data: studyGuides, error: studyGuidesError } = await supabase
           .from('study_guides')
-          .select('*')
+          .select('id, title, content, description, category_id, display_order, is_published, linked_quiz_id, created_at, updated_at, is_nationwide, market_id, created_by')
           .eq('category_id', category.id)
           .order('display_order', { nullsLast: true });
 

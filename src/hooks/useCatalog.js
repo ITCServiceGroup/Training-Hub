@@ -24,6 +24,10 @@ export function useCatalog({ mode = 'public' } = {}) {
     description: s.description,
     icon: s.icon,
     display_order: s.display_order,
+    // RBAC fields for sections
+    is_nationwide: s.is_nationwide,
+    market_id: s.market_id,
+    created_by: s.created_by,
     categories: (s.categories || []).map(c => ({
       id: c.id,
       section_id: c.section_id,
@@ -31,6 +35,10 @@ export function useCatalog({ mode = 'public' } = {}) {
       description: c.description,
       icon: c.icon,
       display_order: c.display_order,
+      // RBAC fields for categories
+      is_nationwide: c.is_nationwide,
+      market_id: c.market_id,
+      created_by: c.created_by,
       study_guides: (c.study_guides || []).map(g => ({
         id: g.id,
         category_id: g.category_id,
@@ -40,7 +48,11 @@ export function useCatalog({ mode = 'public' } = {}) {
         preview: '',
         is_published: !!g.is_published,
         display_order: g.display_order,
-        updated_at: g.updated_at
+        updated_at: g.updated_at,
+        // RBAC fields
+        is_nationwide: g.is_nationwide,
+        market_id: g.market_id,
+        created_by: g.created_by
       }))
     }))
   }));

@@ -19,7 +19,7 @@ class QuizzesService extends BaseService {
       // 1. Fetch all active quizzes
       const { data: quizzes, error: quizzesError } = await supabase
         .from(this.tableName)
-        .select('*')
+        .select('*, is_nationwide, market_id')
         .is('archived_at', null)
         .order('created_at', { ascending: false });
 

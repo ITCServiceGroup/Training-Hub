@@ -14,7 +14,7 @@ import { supabase } from '../../config/supabase';
  */
 export const createApprovalRequest = async (contentType, contentId, notes = null) => {
   try {
-    const { data, error } = await supabase
+    const { data: request, error } = await supabase
       .from('content_approval_requests')
       .insert({
         content_type: contentType,
@@ -22,19 +22,24 @@ export const createApprovalRequest = async (contentType, contentId, notes = null
         notes,
         status: 'pending'
       })
-      .select(`
-        *,
-        requester:requested_by (
-          user_id,
-          display_name,
-          email,
-          role
-        )
-      `)
+      .select('*')
       .single();
 
     if (error) throw error;
-    return { data, error: null };
+
+    // Enrich with requester data
+    const { data: requester } = await supabase
+      .from('user_profiles')
+      .select(`
+        user_id,
+        display_name,
+        email,
+        role
+      `)
+      .eq('user_id', request.requested_by)
+      .maybeSingle();
+
+    return { data: { ...request, requester }, error: null };
   } catch (error) {
     console.error('Error creating approval request:', error);
     return { data: null, error };
@@ -47,26 +52,42 @@ export const createApprovalRequest = async (contentType, contentId, notes = null
  */
 export const getPendingApprovals = async () => {
   try {
-    const { data, error } = await supabase
+    // First get the approval requests
+    const { data: requests, error: requestsError } = await supabase
       .from('content_approval_requests')
-      .select(`
-        *,
-        requester:requested_by (
-          user_id,
-          display_name,
-          email,
-          role,
-          markets (
-            id,
-            name
-          )
-        )
-      `)
+      .select('*')
       .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+      .order('requested_at', { ascending: false });
 
-    if (error) throw error;
-    return { data, error: null };
+    if (requestsError) throw requestsError;
+
+    // Then enrich with user profile data
+    const enrichedData = await Promise.all(
+      (requests || []).map(async (request) => {
+        const { data: requester } = await supabase
+          .from('user_profiles')
+          .select(`
+            user_id,
+            display_name,
+            email,
+            role,
+            market_id,
+            markets (
+              id,
+              name
+            )
+          `)
+          .eq('user_id', request.requested_by)
+          .single();
+
+        return {
+          ...request,
+          requester
+        };
+      })
+    );
+
+    return { data: enrichedData, error: null };
   } catch (error) {
     console.error('Error fetching pending approvals:', error);
     return { data: null, error };
@@ -84,36 +105,61 @@ export const getAllApprovals = async (options = {}) => {
 
     let query = supabase
       .from('content_approval_requests')
-      .select(`
-        *,
-        requester:requested_by (
-          user_id,
-          display_name,
-          email,
-          role,
-          markets (
-            id,
-            name
-          )
-        ),
-        reviewer:reviewed_by (
-          user_id,
-          display_name,
-          email,
-          role
-        )
-      `)
-      .order('created_at', { ascending: false })
+      .select('*')
+      .order('requested_at', { ascending: false })
       .limit(limit);
 
     if (status) {
       query = query.eq('status', status);
     }
 
-    const { data, error } = await query;
+    const { data: requests, error: requestsError } = await query;
 
-    if (error) throw error;
-    return { data, error: null };
+    if (requestsError) throw requestsError;
+
+    // Enrich with user profile data
+    const enrichedData = await Promise.all(
+      (requests || []).map(async (request) => {
+        const { data: requester } = await supabase
+          .from('user_profiles')
+          .select(`
+            user_id,
+            display_name,
+            email,
+            role,
+            market_id,
+            markets (
+              id,
+              name
+            )
+          `)
+          .eq('user_id', request.requested_by)
+          .maybeSingle();
+
+        let reviewer = null;
+        if (request.reviewed_by) {
+          const { data: reviewerData } = await supabase
+            .from('user_profiles')
+            .select(`
+              user_id,
+              display_name,
+              email,
+              role
+            `)
+            .eq('user_id', request.reviewed_by)
+            .maybeSingle();
+          reviewer = reviewerData;
+        }
+
+        return {
+          ...request,
+          requester,
+          reviewer
+        };
+      })
+    );
+
+    return { data: enrichedData, error: null };
   } catch (error) {
     console.error('Error fetching approvals:', error);
     return { data: null, error };
@@ -192,29 +238,53 @@ export const rejectRequest = async (requestId, reviewNotes) => {
  */
 export const getApprovalsByContent = async (contentType, contentId) => {
   try {
-    const { data, error } = await supabase
+    const { data: requests, error: requestsError } = await supabase
       .from('content_approval_requests')
-      .select(`
-        *,
-        requester:requested_by (
-          user_id,
-          display_name,
-          email,
-          role
-        ),
-        reviewer:reviewed_by (
-          user_id,
-          display_name,
-          email,
-          role
-        )
-      `)
+      .select('*')
       .eq('content_type', contentType)
       .eq('content_id', contentId)
-      .order('created_at', { ascending: false });
+      .order('requested_at', { ascending: false });
 
-    if (error) throw error;
-    return { data, error: null };
+    if (requestsError) throw requestsError;
+
+    // Enrich with user profile data
+    const enrichedData = await Promise.all(
+      (requests || []).map(async (request) => {
+        const { data: requester } = await supabase
+          .from('user_profiles')
+          .select(`
+            user_id,
+            display_name,
+            email,
+            role
+          `)
+          .eq('user_id', request.requested_by)
+          .maybeSingle();
+
+        let reviewer = null;
+        if (request.reviewed_by) {
+          const { data: reviewerData } = await supabase
+            .from('user_profiles')
+            .select(`
+              user_id,
+              display_name,
+              email,
+              role
+            `)
+            .eq('user_id', request.reviewed_by)
+            .maybeSingle();
+          reviewer = reviewerData;
+        }
+
+        return {
+          ...request,
+          requester,
+          reviewer
+        };
+      })
+    );
+
+    return { data: enrichedData, error: null };
   } catch (error) {
     console.error('Error fetching content approvals:', error);
     return { data: null, error };
