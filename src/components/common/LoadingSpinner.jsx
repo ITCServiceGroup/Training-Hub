@@ -68,8 +68,10 @@ const LoadingSpinner = ({
         className={`${sizeClasses[size]} rounded-full border-t-transparent animate-spin`}
         role="status"
         style={{
-          borderColor: hexToRgba(spinnerColor, 0.3),
-          borderTopColor: 'transparent'
+          borderTopColor: 'transparent',
+          borderRightColor: hexToRgba(spinnerColor, 0.3),
+          borderBottomColor: hexToRgba(spinnerColor, 0.3),
+          borderLeftColor: hexToRgba(spinnerColor, 0.3)
         }}
         aria-label={text || 'Loading'}
       >
