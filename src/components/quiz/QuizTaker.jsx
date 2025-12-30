@@ -36,11 +36,14 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
   const [timeTaken, setTimeTaken] = useState(0);
+  const quizStartTimeRef = useRef(null); // Track when quiz actually started
+  const timeLimitEndTimeRef = useRef(null); // Track when quiz should end (for time limit)
   const [isReviewing, setIsReviewing] = useState(false);
   const [cameFromReview, setCameFromReview] = useState(false); // Track if user navigated back from review page
   const [score, setScore] = useState(null);
   const [accessCodeData, setAccessCodeData] = useState(null);
   const [isCurrentPracticeQuestionAnswered, setIsCurrentPracticeQuestionAnswered] = useState(false); // New state for practice mode
+  const [disableImmediateFeedback, setDisableImmediateFeedback] = useState(false); // Toggle for practice mode feedback
 
   // Question timing state
   const [questionStartTimes, setQuestionStartTimes] = useState({}); // Track when each question was started
@@ -351,30 +354,34 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     }
   }, [handleSubmitQuiz]); // Removed stable state setters
 
-  // Timer effect for time limit countdown
+  // Timer effect for time limit countdown - using timestamp-based approach for reliability
   useEffect(() => {
     let timer;
 
-    const startTimer = () => {
-      timer = setInterval(() => {
-        setTimeLeft(prev => {
-          const newTime = prev - 1;
-          if (newTime <= 0 && !timeoutPromiseRef.current) {
-            // Schedule timeout handling for next tick to avoid state update conflicts
-            timeoutTimeoutRef.current = setTimeout(() => {
-              handleTimeout(() => {
-                if (timer) clearInterval(timer);
-              });
-            }, 0);
-            return 0;
-          }
-          return newTime;
-        });
-      }, 1000);
+    const updateTimer = () => {
+      if (!timeLimitEndTimeRef.current) return;
+
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((timeLimitEndTimeRef.current - now) / 1000));
+
+      setTimeLeft(remaining);
+
+      if (remaining <= 0 && !timeoutPromiseRef.current) {
+        // Schedule timeout handling for next tick to avoid state update conflicts
+        timeoutTimeoutRef.current = setTimeout(() => {
+          handleTimeout(() => {
+            if (timer) clearInterval(timer);
+          });
+        }, 0);
+      }
     };
 
-    if (quizStarted && !quizCompleted && timeLeft !== null && !timeoutPromiseRef.current) {
-      startTimer();
+    if (quizStarted && !quizCompleted && timeLimitEndTimeRef.current && !timeoutPromiseRef.current) {
+      // Update immediately
+      updateTimer();
+
+      // Then update every second
+      timer = setInterval(updateTimer, 1000);
     }
 
     return () => {
@@ -394,16 +401,26 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           });
       }
     };
-  }, [quizStarted, quizCompleted, timeLeft, handleTimeout]); // handleTimeout is stable via useCallback
+  }, [quizStarted, quizCompleted, handleTimeout]); // Removed timeLeft from dependencies
 
-  // Separate timer effect for tracking elapsed time (works for all quizzes)
+  // Separate timer effect for tracking elapsed time (works for all quizzes) - timestamp-based
   useEffect(() => {
     let elapsedTimer;
 
-    if (quizStarted && !quizCompleted) {
-      elapsedTimer = setInterval(() => {
-        setTimeTaken(prev => prev + 1);
-      }, 1000);
+    const updateElapsedTime = () => {
+      if (!quizStartTimeRef.current) return;
+
+      const now = Date.now();
+      const elapsed = Math.floor((now - quizStartTimeRef.current) / 1000);
+      setTimeTaken(elapsed);
+    };
+
+    if (quizStarted && !quizCompleted && quizStartTimeRef.current) {
+      // Update immediately
+      updateElapsedTime();
+
+      // Then update every second
+      elapsedTimer = setInterval(updateElapsedTime, 1000);
     }
 
     return () => {
@@ -421,6 +438,16 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
   // Start quiz
   const handleStartQuiz = () => {
+    // Show confirmation if user disabled immediate feedback
+    if (quiz.is_practice && disableImmediateFeedback) {
+      const confirmed = window.confirm(
+        "You have chosen to disable immediate feedback. You will not receive any feedback on your answers until you complete the entire quiz.\n\nAre you sure you want to continue?"
+      );
+      if (!confirmed) {
+        return; // User cancelled, don't start quiz
+      }
+    }
+
     // Load a fresh copy of questions and shuffle if needed
     let questions = [...quiz.questions];
     if (quiz.randomize_questions) {
@@ -437,8 +464,16 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     setQuizCompleted(false);
     setIsReviewing(false);
     setCameFromReview(false); // Reset review flag when starting quiz
+
+    // Initialize timestamp-based timers
+    const now = Date.now();
+    quizStartTimeRef.current = now;
+
     if (quiz.time_limit) {
       setTimeLeft(quiz.time_limit);
+      timeLimitEndTimeRef.current = now + (quiz.time_limit * 1000); // Convert seconds to milliseconds
+    } else {
+      timeLimitEndTimeRef.current = null;
     }
     setTimeTaken(0);
 
@@ -457,11 +492,11 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const handleSelectAnswer = (answer) => {
     const currentQuestion = quiz.questions[currentQuestionIndex];
 
-    // For practice mode, check answer immediately
+    // For practice mode, always calculate correctness for scoring
     if (quiz.is_practice) {
       let isCorrect = false;
       let partialCredit = 0;
-      
+
       switch (currentQuestion.question_type) {
         case 'multiple_choice':
           isCorrect = answer === currentQuestion.correct_answer;
@@ -474,7 +509,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
               const totalCorrect = currentQuestion.correct_answer.length;
               const correctSelections = answer.filter(a => currentQuestion.correct_answer.includes(a)).length;
               const incorrectSelections = answer.filter(a => !currentQuestion.correct_answer.includes(a)).length;
-              
+
               // Partial credit formula: (correct selections - incorrect selections) / total correct answers
               // Ensure it doesn't go below 0
               partialCredit = Math.max(0, (correctSelections - incorrectSelections) / totalCorrect);
@@ -494,11 +529,12 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           break;
       }
 
+      // Store answer with correctness data, but only show feedback if not disabled
       setSelectedAnswers(prev => ({
         ...prev,
         [currentQuestion.id]: {
           answer,
-          showFeedback: true,
+          showFeedback: !disableImmediateFeedback, // Only show feedback if not disabled
           isCorrect,
           partialCredit: partialCredit
         }
@@ -740,6 +776,29 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           </div>
         </div>
 
+        {/* Practice mode feedback toggle */}
+        {quiz.is_practice && (
+          <div className={`mb-6 p-4 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-blue-50 border-blue-200'}`}>
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="checkbox"
+                checked={disableImmediateFeedback}
+                onChange={(e) => setDisableImmediateFeedback(e.target.checked)}
+                className="h-5 w-5 text-primary rounded border-slate-300 focus:ring-primary flex-shrink-0 mt-0.5 cursor-pointer"
+              />
+              <div className="ml-3">
+                <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  Disable Immediate Feedback
+                </span>
+                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
+                  By default, practice quizzes show you whether your answer is correct or incorrect immediately after each question.
+                  Check this box to disable immediate feedback and only see results at the end of the quiz.
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
+
         <button
           className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
           onClick={handleStartQuiz}
@@ -786,8 +845,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             selectedAnswer={quiz.is_practice ? selectedAnswers[currentQuestion.id]?.answer : selectedAnswers[currentQuestion.id]}
             onSelectAnswer={handleSelectAnswer}
             isPractice={quiz.is_practice}
-            showFeedback={quiz.is_practice && selectedAnswers[currentQuestion.id]?.showFeedback}
+            showFeedback={quiz.is_practice && !disableImmediateFeedback && selectedAnswers[currentQuestion.id]?.showFeedback}
             isCorrect={quiz.is_practice && selectedAnswers[currentQuestion.id]?.isCorrect}
+            disableImmediateFeedback={disableImmediateFeedback}
           />
 
           <div className={`flex justify-between mt-8 pt-6 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>

@@ -11,7 +11,8 @@ const QuestionDisplay = ({
   isPractice,
   showFeedback = false,
   isCorrect = false,
-  disabled: parentDisabled = false // Renamed to avoid conflict with internal disabled logic
+  disabled: parentDisabled = false, // Renamed to avoid conflict with internal disabled logic
+  disableImmediateFeedback = false // New prop to control Check Answer button visibility
 }) => {
   const { theme, themeColors } = useTheme();
   const isDark = theme === 'dark';
@@ -45,9 +46,9 @@ const QuestionDisplay = ({
     if (isDisabled) return;
 
     if (question.question_type === 'check_all_that_apply') {
-      if (isPractice) {
-        // In practice mode for check-all, only update local state
-        // Actual submission happens via button
+      if (isPractice && !disableImmediateFeedback) {
+        // In practice mode with immediate feedback, only update local state
+        // Actual submission happens via "Check Answer" button
         const newSelection = [...localCheckAllAnswer];
         const index = answer; // In this context, 'answer' is the index being toggled
 
@@ -59,7 +60,7 @@ const QuestionDisplay = ({
         }
         setLocalCheckAllAnswer(newSelection);
       } else {
-        // In non-practice mode (access code quizzes), handle multiple selections directly
+        // In non-practice mode OR practice with feedback disabled, handle multiple selections directly
         const currentSelection = Array.isArray(selectedAnswer) ? selectedAnswer : [];
         const index = answer;
 
@@ -75,7 +76,7 @@ const QuestionDisplay = ({
       // For multiple choice and true/false, call parent immediately
       onSelectAnswer(answer);
     }
-  }, [isDisabled, question, isPractice, selectedAnswer, onSelectAnswer, localCheckAllAnswer]);
+  }, [isDisabled, question, isPractice, disableImmediateFeedback, selectedAnswer, onSelectAnswer, localCheckAllAnswer]);
 
   // Handle submitting check-all-that-apply in practice mode
   const handleCheckAllSubmit = useCallback(() => {
@@ -158,9 +159,10 @@ const QuestionDisplay = ({
 
   // Render check all that apply question
   const renderCheckAllThatApply = () => {
-    // Use local state for checked status in practice mode before submission
+    // Use local state for checked status in practice mode with immediate feedback
+    // Use selectedAnswer when feedback is disabled or in non-practice mode
     const getIsSelected = (index) => {
-      return isPractice
+      return (isPractice && !disableImmediateFeedback)
         ? localCheckAllAnswer.includes(index)
         : (Array.isArray(selectedAnswer) && selectedAnswer.includes(index));
     };
@@ -216,8 +218,8 @@ const QuestionDisplay = ({
         );
       })}
 
-      {/* Add Check Answer button for practice mode check-all */}
-      {isPractice && !showFeedback && (
+      {/* Add Check Answer button for practice mode check-all (only when immediate feedback is enabled) */}
+      {isPractice && !showFeedback && !disableImmediateFeedback && (
         <div className="mt-4">
           <button
             className={`px-5 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -446,7 +448,8 @@ QuestionDisplay.propTypes = {
   isPractice: PropTypes.bool,
   showFeedback: PropTypes.bool,
   isCorrect: PropTypes.bool,
-  disabled: PropTypes.bool // Renamed prop
+  disabled: PropTypes.bool, // Renamed prop
+  disableImmediateFeedback: PropTypes.bool // New prop to control Check Answer button
 };
 
 export default memo(QuestionDisplay);

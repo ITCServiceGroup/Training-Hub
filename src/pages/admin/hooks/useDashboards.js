@@ -23,13 +23,29 @@ import {
 export const useDashboards = () => {
   const { user } = useAuth();
   const { dashboardPreferences, updateDashboardPreferences } = useDashboardPreferences();
-  
+
   // State
   const [dashboards, setDashboards] = useState([]);
   const [activeDashboard, setActiveDashboard] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [initialized, setInitialized] = useState(false);
+
+  /**
+   * Save a dashboard preference to the database
+   */
+  const saveDashboardPreference = useCallback(async (key, value) => {
+    if (!user?.id) return;
+
+    try {
+      const { updatePreference } = await import('../../../services/api/preferences');
+      await updatePreference('dashboard', { [key]: value });
+      updateDashboardPreferences({ [key]: value });
+    } catch (error) {
+      console.error('Failed to save dashboard preference:', error);
+      throw error;
+    }
+  }, [user?.id, updateDashboardPreferences]);
 
   /**
    * Load all dashboards for the current user
@@ -256,12 +272,34 @@ export const useDashboards = () => {
     if (dashboard) {
       setActiveDashboard(dashboard);
       console.log('🔄 Switched to dashboard:', dashboard.name);
+
+      // Save the dashboard selection to user preferences
+      try {
+        await saveDashboardPreference('defaultDashboard', dashboard.name);
+        console.log('✅ Saved dashboard preference:', dashboard.name);
+      } catch (error) {
+        console.error('❌ Failed to save dashboard preference:', error);
+        // Don't throw - switching still works locally
+      }
+
       return dashboard;
     } else {
       // Dashboard not in local state, load it
-      return await loadDashboard(dashboardId);
+      const loadedDashboard = await loadDashboard(dashboardId);
+
+      // Save the loaded dashboard to preferences
+      if (loadedDashboard) {
+        try {
+          await saveDashboardPreference('defaultDashboard', loadedDashboard.name);
+          console.log('✅ Saved dashboard preference:', loadedDashboard.name);
+        } catch (error) {
+          console.error('❌ Failed to save dashboard preference:', error);
+        }
+      }
+
+      return loadedDashboard;
     }
-  }, [dashboards, loadDashboard]);
+  }, [dashboards, loadDashboard, saveDashboardPreference]);
 
   /**
    * Clear error state
