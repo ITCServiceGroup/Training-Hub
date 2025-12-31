@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../config/supabase';
 
@@ -19,21 +19,40 @@ export const RBACProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Track the last user ID we fetched for to prevent unnecessary refetches
+  const lastFetchedUserIdRef = useRef(null);
+
   useEffect(() => {
     // Wait for auth to finish loading before doing anything
     if (authLoading) {
-      setLoading(true);
+      // Only set loading true if we don't already have a profile
+      if (!profile) {
+        setLoading(true);
+      }
       return;
     }
 
-    if (user) {
-      fetchProfile();
-    } else {
+    const currentUserId = user?.id || null;
+
+    // Only fetch profile if the user ID has actually changed
+    if (currentUserId !== lastFetchedUserIdRef.current) {
+      if (user) {
+        fetchProfile();
+        lastFetchedUserIdRef.current = currentUserId;
+      } else {
+        setProfile(null);
+        setLoading(false);
+        setError(null);
+        lastFetchedUserIdRef.current = null;
+      }
+    } else if (!user) {
+      // User logged out
       setProfile(null);
       setLoading(false);
       setError(null);
+      lastFetchedUserIdRef.current = null;
     }
-  }, [user, authLoading]);
+  }, [user?.id, authLoading]); // Use user?.id instead of user object to avoid reference changes
 
   const fetchProfile = async () => {
     try {

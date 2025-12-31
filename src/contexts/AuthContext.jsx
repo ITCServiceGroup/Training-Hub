@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { getSupabaseClient, initializeSupabase } from '../config/supabase';
 import { initializeConfig, isSupabaseConfigured } from '../config/config';
 
@@ -7,7 +7,7 @@ const logAuth = (message, data = null) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[AUTH ${timestamp}] ${message}`;
   console.log(logMessage);
-  
+
   // Format data as string if present
   let dataString = '';
   if (data) {
@@ -18,7 +18,7 @@ const logAuth = (message, data = null) => {
       dataString = `[Unable to stringify: ${e.message}]`;
     }
   }
-  
+
   // Persist to localStorage
   try {
     const logs = JSON.parse(localStorage.getItem('authLogs') || '[]');
@@ -40,11 +40,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Track the current user ID to prevent unnecessary state updates
+  const currentUserIdRef = useRef(null);
+
   // Initialize configuration and Supabase
   useEffect(() => {
     logAuth('Initializing configuration');
     initializeConfig();
-    
+
     if (!isSupabaseConfigured()) {
       logAuth('Supabase is not configured - some features will be disabled');
       setLoading(false);
@@ -64,20 +67,47 @@ export const AuthProvider = ({ children }) => {
         const { data, error: sessionError } = await client.auth.getSession();
         if (sessionError) throw sessionError;
 
-        const session = data.session;
-        setSession(session);
-        setUser(session?.user || null);
-        
+        const initialSession = data.session;
+        setSession(initialSession);
+        setUser(initialSession?.user || null);
+        currentUserIdRef.current = initialSession?.user?.id || null;
+
         logAuth('Session initialized', {
-          hasSession: !!session,
-          hasUser: !!session?.user
+          hasSession: !!initialSession,
+          hasUser: !!initialSession?.user
         });
 
         const { data: { subscription } } = await client.auth.onAuthStateChange(
-          (_event, session) => {
-            logAuth(`Auth state changed: ${_event}`);
-            setSession(session);
-            setUser(session?.user || null);
+          (event, newSession) => {
+            const newUserId = newSession?.user?.id || null;
+
+            logAuth(`Auth state changed: ${event}`, {
+              previousUserId: currentUserIdRef.current,
+              newUserId,
+              userChanged: currentUserIdRef.current !== newUserId
+            });
+
+            // For TOKEN_REFRESHED events, only update if absolutely necessary
+            // This prevents cascading re-renders when the tab regains focus
+            if (event === 'TOKEN_REFRESHED') {
+              // Only update if user ID has actually changed (shouldn't happen normally)
+              if (currentUserIdRef.current !== newUserId) {
+                logAuth('TOKEN_REFRESHED: User ID changed, updating state');
+                currentUserIdRef.current = newUserId;
+                setSession(newSession);
+                setUser(newSession?.user || null);
+              } else {
+                // Just silently update the session reference without triggering state updates
+                // This keeps the tokens fresh without causing re-renders
+                logAuth('TOKEN_REFRESHED: Same user, skipping state update to prevent re-renders');
+              }
+              return;
+            }
+
+            // For all other events (SIGNED_IN, SIGNED_OUT, etc.), update state normally
+            currentUserIdRef.current = newUserId;
+            setSession(newSession);
+            setUser(newSession?.user || null);
           }
         );
 
