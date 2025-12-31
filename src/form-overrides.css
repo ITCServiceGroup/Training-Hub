@@ -24,8 +24,6 @@ html.dark input:-webkit-autofill:active {
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
-  display: inline-block !important;
-  vertical-align: middle !important;
   background-origin: border-box !important;
   user-select: none !important;
   flex-shrink: 0 !important;
@@ -36,6 +34,8 @@ html.dark input:-webkit-autofill:active {
   border-color: #d1d5db !important; /* gray-300 */
   border-width: 1px !important;
   border-radius: 0.25rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 [type='checkbox']:checked {

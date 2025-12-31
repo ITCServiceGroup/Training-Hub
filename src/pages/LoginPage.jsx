@@ -223,38 +223,41 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Forgot Password Link */}
-          <div className="flex justify-end mb-4">
+          {/* Remember Me Checkbox and Forgot Password Link */}
+          <div className="flex items-center justify-between mb-6" style={{ alignItems: 'center' }}>
+            <div className="flex items-center" style={{ alignItems: 'center', gap: '0.5rem' }}>
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={isLoading}
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600
+                          dark:bg-slate-700 focus:ring-2 focus:ring-primary
+                          transition-colors"
+                style={{
+                  accentColor: 'var(--primary-color)',
+                  margin: '0',
+                  verticalAlign: 'middle'
+                }}
+              />
+              <label
+                htmlFor="remember-me"
+                className="text-sm text-slate-700 dark:text-slate-300 select-none cursor-pointer"
+                style={{ lineHeight: '1rem', margin: '0' }}
+              >
+                Keep me signed in
+              </label>
+            </div>
             <button
               type="button"
               onClick={() => setForgotPasswordOpen(true)}
               className="text-sm font-medium transition-colors underline-offset-2 hover:underline"
-              style={{ color: 'var(--primary-color)' }}
+              style={{ color: 'var(--primary-color)', lineHeight: '1rem', padding: '0' }}
             >
               Forgot password?
             </button>
-          </div>
-
-          {/* Remember Me Checkbox */}
-          <div className="flex items-center mb-6">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              disabled={isLoading}
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-600
-                        dark:bg-slate-700 focus:ring-2 focus:ring-primary
-                        transition-colors"
-              style={{ accentColor: 'var(--primary-color)' }}
-            />
-            <label
-              htmlFor="remember-me"
-              className="ml-2 block text-sm text-slate-700 dark:text-slate-300"
-            >
-              Keep me signed in
-            </label>
           </div>
 
           {/* Submit Button with Loading State */}
