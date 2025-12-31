@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRBAC } from '../../contexts/RBACContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
-import { FiSun, FiMoon, FiSettings, FiLogOut } from 'react-icons/fi';
-import { MdDashboard } from 'react-icons/md';
+import { FiSun, FiMoon, FiSettings, FiLogOut, FiUsers, FiCheckCircle } from 'react-icons/fi';
+import { MdDashboard, MdQuiz, MdOutlinePermMedia } from 'react-icons/md';
+import { BiBook } from 'react-icons/bi';
 
 const Header = () => {
   const { isAuthenticated, signOut, user } = useAuth();
+  const { canManageUsers, isAdmin } = useRBAC();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -149,9 +152,63 @@ const Header = () => {
                         >
                           <div className="flex items-center">
                             <MdDashboard className="mr-2 text-slate-700 dark:text-slate-200" />
-                            <span className="text-slate-700 dark:text-slate-200">Admin Dashboard</span>
+                            <span className="text-slate-700 dark:text-slate-200">Dashboard</span>
                           </div>
                         </Link>
+                        <Link
+                          to="/admin/study-guides"
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <div className="flex items-center">
+                            <BiBook className="mr-2 text-slate-700 dark:text-slate-200" />
+                            <span className="text-slate-700 dark:text-slate-200">Create</span>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/admin/media"
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <div className="flex items-center">
+                            <MdOutlinePermMedia className="mr-2 text-slate-700 dark:text-slate-200" />
+                            <span className="text-slate-700 dark:text-slate-200">Media Library</span>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/admin/quizzes"
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <div className="flex items-center">
+                            <MdQuiz className="mr-2 text-slate-700 dark:text-slate-200" />
+                            <span className="text-slate-700 dark:text-slate-200">Quiz</span>
+                          </div>
+                        </Link>
+                        {canManageUsers() && (
+                          <Link
+                            to="/admin/users"
+                            className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
+                            onClick={() => setIsUserDropdownOpen(false)}
+                          >
+                            <div className="flex items-center">
+                              <FiUsers className="mr-2 text-slate-700 dark:text-slate-200" />
+                              <span className="text-slate-700 dark:text-slate-200">Users</span>
+                            </div>
+                          </Link>
+                        )}
+                        {isAdmin() && (
+                          <Link
+                            to="/admin/approvals"
+                            className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
+                            onClick={() => setIsUserDropdownOpen(false)}
+                          >
+                            <div className="flex items-center">
+                              <FiCheckCircle className="mr-2 text-slate-700 dark:text-slate-200" />
+                              <span className="text-slate-700 dark:text-slate-200">Approvals</span>
+                            </div>
+                          </Link>
+                        )}
                         <Link
                           to="/admin/settings"
                           className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
@@ -272,9 +329,63 @@ const Header = () => {
                       onClick={handleMenuItemClick}
                     >
                       <MdDashboard className="mr-2" />
-                      Admin Dashboard
+                      Dashboard
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      to="/admin/study-guides"
+                      className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
+                      onClick={handleMenuItemClick}
+                    >
+                      <BiBook className="mr-2" />
+                      Create
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/admin/media"
+                      className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
+                      onClick={handleMenuItemClick}
+                    >
+                      <MdOutlinePermMedia className="mr-2" />
+                      Media Library
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/admin/quizzes"
+                      className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
+                      onClick={handleMenuItemClick}
+                    >
+                      <MdQuiz className="mr-2" />
+                      Quiz
+                    </Link>
+                  </li>
+                  {canManageUsers() && (
+                    <li>
+                      <Link
+                        to="/admin/users"
+                        className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
+                        onClick={handleMenuItemClick}
+                      >
+                        <FiUsers className="mr-2" />
+                        Users
+                      </Link>
+                    </li>
+                  )}
+                  {isAdmin() && (
+                    <li>
+                      <Link
+                        to="/admin/approvals"
+                        className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
+                        onClick={handleMenuItemClick}
+                      >
+                        <FiCheckCircle className="mr-2" />
+                        Approvals
+                      </Link>
+                    </li>
+                  )}
                   <li>
                     <Link
                       to="/admin/settings"
