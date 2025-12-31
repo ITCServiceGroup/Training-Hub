@@ -16,6 +16,9 @@ export const DashboardPreferencesProvider = ({ children }) => {
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const preferencesRef = useRef(DEFAULT_DASHBOARD_PREFERENCES);
 
+  // Track last loaded user ID to prevent unnecessary reloads
+  const lastLoadedUserIdRef = useRef(null);
+
   const applyPreferences = useCallback((preferences) => {
     const merged = {
       ...DEFAULT_DASHBOARD_PREFERENCES,
@@ -27,11 +30,19 @@ export const DashboardPreferencesProvider = ({ children }) => {
   }, []);
 
   const loadPreferences = useCallback(async () => {
-    if (!user) {
+    const currentUserId = user?.id || null;
+
+    // Skip if we've already loaded for this user
+    if (currentUserId === lastLoadedUserIdRef.current && preferencesLoaded) {
+      return;
+    }
+
+    if (!currentUserId) {
       applyPreferences(DEFAULT_DASHBOARD_PREFERENCES);
       resetDashboardPreferenceStore();
       setLoading(false);
       setPreferencesLoaded(false);
+      lastLoadedUserIdRef.current = null;
       return;
     }
 
@@ -45,6 +56,7 @@ export const DashboardPreferencesProvider = ({ children }) => {
       } else {
         applyPreferences(data?.dashboard);
       }
+      lastLoadedUserIdRef.current = currentUserId;
     } catch (error) {
       console.error('Error loading dashboard preferences:', error);
       applyPreferences(DEFAULT_DASHBOARD_PREFERENCES);
@@ -52,15 +64,16 @@ export const DashboardPreferencesProvider = ({ children }) => {
       setLoading(false);
       setPreferencesLoaded(true);
     }
-  }, [user, applyPreferences]);
+  }, [user?.id, applyPreferences, preferencesLoaded]);
 
+  // Load preferences when user ID changes
   useEffect(() => {
     loadPreferences();
-  }, [loadPreferences]);
+  }, [user?.id]); // Only depend on user?.id, not the full loadPreferences callback
 
   // Save preferences to database when they change (debounced)
   useEffect(() => {
-    if (!user || !preferencesLoaded) return;
+    if (!user?.id || !preferencesLoaded) return;
 
     const saveTimeout = setTimeout(async () => {
       try {
@@ -71,10 +84,10 @@ export const DashboardPreferencesProvider = ({ children }) => {
     }, 500); // Debounce for 500ms
 
     return () => clearTimeout(saveTimeout);
-  }, [dashboardPreferences, user, preferencesLoaded]);
+  }, [dashboardPreferences, user?.id, preferencesLoaded]);
 
   const updateDashboardPreferences = useCallback((updates = {}) => {
-    if (!user) return preferencesRef.current;
+    if (!user?.id) return preferencesRef.current;
 
     const nextPreferences = {
       ...preferencesRef.current,
@@ -86,7 +99,7 @@ export const DashboardPreferencesProvider = ({ children }) => {
     setDashboardPreferenceStore(nextPreferences);
 
     return nextPreferences;
-  }, [user]);
+  }, [user?.id]);
 
   const value = {
     dashboardPreferences,

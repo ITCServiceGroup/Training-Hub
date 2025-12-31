@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useDashboardPreferences } from '../../../contexts/DashboardPreferencesContext';
 import {
@@ -16,7 +16,7 @@ import {
 
 /**
  * Simplified Dashboard Hook
- * 
+ *
  * This hook provides simple state management for user-owned dashboards.
  * No complex merging logic or system/user overrides - just straightforward CRUD operations.
  */
@@ -30,6 +30,24 @@ export const useDashboards = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [initialized, setInitialized] = useState(false);
+
+  // Refs to avoid unnecessary callback re-creation
+  const activeDashboardRef = useRef(activeDashboard);
+  const initializedRef = useRef(initialized);
+  const dashboardPreferencesRef = useRef(dashboardPreferences);
+
+  // Keep refs in sync
+  useEffect(() => {
+    activeDashboardRef.current = activeDashboard;
+  }, [activeDashboard]);
+
+  useEffect(() => {
+    initializedRef.current = initialized;
+  }, [initialized]);
+
+  useEffect(() => {
+    dashboardPreferencesRef.current = dashboardPreferences;
+  }, [dashboardPreferences]);
 
   /**
    * Save a dashboard preference to the database
@@ -61,7 +79,8 @@ export const useDashboards = () => {
       let userDashboards = await getUserDashboards(user.id);
 
       // If user has no dashboards, initialize with templates
-      if (userDashboards.length === 0 && !initialized) {
+      // Use ref to avoid re-creating callback when initialized changes
+      if (userDashboards.length === 0 && !initializedRef.current) {
         console.log('🎯 No dashboards found, initializing with templates');
         userDashboards = await initializeUserDashboards(user.id);
         setInitialized(true);
@@ -71,8 +90,9 @@ export const useDashboards = () => {
       console.log('✅ Loaded', userDashboards.length, 'dashboards');
 
       // Set the preferred/default dashboard as active if not already set
-      if (userDashboards.length > 0 && !activeDashboard) {
-        const preferredName = dashboardPreferences.defaultDashboard;
+      // Use refs to avoid re-creating callback when these values change
+      if (userDashboards.length > 0 && !activeDashboardRef.current) {
+        const preferredName = dashboardPreferencesRef.current?.defaultDashboard;
         const preferredDashboard = preferredName
           ? userDashboards.find(d => d.name === preferredName)
           : null;
@@ -91,12 +111,7 @@ export const useDashboards = () => {
     } finally {
       setLoading(false);
     }
-  }, [
-    user?.id,
-    initialized,
-    activeDashboard,
-    dashboardPreferences.defaultDashboard
-  ]);
+  }, [user?.id]); // Only depend on user?.id - use refs for other values
 
   /**
    * Load a specific dashboard and set it as active
@@ -385,7 +400,8 @@ export const useDashboards = () => {
       setActiveDashboard(null);
       setInitialized(false);
     }
-  }, [user?.id, loadDashboards]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only depend on user?.id - loadDashboards uses refs internally
 
   // Sync active dashboard when user preference changes
   useEffect(() => {

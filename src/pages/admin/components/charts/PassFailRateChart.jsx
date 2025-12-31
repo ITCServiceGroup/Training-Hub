@@ -15,6 +15,9 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
     applyHoverFilter
   } = useDashboardFilters();
 
+  // State for hover on info box - must be before any early returns
+  const [showDetailedInfo, setShowDetailedInfo] = useState(false);
+
   // Filter data for this chart (includes hover filters from other charts, excludes own hover)
   const chartFilteredData = useMemo(() => {
     if (!Array.isArray(data)) return [];
@@ -182,9 +185,6 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
   const handleSegmentLeave = () => {
     applyHoverFilter('passFailClassification', null, 'pass-fail-rate');
   };
-
-  // State for hover on info box
-  const [showDetailedInfo, setShowDetailedInfo] = useState(false);
 
   return (
     <div className="h-full w-full relative">

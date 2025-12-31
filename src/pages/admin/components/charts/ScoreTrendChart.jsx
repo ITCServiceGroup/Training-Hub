@@ -282,12 +282,10 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
         return processAggregateData(filteredData);
     }
   }, [
-    // Only use truly stable dependencies to prevent animation interruption
-    stableFilters._hash,
-    analysisMode, 
+    // Include filteredData as a dependency - this is essential for chart updates
+    filteredData,
+    analysisMode,
     anonymizeNames,
-    // Remove unstable dependencies that were causing mid-animation updates
-    JSON.stringify(brushSelection.timeRange), // Stable serialized version instead of object properties
     // Stable processing function references
     processAggregateData,
     processIndividualData,

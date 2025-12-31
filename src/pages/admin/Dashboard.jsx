@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDashboardPreferences } from '../../contexts/DashboardPreferencesContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,7 +6,6 @@ import { useRBAC } from '../../contexts/RBACContext';
 import { useDashboards } from './hooks/useDashboards';
 import { useDashboard } from './contexts/DashboardContext';
 import { quizResultsService } from '../../services/api/quizResults';
-import DashboardTile from './components/DashboardTile';
 import TileFilterPopover from './components/TileFilterPopover';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/themes/light.css';
@@ -399,19 +398,8 @@ import ResizableGridLayout from './components/ResizableGridLayout';
 import './components/styles/dashboard-grid.css';
 import './components/styles/resizable-grid.css';
 import './components/styles/resizable-grid.css';
-// Temporarily revert to direct imports while fixing lazy loading
-import ScoreDistributionChart from './components/charts/ScoreDistributionChart';
-import TimeDistributionChart from './components/charts/TimeDistributionChart';
-import ScoreTrendChart from './components/charts/ScoreTrendChart';
-import SupervisorPerformanceChart from './components/charts/SupervisorPerformanceChart';
-import MarketResultsChart from './components/charts/MarketResultsChart';
-import TimeVsScoreChart from './components/charts/TimeVsScoreChart';
-import PassFailRateChart from './components/charts/PassFailRateChart';
-import QuizTypePerformanceChart from './components/charts/QuizTypePerformanceChart';
-import TopBottomPerformersChart from './components/charts/TopBottomPerformersChart';
-import SupervisorEffectivenessChart from './components/charts/SupervisorEffectivenessChart';
-import QuestionLevelAnalyticsChart from './components/charts/QuestionLevelAnalyticsChart';
-import RetakeAnalysisChart from './components/charts/RetakeAnalysisChart';
+// GridTile component moved outside Dashboard to prevent recreation on every render
+import { GridTileWithDrillDown } from './components/GridTile';
 import DashboardResultsSection from './components/DashboardResultsSection';
 import PDFModal from './components/PDFModal';
 
@@ -450,9 +438,12 @@ const Dashboard = () => {
   // Stable data reference to prevent chart reloading
   const stableDataRef = useRef([]);
   const stableFiltersRef = useRef({});
-  
+
   // Flag to prevent data fetching during layout operations
   const isLayoutOperationRef = useRef(false);
+
+  // Track the last dashboard ID that was used to set filters (prevents duplicate filter updates)
+  const lastFilteredDashboardIdRef = useRef(null);
 
   // Tile order state (managed by presets and saved layouts)
   const [tileOrder, setTileOrder] = useState([]);
@@ -610,12 +601,20 @@ const Dashboard = () => {
   // Sync global filters with active dashboard
   useEffect(() => {
     if (activeDashboard) {
+      // Skip if we've already processed filters for this dashboard
+      // This prevents unnecessary re-renders when activeDashboard object reference changes
+      // but the actual dashboard ID is the same
+      if (lastFilteredDashboardIdRef.current === activeDashboard.id) {
+        console.log('🔄 Skipping filter sync - already processed for dashboard:', activeDashboard.name);
+        return;
+      }
+
       console.log('🔄 Active dashboard changed, checking filters:', activeDashboard.name, activeDashboard.filters);
       const dashboardFilters = activeDashboard.filters;
-      
+
       // Check if dashboard has meaningful USER-CUSTOMIZED filters (not template defaults)
-      const hasUserCustomizedFilters = dashboardFilters && 
-        Object.keys(dashboardFilters).length > 0 && 
+      const hasUserCustomizedFilters = dashboardFilters &&
+        Object.keys(dashboardFilters).length > 0 &&
         (
           // Check for non-default filter values that indicate user customization
           (dashboardFilters.markets && dashboardFilters.markets.length > 0) ||
@@ -628,7 +627,10 @@ const Dashboard = () => {
           (dashboardFilters.market && dashboardFilters.market !== 'all') ||
           (dashboardFilters.supervisor && dashboardFilters.supervisor !== 'all')
         );
-      
+
+      // Mark this dashboard as processed
+      lastFilteredDashboardIdRef.current = activeDashboard.id;
+
       if (hasUserCustomizedFilters) {
         console.log('📋 Applying user-customized dashboard filters:', dashboardFilters);
         setGlobalFilters(dashboardFilters);
@@ -957,102 +959,16 @@ const Dashboard = () => {
     window.location.reload();
   }, []);
 
-  // Grid Tile Component (for react-grid-layout) - Memoized to prevent chart reloading
-  const GridTile = memo(({ tileId, drillDownFilters = [], onRemoveDrillDownFilter }) => {
-    // Memoize the tile configuration to prevent unnecessary recalculations
-    const config = useMemo(() => {
-      const dashboardTiles = getCurrentTiles();
-      const tileConfig = dashboardTiles.find(tile => tile.id === tileId);
-      const staticConfig = tileConfigs[tileId];
+  // Helper function to get tile data for a specific tile
+  const getTileData = useCallback((tileId) => {
+    return getFilteredDataForTile(tileId, stableDataRef.current, stableFiltersRef.current);
+  }, []);
 
-      return {
-        title: staticConfig?.title || tileId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        description: staticConfig?.description || '',
-        id: tileId,
-        ...tileConfig
-      };
-    }, [tileId, getCurrentTiles]);
-
-    // Use stable data references to prevent charts from re-rendering
-    const tileData = useMemo(() => {
-      // Use stable data reference instead of changing results/globalFilters
-      return getFilteredDataForTile(tileId, stableDataRef.current, stableFiltersRef.current);
-    }, [tileId]);
-
-    // Memoize chart rendering to prevent recreation of chart components
-    const chartComponent = useMemo(() => {
-      switch (tileId) {
-        case 'score-distribution':
-          return <ScoreDistributionChart data={tileData} loading={isInitialLoad} />;
-        case 'time-distribution':
-          return <TimeDistributionChart data={tileData} loading={isInitialLoad} />;
-        case 'score-trend':
-          return <ScoreTrendChart data={tileData} loading={isInitialLoad} />;
-        case 'supervisor-performance':
-          return <SupervisorPerformanceChart data={tileData} loading={isInitialLoad} />;
-        case 'market-results':
-          return <MarketResultsChart data={tileData} loading={isInitialLoad} />;
-        case 'time-vs-score':
-          return <TimeVsScoreChart data={tileData} loading={isInitialLoad} globalFilters={globalFilters} />;
-        case 'pass-fail-rate':
-          return <PassFailRateChart data={tileData} loading={isInitialLoad} />;
-        case 'quiz-type-performance':
-          return <QuizTypePerformanceChart data={tileData} loading={isInitialLoad} />;
-        case 'top-bottom-performers':
-          return <TopBottomPerformersChart data={tileData} loading={isInitialLoad} />;
-        case 'supervisor-effectiveness':
-          return <SupervisorEffectivenessChart data={tileData} loading={isInitialLoad} />;
-        case 'question-analytics':
-        case 'question-level-analytics':
-          return <QuestionLevelAnalyticsChart data={tileData} loading={isInitialLoad} />;
-        case 'retake-analysis':
-          return <RetakeAnalysisChart data={tileData} loading={isInitialLoad} />;
-        default:
-          return (
-            <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
-              <div className="text-center">
-                <div className="text-lg font-medium">Chart: {tileId}</div>
-                <div className="text-sm">Component not found</div>
-              </div>
-            </div>
-          );
-      }
-    }, [tileId, tileData, isInitialLoad]);
-
-
-    return (
-      <DashboardTile
-        id={tileId}
-        title={config.title}
-        loading={loading}
-        error={error}
-        hasCustomFilters={hasCustomFilters(tileId)}
-        onFilterClick={(id, event) => handleTileFilterClick(id, event)}
-        onRefresh={handleTileRefresh}
-        dragHandle={null}
-        drillDownFilters={drillDownFilters}
-        onRemoveDrillDownFilter={onRemoveDrillDownFilter}
-      >
-        {chartComponent}
-      </DashboardTile>
-    );
-  });
-
-  // Wrapper component that uses the dashboard context for drill-down functionality
-  const GridTileWithDrillDown = memo(({ tileId }) => {
-    const { getActiveDrillDownFilters, removeDrillDownFilter } = useDashboard();
-
-    // Get active drill-down filters for this chart
-    const drillDownFilters = getActiveDrillDownFilters(tileId);
-
-    return (
-      <GridTile
-        tileId={tileId}
-        drillDownFilters={drillDownFilters}
-        onRemoveDrillDownFilter={removeDrillDownFilter}
-      />
-    );
-  });
+  // Helper function to get tile config for a specific tile
+  const getTileConfig = useCallback((tileId) => {
+    const dashboardTiles = getCurrentTiles();
+    return dashboardTiles.find(tile => tile.id === tileId);
+  }, [getCurrentTiles]);
 
   // Get effective filters for a tile (tile-specific or global)
   const getEffectiveFilters = (tileId, filtersSource = globalFilters) => {
@@ -1607,7 +1523,18 @@ const Dashboard = () => {
           >
             {gridLayout.map((item) => (
               <div key={item.i}>
-                <GridTileWithDrillDown tileId={item.i} />
+                <GridTileWithDrillDown
+                  tileId={item.i}
+                  tileData={getTileData(item.i)}
+                  tileConfig={getTileConfig(item.i)}
+                  isInitialLoad={isInitialLoad}
+                  loading={loading}
+                  error={error}
+                  globalFilters={globalFilters}
+                  hasCustomFilters={hasCustomFilters(item.i)}
+                  onFilterClick={handleTileFilterClick}
+                  onRefresh={handleTileRefresh}
+                />
               </div>
             ))}
           </ResizableGridLayout>
