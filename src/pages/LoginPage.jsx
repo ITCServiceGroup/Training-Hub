@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { Dialog } from '@headlessui/react';
@@ -28,6 +29,7 @@ const LoginPage = () => {
   const [resetError, setResetError] = useState('');
 
   const { signIn, isAuthenticated, user, session, error: authError } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   // Log component mount and authentication state
@@ -157,11 +159,17 @@ const LoginPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg
+                className="w-full pl-10 pr-3 py-3 border rounded-lg
                           focus:ring-2 focus:ring-primary focus:border-primary
-                          dark:bg-slate-700 dark:text-white
-                          transition-all duration-200
-                          disabled:opacity-50 disabled:cursor-not-allowed"
+                          focus:shadow-lg
+                          transition-all duration-200 ease-in-out
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          placeholder-slate-400 dark:placeholder-slate-500"
+                style={{
+                  backgroundColor: theme === 'dark' ? '#334155' : '#ffffff',
+                  color: theme === 'dark' ? '#f8fafc' : '#374151',
+                  borderColor: theme === 'dark' ? '#64748b' : '#cbd5e1'
+                }}
                 placeholder="you@example.com"
               />
             </div>
@@ -185,11 +193,17 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full pl-10 pr-10 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg
+                className="w-full pl-10 pr-10 py-3 border rounded-lg
                           focus:ring-2 focus:ring-primary focus:border-primary
-                          dark:bg-slate-700 dark:text-white
-                          transition-all duration-200
-                          disabled:opacity-50 disabled:cursor-not-allowed"
+                          focus:shadow-lg
+                          transition-all duration-200 ease-in-out
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          placeholder-slate-400 dark:placeholder-slate-500"
+                style={{
+                  backgroundColor: theme === 'dark' ? '#334155' : '#ffffff',
+                  color: theme === 'dark' ? '#f8fafc' : '#374151',
+                  borderColor: theme === 'dark' ? '#64748b' : '#cbd5e1'
+                }}
                 placeholder="Enter your password"
               />
               <button
@@ -306,9 +320,16 @@ const LoginPage = () => {
                       id="reset-email"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg
+                      className="w-full pl-10 pr-3 py-3 border rounded-lg
                                 focus:ring-2 focus:ring-primary focus:border-primary
-                                dark:bg-slate-700 dark:text-white"
+                                focus:shadow-lg
+                                transition-all duration-200 ease-in-out
+                                placeholder-slate-400 dark:placeholder-slate-500"
+                      style={{
+                        backgroundColor: theme === 'dark' ? '#334155' : '#ffffff',
+                        color: theme === 'dark' ? '#f8fafc' : '#374151',
+                        borderColor: theme === 'dark' ? '#64748b' : '#cbd5e1'
+                      }}
                       placeholder="you@example.com"
                       autoFocus
                     />

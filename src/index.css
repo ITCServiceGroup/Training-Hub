@@ -588,3 +588,5 @@ div[style*="background"][style*="border-radius"][style*="box-shadow"][style*="po
 }
 
 /* Note: Tooltip positioning is now handled by smart repositioning in EnhancedTooltip.jsx */
+
+/* Input styling removed - now using inline styles in components for better control */

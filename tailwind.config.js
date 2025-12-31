@@ -58,8 +58,9 @@ module.exports = {
     },
   },
   plugins: [
-    require('@tailwindcss/forms')({
-      strategy: 'class',
-    }),
+    // Temporarily disabled to test if this is causing the white background issue
+    // require('@tailwindcss/forms')({
+    //   strategy: 'base',
+    // }),
   ],
 }
