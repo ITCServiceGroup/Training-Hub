@@ -209,13 +209,13 @@ const UserForm = ({ user, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             {isEditing ? 'Edit User' : 'Create New User'}
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
             {isEditing ? 'Update user information and permissions' : 'Add a new user to the system'}
           </p>
         </div>
@@ -224,14 +224,14 @@ const UserForm = ({ user, onClose }) => {
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           {/* Display Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Display Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -240,14 +240,14 @@ const UserForm = ({ user, onClose }) => {
               value={formData.display_name}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500"
               placeholder="John Doe"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -258,18 +258,18 @@ const UserForm = ({ user, onClose }) => {
               required
               disabled={isEditing}
               autoComplete="off"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 disabled:bg-gray-100 dark:disabled:bg-slate-900 disabled:text-gray-500 dark:disabled:text-slate-500"
               placeholder="john.doe@example.com"
             />
             {isEditing && (
-              <p className="text-xs text-gray-500 mt-1">Email cannot be changed after creation</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Email cannot be changed after creation</p>
             )}
           </div>
 
           {/* Password (only for new users) */}
           {!isEditing && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -280,13 +280,13 @@ const UserForm = ({ user, onClose }) => {
                   onChange={handleChange}
                   required
                   autoComplete="new-password"
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500"
                   placeholder="Minimum 6 characters"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1 text-gray-600 hover:text-gray-800"
+                  className="absolute right-3 top-1 text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -307,7 +307,7 @@ const UserForm = ({ user, onClose }) => {
 
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Role <span className="text-red-500">*</span>
             </label>
             <select
@@ -315,7 +315,7 @@ const UserForm = ({ user, onClose }) => {
               value={formData.role}
               onChange={handleRoleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
             >
               {availableRoles.map(role => (
                 <option key={role} value={role}>
@@ -328,7 +328,7 @@ const UserForm = ({ user, onClose }) => {
           {/* Market (required for regional roles) */}
           {requiresMarket && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                 Market <span className="text-red-500">*</span>
               </label>
               <select
@@ -336,7 +336,7 @@ const UserForm = ({ user, onClose }) => {
                 value={formData.market_id || ''}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select a market</option>
                 {markets.map(market => (
@@ -351,7 +351,7 @@ const UserForm = ({ user, onClose }) => {
           {/* Reports To (required for some roles) */}
           {requiresSupervisor && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                 Reports To {potentialSupervisors.length > 0 && <span className="text-red-500">*</span>}
               </label>
               <select
@@ -360,7 +360,7 @@ const UserForm = ({ user, onClose }) => {
                 onChange={handleChange}
                 required={potentialSupervisors.length > 0}
                 disabled={potentialSupervisors.length === 0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-slate-900 disabled:text-gray-500 dark:disabled:text-slate-500"
               >
                 <option value="">
                   {potentialSupervisors.length === 0 ? 'No supervisors available' : 'Select a supervisor'}
@@ -372,7 +372,7 @@ const UserForm = ({ user, onClose }) => {
                 ))}
               </select>
               {potentialSupervisors.length === 0 && formData.market_id && (
-                <p className="text-xs text-orange-600 mt-1">
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                   No supervisors found for this market. Create a supervisor first.
                 </p>
               )}
@@ -387,28 +387,28 @@ const UserForm = ({ user, onClose }) => {
                 name="is_active"
                 checked={formData.is_active}
                 onChange={handleChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600 rounded"
               />
-              <label className="ml-2 block text-sm text-gray-900">
+              <label className="ml-2 block text-sm text-gray-900 dark:text-white">
                 Account is active
               </label>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => onClose(false)}
               disabled={loading}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-md disabled:opacity-50 flex items-center gap-2 transition-colors"
             >
               {loading && <div className="spinner-small"></div>}
               {loading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create User')}
