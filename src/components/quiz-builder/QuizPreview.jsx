@@ -207,16 +207,22 @@ const QuizPreview = memo(({ quiz }) => {
 
   return (
     <div>
-      <div className="mb-8">
-        <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>{quiz.title}</h3>
+      <div className={`mb-6 rounded-xl border p-5 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-slate-50'}`}>
+        <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>{quiz.title || 'Untitled Quiz'}</h3>
         {quiz.description && (
           <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-4`}>{quiz.description}</p>
         )}
-        <div className={`flex gap-4 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-          <div>Time Limit: {formatTime(quiz.time_limit)}</div>
-          <div>Passing Score: {quiz.passing_score}%</div>
+        <div className={`flex flex-wrap gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+          <div className={`rounded-full px-2.5 py-1 ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-white text-slate-700'}`}>
+            Time Limit: {formatTime(quiz.time_limit)}
+          </div>
+          <div className={`rounded-full px-2.5 py-1 ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-white text-slate-700'}`}>
+            Passing Score: {quiz.passing_score}%
+          </div>
           {quiz.is_practice && (
-            <div className={`${isDark ? 'text-primary-light' : 'text-primary-dark'} font-medium`}>Practice Quiz</div>
+            <div className={`${isDark ? 'bg-emerald-900/40 text-emerald-300' : 'bg-emerald-100 text-emerald-800'} rounded-full px-2.5 py-1 font-medium`}>
+              Practice Quiz
+            </div>
           )}
         </div>
       </div>
@@ -226,8 +232,8 @@ const QuizPreview = memo(({ quiz }) => {
           <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>Loading questions...</p>
         </div>
       ) : questionData && questionData.length > 0 ? (
-        <div>
-          <div className="mb-6">
+        <div className={`${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-slate-50 border-slate-200'} rounded-xl border p-4 md:p-5`}>
+          <div className="mb-5">
             <div className="flex justify-between items-center mb-2">
               <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
                 Question {currentQuestionIndex + 1} of {questionData.length}

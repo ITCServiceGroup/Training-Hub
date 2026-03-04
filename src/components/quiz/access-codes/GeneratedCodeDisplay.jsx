@@ -20,35 +20,38 @@ const GeneratedCodeDisplay = memo(({ generatedCode, onGenerateAnother }) => {
   }, [generatedCode.code, showToast]);
 
   return (
-    <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
-      <h4 className="text-lg font-bold text-green-800 dark:text-green-400 mb-4">
+    <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
+      <h4 className="text-lg font-bold text-green-800 dark:text-green-400 mb-1">
         Access Code Generated
       </h4>
+      <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+        Share this code with the learner. They can use it once for quiz access.
+      </p>
       
-      <div className="text-3xl font-mono font-bold text-center p-4 bg-white dark:bg-slate-800 rounded border border-green-300 dark:border-green-700 mb-4">
+      <div className="text-3xl font-mono font-bold text-center tracking-widest p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-300 dark:border-green-700 mb-4">
         {generatedCode.code}
       </div>
       
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div className="rounded-lg bg-white/80 dark:bg-slate-800/70 border border-green-200 dark:border-green-900 p-3">
           <p className="text-sm text-slate-500 dark:text-slate-400">LDAP Username</p>
           <p className="font-medium dark:text-slate-200">{generatedCode.ldap}</p>
         </div>
-        <div>
+        <div className="rounded-lg bg-white/80 dark:bg-slate-800/70 border border-green-200 dark:border-green-900 p-3">
           <p className="text-sm text-slate-500 dark:text-slate-400">Email</p>
           <p className="font-medium dark:text-slate-200">{generatedCode.email}</p>
         </div>
-        <div>
+        <div className="rounded-lg bg-white/80 dark:bg-slate-800/70 border border-green-200 dark:border-green-900 p-3">
           <p className="text-sm text-slate-500 dark:text-slate-400">Supervisor</p>
           <p className="font-medium dark:text-slate-200">{generatedCode.supervisor}</p>
         </div>
-        <div>
+        <div className="rounded-lg bg-white/80 dark:bg-slate-800/70 border border-green-200 dark:border-green-900 p-3">
           <p className="text-sm text-slate-500 dark:text-slate-400">Market</p>
           <p className="font-medium dark:text-slate-200">{generatedCode.market}</p>
         </div>
       </div>
       
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-3">
         <button
           type="button"
           className="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors"

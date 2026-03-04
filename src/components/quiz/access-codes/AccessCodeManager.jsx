@@ -16,57 +16,52 @@ const AccessCodeManager = ({ quizId, quizTitle }) => {
   }, []);
 
   return (
-    <div className="py-4 max-w-full">
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-4xl text-primary-dark dark:text-primary-light m-0">
-              Access Codes
-            </h2>
-            {quizTitle && (
-              <h3 className="text-xl text-slate-600 dark:text-slate-400 mt-2 mb-0 font-normal">
-                {quizTitle}
-              </h3>
-            )}
-          </div>
-        </div>
+    <div className="py-4 max-w-full space-y-6">
+      <div className={`rounded-xl border p-6 ${
+        isDarkMode
+          ? 'border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900'
+          : 'border-slate-200 bg-gradient-to-r from-sky-50 to-white'
+      }`}>
+        <h2 className="text-4xl text-primary-dark dark:text-primary-light m-0">
+          Access Codes
+        </h2>
+        {quizTitle && (
+          <h3 className="text-xl text-slate-600 dark:text-slate-400 mt-2 mb-0 font-normal">
+            {quizTitle}
+          </h3>
+        )}
+        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+          Generate one-time learner codes and audit existing code usage for this quiz.
+        </p>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow">
-        <div className="p-6">
-          <div className="flex mb-6 relative">
-            {/* Add bottom border that spans the full width */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-slate-200 dark:bg-slate-700"></div>
-
-            <div className="flex gap-1">
-              {/* Generate New Code Tab */}
-              <button
-                className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
-                  activeTab === 'generate'
-                    ? 'bg-primary-dark text-white border-slate-200 z-10' // Active: primary bg, white text
-                    : isDarkMode
-                      ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
-                      : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: light bg, darker on hover
-                }`}
-                onClick={() => setActiveTab('generate')}
-              >
-                Generate New Code
-              </button>
-
-              {/* Access Codes Tab */}
-              <button
-                className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
-                  activeTab === 'list'
-                    ? 'bg-primary-dark text-white border-slate-200 z-10'
-                    : isDarkMode
-                      ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
-                      : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
-                }`}
-                onClick={() => setActiveTab('list')}
-              >
-                Access Codes
-              </button>
-            </div>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="p-4 md:p-6">
+          <div className="mb-6 flex flex-wrap gap-2">
+            <button
+              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                activeTab === 'generate'
+                  ? 'bg-primary-dark text-white'
+                  : isDarkMode
+                    ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+              onClick={() => setActiveTab('generate')}
+            >
+              1. Generate New Code
+            </button>
+            <button
+              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                activeTab === 'list'
+                  ? 'bg-primary-dark text-white'
+                  : isDarkMode
+                    ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+              onClick={() => setActiveTab('list')}
+            >
+              2. View Access Codes
+            </button>
           </div>
 
           <div>

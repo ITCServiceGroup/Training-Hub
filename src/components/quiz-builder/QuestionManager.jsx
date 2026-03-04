@@ -409,8 +409,8 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
       <div
         ref={setNodeRef}
         style={style}
-        className={`p-4 rounded-lg border ${
-          isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
+        className={`p-4 rounded-xl border ${
+          isDark ? 'border-slate-700 bg-slate-800/80' : 'border-slate-200 bg-white'
         } ${isDragging ? 'shadow-lg' : ''}`}
       >
         <div className="flex justify-between items-start">
@@ -439,15 +439,15 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
                 </div>
               )}
               <div className="flex-1">
-                <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`font-medium mb-2 pr-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {question.question_text}
                 </p>
-                <div className="text-sm text-slate-500">
-                  <span className={`inline-block px-2 py-1 ${isDark ? 'bg-slate-700 text-gray-300' : 'bg-slate-100 text-slate-700'} rounded mr-2`}>
+                <div className="text-sm text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className={`inline-block px-2 py-1 ${isDark ? 'bg-slate-700 text-gray-300' : 'bg-slate-100 text-slate-700'} rounded`}>
                     {question.question_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </span>
                   {question.explanation && (
-                    <span className="text-primary">Has Explanation</span>
+                    <span className="text-primary text-xs font-semibold">Has Explanation</span>
                   )}
                 </div>
                 {/* Quiz badges */}
@@ -477,13 +477,9 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
               </div>
             </div>
           </div>
-          <div className="flex gap-2 ml-4">
+          <div className="flex flex-wrap gap-2 ml-4 justify-end">
             <button
-              className={`inline-flex justify-center py-2 px-4 border shadow-sm text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                isSelected
-                  ? 'border-transparent text-white bg-primary hover:bg-primary-dark focus:ring-primary'
-                  : 'border-transparent text-white bg-primary hover:bg-primary-dark focus:ring-primary'
-              }`}
+              className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-xs font-semibold rounded-md text-white bg-primary hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               onClick={() => {
                 if (isSelected) {
                   handleRemoveQuestion(question.id);
@@ -495,7 +491,7 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
               {isSelected ? 'Remove' : 'Add'}
             </button>
             <button
-              className="inline-flex justify-center py-2 px-4 border border-secondary shadow-sm text-sm font-medium rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-colors"
+              className="inline-flex justify-center py-2 px-3 border border-secondary shadow-sm text-xs font-semibold rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-colors"
               onClick={() => {
                 saveScrollPositions();
                 setSelectedQuestion(question);
@@ -505,7 +501,7 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
               Edit
             </button>
             <button
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+              className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-xs font-semibold rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
               onClick={() => openDeleteConfirmation(question.id)}
             >
               Delete
@@ -520,21 +516,21 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
   const renderQuestionItem = (question, isSelected) => (
     <div
       key={question.id}
-      className={`p-4 rounded-lg border ${
-        isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
+      className={`p-4 rounded-xl border ${
+        isDark ? 'border-slate-700 bg-slate-800/80' : 'border-slate-200 bg-white'
       }`}
     >
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <p className={`font-medium mb-2 pr-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {question.question_text}
           </p>
-          <div className="text-sm text-slate-500">
-            <span className={`inline-block px-2 py-1 ${isDark ? 'bg-slate-700 text-gray-300' : 'bg-slate-100 text-slate-700'} rounded mr-2`}>
+          <div className="text-sm text-slate-500 flex flex-wrap items-center gap-1.5">
+            <span className={`inline-block px-2 py-1 ${isDark ? 'bg-slate-700 text-gray-300' : 'bg-slate-100 text-slate-700'} rounded`}>
               {question.question_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </span>
             {question.explanation && (
-              <span className="text-primary">Has Explanation</span>
+              <span className="text-primary text-xs font-semibold">Has Explanation</span>
             )}
           </div>
           {/* Quiz badges */}
@@ -562,13 +558,9 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
             );
           })()}
         </div>
-        <div className="flex gap-2 ml-4">
+        <div className="flex flex-wrap gap-2 ml-4 justify-end">
           <button
-            className={`inline-flex justify-center py-2 px-4 border shadow-sm text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              isSelected
-                ? 'border-transparent text-white bg-primary hover:bg-primary-dark focus:ring-primary'
-                : 'border-transparent text-white bg-primary hover:bg-primary-dark focus:ring-primary'
-            }`}
+            className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-xs font-semibold rounded-md text-white bg-primary hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             onClick={() => {
               if (isSelected) {
                 handleRemoveQuestion(question.id);
@@ -580,7 +572,7 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
             {isSelected ? 'Remove' : 'Add'}
           </button>
           <button
-            className="inline-flex justify-center py-2 px-4 border border-secondary shadow-sm text-sm font-medium rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-colors"
+            className="inline-flex justify-center py-2 px-3 border border-secondary shadow-sm text-xs font-semibold rounded-md text-secondary bg-white dark:bg-slate-800 hover:bg-secondary/10 dark:hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-colors"
             onClick={() => {
               saveScrollPositions();
               setSelectedQuestion(question);
@@ -590,7 +582,7 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
             Edit
           </button>
           <button
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+            className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-xs font-semibold rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
             onClick={() => openDeleteConfirmation(question.id)}
           >
             Delete
@@ -603,16 +595,27 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
   return (
     <div>
       {error && (
-        <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>
+        <div className={`${isDark ? 'bg-red-900/30 text-red-400 border-red-800' : 'bg-red-50 text-red-600 border-red-200'} border p-4 rounded-lg mb-6`}>
           {error}
         </div>
       )}
 
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Questions</h3>
+      <div className={`mb-6 rounded-xl border p-4 md:p-5 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-slate-50'}`}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Questions</h3>
+            {categories[0] ? (
+              <div className={`text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
+                Managing category: <span className="font-semibold">{categories[0].name}</span>
+              </div>
+            ) : (
+              <div className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                Select categories in Quiz Details to manage question selection.
+              </div>
+            )}
+          </div>
           <button
-            className="bg-primary-dark hover:bg-primary text-white border-none rounded py-2 px-3 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary-dark hover:bg-primary text-white border-none rounded-lg py-2.5 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               setSelectedQuestion(null);
               setIsAddingQuestion(true);
@@ -622,11 +625,6 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
             Create New Question
           </button>
         </div>
-        {categories[0] && (
-          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-            Category: {categories[0].name}
-          </div>
-        )}
       </div>
 
       {!quiz.category_ids[0] ? (
@@ -644,39 +642,43 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
           </div>
         </div>
       ) : isAddingQuestion ? (
-        <QuestionForm
-          question={selectedQuestion}
-          categoryId={quiz.category_ids[0]}
-          onSave={handleQuestionSave}
-          onCancel={() => {
-            setIsAddingQuestion(false);
-            setSelectedQuestion(null);
-            restoreScrollPositions();
-          }}
-        />
+        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-4 md:p-6`}>
+          <QuestionForm
+            question={selectedQuestion}
+            categoryId={quiz.category_ids[0]}
+            onSave={handleQuestionSave}
+            onCancel={() => {
+              setIsAddingQuestion(false);
+              setSelectedQuestion(null);
+              restoreScrollPositions();
+            }}
+          />
+        </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-          {/* Left Column - Selected Questions */}
-          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg border ${isDark ? 'border-slate-700' : 'border-slate-200'} p-6 flex flex-col`}>
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Selected Questions
-                </h4>
-                {quiz.randomize_questions ? (
-                  <span className={`text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                    Question order will be randomized
-                  </span>
-                ) : selectedQuestions.length > 1 && (
-                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    Drag questions to reorder
-                  </span>
-                )}
+          <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-5 flex flex-col`}>
+            <div className={`mb-4 border-b pb-4 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+              <div className="flex justify-between items-start gap-3">
+                <div>
+                  <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Selected Questions
+                  </h4>
+                  {quiz.randomize_questions ? (
+                    <span className={`text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                      Question order will be randomized
+                    </span>
+                  ) : selectedQuestions.length > 1 && (
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                      Drag questions to reorder
+                    </span>
+                  )}
+                </div>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDark ? 'bg-primary/20 text-primary-light' : 'bg-primary/10 text-primary-dark'}`}>
+                  {selectedQuestions.length} selected
+                </span>
               </div>
-              <span className={`text-sm px-2 py-1 rounded-full ${isDark ? 'bg-primary/20 text-primary-light' : 'bg-primary/10 text-primary-dark'}`}>
-                {selectedQuestions.length} question{selectedQuestions.length !== 1 ? 's' : ''}
-              </span>
             </div>
+
             <div ref={selectedQuestionsRef} className="space-y-4 flex-1 overflow-y-auto">
               {isLoadingSelectedQuestions ? (
                 <div className={`text-center p-8 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-50'}`}>
@@ -694,7 +696,6 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
                   </p>
                 </div>
               ) : !quiz.randomize_questions ? (
-                // Use sortable context when randomize is disabled
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -715,22 +716,23 @@ const QuestionManager = memo(({ quiz, onChange, isLoading }) => {
                   </SortableContext>
                 </DndContext>
               ) : (
-                // Use regular rendering when randomize is enabled
                 selectedQuestions.map(question => renderQuestionItem(question, true))
               )}
             </div>
           </div>
 
-          {/* Right Column - Available Questions */}
-          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg border ${isDark ? 'border-slate-700' : 'border-slate-200'} p-6 flex flex-col`}>
-            <div className="flex justify-between items-center mb-4">
-              <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Available Questions
-              </h4>
-              <span className={`text-sm px-2 py-1 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                {availableQuestions.length} question{availableQuestions.length !== 1 ? 's' : ''}
-              </span>
+          <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-5 flex flex-col`}>
+            <div className={`mb-4 border-b pb-4 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+              <div className="flex justify-between items-center gap-3">
+                <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Available Questions
+                </h4>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                  {availableQuestions.length} available
+                </span>
+              </div>
             </div>
+
             <div ref={availableQuestionsRef} className="space-y-4 flex-1 overflow-y-auto">
               {availableQuestions.length === 0 ? (
                 <div className={`text-center p-8 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-50'}`}>

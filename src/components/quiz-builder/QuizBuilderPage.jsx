@@ -144,10 +144,12 @@ const QuizBuilderPage = memo(() => {
     );
   }
 
+  const hasCategories = Array.isArray(quiz.category_ids) && quiz.category_ids.length > 0;
+  const questionCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+
   return (
-    <div className="py-4 max-w-full min-h-screen flex flex-col">
-      {/* Back Button */}
-      <div className="mb-6">
+    <div className="py-4 max-w-full min-h-screen flex flex-col gap-6">
+      <div className="flex items-center justify-between">
         <button
           className={`px-4 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'} font-medium rounded-lg transition-colors`}
           onClick={handleBack}
@@ -156,92 +158,115 @@ const QuizBuilderPage = memo(() => {
         </button>
       </div>
 
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h2 className={`text-4xl ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0`}>
-            {quizId ? 'Edit Quiz' : 'Create Quiz'}
-          </h2>
-          {quizId && quiz.title && (
-            <h3 className={`text-xl ${isDark ? 'text-gray-300' : 'text-slate-600'} mt-2 mb-0 font-normal`}>
-              {quiz.title}
-            </h3>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {quizId && quiz && (
-            <RequestApprovalButton
-              content={quiz}
-              contentType="quiz"
-              onRequestSuccess={() => {
-                showToast('Approval request submitted successfully', 'success');
-              }}
-            />
-          )}
-          <button
-            className="bg-primary-dark hover:bg-primary text-white border-none rounded py-3 px-4 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleSave}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : 'Save Quiz'}
-          </button>
-        </div>
-      </div>
+      <div className={`rounded-xl border p-6 md:p-7 ${
+        isDark
+          ? 'border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900'
+          : 'border-slate-200 bg-gradient-to-r from-sky-50 to-white'
+      }`}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className={`text-xs uppercase tracking-wide font-semibold ${isDark ? 'text-sky-300' : 'text-sky-700'}`}>
+              Quiz Builder
+            </p>
+            <h2 className={`mt-1 text-3xl md:text-4xl font-bold ${isDark ? 'text-primary-light' : 'text-primary-dark'} m-0`}>
+              {quizId ? 'Edit Quiz' : 'Create Quiz'}
+            </h2>
+            <p className={`mt-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {quizId
+                ? (quiz.title || 'Configure quiz settings, question selection, and learner experience.')
+                : 'Set up quiz details first, then add questions and review before publishing.'
+              }
+            </p>
+          </div>
 
-      {error && (
-        <div className={`${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'} p-4 rounded-lg mb-6`}>{error}</div>
-      )}
-
-      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-6 flex-1 flex flex-col`}>
-        <div className="flex mb-6 relative">
-          {/* Add bottom border that spans the full width */}
-          <div className={`absolute bottom-0 left-0 right-0 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
-
-          <div className="flex gap-1">
-            {/* Quiz Details Tab */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            {quizId && quiz && (
+              <RequestApprovalButton
+                content={quiz}
+                contentType="quiz"
+                onRequestSuccess={() => {
+                  showToast('Approval request submitted successfully', 'success');
+                }}
+              />
+            )}
             <button
-              className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
-                activeTab === 'metadata'
-                  ? 'bg-primary-dark text-white border-slate-200 z-10' // Active: primary bg, white text
-                  : isDark
-                    ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
-                    : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200' // Inactive: darker gray, even darker on hover
-              }`}
-              onClick={() => setActiveTab('metadata')}
+              className="bg-primary-dark hover:bg-primary text-white border-none rounded-lg py-3 px-5 text-sm font-bold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleSave}
+              disabled={isLoading}
             >
-              Quiz Details
-            </button>
-
-            {/* Questions Tab */}
-            <button
-              className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
-                activeTab === 'questions'
-                  ? 'bg-primary-dark text-white border-slate-200 z-10'
-                  : isDark
-                    ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
-                    : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
-              }`}
-              onClick={() => setActiveTab('questions')}
-            >
-              Questions
-            </button>
-
-            {/* Preview Tab */}
-            <button
-              className={`py-2 px-6 font-medium rounded-t-lg border border-b-0 -mb-px relative ${
-                activeTab === 'preview'
-                  ? 'bg-primary-dark text-white border-slate-200 z-10'
-                  : isDark
-                    ? 'bg-slate-700 text-gray-300 border-transparent hover:bg-slate-600'
-                    : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'
-              }`}
-              onClick={() => setActiveTab('preview')}
-            >
-              Preview
+              {isLoading ? 'Saving...' : 'Save Quiz'}
             </button>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col">
+        <div className="mt-5 flex flex-wrap gap-2">
+          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+            isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-200 text-slate-700'
+          }`}>
+            {hasCategories ? `${quiz.category_ids.length} categories linked` : 'No categories selected'}
+          </span>
+          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+            isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-200 text-slate-700'
+          }`}>
+            {questionCount} question{questionCount === 1 ? '' : 's'}
+          </span>
+          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+            quiz.is_practice
+              ? (isDark ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-800')
+              : quiz.has_practice_mode
+                ? (isDark ? 'bg-teal-900/50 text-teal-300' : 'bg-teal-100 text-teal-800')
+                : (isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800')
+          }`}>
+            {quiz.is_practice ? 'Practice Only' : quiz.has_practice_mode ? 'Assessment + Practice' : 'Assessment'}
+          </span>
+        </div>
+      </div>
+
+      {error && (
+        <div className={`${isDark ? 'bg-red-900/30 text-red-400 border-red-800' : 'bg-red-50 text-red-600 border-red-200'} border p-4 rounded-lg`}>{error}</div>
+      )}
+
+      <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border shadow-sm p-4 md:p-6 flex-1 flex flex-col`}>
+        <div className="mb-6 flex flex-wrap gap-2">
+          <button
+            className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+              activeTab === 'metadata'
+                ? 'bg-primary-dark text-white'
+                : isDark
+                  ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            onClick={() => setActiveTab('metadata')}
+          >
+            1. Quiz Details
+          </button>
+          <button
+            className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+              activeTab === 'questions'
+                ? 'bg-primary-dark text-white'
+                : isDark
+                  ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            onClick={() => setActiveTab('questions')}
+          >
+            2. Questions
+          </button>
+          <button
+            className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+              activeTab === 'preview'
+                ? 'bg-primary-dark text-white'
+                : isDark
+                  ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            onClick={() => setActiveTab('preview')}
+          >
+            3. Preview
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col min-h-0">
           {activeTab === 'metadata' && (
             <QuizMetadataForm
               quiz={quiz}

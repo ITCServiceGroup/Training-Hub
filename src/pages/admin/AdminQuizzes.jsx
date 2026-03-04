@@ -11,7 +11,7 @@ import VisibilityBadge from '../../components/common/VisibilityBadge';
 const AdminQuizzes = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { section, quizId } = useParams();
+  const { quizId } = useParams();
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,6 +116,13 @@ const AdminQuizzes = () => {
       setSortField(field);
       setSortOrder('asc');
     }
+  };
+
+  const getSortIndicator = (field) => {
+    if (sortField !== field) {
+      return null;
+    }
+    return sortOrder === 'asc' ? '↑' : '↓';
   };
 
   // Filter and sort quizzes based on selected filters and sorting
@@ -267,6 +274,56 @@ const AdminQuizzes = () => {
     }
   };
 
+  const summaryStats = useMemo(() => {
+    const assessmentCount = quizzes.filter((quiz) => !quiz.is_practice).length;
+    const practiceOnlyCount = quizzes.filter((quiz) => quiz.is_practice).length;
+    const hybridCount = quizzes.filter((quiz) => !quiz.is_practice && quiz.has_practice_mode).length;
+    const totalQuestions = quizzes.reduce((total, quiz) => total + (quiz.questionCount || 0), 0);
+
+    return {
+      totalQuizzes: quizzes.length,
+      assessmentCount,
+      practiceOnlyCount,
+      hybridCount,
+      totalQuestions
+    };
+  }, [quizzes]);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedSections([]);
+    setSelectedCategories([]);
+  };
+
+  const renderTypeBadge = (quiz) => {
+    if (quiz.is_practice) {
+      return (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+          isDark ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-700' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+        }`}>
+          Practice Only
+        </span>
+      );
+    }
+
+    return (
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
+        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+          isDark ? 'bg-blue-900/40 text-blue-300 border border-blue-700' : 'bg-blue-100 text-blue-800 border border-blue-200'
+        }`}>
+          Assessment
+        </span>
+        {quiz.has_practice_mode && (
+          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+            isDark ? 'bg-teal-900/40 text-teal-300 border border-teal-700' : 'bg-teal-100 text-teal-800 border border-teal-200'
+          }`}>
+            + Practice Mode
+          </span>
+        )}
+      </div>
+    );
+  };
+
   // Show quiz builder if in builder mode
   if (currentSection === 'builder') {
     return <QuizBuilderPage />;
@@ -293,23 +350,75 @@ const AdminQuizzes = () => {
     );
   }
 
+  if (currentSection === 'codes' && quizId && !selectedQuiz) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <button
+            className={`px-4 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-slate-200' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'} font-medium rounded-lg transition-colors`}
+            onClick={() => navigate('/admin/quizzes')}
+          >
+            ← Back to Quizzes
+          </button>
+        </div>
+        <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-xl border ${isDark ? 'border-slate-700' : 'border-slate-200'} p-8`}>
+          <LoadingSpinner size="lg" text="Loading quiz details..." />
+        </div>
+      </div>
+    );
+  }
+
   // Show quiz list by default
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Quiz</h2>
-          <p className={`mt-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
-            Manage quizzes and access codes
-          </p>
+      <div className={`rounded-2xl border p-6 md:p-8 mb-6 ${
+        isDark
+          ? 'border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900'
+          : 'border-slate-200 bg-gradient-to-r from-sky-50 to-white'
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className={`text-sm font-semibold uppercase tracking-wide ${isDark ? 'text-sky-300' : 'text-sky-700'}`}>
+              Admin Quiz System
+            </p>
+            <h2 className={`mt-1 text-3xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+              Quiz Management
+            </h2>
+            <p className={`mt-2 max-w-2xl ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              Build assessments, manage practice modes, and control access code distribution from one workspace.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 font-semibold text-white transition-colors hover:bg-primary-dark"
+            onClick={handleCreateQuiz}
+          >
+            Create New Quiz
+          </button>
         </div>
-        <button
-          type="button"
-          className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
-          onClick={handleCreateQuiz}
-        >
-          Create New Quiz
-        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 mb-6">
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+          <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total Quizzes</p>
+          <p className={`mt-2 text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{summaryStats.totalQuizzes}</p>
+        </div>
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+          <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Assessment</p>
+          <p className={`mt-2 text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>{summaryStats.assessmentCount}</p>
+        </div>
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+          <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Practice Only</p>
+          <p className={`mt-2 text-2xl font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{summaryStats.practiceOnlyCount}</p>
+        </div>
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+          <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Dual Mode</p>
+          <p className={`mt-2 text-2xl font-bold ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>{summaryStats.hybridCount}</p>
+        </div>
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+          <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total Questions</p>
+          <p className={`mt-2 text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{summaryStats.totalQuestions}</p>
+        </div>
       </div>
 
       {error && (
@@ -318,168 +427,155 @@ const AdminQuizzes = () => {
         </div>
       )}
 
-      {/* Filter Controls */}
-      <div className={`mb-6 p-4 ${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow`}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
+      <div className={`mb-6 rounded-xl border p-5 md:p-6 ${
+        isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
+      }`}>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Filter Quiz Library
+          </h3>
+          {(searchTerm || selectedSections.length > 0 || selectedCategories.length > 0) && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                isDark ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+              }`}
+            >
+              Clear All Filters
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-              Search Quizzes
+            <label className={`mb-2 block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+              Search
             </label>
             <input
               type="text"
-              placeholder="Search by title, description, section, or category..."
+              placeholder="Title, description, section, category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+              className={`w-full rounded-lg border px-3 py-2.5 focus:border-transparent focus:ring-2 focus:ring-primary ${
                 isDark
-                  ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400'
-                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
+                  ? 'border-slate-600 bg-slate-700 text-slate-100 placeholder-slate-400'
+                  : 'border-slate-300 bg-white text-slate-900 placeholder-slate-500'
               }`}
             />
           </div>
 
-          {/* Section Filter */}
           <div className="relative" ref={sectionDropdownRef}>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-              Filter by Sections
+            <label className={`mb-2 block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+              Sections
             </label>
             <button
               type="button"
               onClick={() => setSectionDropdownOpen(!sectionDropdownOpen)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-left flex items-center justify-between ${
+              className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left focus:border-transparent focus:ring-2 focus:ring-primary ${
                 isDark
-                  ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
-                  : 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50'
+                  ? 'border-slate-600 bg-slate-700 text-slate-100 hover:bg-slate-600'
+                  : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span>
+              <span className="truncate">
                 {selectedSections.length === 0
-                  ? 'Select sections...'
-                  : `${selectedSections.length} section${selectedSections.length !== 1 ? 's' : ''} selected`
+                  ? 'All sections'
+                  : `${selectedSections.length} selected`
                 }
               </span>
-              <svg className={`w-4 h-4 transition-transform ${sectionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`h-4 w-4 transition-transform ${sectionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {sectionDropdownOpen && (
-              <div className={`absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-                isDark
-                  ? 'bg-slate-700 border-slate-600'
-                  : 'bg-white border-slate-300'
+              <div className={`absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border shadow-lg ${
+                isDark ? 'border-slate-600 bg-slate-700' : 'border-slate-300 bg-white'
               }`}>
                 {availableFilters.sections.length === 0 ? (
                   <div className={`px-3 py-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     No sections available
                   </div>
                 ) : (
-                  availableFilters.sections.map(section => (
-                    <div
-                      key={section.id}
-                      className={`px-3 py-2 cursor-pointer hover:${isDark ? 'bg-slate-600' : 'bg-slate-50'}`}
-                      onClick={(e) => {
-                        // Only toggle if clicking on the div itself, not the checkbox
-                        if (e.target.type !== 'checkbox') {
-                          toggleSectionSelection(section.id);
-                        }
-                      }}
+                  availableFilters.sections.map((sectionOption) => (
+                    <label
+                      key={sectionOption.id}
+                      className={`flex cursor-pointer items-start gap-3 px-3 py-2 ${
+                        isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-50'
+                      }`}
                     >
-                      <div className="flex items-start">
-                        <input
-                          type="checkbox"
-                          checked={selectedSections.includes(section.id)}
-                          onChange={(e) => {
-                            e.stopPropagation(); // Prevent event bubbling
-                            toggleSectionSelection(section.id);
-                          }}
-                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 cursor-pointer"
-                          style={{ marginTop: '4px' }}
-                        />
-                        <div className="ml-3">
-                          <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-                            {section.name}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                      <input
+                        type="checkbox"
+                        checked={selectedSections.includes(sectionOption.id)}
+                        onChange={() => toggleSectionSelection(sectionOption.id)}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className={`text-sm ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
+                        {sectionOption.name}
+                      </span>
+                    </label>
                   ))
                 )}
               </div>
             )}
           </div>
 
-          {/* Category Filter */}
           <div className="relative" ref={categoryDropdownRef}>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-              Filter by Categories
+            <label className={`mb-2 block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+              Categories
             </label>
             <button
               type="button"
               onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-left flex items-center justify-between ${
+              className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left focus:border-transparent focus:ring-2 focus:ring-primary ${
                 isDark
-                  ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
-                  : 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50'
+                  ? 'border-slate-600 bg-slate-700 text-slate-100 hover:bg-slate-600'
+                  : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span>
+              <span className="truncate">
                 {selectedCategories.length === 0
-                  ? 'Select categories...'
-                  : `${selectedCategories.length} categor${selectedCategories.length !== 1 ? 'ies' : 'y'} selected`
+                  ? 'All categories'
+                  : `${selectedCategories.length} selected`
                 }
               </span>
-              <svg className={`w-4 h-4 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`h-4 w-4 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {categoryDropdownOpen && (
-              <div className={`absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-                isDark
-                  ? 'bg-slate-700 border-slate-600'
-                  : 'bg-white border-slate-300'
+              <div className={`absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border shadow-lg ${
+                isDark ? 'border-slate-600 bg-slate-700' : 'border-slate-300 bg-white'
               }`}>
                 {availableFilters.categories.length === 0 ? (
                   <div className={`px-3 py-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     No categories available
                   </div>
                 ) : (
-                  availableFilters.categories.map(category => (
-                    <div
-                      key={category.id}
-                      className={`px-3 py-2 cursor-pointer hover:${isDark ? 'bg-slate-600' : 'bg-slate-50'}`}
-                      onClick={(e) => {
-                        // Only toggle if clicking on the div itself, not the checkbox
-                        if (e.target.type !== 'checkbox') {
-                          toggleCategorySelection(category.id);
-                        }
-                      }}
+                  availableFilters.categories.map((categoryOption) => (
+                    <label
+                      key={categoryOption.id}
+                      className={`flex cursor-pointer items-start gap-3 px-3 py-2 ${
+                        isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-50'
+                      }`}
                     >
-                      <div className="flex items-start">
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category.id)}
-                          onChange={(e) => {
-                            e.stopPropagation(); // Prevent event bubbling
-                            toggleCategorySelection(category.id);
-                          }}
-                          className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded flex-shrink-0 cursor-pointer"
-                          style={{ marginTop: '5px' }}
-                        />
-                        <div className="ml-3">
-                          <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-                            {category.name}
-                            {category.section && (
-                              <span className={`ml-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                ({category.section.name})
-                              </span>
-                            )}
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(categoryOption.id)}
+                        onChange={() => toggleCategorySelection(categoryOption.id)}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className={`text-sm ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
+                        {categoryOption.name}
+                        {categoryOption.section && (
+                          <span className={`ml-2 text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+                            ({categoryOption.section.name})
                           </span>
-                        </div>
-                      </div>
-                    </div>
+                        )}
+                      </span>
+                    </label>
                   ))
                 )}
               </div>
@@ -487,50 +583,29 @@ const AdminQuizzes = () => {
           </div>
         </div>
 
-        {/* Filter Summary and Clear */}
-        {(searchTerm || selectedSections.length > 0 || selectedCategories.length > 0) && (
-          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-wrap gap-2">
-                {searchTerm && (
-                  <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
-                    Search: "{searchTerm}"
-                  </span>
-                )}
-                {selectedSections.length > 0 && (
-                  <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'}`}>
-                    {selectedSections.length} Section{selectedSections.length !== 1 ? 's' : ''}
-                  </span>
-                )}
-                {selectedCategories.length > 0 && (
-                  <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'}`}>
-                    {selectedCategories.length} Categor{selectedCategories.length !== 1 ? 'ies' : 'y'}
-                  </span>
-                )}
-                <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                  {filteredQuizzes.length} of {quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''}
-                </span>
-              </div>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedSections([]);
-                  setSelectedCategories([]);
-                }}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                  isDark
-                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                }`}
-              >
-                Clear All Filters
-              </button>
-            </div>
-          </div>
-        )}
+        <div className={`mt-4 flex flex-wrap items-center gap-2 border-t pt-4 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          {searchTerm && (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isDark ? 'bg-blue-900/50 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
+              Search: {searchTerm}
+            </span>
+          )}
+          {selectedSections.length > 0 && (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isDark ? 'bg-emerald-900/40 text-emerald-200' : 'bg-emerald-100 text-emerald-800'}`}>
+              {selectedSections.length} section{selectedSections.length !== 1 ? 's' : ''}
+            </span>
+          )}
+          {selectedCategories.length > 0 && (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isDark ? 'bg-indigo-900/40 text-indigo-200' : 'bg-indigo-100 text-indigo-800'}`}>
+              {selectedCategories.length} categor{selectedCategories.length !== 1 ? 'ies' : 'y'}
+            </span>
+          )}
+          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-100 text-slate-700'}`}>
+            Showing {filteredQuizzes.length} of {quizzes.length}
+          </span>
+        </div>
       </div>
 
-      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow overflow-hidden`}>
+      <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-xl border ${isDark ? 'border-slate-700' : 'border-slate-200'} shadow-sm overflow-hidden`}>
         {isLoading ? (
           <div className="p-8">
             <LoadingSpinner size="lg" text="Loading quizzes..." />
@@ -543,144 +618,137 @@ const AdminQuizzes = () => {
             }
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-primary">
+          <div className="overflow-x-auto">
+            <table className="min-w-[1040px] w-full">
+            <thead className={isDark ? 'bg-slate-900/80' : 'bg-slate-100'}>
               <tr>
-                <th className="text-left text-sm font-medium text-white p-0">
+                <th className={`text-left text-sm font-semibold p-0 ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
                   <button
                     onClick={() => handleSort('title')}
-                    className="flex items-center gap-1 hover:text-gray-200 transition-colors w-full h-full px-4 py-3"
+                    className={`flex h-full w-full items-center gap-1 px-5 py-3 transition-colors ${
+                      isDark ? 'hover:text-white' : 'hover:text-slate-900'
+                    }`}
                   >
                     Quiz Name
-                    {sortField === 'title' && (
-                      <span className="text-xs">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <span className="text-xs">{getSortIndicator('title')}</span>
                   </button>
                 </th>
-                <th className="text-center text-sm font-medium text-white w-32 p-0">
+                <th className={`text-center text-sm font-semibold w-36 p-0 ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
                   <button
                     onClick={() => handleSort('questionCount')}
-                    className="flex items-center gap-1 hover:text-gray-200 transition-colors justify-center w-full h-full px-4 py-3"
+                    className={`flex h-full w-full items-center justify-center gap-1 px-4 py-3 transition-colors ${
+                      isDark ? 'hover:text-white' : 'hover:text-slate-900'
+                    }`}
                   >
                     Questions
-                    {sortField === 'questionCount' && (
-                      <span className="text-xs">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <span className="text-xs">{getSortIndicator('questionCount')}</span>
                   </button>
                 </th>
-                <th className="text-center text-sm font-medium text-white w-40 p-0">
+                <th className={`text-center text-sm font-semibold w-52 p-0 ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
                   <button
                     onClick={() => handleSort('type')}
-                    className="flex items-center gap-1 hover:text-gray-200 transition-colors justify-center w-full h-full px-4 py-3"
+                    className={`flex h-full w-full items-center justify-center gap-1 px-4 py-3 transition-colors ${
+                      isDark ? 'hover:text-white' : 'hover:text-slate-900'
+                    }`}
                   >
-                    Type
-                    {sortField === 'type' && (
-                      <span className="text-xs">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    Delivery Type
+                    <span className="text-xs">{getSortIndicator('type')}</span>
                   </button>
                 </th>
-                <th className="text-center text-sm font-medium text-white w-48 p-0">
+                <th className={`text-center text-sm font-semibold w-44 p-0 ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
                   <button
                     onClick={() => handleSort('created_at')}
-                    className="flex items-center gap-1 hover:text-gray-200 transition-colors justify-center w-full h-full px-4 py-3"
+                    className={`flex h-full w-full items-center justify-center gap-1 px-4 py-3 transition-colors ${
+                      isDark ? 'hover:text-white' : 'hover:text-slate-900'
+                    }`}
                   >
                     Date Created
-                    {sortField === 'created_at' && (
-                      <span className="text-xs">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <span className="text-xs">{getSortIndicator('created_at')}</span>
                   </button>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-white">
-                  <button className="flex items-center gap-1 justify-center w-full cursor-default">
-                    Actions
-                  </button>
+                <th className={`px-4 py-3 text-center text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-slate-600' : 'divide-slate-200'}`}>
               {filteredQuizzes.map(quiz => (
-              <tr key={quiz.id} className={isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}>
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{quiz.title}</div>
+              <tr key={quiz.id} className={isDark ? 'hover:bg-slate-700/40' : 'hover:bg-slate-50'}>
+                <td className="px-5 py-4 align-top">
+                  <div className="flex items-start gap-2">
+                    <div className={`font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{quiz.title}</div>
                     <VisibilityBadge content={quiz} size="sm" />
                   </div>
                   {quiz.description && (
                     <div className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{quiz.description}</div>
                   )}
-                </td>
-                <td className={`px-4 py-4 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
-                  {quiz.questionCount} questions
-                </td>
-                <td className="px-4 py-4 text-center">
-                  <div className="space-y-1 flex flex-col items-center">
-                    {quiz.is_practice ? (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'
-                      }`}>
-                        Practice Only
-                      </span>
-                    ) : (
-                      <div className="space-y-1 flex flex-col items-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          Assessment
+                  {quiz.categories && quiz.categories.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {quiz.categories.slice(0, 3).map((category) => (
+                        <span
+                          key={category.id}
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
+                            isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {category.name}
                         </span>
-                        {quiz.has_practice_mode && (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'
-                          }`}>
-                            +Practice Mode
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                      {quiz.categories.length > 3 && (
+                        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                          +{quiz.categories.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </td>
-                <td className={`px-4 py-4 text-center ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+                <td className={`px-4 py-4 text-center align-top ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-sm font-semibold ${
+                    isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    {quiz.questionCount}
+                  </span>
+                </td>
+                <td className="px-4 py-4 text-center align-top">
+                  {renderTypeBadge(quiz)}
+                </td>
+                <td className={`px-4 py-4 text-center align-top ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
                   {new Date(quiz.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
                   })}
                 </td>
-                <td className="px-4 py-4 text-center">
-                  <div className="flex justify-center gap-2 min-w-[320px]">
+                <td className="px-4 py-4 text-center align-top">
+                  <div className="mx-auto flex w-[276px] items-center justify-center gap-2 whitespace-nowrap">
                     <button
                       type="button"
-                      className={`px-4 py-2 font-medium rounded-lg transition-colors w-32 whitespace-nowrap flex items-center justify-center ${
+                      className={`w-[110px] rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
                         !quiz.is_practice
                           ? 'bg-primary hover:bg-primary-dark text-white cursor-pointer'
-                          : 'bg-transparent text-transparent cursor-default'
+                          : isDark
+                            ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                       }`}
                       onClick={!quiz.is_practice ? () => handleManageCodes(quiz) : undefined}
                       disabled={quiz.is_practice}
                     >
-                      {!quiz.is_practice ? 'Access Codes' : ''}
+                      {!quiz.is_practice ? 'Access Codes' : 'No Codes'}
                     </button>
                     <button
                       type="button"
-                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors w-16 flex items-center justify-center"
+                      className="w-[72px] rounded-lg bg-primary px-2.5 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
                       onClick={() => handleEditQuiz(quiz)}
                     >
                       Edit
                     </button>
                     <button
                       type="button"
-                      className={`px-4 py-2 ${
+                      className={`w-[86px] rounded-lg border px-2.5 py-2 text-sm font-medium transition-colors ${
                         isDark
-                          ? 'bg-slate-800 border-orange-500 text-orange-500 hover:bg-orange-900 hover:text-orange-200'
+                          ? 'bg-slate-800 border-orange-500 text-orange-400 hover:bg-orange-900/30 hover:text-orange-200'
                           : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white'
-                      } border font-medium rounded-lg transition-colors w-20 flex items-center justify-center`}
+                      }`}
                       onClick={() => openArchiveConfirmation(quiz.id)}
                       title="Archive quiz"
                     >
@@ -692,6 +760,7 @@ const AdminQuizzes = () => {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

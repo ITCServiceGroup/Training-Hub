@@ -238,80 +238,99 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
     ? categories.filter(category => category.section_id === selectedSectionId)
     : categories;
 
+  const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
+    ? studyGuides.filter(guide =>
+        guide.categories && quiz.category_ids.includes(guide.categories.id)
+      )
+    : studyGuides;
+
+  const quizModeDescription = quiz.is_practice
+    ? 'Practice-only quizzes are always accessible without access codes and provide immediate feedback.'
+    : quiz.has_practice_mode
+      ? 'This quiz will be available as both a regular quiz (requires access code) and a practice quiz.'
+      : 'This is a regular quiz that requires an access code to attempt.';
+
   return (
     <div className="space-y-6">
-      <div>
-        <label className={`${styles.text.formLabel} mb-1`}>
-          Quiz Title
-        </label>
-        <input
-          type="text"
-          className={styles.input}
-          value={quiz.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          onBlur={(e) => handleBlur('title', e.target.value)}
-          disabled={isLoading}
-          placeholder="Enter quiz title"
-          required
-        />
-      </div>
+      <section className={`rounded-xl border p-5 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-slate-50'}`}>
+        <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Core Information</h3>
+        <p className={`mt-1 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+          Define quiz name, purpose, scoring threshold, and timing.
+        </p>
 
-      <div>
-        <label className={`${styles.text.formLabel} mb-1`}>
-          Description
-        </label>
-        <textarea
-          className={styles.input}
-          value={quiz.description || ''}
-          onChange={(e) => handleChange('description', e.target.value)}
-          onBlur={(e) => handleBlur('description', e.target.value)}
-          rows={3}
-          disabled={isLoading}
-          placeholder="Enter quiz description"
-        />
-      </div>
+        <div className="mt-4 space-y-4">
+          <div>
+            <label className={`${styles.text.formLabel} mb-1`}>
+              Quiz Title
+            </label>
+            <input
+              type="text"
+              className={styles.input}
+              value={quiz.title}
+              onChange={(e) => handleChange('title', e.target.value)}
+              onBlur={(e) => handleBlur('title', e.target.value)}
+              disabled={isLoading}
+              placeholder="Enter quiz title"
+              required
+            />
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className={`${styles.text.formLabel} mb-1`}>
-            Time Limit (minutes)
-          </label>
-          <input
-            type="number"
-            className={styles.input}
-            value={quiz.time_limit ? Math.floor(quiz.time_limit / 60) : ''}
-            onChange={(e) => {
-              const minutes = parseInt(e.target.value, 10);
-              handleChange('time_limit', isNaN(minutes) ? null : minutes * 60);
-            }}
-            min="0"
-            placeholder="No time limit"
-            disabled={isLoading}
-          />
+          <div>
+            <label className={`${styles.text.formLabel} mb-1`}>
+              Description
+            </label>
+            <textarea
+              className={styles.input}
+              value={quiz.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
+              onBlur={(e) => handleBlur('description', e.target.value)}
+              rows={3}
+              disabled={isLoading}
+              placeholder="Enter quiz description"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={`${styles.text.formLabel} mb-1`}>
+                Time Limit (minutes)
+              </label>
+              <input
+                type="number"
+                className={styles.input}
+                value={quiz.time_limit ? Math.floor(quiz.time_limit / 60) : ''}
+                onChange={(e) => {
+                  const minutes = parseInt(e.target.value, 10);
+                  handleChange('time_limit', isNaN(minutes) ? null : minutes * 60);
+                }}
+                min="0"
+                placeholder="No time limit"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className={`${styles.text.formLabel} mb-1`}>
+                Passing Score (%)
+              </label>
+              <input
+                type="number"
+                className={styles.input}
+                value={quiz.passing_score || ''}
+                onChange={(e) => handleChange('passing_score', parseFloat(e.target.value))}
+                min="0"
+                max="100"
+                required
+                disabled={isLoading}
+              />
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div>
-          <label className={`${styles.text.formLabel} mb-1`}>
-            Passing Score (%)
-          </label>
-          <input
-            type="number"
-            className={styles.input}
-            value={quiz.passing_score || ''}
-            onChange={(e) => handleChange('passing_score', parseFloat(e.target.value))}
-            min="0"
-            max="100"
-            required
-            disabled={isLoading}
-          />
-        </div>
-      </div>
-
-      {/* Quiz Mode Options and Randomization Options - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Quiz Mode Options */}
-        <div>
-          <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Quiz Mode Options</h3>
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-slate-50'}`}>
+          <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>Delivery Mode</h4>
           <div className="space-y-2">
             <label className="flex items-start">
               <input
@@ -320,11 +339,9 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
                 checked={quiz.is_practice || false}
                 onChange={(e) => {
                   const isPracticeChecked = e.target.checked;
-                  // Update both flags in a single state update
                   onChange({
                     ...quiz,
                     is_practice: isPracticeChecked,
-                    // If checking practice-only, ensure has_practice_mode is false
                     has_practice_mode: isPracticeChecked ? false : quiz.has_practice_mode
                   });
                 }}
@@ -342,11 +359,9 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
                 checked={quiz.has_practice_mode || false}
                 onChange={(e) => {
                   const hasPracticeModeChecked = e.target.checked;
-                  // Update both flags in a single state update
                   onChange({
                     ...quiz,
                     has_practice_mode: hasPracticeModeChecked,
-                    // If checking has_practice_mode, ensure is_practice is false
                     is_practice: hasPracticeModeChecked ? false : quiz.is_practice
                   });
                 }}
@@ -359,9 +374,8 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
           </div>
         </div>
 
-        {/* Right Column - Randomization Options */}
-        <div>
-          <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Randomization Options</h3>
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-slate-50'}`}>
+          <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>Randomization</h4>
           <div className="space-y-2">
             <label className="flex items-start">
               <input
@@ -391,116 +405,106 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
           </div>
         </div>
 
-        {/* Grading Options */}
-        <div>
-          <h3 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'} mb-2`}>Grading Options</h3>
-          <div className="space-y-2">
-            <label className="flex items-start">
-              <input
-                type="checkbox"
-                className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
-                checked={quiz.allow_partial_credit || false}
-                onChange={(e) => handleChange('allow_partial_credit', e.target.checked)}
-                disabled={isLoading}
-              />
-              <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                Allow partial credit for "Check All That Apply" questions
-              </span>
-            </label>
-          </div>
-          <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-            When enabled, "Check All That Apply" questions will receive partial credit based on the percentage of correct selections. When disabled, missing any option will result in zero points for the question.
-          </p>
-        </div>
-      </div>
-
-      {/* Description text below both sections */}
-      <div>
-        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-          {quiz.is_practice
-            ? "Practice-only quizzes are always accessible without access codes and provide immediate feedback."
-            : quiz.has_practice_mode
-              ? "This quiz will be available as both a regular quiz (requires access code) and a practice quiz."
-              : "This is a regular quiz that requires an access code to attempt."}
-        </p>
-      </div>
-
-      <div>
-        <label className={`${styles.text.formLabel} mb-1`}>
-          Filter Categories by Section
-        </label>
-        <select
-          className={styles.input}
-          value={selectedSectionId || ''}
-          onChange={(e) => setSelectedSectionId(e.target.value || null)}
-          disabled={isLoading}
-        >
-          <option value="">All Sections</option>
-          {sections.map(section => (
-            <option key={section.id} value={section.id}>
-              {section.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Categories and Content Section - Side by side layout */}
-      <div className={`grid gap-6 ${quiz.id && (quiz.is_practice || quiz.has_practice_mode) ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-        {/* Select Categories */}
-        <div>
-          <label className={`${styles.text.formLabel} mb-2`}>
-            Select Categories
+        <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-slate-50'}`}>
+          <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>Grading</h4>
+          <label className="flex items-start">
+            <input
+              type="checkbox"
+              className="h-4 w-4 text-teal-600 border-slate-300 rounded flex-shrink-0 mt-0.5"
+              checked={quiz.allow_partial_credit || false}
+              onChange={(e) => handleChange('allow_partial_credit', e.target.checked)}
+              disabled={isLoading}
+            />
+            <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+              Allow partial credit for "Check All That Apply" questions
+            </span>
           </label>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
-            Choose which categories this quiz will include questions from.
+          <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+            When enabled, partial points are awarded by percentage of correct selections. When disabled, missing any correct option results in zero points for that question.
           </p>
-          <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
-            {filteredCategories.map(category => (
-              <label key={category.id} className={`flex items-start p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
-                <input
-                  type="checkbox"
-                  className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded flex-shrink-0 mt-0.5`}
-                  checked={quiz.category_ids.includes(category.id)}
-                  onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
-                  disabled={isLoading}
-                />
-                <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                  {category.name}
-                </span>
-              </label>
-            ))}
+        </div>
+      </section>
 
-            {filteredCategories.length === 0 && (
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No categories found</p>
-            )}
+      <div className={`rounded-lg border px-4 py-3 text-sm ${
+        isDark ? 'border-slate-700 bg-slate-900/40 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-600'
+      }`}>
+        {quizModeDescription}
+      </div>
+
+      <section className={`rounded-xl border p-5 ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-slate-200 bg-white'}`}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Category Coverage</h3>
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              Select the categories this quiz should draw questions from.
+            </p>
           </div>
+          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+            isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-100 text-slate-700'
+          }`}>
+            {quiz.category_ids.length} selected
+          </span>
         </div>
 
-        {/* Content Linking Section */}
-        {(quiz.is_practice || quiz.has_practice_mode) && (
-          <div>
-            <label className={`${styles.text.formLabel} mb-2`}>
-              Link Content
-            </label>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
-              Select content that should show a "Take Practice Quiz" button linking to this quiz.
-              {!quiz.id && (
-                <span className={`block mt-1 text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-600'} font-medium`}>
-                  Note: Save the quiz first to enable content linking.
-                </span>
-              )}
-            </p>
-            <div className={`max-h-60 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
-              {(() => {
-                // Filter content to only show those from selected categories
-                const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
-                  ? studyGuides.filter(guide =>
-                      guide.categories && quiz.category_ids.includes(guide.categories.id)
-                    )
-                  : studyGuides;
+        <div className="mt-4">
+          <label className={`${styles.text.formLabel} mb-1`}>
+            Filter Categories by Section
+          </label>
+          <select
+            className={styles.input}
+            value={selectedSectionId || ''}
+            onChange={(e) => setSelectedSectionId(e.target.value || null)}
+            disabled={isLoading}
+          >
+            <option value="">All Sections</option>
+            {sections.map(section => (
+              <option key={section.id} value={section.id}>
+                {section.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-                return filteredStudyGuides.map(guide => (
-                  <label key={guide.id} className={`flex items-center p-2 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${!quiz.id ? 'opacity-50' : ''}`}>
+        <div className={`mt-4 grid gap-6 ${quiz.id && (quiz.is_practice || quiz.has_practice_mode) ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
+          <div>
+            <div className={`max-h-64 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
+              {filteredCategories.map(category => (
+                <label key={category.id} className={`flex items-start p-2 rounded ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+                  <input
+                    type="checkbox"
+                    className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded flex-shrink-0 mt-0.5`}
+                    checked={quiz.category_ids.includes(category.id)}
+                    onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  <span className={`ml-2 text-sm ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
+                    {category.name}
+                  </span>
+                </label>
+              ))}
+
+              {filteredCategories.length === 0 && (
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>No categories found</p>
+              )}
+            </div>
+          </div>
+
+          {(quiz.is_practice || quiz.has_practice_mode) && (
+            <div>
+              <label className={`${styles.text.formLabel} mb-2`}>
+                Link Content
+              </label>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} mb-3`}>
+                Select content that should show a "Take Practice Quiz" button linking to this quiz.
+                {!quiz.id && (
+                  <span className={`block mt-1 text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-600'} font-medium`}>
+                    Note: Save the quiz first to enable content linking.
+                  </span>
+                )}
+              </p>
+              <div className={`max-h-64 overflow-y-auto border ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'} rounded-md p-2`}>
+                {filteredStudyGuides.map(guide => (
+                  <label key={guide.id} className={`flex items-center p-2 rounded ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${!quiz.id ? 'opacity-50' : ''}`}>
                     <input
                       type="checkbox"
                       className={`h-4 w-4 text-teal-600 ${isDark ? 'border-slate-500' : 'border-slate-300'} rounded`}
@@ -515,37 +519,21 @@ const QuizMetadataForm = memo(({ quiz, onChange, isLoading }) => {
                       </div>
                     </div>
                   </label>
-                ));
-              })()}
+                ))}
 
-              {(() => {
-                const filteredStudyGuides = quiz.category_ids && quiz.category_ids.length > 0
-                  ? studyGuides.filter(guide =>
-                      guide.categories && quiz.category_ids.includes(guide.categories.id)
-                    )
-                  : studyGuides;
-
-                if (filteredStudyGuides.length === 0) {
-                  if (quiz.category_ids && quiz.category_ids.length > 0) {
-                    return (
-                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
-                        No published content available in the selected categories
-                      </p>
-                    );
-                  } else {
-                    return (
-                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
-                        No published content available. Please select categories for this quiz first.
-                      </p>
-                    );
-                  }
-                }
-                return null;
-              })()}
+                {filteredStudyGuides.length === 0 && (
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'} p-2`}>
+                    {quiz.category_ids && quiz.category_ids.length > 0
+                      ? 'No published content available in the selected categories'
+                      : 'No published content available. Please select categories for this quiz first.'
+                    }
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </section>
 
       {/* Study Guide Conflict Confirmation Dialog */}
       <ConfirmationDialog
