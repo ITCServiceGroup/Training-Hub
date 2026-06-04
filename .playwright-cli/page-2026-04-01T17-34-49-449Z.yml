@@ -1,0 +1,72 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Router Simulator Layout Editor" [level=1] [ref=e4]
+    - paragraph [ref=e5]:
+      - text: Use this page while the Vite dev server is running to fine-tune furniture and fixed obstacle placement. Select an item, drag it into place, rotate furniture with the buttons or
+      - code [ref=e6]: "["
+      - text: and
+      - code [ref=e7]: "]"
+      - text: ", nudge it with the arrow keys, then use"
+      - strong [ref=e8]: Save To Source
+      - text: to write the current floorplan layout back into
+      - code [ref=e9]: public/interactive-elements/router-simulator/floorplan.js
+      - text: .
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - strong [ref=e12]: "Goal:"
+        - text: keep furniture off walls and out of door openings
+      - generic [ref=e13]:
+        - strong [ref=e14]: "Floorplan:"
+        - text: starts on Floorplan 2, but tabs still work
+      - generic [ref=e15]:
+        - strong [ref=e16]: "Save:"
+        - text: works only from the local Vite dev server
+  - generic [ref=e18]:
+    - heading "Router Placement Simulator" [level=3] [ref=e19]
+    - generic [ref=e20]:
+      - button "Floorplan 1" [ref=e21] [cursor=pointer]
+      - button "Floorplan 2" [ref=e22] [cursor=pointer]
+    - generic [ref=e23]:
+      - img [ref=e24]
+      - generic:
+        - generic: Bedroom One
+        - generic: Bathroom
+        - generic: Primary Bedroom
+        - generic: Primary Bath
+        - generic: Hallway
+        - generic: Living Room
+        - generic: Dining Room
+        - generic: Kitchen
+        - generic: Nursery
+        - generic: Laundry
+      - generic:
+        - img
+      - img [ref=e32]
+      - generic:
+        - generic "kitchenWall"
+        - generic "refrigerator" [ref=e173]
+        - generic "washer" [ref=e174]: W
+        - generic "dryer" [ref=e175]: D
+    - generic [ref=e176]:
+      - generic [ref=e177]:
+        - button "Bluetooth Soundbar" [ref=e178] [cursor=pointer]
+        - button "Baby Monitor" [ref=e179] [cursor=pointer]
+      - generic [ref=e180]:
+        - button "Add Mesh Extender 1" [ref=e181] [cursor=pointer]
+        - button "Add Mesh Extender 2" [ref=e182] [cursor=pointer]
+    - generic [ref=e183]:
+      - generic [ref=e184]: 💡 Toggle interference sources (Bluetooth, Baby Monitor) to see their impact on WiFi signal.
+      - generic [ref=e185]: 💡 Place a mesh extender to boost WiFi coverage. Signal strength depends on the router's signal strength at the extender's location.
+    - paragraph [ref=e186]: The router starts in the living room, but this apartment still has a long hallway and a tucked-away nursery. Move the router toward the center spine and compare that against the default living room placement.
+    - generic [ref=e187]:
+      - generic [ref=e188]: Layout Editor
+      - generic [ref=e189]: Drag furniture or movable fixed obstacles to reposition them. Use the rotate buttons or arrow keys to refine furniture placement, then save the current floorplan back into the source file while running the Vite dev server.
+      - generic [ref=e190]:
+        - button "Rotate Left" [ref=e191] [cursor=pointer]
+        - button "Rotate Right" [ref=e192] [cursor=pointer]
+        - button "Copy Layout JSON" [ref=e193] [cursor=pointer]
+        - button "Save To Source" [ref=e194] [cursor=pointer]
+      - generic [ref=e195]:
+        - generic [ref=e196]: "Selected: refrigerator (fixed obstacle)"
+        - generic [ref=e197]: "x: 717, y: 343, size: 40x50, rot: 90"
+      - generic [ref=e198]: Rotated refrigerator to 90 degrees.

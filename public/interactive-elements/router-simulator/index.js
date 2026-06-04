@@ -5,6 +5,8 @@ import * as dragHandlers from './drag-handlers.js';
 // No workerComm import needed - We'll handle worker directly
 // import * as uiHelpers from './ui-helpers.js'; // ui-helpers functions removed or moved
 
+const DEFAULT_PLACEMENT_ADVICE = "Drag the router to test different positions in this home layout. The heatmap shows signal strength considering walls, appliances, and active interference sources.";
+
 class RouterSimulatorElement extends HTMLElement {
     constructor() {
         super();
@@ -34,10 +36,19 @@ class RouterSimulatorElement extends HTMLElement {
         this.wallContainer = this.shadowRoot.getElementById("wallContainer");
         this.fixedObstaclesContainer = this.shadowRoot.getElementById("fixedObstacles");
         this.interferenceContainer = this.shadowRoot.getElementById("interferenceSources");
+        this.furnitureContainer = this.shadowRoot.getElementById("furniture");
         // this.signalInfo = this.shadowRoot.getElementById("signalInfo"); // Removed - no longer exists
         this.bluetoothToggle = this.shadowRoot.getElementById("bluetoothToggle");
         this.babyMonitorToggle = this.shadowRoot.getElementById("babyMonitorToggle");
         this.floorplanTabs = this.shadowRoot.querySelector('.floorplan-tabs'); // Add reference for tabs
+        this.placementAdvice = this.shadowRoot.getElementById("placementAdvice");
+        this.rotateFurnitureLeftButton = this.shadowRoot.getElementById("rotateFurnitureLeftButton");
+        this.rotateFurnitureRightButton = this.shadowRoot.getElementById("rotateFurnitureRightButton");
+        this.copyFurnitureJsonButton = this.shadowRoot.getElementById("copyFurnitureJsonButton");
+        this.saveFurnitureButton = this.shadowRoot.getElementById("saveFurnitureButton");
+        this.selectedFurnitureLabel = this.shadowRoot.getElementById("selectedFurnitureLabel");
+        this.selectedFurnitureMeta = this.shadowRoot.getElementById("selectedFurnitureMeta");
+        this.devStatus = this.shadowRoot.getElementById("devStatus");
 
         // Worker state
         this.worker = null;
@@ -45,10 +56,17 @@ class RouterSimulatorElement extends HTMLElement {
         this.isWorkerCalculating = false;
         this.pendingWorkerUpdate = false;
         this._rafId = null; // For requestAnimationFrame throttling
+        this.isDevMode = false;
 
         // State variables (keep these)
         this.interferenceElements = {};
         this.isDraggingInterference = null; // Track which interference source is being dragged
+        this.furnitureElements = [];
+        this.obstacleElements = [];
+        this.selectedEditorItem = null;
+        this.draggingEditorItem = null;
+        this.editorDragOffsetX = 0;
+        this.editorDragOffsetY = 0;
 
         // Extender State (Array)
         this.extenders = [
@@ -93,6 +111,13 @@ class RouterSimulatorElement extends HTMLElement {
 
     connectedCallback() {
         console.log("[Main] RouterSimulatorElement connected");
+
+        this.isDevMode = this.hasAttribute('dev-mode');
+        const requestedFloorplanKey = this.getAttribute('floorplan');
+        if (requestedFloorplanKey && allFloorplans[requestedFloorplanKey]) {
+            this.currentFloorplanKey = requestedFloorplanKey;
+            this.floorplanData = JSON.parse(JSON.stringify(allFloorplans[this.currentFloorplanKey]));
+        }
 
         // Initialize theme state tracking
         this.currentTheme = null;
@@ -190,6 +215,25 @@ class RouterSimulatorElement extends HTMLElement {
         }
         // Also listen to window resize as a fallback
         window.addEventListener('resize', this._boundUpdateCanvasDimensions);
+
+        if (this.isDevMode) {
+            document.addEventListener('mousemove', this._handleMoveFurniture = (e) => this._moveFurniture(e));
+            document.addEventListener('mouseup', this._handleStopFurnitureDrag = () => this._stopFurnitureDrag());
+            window.addEventListener('keydown', this._handleFurnitureKeyDown = (e) => this._handleFurnitureEditorKeyDown(e));
+
+            if (this.rotateFurnitureLeftButton) {
+                this.rotateFurnitureLeftButton.addEventListener('click', this._handleRotateFurnitureLeft = () => this._rotateSelectedFurniture(-90));
+            }
+            if (this.rotateFurnitureRightButton) {
+                this.rotateFurnitureRightButton.addEventListener('click', this._handleRotateFurnitureRight = () => this._rotateSelectedFurniture(90));
+            }
+            if (this.copyFurnitureJsonButton) {
+                this.copyFurnitureJsonButton.addEventListener('click', this._handleCopyFurnitureJson = () => this._copyFurnitureJson());
+            }
+            if (this.saveFurnitureButton) {
+                this.saveFurnitureButton.addEventListener('click', this._handleSaveFurniture = () => this._saveFurnitureToSource());
+            }
+        }
     }
 
     _removeEventListeners() {
@@ -224,12 +268,29 @@ class RouterSimulatorElement extends HTMLElement {
         if (this._handleStopInterference) document.removeEventListener('touchend', this._handleStopInterference);
         if (this._handleStopInterference) document.removeEventListener('touchcancel', this._handleStopInterference);
 
+        if (this._handleMoveFurniture) document.removeEventListener('mousemove', this._handleMoveFurniture);
+        if (this._handleStopFurnitureDrag) document.removeEventListener('mouseup', this._handleStopFurnitureDrag);
+        if (this._handleFurnitureKeyDown) window.removeEventListener('keydown', this._handleFurnitureKeyDown);
+
         // Remove floorplan tab listener
         // No need to remove if floorplanTabs is part of shadow DOM
 
         // Remove worker listener
         if (this.worker) {
             this.worker.removeEventListener('message', this._boundHandleWorkerMessage);
+        }
+
+        if (this.rotateFurnitureLeftButton && this._handleRotateFurnitureLeft) {
+            this.rotateFurnitureLeftButton.removeEventListener('click', this._handleRotateFurnitureLeft);
+        }
+        if (this.rotateFurnitureRightButton && this._handleRotateFurnitureRight) {
+            this.rotateFurnitureRightButton.removeEventListener('click', this._handleRotateFurnitureRight);
+        }
+        if (this.copyFurnitureJsonButton && this._handleCopyFurnitureJson) {
+            this.copyFurnitureJsonButton.removeEventListener('click', this._handleCopyFurnitureJson);
+        }
+        if (this.saveFurnitureButton && this._handleSaveFurniture) {
+            this.saveFurnitureButton.removeEventListener('click', this._handleSaveFurniture);
         }
     }
 
@@ -394,15 +455,15 @@ class RouterSimulatorElement extends HTMLElement {
         // Update state
         this.currentFloorplanKey = newFloorplanKey;
         this.floorplanData = JSON.parse(JSON.stringify(allFloorplans[this.currentFloorplanKey]));
+        this.selectedEditorItem = null;
+        this.draggingEditorItem = null;
 
-        // Update button active states
-        this.floorplanTabs.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.floorplan === newFloorplanKey);
-        });
+        this._syncFloorplanTabs();
 
         // Re-initialize visuals for the new floorplan
         // This clears old elements and draws new ones
-        this.interferenceElements = initializeFloorplanVisuals(this.shadowRoot, this.floorplanData);
+        this.interferenceElements = initializeFloorplanVisuals(this.shadowRoot, this.floorplanData, this._getFloorplanVisualOptions());
+        this._refreshFurnitureEditorBindings();
 
         // Re-attach drag handlers for new interference elements
         this._reAttachInterferenceHandlers();
@@ -410,6 +471,7 @@ class RouterSimulatorElement extends HTMLElement {
         // Reset device positions (optional, or could try to maintain relative positions)
         // For simplicity, let's reset to default for the new floorplan
         this._resetDevicePositions();
+        this._updatePlacementAdvice();
 
         console.log(`[Main] Switching floorplan to: ${newFloorplanKey}`);
         // Send new config to worker
@@ -435,6 +497,7 @@ class RouterSimulatorElement extends HTMLElement {
                 const visualX = source.x - source.radius;
                 const visualY = source.y - source.radius;
                 element.style.transform = `translate(${visualX}px, ${visualY}px)`;
+                element.style.pointerEvents = source.active ? 'auto' : 'none';
                 if (source.active) element.classList.add('active'); // Ensure active class is set
 
                 // Add drag event listeners
@@ -455,18 +518,25 @@ class RouterSimulatorElement extends HTMLElement {
     }
 
     _resetDevicePositions() {
-        // Reset Router Position (Set to specific location between TV and coffee table)
-        // const firstRoom = this.floorplanData.rooms[0]; // Original logic commented out
         let initialX, initialY;
-        // if (firstRoom) {
-        //     initialX = Math.round(firstRoom.x + (firstRoom.width / 2) - (this.routerDimensions.width / 2));
-        //     initialY = Math.round(firstRoom.y + (firstRoom.height / 2) - (this.routerDimensions.height / 2));
-        // } else {
-        //     initialX = 50; // Fallback
-        //     initialY = 50;
-        // }
-        initialX = 142; // Specific X coordinate
-        initialY = 350; // Specific Y coordinate
+        const configuredPosition = this.floorplanData?.defaultRouterPosition;
+        const firstRoom = this.floorplanData?.rooms?.[0];
+
+        if (
+            configuredPosition &&
+            Number.isFinite(configuredPosition.x) &&
+            Number.isFinite(configuredPosition.y)
+        ) {
+            initialX = configuredPosition.x;
+            initialY = configuredPosition.y;
+        } else if (firstRoom) {
+            initialX = Math.round(firstRoom.x + (firstRoom.width / 2) - (this.routerDimensions.width / 2));
+            initialY = Math.round(firstRoom.y + (firstRoom.height / 2) - (this.routerDimensions.height / 2));
+        } else {
+            initialX = 50;
+            initialY = 50;
+        }
+
         this.router.style.transform = `translate(${initialX}px, ${initialY}px)`;
         this.lastKnownPosition = { x: initialX, y: initialY };
 
@@ -490,6 +560,407 @@ class RouterSimulatorElement extends HTMLElement {
         });
     }
 
+    _getFloorplanVisualOptions() {
+        return {
+            devMode: this.isDevMode
+        };
+    }
+
+    _syncFloorplanTabs() {
+        if (!this.floorplanTabs) {
+            return;
+        }
+
+        this.floorplanTabs.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.floorplan === this.currentFloorplanKey);
+        });
+    }
+
+    _refreshFurnitureEditorBindings() {
+        if (!this.isDevMode || !this.furnitureContainer) {
+            return;
+        }
+
+        this.furnitureElements = Array.from(this.furnitureContainer.querySelectorAll('[data-editor-kind="furniture"]'));
+        this.obstacleElements = Array.from(this.fixedObstaclesContainer.querySelectorAll('[data-editor-kind="obstacle"]'));
+
+        this.furnitureElements.forEach((element) => {
+            const furnitureIndex = parseInt(element.dataset.furnitureIndex, 10);
+            element.addEventListener('mousedown', (event) => this._beginEditorDrag(event, 'furniture', furnitureIndex));
+        });
+
+        this.obstacleElements.forEach((element) => {
+            const obstacleIndex = parseInt(element.dataset.obstacleIndex, 10);
+            element.addEventListener('mousedown', (event) => this._beginEditorDrag(event, 'obstacle', obstacleIndex));
+        });
+
+        this._syncFurnitureSelection();
+        this._updateSelectedFurnitureMeta();
+    }
+
+    _getEditorCollection(kind) {
+        if (kind === 'obstacle') {
+            return this.floorplanData?.fixedObstacles || [];
+        }
+
+        return this.floorplanData?.furniture || [];
+    }
+
+    _getEditorElements(kind) {
+        return kind === 'obstacle' ? this.obstacleElements : this.furnitureElements;
+    }
+
+    _getEditorItem(kind, index) {
+        if (!Number.isInteger(index)) {
+            return null;
+        }
+
+        return this._getEditorCollection(kind)[index] || null;
+    }
+
+    _getEditorElement(kind, index) {
+        const elements = this._getEditorElements(kind);
+        const datasetKey = kind === 'obstacle' ? 'obstacleIndex' : 'furnitureIndex';
+        return elements.find((item) => parseInt(item.dataset[datasetKey], 10) === index) || null;
+    }
+
+    _getSelectedEditorState() {
+        if (!this.selectedEditorItem) {
+            return null;
+        }
+
+        const { kind, index } = this.selectedEditorItem;
+        const item = this._getEditorItem(kind, index);
+        const element = this._getEditorElement(kind, index);
+
+        if (!item || !element) {
+            return null;
+        }
+
+        return { kind, index, item, element };
+    }
+
+    _syncFurnitureSelection() {
+        if (!this.isDevMode) {
+            return;
+        }
+
+        this.furnitureElements.forEach((element) => {
+            const furnitureIndex = parseInt(element.dataset.furnitureIndex, 10);
+            const existingOutline = element.querySelector('.selection-outline');
+            if (existingOutline) {
+                existingOutline.remove();
+            }
+
+            if (this.selectedEditorItem?.kind !== 'furniture' || furnitureIndex !== this.selectedEditorItem.index) {
+                return;
+            }
+
+            const furniture = this.floorplanData?.furniture?.[furnitureIndex];
+            if (!furniture) {
+                return;
+            }
+
+            const outline = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            outline.classList.add('selection-outline');
+            outline.setAttribute('x', -4);
+            outline.setAttribute('y', -4);
+            outline.setAttribute('width', furniture.width + 8);
+            outline.setAttribute('height', furniture.height + 8);
+            outline.setAttribute('rx', 6);
+            outline.setAttribute('fill', 'none');
+            outline.setAttribute('stroke', '#2563eb');
+            outline.setAttribute('stroke-width', 2);
+            outline.setAttribute('stroke-dasharray', '6 4');
+            outline.style.pointerEvents = 'none';
+            element.appendChild(outline);
+        });
+
+        this.obstacleElements.forEach((element) => {
+            const obstacleIndex = parseInt(element.dataset.obstacleIndex, 10);
+            const isSelected = this.selectedEditorItem?.kind === 'obstacle' && obstacleIndex === this.selectedEditorItem.index;
+            element.style.outline = isSelected ? '2px dashed #2563eb' : 'none';
+            element.style.outlineOffset = isSelected ? '2px' : '0';
+        });
+    }
+
+    _updateSelectedFurnitureMeta() {
+        if (!this.isDevMode) {
+            return;
+        }
+
+        const selectedState = this._getSelectedEditorState();
+
+        if (!selectedState) {
+            if (this.selectedFurnitureLabel) {
+                this.selectedFurnitureLabel.textContent = 'Selected: none';
+            }
+            if (this.selectedFurnitureMeta) {
+                this.selectedFurnitureMeta.textContent = 'x: -, y: -, rot: -';
+            }
+            return;
+        }
+
+        const { kind, item } = selectedState;
+
+        if (this.selectedFurnitureLabel) {
+            this.selectedFurnitureLabel.textContent = kind === 'furniture'
+                ? `Selected: ${item.type} (${item.room})`
+                : `Selected: ${item.type} (fixed obstacle)`;
+        }
+        if (this.selectedFurnitureMeta) {
+            this.selectedFurnitureMeta.textContent = kind === 'furniture'
+                ? `x: ${item.x}, y: ${item.y}, rot: ${item.rotation || 0}`
+                : `x: ${item.x}, y: ${item.y}, size: ${item.width}x${item.height}, rot: ${item.rotation || 0}`;
+        }
+    }
+
+    _setDevStatus(message, state = 'idle') {
+        if (!this.devStatus) {
+            return;
+        }
+
+        this.devStatus.textContent = message;
+        this.devStatus.dataset.state = state;
+    }
+
+    _buildFurnitureTransform(furniture) {
+        let transform = `translate(${furniture.x}, ${furniture.y})`;
+        if (furniture.rotation && furniture.rotation !== 0) {
+            const centerX = furniture.width / 2;
+            const centerY = furniture.height / 2;
+            transform += ` rotate(${furniture.rotation}, ${centerX}, ${centerY})`;
+        }
+        return transform;
+    }
+
+    _applyObstacleStyles(obstacle, element) {
+        element.style.left = `${obstacle.x}px`;
+        element.style.top = `${obstacle.y}px`;
+        element.style.width = `${obstacle.width}px`;
+        element.style.height = `${obstacle.height}px`;
+        element.style.transformOrigin = 'center center';
+        element.style.transform = obstacle.rotation ? `rotate(${obstacle.rotation}deg)` : 'none';
+    }
+
+    _selectEditorItem(kind, index) {
+        if (!this.isDevMode) {
+            return;
+        }
+
+        this.selectedEditorItem = { kind, index };
+        this._syncFurnitureSelection();
+        this._updateSelectedFurnitureMeta();
+    }
+
+    _beginEditorDrag(event, kind, index) {
+        if (!this.isDevMode || !this.routerPlacement) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const item = this._getEditorItem(kind, index);
+        if (!item) {
+            return;
+        }
+
+        const parentRect = this.routerPlacement.getBoundingClientRect();
+        this.draggingEditorItem = { kind, index };
+        this.editorDragOffsetX = event.clientX - parentRect.left - item.x;
+        this.editorDragOffsetY = event.clientY - parentRect.top - item.y;
+        this._selectEditorItem(kind, index);
+        this._setDevStatus(`Dragging ${item.type}.`, 'idle');
+    }
+
+    _moveFurniture(event) {
+        if (!this.isDevMode || !this.draggingEditorItem || !this.routerPlacement) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const { kind, index } = this.draggingEditorItem;
+        const item = this._getEditorItem(kind, index);
+        const element = this._getEditorElement(kind, index);
+        if (!item || !element) {
+            return;
+        }
+
+        const parentRect = this.routerPlacement.getBoundingClientRect();
+        let newX = Math.round(event.clientX - parentRect.left - this.editorDragOffsetX);
+        let newY = Math.round(event.clientY - parentRect.top - this.editorDragOffsetY);
+
+        newX = Math.max(0, Math.min(newX, this.routerPlacement.offsetWidth - item.width));
+        newY = Math.max(0, Math.min(newY, this.routerPlacement.offsetHeight - item.height));
+
+        item.x = newX;
+        item.y = newY;
+
+        if (kind === 'furniture') {
+            element.setAttribute('transform', this._buildFurnitureTransform(item));
+        } else {
+            this._applyObstacleStyles(item, element);
+        }
+
+        this._syncFurnitureSelection();
+        this._updateSelectedFurnitureMeta();
+    }
+
+    _stopFurnitureDrag() {
+        if (!this.isDevMode || !this.draggingEditorItem) {
+            return;
+        }
+
+        const { kind, index } = this.draggingEditorItem;
+        const item = this._getEditorItem(kind, index);
+        this.draggingEditorItem = null;
+        if (item) {
+            if (kind === 'obstacle') {
+                this._sendConfigToWorker();
+                this._requestSignalUpdate();
+            }
+            this._setDevStatus(`Moved ${item.type}.`, 'success');
+        }
+    }
+
+    _rotateSelectedFurniture(delta) {
+        if (!this.isDevMode || !this.selectedEditorItem) {
+            this._setDevStatus('Select an item to rotate.', 'error');
+            return;
+        }
+
+        const { kind, index } = this.selectedEditorItem;
+        const item = this._getEditorItem(kind, index);
+        const element = this._getEditorElement(kind, index);
+        if (!item || !element || !this.routerPlacement) {
+            return;
+        }
+
+        const currentRotation = item.rotation || 0;
+        item.rotation = (currentRotation + delta + 360) % 360;
+
+        if (kind === 'furniture') {
+            element.setAttribute('transform', this._buildFurnitureTransform(item));
+        } else {
+            this._applyObstacleStyles(item, element);
+        }
+
+        this._syncFurnitureSelection();
+        this._updateSelectedFurnitureMeta();
+        this._setDevStatus(`Rotated ${item.type} to ${item.rotation} degrees.`, 'success');
+    }
+
+    _nudgeSelectedFurniture(deltaX, deltaY) {
+        if (!this.isDevMode || !this.selectedEditorItem || !this.routerPlacement) {
+            return;
+        }
+
+        const { kind, index } = this.selectedEditorItem;
+        const item = this._getEditorItem(kind, index);
+        const element = this._getEditorElement(kind, index);
+        if (!item || !element) {
+            return;
+        }
+
+        item.x = Math.max(0, Math.min(item.x + deltaX, this.routerPlacement.offsetWidth - item.width));
+        item.y = Math.max(0, Math.min(item.y + deltaY, this.routerPlacement.offsetHeight - item.height));
+
+        if (kind === 'furniture') {
+            element.setAttribute('transform', this._buildFurnitureTransform(item));
+        } else {
+            this._applyObstacleStyles(item, element);
+            this._sendConfigToWorker();
+            this._requestSignalUpdate();
+        }
+
+        this._syncFurnitureSelection();
+        this._updateSelectedFurnitureMeta();
+    }
+
+    _handleFurnitureEditorKeyDown(event) {
+        if (!this.isDevMode || !this.selectedEditorItem) {
+            return;
+        }
+
+        const step = event.shiftKey ? 10 : 2;
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            this._nudgeSelectedFurniture(-step, 0);
+        } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            this._nudgeSelectedFurniture(step, 0);
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            this._nudgeSelectedFurniture(0, -step);
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            this._nudgeSelectedFurniture(0, step);
+        } else if (event.key === '[') {
+            event.preventDefault();
+            this._rotateSelectedFurniture(-90);
+        } else if (event.key === ']') {
+            event.preventDefault();
+            this._rotateSelectedFurniture(90);
+        }
+    }
+
+    async _copyFurnitureJson() {
+        if (!this.isDevMode) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(JSON.stringify({
+                furniture: this.floorplanData?.furniture || [],
+                fixedObstacles: this.floorplanData?.fixedObstacles || []
+            }, null, 2));
+            this._setDevStatus('Copied layout JSON to the clipboard.', 'success');
+        } catch (error) {
+            console.error('[RouterSimulator] Failed to copy furniture JSON:', error);
+            this._setDevStatus('Could not copy the layout JSON.', 'error');
+        }
+    }
+
+    async _saveFurnitureToSource() {
+        if (!this.isDevMode) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/__router-simulator/save-furniture', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    floorplanKey: this.currentFloorplanKey,
+                    furniture: this.floorplanData?.furniture || [],
+                    fixedObstacles: this.floorplanData?.fixedObstacles || []
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Request failed with status ${response.status}`);
+            }
+
+            this._setDevStatus(`Saved ${this.currentFloorplanKey} layout to floorplan.js.`, 'success');
+        } catch (error) {
+            console.error('[RouterSimulator] Failed to save furniture:', error);
+            this._setDevStatus(`Save failed: ${error.message}`, 'error');
+        }
+    }
+
+    _updatePlacementAdvice() {
+        if (!this.placementAdvice) {
+            return;
+        }
+
+        this.placementAdvice.textContent = this.floorplanData?.placementAdvice || DEFAULT_PLACEMENT_ADVICE;
+    }
+
     _initializeSimulator() {
         // Check for required elements (no worker check needed)
         if (!this.routerPlacement || !this.signalStrengthCanvas || !this.router) {
@@ -509,7 +980,10 @@ class RouterSimulatorElement extends HTMLElement {
         // this._updateCanvasDimensions();
 
         // Initialize floorplan visuals using imported function for the current floorplan
-        this.interferenceElements = initializeFloorplanVisuals(this.shadowRoot, this.floorplanData);
+        this.interferenceElements = initializeFloorplanVisuals(this.shadowRoot, this.floorplanData, this._getFloorplanVisualOptions());
+        this._syncFloorplanTabs();
+        this._refreshFurnitureEditorBindings();
+        this._updatePlacementAdvice();
 
         // Attach drag handlers for interference sources for the initial floorplan
         this._reAttachInterferenceHandlers(); // Use the new method to attach/sync handlers
@@ -601,10 +1075,10 @@ class RouterSimulatorElement extends HTMLElement {
     }
 
      _findBestMeshExtenderPosition(routerX, routerY, extenderId) {
-        // Example: Place extender 1 in Living Room, extender 2 in Bedroom 1 (if exists)
-        let targetRoomName = "Living Room";
-        if (extenderId === 2) {
-            targetRoomName = this.floorplanData.rooms.some(r => r.name === "Bedroom 1") ? "Bedroom 1" : "Dining Room"; // Fallback to Dining if Bed 1 doesn't exist
+        const extenderPlacement = this.floorplanData?.extenderPlacements?.[extenderId];
+        let targetRoomName = extenderPlacement?.room || "Living Room";
+        if (!extenderPlacement && extenderId === 2) {
+            targetRoomName = this.floorplanData.rooms.some(r => r.name === "Bedroom 1") ? "Bedroom 1" : "Dining Room";
         }
 
         const targetRoom = this.floorplanData.rooms.find(r => r.name === targetRoomName);
@@ -612,8 +1086,16 @@ class RouterSimulatorElement extends HTMLElement {
         const dimensions = extender ? extender.dimensions : { width: 60, height: 60 }; // Fallback dimensions
 
         if (targetRoom) {
-            let posX = targetRoom.x + Math.round(targetRoom.width * (extenderId === 1 ? 0.66 : 0.5)) - (dimensions.width / 2);
-            let posY = targetRoom.y + Math.round(targetRoom.height / 2) - (dimensions.height / 2);
+            const anchorX = Number.isFinite(extenderPlacement?.anchorX) ? extenderPlacement.anchorX : (extenderId === 1 ? 0.66 : 0.5);
+            const anchorY = Number.isFinite(extenderPlacement?.anchorY) ? extenderPlacement.anchorY : 0.5;
+            let posX = targetRoom.x + Math.round(targetRoom.width * anchorX) - (dimensions.width / 2);
+            let posY = targetRoom.y + Math.round(targetRoom.height * anchorY) - (dimensions.height / 2);
+
+            if (this.routerPlacement) {
+                posX = Math.round(Math.max(0, Math.min(posX, this.routerPlacement.offsetWidth - dimensions.width)));
+                posY = Math.round(Math.max(0, Math.min(posY, this.routerPlacement.offsetHeight - dimensions.height)));
+            }
+
             return { x: posX, y: posY };
         }
 
@@ -630,12 +1112,13 @@ class RouterSimulatorElement extends HTMLElement {
 
         // Toggle button class
         const button = this.shadowRoot.getElementById(sourceName + 'Toggle');
-        if (button) { button.classList.toggle("active"); }
+        if (button) { button.classList.toggle("active", sourceData.active); }
 
         // Toggle interference element class and update position
         const element = this.interferenceElements[sourceName];
         if (element) {
-            element.classList.toggle("active");
+            element.classList.toggle("active", sourceData.active);
+            element.style.pointerEvents = sourceData.active ? 'auto' : 'none';
 
             // Update position when activated
             if (sourceData.active) {

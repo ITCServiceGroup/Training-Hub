@@ -1,0 +1,74 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Router Simulator Layout Editor" [level=1] [ref=e4]
+    - paragraph [ref=e5]:
+      - text: Use this page while the Vite dev server is running to fine-tune furniture and fixed obstacle placement. Select an item, drag it into place, rotate furniture with the buttons or
+      - code [ref=e6]: "["
+      - text: and
+      - code [ref=e7]: "]"
+      - text: ", nudge it with the arrow keys, then use"
+      - strong [ref=e8]: Save To Source
+      - text: to write the current floorplan layout back into
+      - code [ref=e9]: public/interactive-elements/router-simulator/floorplan.js
+      - text: .
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - strong [ref=e12]: "Goal:"
+        - text: keep furniture off walls and out of door openings
+      - generic [ref=e13]:
+        - strong [ref=e14]: "Floorplan:"
+        - text: starts on Floorplan 2, but tabs still work
+      - generic [ref=e15]:
+        - strong [ref=e16]: "Save:"
+        - text: works only from the local Vite dev server
+  - generic [ref=e18]:
+    - heading "Router Placement Simulator" [level=3] [ref=e19]
+    - generic [ref=e20]:
+      - button "Floorplan 1" [ref=e21] [cursor=pointer]
+      - button "Floorplan 2" [ref=e22] [cursor=pointer]
+      - button "Floorplan 3" [ref=e23] [cursor=pointer]
+    - generic [ref=e24]:
+      - img [ref=e25]
+      - generic:
+        - generic: LIVING ROOM 22'11" x 18'0"
+        - generic: KITCHEN 13'4" x 17'0"
+        - generic: PANTRY 4'2" x 4'4"
+        - generic: HALL 9'3" x 4'3"
+        - generic: MASTER BEDROOM 14'10" x 17'6"
+        - generic: BEDROOM 13'1" x 11'7"
+        - generic: BATH 7'3" x 8'5"
+        - generic: HALL 12'1" x 4'10"
+        - generic: HALLWAY 5'7" x 19'9"
+        - generic: LAUNDRY ROOM 6'8" x 6'10"
+        - generic: CLOSET 5'3" x 11'3"
+        - generic: BATH 8'11" x 11'3"
+        - generic: ROOM 3'2" x 5'1"
+        - generic: BEDROOM 11'4" x 13'8"
+        - generic: OFFICE 10'4" x 9'10"
+        - generic: PORCH 3'10" x 4'0"
+        - generic: GARAGE 21'5" x 20'9"
+      - generic:
+        - img
+      - img [ref=e200]
+    - generic [ref=e177]:
+      - generic [ref=e178]:
+        - button "Bluetooth Soundbar" [ref=e179] [cursor=pointer]
+        - button "Baby Monitor" [ref=e180] [cursor=pointer]
+      - generic [ref=e181]:
+        - button "Add Mesh Extender 1" [ref=e182] [cursor=pointer]
+        - button "Add Mesh Extender 2" [ref=e183] [cursor=pointer]
+    - generic [ref=e184]:
+      - generic [ref=e185]: 💡 Toggle interference sources (Bluetooth, Baby Monitor) to see their impact on WiFi signal.
+      - generic [ref=e186]: 💡 Place a mesh extender to boost WiFi coverage. Signal strength depends on the router's signal strength at the extender's location.
+    - paragraph [ref=e187]: This ranch layout is broad and irregular, with signal needing to bend through diagonal halls and a garage-side wing. Start in the living room, then compare that with placements nearer the kitchen and central hallway.
+    - generic [ref=e188]:
+      - generic [ref=e189]: Layout Editor
+      - generic [ref=e190]: Drag furniture or movable fixed obstacles to reposition them. Use the rotate buttons or arrow keys to refine furniture placement, then save the current floorplan back into the source file while running the Vite dev server.
+      - generic [ref=e191]:
+        - button "Rotate Left" [ref=e192] [cursor=pointer]
+        - button "Rotate Right" [ref=e193] [cursor=pointer]
+        - button "Copy Layout JSON" [ref=e194] [cursor=pointer]
+        - button "Save To Source" [ref=e195] [cursor=pointer]
+      - generic [ref=e196]:
+        - generic [ref=e197]: "Selected: none"
+        - generic [ref=e198]: "x: -, y: -, rot: -"

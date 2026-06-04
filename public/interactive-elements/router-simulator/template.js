@@ -505,12 +505,78 @@ routerSimulatorTemplate.innerHTML = `
         overflow: visible; /* Allow parts outside viewBox if needed */
     }
 
-  </style>
-  <div class="interactive-element">
+    .dev-panel {
+        display: none;
+        margin-top: 16px;
+        padding: 14px;
+        border: 1px solid var(--tab-border);
+        border-radius: 6px;
+        background-color: var(--router-placement-bg);
+        color: var(--text-color);
+        box-sizing: border-box;
+    }
+
+    :host([dev-mode]) .dev-panel {
+        display: block;
+    }
+
+    .dev-panel-title {
+        font-size: 0.95em;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .dev-panel-copy {
+        font-size: 0.85em;
+        color: var(--placement-advice-color);
+        margin-bottom: 12px;
+    }
+
+    .dev-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .dev-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.85em;
+        color: var(--placement-advice-color);
+    }
+
+    .dev-pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid var(--tab-border);
+    }
+
+    .dev-status {
+        margin-top: 10px;
+        min-height: 1.2em;
+        font-size: 0.85em;
+        color: var(--placement-advice-color);
+    }
+
+    .dev-status[data-state="error"] {
+        color: #dc2626;
+    }
+
+    .dev-status[data-state="success"] {
+        color: #15803d;
+    }
+
+	  </style>
+	  <div class="interactive-element">
        <h3>Router Placement Simulator</h3>
        <div class="floorplan-tabs">
            <button class="tab-button active" data-floorplan="floor1">Floorplan 1</button>
-           <!-- Floor 2 button removed -->
+           <button class="tab-button" data-floorplan="floor2">Floorplan 2</button>
+           <button class="tab-button" data-floorplan="floor3">Floorplan 3</button>
        </div>
        <!-- .controls div removed -->
        <div class="router-placement" id="routerPlacement">
@@ -567,11 +633,26 @@ routerSimulatorTemplate.innerHTML = `
                <button id="meshExtenderButton2" class="interference-button">Add Mesh Extender 2</button>
            </div>
            <!-- Tooltips moved below -->
-       </div>
-       <div class="tooltips-container">
-           <div class="tooltip">Toggle interference sources (Bluetooth, Baby Monitor) to see their impact on WiFi signal.</div>
-           <div class="tooltip">Place a mesh extender to boost WiFi coverage. Signal strength depends on the router's signal strength at the extender's location.</div>
-      </div>
-      <p id="placementAdvice">Drag the router to test different positions in this home layout. The heatmap shows signal strength considering walls, appliances, and active interference sources.</p>
-  </div>
-`;
+	       </div>
+	       <div class="tooltips-container">
+	           <div class="tooltip">Toggle interference sources (Bluetooth, Baby Monitor) to see their impact on WiFi signal.</div>
+	           <div class="tooltip">Place a mesh extender to boost WiFi coverage. Signal strength depends on the router's signal strength at the extender's location.</div>
+	      </div>
+	      <p id="placementAdvice">Drag the router to test different positions in this home layout. The heatmap shows signal strength considering walls, appliances, and active interference sources.</p>
+          <div class="dev-panel" id="devPanel">
+              <div class="dev-panel-title">Layout Editor</div>
+              <div class="dev-panel-copy">Drag furniture or movable fixed obstacles to reposition them. Use the rotate buttons or arrow keys to refine furniture placement, then save the current floorplan back into the source file while running the Vite dev server.</div>
+              <div class="dev-toolbar">
+                  <button id="rotateFurnitureLeftButton">Rotate Left</button>
+                  <button id="rotateFurnitureRightButton">Rotate Right</button>
+                  <button id="copyFurnitureJsonButton">Copy Layout JSON</button>
+                  <button id="saveFurnitureButton">Save To Source</button>
+              </div>
+              <div class="dev-metrics">
+                  <span class="dev-pill" id="selectedFurnitureLabel">Selected: none</span>
+                  <span class="dev-pill" id="selectedFurnitureMeta">x: -, y: -, rot: -</span>
+              </div>
+              <div class="dev-status" id="devStatus"></div>
+          </div>
+	  </div>
+	`;
