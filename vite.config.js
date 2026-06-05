@@ -99,6 +99,7 @@ export default defineConfig(({ mode }) => {
     supabaseUrl: env.VITE_SUPABASE_URL || '',
     supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || ''
   };
+  const interactiveAssetVersion = env.VITE_INTERACTIVE_ASSET_VERSION || String(Date.now());
 
   return {
   plugins: [react(), routerSimulatorFurnitureSavePlugin()],
@@ -124,7 +125,8 @@ export default defineConfig(({ mode }) => {
   // Use relative path since we're using HashRouter
   base: './',
   define: {
-    '__APP_CONFIG__': JSON.stringify(appConfig)
+    '__APP_CONFIG__': JSON.stringify(appConfig),
+    '__INTERACTIVE_ASSET_VERSION__': JSON.stringify(interactiveAssetVersion)
   },
   // Ensure we're using the correct HTML template
   resolve: {

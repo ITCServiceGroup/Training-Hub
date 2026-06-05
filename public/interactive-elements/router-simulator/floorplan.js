@@ -387,7 +387,7 @@ const floorplan3Data = {
         {"type":"shower","x":575,"y":297,"width":34,"height":28,"rotation":0,"room":"Bath","style":"filled","color":"#B0BEC5"},
         {"type":"toilet","x":575,"y":252,"width":22,"height":26,"rotation":90,"room":"Bath","style":"filled","color":"#ECEFF1"},
         {"type":"wardrobe","x":704,"y":307,"width":70,"height":20,"rotation":0,"room":"Closet","style":"filled","color":"#8D6E63"},
-        {"type":"bed","x":155,"y":463,"width":82,"height":84,"rotation":0,"room":"Bedroom One","style":"filled","color":"#A1887F"},
+        {"type":"bed","x":155,"y":463,"width":82,"height":84,"rotation":180,"room":"Bedroom One","style":"filled","color":"#A1887F"},
         {"type":"wardrobe","x":84,"y":447,"width":22,"height":84,"rotation":0,"room":"Bedroom One","style":"filled","color":"#8D6E63"},
         {"type":"bed","x":88,"y":570,"width":82,"height":90,"rotation":270,"room":"Bedroom Two","style":"filled","color":"#A1887F"},
         {"type":"wardrobe","x":231,"y":611,"width":22,"height":88,"rotation":90,"room":"Bedroom Two","style":"filled","color":"#8D6E63"},

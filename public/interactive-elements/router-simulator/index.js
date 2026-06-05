@@ -1,7 +1,19 @@
 // Import necessary modules
-import { allFloorplans, initializeFloorplanVisuals } from './floorplan.js'; // Import allFloorplans
-import { routerSimulatorTemplate } from './template.js';
-import * as dragHandlers from './drag-handlers.js';
+const routerSimulatorAssetVersion = new URL(import.meta.url).searchParams.get('v');
+const versionedModulePath = (path) => {
+    if (!routerSimulatorAssetVersion) return path;
+    return `${path}?v=${encodeURIComponent(routerSimulatorAssetVersion)}`;
+};
+
+const [
+    { allFloorplans, initializeFloorplanVisuals },
+    { routerSimulatorTemplate },
+    dragHandlers
+] = await Promise.all([
+    import(versionedModulePath('./floorplan.js')),
+    import(versionedModulePath('./template.js')),
+    import(versionedModulePath('./drag-handlers.js'))
+]);
 // No workerComm import needed - We'll handle worker directly
 // import * as uiHelpers from './ui-helpers.js'; // ui-helpers functions removed or moved
 

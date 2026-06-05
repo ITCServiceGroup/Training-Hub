@@ -152,8 +152,12 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
 
     // Load the script for the interactive element
     const script = iframeDoc.createElement('script');
+    const interactiveAssetVersion = typeof __INTERACTIVE_ASSET_VERSION__ !== 'undefined'
+      ? __INTERACTIVE_ASSET_VERSION__
+      : 'local';
     // Use absolute path in dev, relative in production
-    const scriptPath = import.meta.env.DEV ? `/interactive-elements/${name}/index.js` : `./interactive-elements/${name}/index.js`;
+    const scriptBasePath = import.meta.env.DEV ? `/interactive-elements/${name}/index.js` : `./interactive-elements/${name}/index.js`;
+    const scriptPath = `${scriptBasePath}?v=${encodeURIComponent(interactiveAssetVersion)}`;
     script.src = scriptPath;
     script.type = 'module';
     iframeDoc.head.appendChild(script);

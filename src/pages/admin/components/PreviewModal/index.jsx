@@ -559,9 +559,13 @@ const PreviewModal = ({ isOpen, onClose, content, title }) => {
 
                     console.log("Required interactive elements in preview:", requiredElements);
 
+                    const interactiveAssetVersion = typeof __INTERACTIVE_ASSET_VERSION__ !== 'undefined'
+                      ? __INTERACTIVE_ASSET_VERSION__
+                      : 'local';
+
                     requiredElements.forEach(elementName => {
                       // Use the standard filename 'index.js'
-                      const scriptPath = `/interactive-elements/${elementName}/index.js`;
+                      const scriptPath = `/interactive-elements/${elementName}/index.js?v=${encodeURIComponent(interactiveAssetVersion)}`;
                       if (!injectedScripts.has(scriptPath)) {
                         // Construct the tag name based on the element name
                         const tagName = `${elementName}-simulator`;
