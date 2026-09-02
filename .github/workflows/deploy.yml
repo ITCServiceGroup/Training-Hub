@@ -1,56 +1,105 @@
-name: Deploy to GitHub Pages
+name: Validate and deploy GitHub Pages
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the validated artifact to production
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 18
-
-      - name: Debug directory structure
-        run: |
-          pwd
-          echo "Root directory contents:"
-          ls -la
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Check formatting boundary
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check service contracts
+        run: npm run typecheck
+
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Validate migration and authorization-test contracts
+        run: npm run db:static
+
+      - name: Parse Edge Function entrypoints
+        run: npm run functions:check
+
+      - name: Enforce authored-source budgets
+        run: npm run source:check
+
+      - name: Validate build configuration
+        run: npm run validate:env
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Build
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+
+      - name: Reject production source maps
+        run: test -z "$(find dist -type f -name '*.map' -print -quit)"
+
+      - name: Enforce route bundle budgets
+        run: npm run bundle:check
+
+      - name: Reject production diagnostics and sensitive debug labels
+        run: npm run diagnostics:check
+
+      - name: Install browser test runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser and accessibility smoke tests
+        run: npm run test:e2e
+
+      - name: Configure Pages
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: dist
 
   deploy:
-    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
+    needs: validate
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -61,4 +110,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

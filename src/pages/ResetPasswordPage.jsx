@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getSupabaseClient } from '../config/supabase';
-import { HiOutlineLockClosed } from 'react-icons/hi';
-import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getSupabaseClient } from "../config/supabase";
+import { HiOutlineLockClosed } from "react-icons/hi";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const ResetPasswordPage = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
   // Check if user has valid session (from reset link)
@@ -19,7 +19,9 @@ const ResetPasswordPage = () => {
     const checkSession = async () => {
       const { data } = await getSupabaseClient().auth.getSession();
       if (!data.session) {
-        setErrorMessage('Invalid or expired reset link. Please request a new one.');
+        setErrorMessage(
+          "Invalid or expired reset link. Please request a new one.",
+        );
       }
     };
     checkSession();
@@ -27,14 +29,14 @@ const ResetPasswordPage = () => {
 
   const validatePassword = (password) => {
     const rules = [
-      { test: /.{8,}/, message: 'At least 8 characters' },
-      { test: /[A-Z]/, message: 'At least one uppercase letter' },
-      { test: /[a-z]/, message: 'At least one lowercase letter' },
-      { test: /[0-9]/, message: 'At least one number' },
+      { test: /.{10,}/, message: "At least 10 characters" },
+      { test: /[A-Z]/, message: "At least one uppercase letter" },
+      { test: /[a-z]/, message: "At least one lowercase letter" },
+      { test: /[0-9]/, message: "At least one number" },
     ];
-    return rules.map(rule => ({
+    return rules.map((rule) => ({
       passed: rule.test.test(password),
-      message: rule.message
+      message: rule.message,
     }));
   };
 
@@ -42,33 +44,39 @@ const ResetPasswordPage = () => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage("Passwords do not match");
       return;
     }
 
     const validation = validatePassword(newPassword);
-    const allPassed = validation.every(rule => rule.passed);
+    const allPassed = validation.every((rule) => rule.passed);
 
     if (!allPassed) {
-      setErrorMessage('Password does not meet requirements');
+      setErrorMessage("Password does not meet requirements");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
       const { error } = await getSupabaseClient().auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
 
       if (error) throw error;
 
-      setSuccessMessage('Password updated successfully! Redirecting to login...');
-      setTimeout(() => navigate('/login'), 2000);
+      const { error: signOutError } = await getSupabaseClient().auth.signOut({
+        scope: "local",
+      });
+      if (signOutError) throw signOutError;
+      setSuccessMessage(
+        "Password updated successfully. Sign in with your new password.",
+      );
+      navigate("/login", { replace: true });
     } catch (error) {
-      console.error('Password update error:', error);
-      setErrorMessage(error.message || 'Failed to update password');
+      console.error("Password update error:", error);
+      setErrorMessage(error.message || "Failed to update password");
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +107,10 @@ const ResetPasswordPage = () => {
         <form onSubmit={handleSubmit}>
           {/* New Password Field */}
           <div className="form-group mb-4">
-            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label
+              htmlFor="newPassword"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+            >
               New Password
             </label>
             <div className="relative">
@@ -107,7 +118,7 @@ const ResetPasswordPage = () => {
                 <HiOutlineLockClosed className="h-5 w-5 text-slate-400 dark:text-slate-500" />
               </div>
               <input
-                type={showNewPassword ? 'text' : 'password'}
+                type={showNewPassword ? "text" : "password"}
                 id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -125,9 +136,13 @@ const ResetPasswordPage = () => {
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-0 flex items-center justify-center h-5 w-5 text-slate-400 dark:text-slate-500
                           hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
               >
-                {showNewPassword ? <AiOutlineEyeInvisible className="h-5 w-5" /> : <AiOutlineEye className="h-5 w-5" />}
+                {showNewPassword ? (
+                  <AiOutlineEyeInvisible className="h-5 w-5" />
+                ) : (
+                  <AiOutlineEye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -135,11 +150,19 @@ const ResetPasswordPage = () => {
           {/* Password Requirements */}
           {newPassword && (
             <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">Password Requirements:</p>
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Password Requirements:
+              </p>
               {passwordValidation.map((rule, index) => (
                 <div key={index} className="flex items-center text-xs mb-1">
-                  <span className={rule.passed ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}>
-                    {rule.passed ? '✓' : '○'} {rule.message}
+                  <span
+                    className={
+                      rule.passed
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-slate-500 dark:text-slate-400"
+                    }
+                  >
+                    {rule.passed ? "✓" : "○"} {rule.message}
                   </span>
                 </div>
               ))}
@@ -148,7 +171,10 @@ const ResetPasswordPage = () => {
 
           {/* Confirm Password Field */}
           <div className="form-group mb-6">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+            >
               Confirm Password
             </label>
             <div className="relative">
@@ -156,7 +182,7 @@ const ResetPasswordPage = () => {
                 <HiOutlineLockClosed className="h-5 w-5 text-slate-400 dark:text-slate-500" />
               </div>
               <input
-                type={showConfirmPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -174,9 +200,15 @@ const ResetPasswordPage = () => {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-0 flex items-center justify-center h-5 w-5 text-slate-400 dark:text-slate-500
                           hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
               >
-                {showConfirmPassword ? <AiOutlineEyeInvisible className="h-5 w-5" /> : <AiOutlineEye className="h-5 w-5" />}
+                {showConfirmPassword ? (
+                  <AiOutlineEyeInvisible className="h-5 w-5" />
+                ) : (
+                  <AiOutlineEye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -189,12 +221,28 @@ const ResetPasswordPage = () => {
                       hover:shadow-lg transition-all flex items-center justify-center gap-2"
           >
             {isLoading && (
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
             )}
-            {isLoading ? 'Updating Password...' : 'Reset Password'}
+            {isLoading ? "Updating Password..." : "Reset Password"}
           </button>
         </form>
       </div>

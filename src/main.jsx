@@ -14,14 +14,12 @@ import { DashboardPreferencesProvider } from './contexts/DashboardPreferencesCon
 import { FullscreenProvider } from './contexts/FullscreenContext';
 import { ToastProvider } from './components/common/ToastContainer';
 import { NetworkProvider } from './contexts/NetworkContext';
-import './utils/debugHelper';
+import AppErrorBoundary from './components/common/AppErrorBoundary';
 
-console.log('Main.jsx is executing...');
-console.log('Looking for root element:', document.getElementById('root'));
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Training Hub root element was not found');
 
-// Wrap in a try-catch to gracefully handle any auth context errors
-try {
-  ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <HashRouter
         basename={basename}
@@ -30,53 +28,23 @@ try {
           v7_relativeSplatPath: true
         }}
       >
-        <AuthProvider>
-          <RBACProvider>
-            <ThemeProvider>
-              <DashboardPreferencesProvider>
-                <FullscreenProvider>
-                  <NetworkProvider>
-                    <ToastProvider>
-                      <App />
-                    </ToastProvider>
-                  </NetworkProvider>
-                </FullscreenProvider>
-              </DashboardPreferencesProvider>
-            </ThemeProvider>
-          </RBACProvider>
-        </AuthProvider>
+        <AppErrorBoundary>
+          <AuthProvider>
+            <RBACProvider>
+              <ThemeProvider>
+                <DashboardPreferencesProvider>
+                  <FullscreenProvider>
+                    <NetworkProvider>
+                      <ToastProvider>
+                        <App />
+                      </ToastProvider>
+                    </NetworkProvider>
+                  </FullscreenProvider>
+                </DashboardPreferencesProvider>
+              </ThemeProvider>
+            </RBACProvider>
+          </AuthProvider>
+        </AppErrorBoundary>
       </HashRouter>
     </React.StrictMode>
-  );
-  console.log('React app has been rendered with Auth Context!');
-} catch (error) {
-  console.error('Error rendering with Auth Context:', error);
-
-  // Fallback to render without AuthProvider if there's an error
-  ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-      <HashRouter
-        basename={basename}
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}
-      >
-        <RBACProvider>
-          <ThemeProvider>
-            <DashboardPreferencesProvider>
-              <FullscreenProvider>
-                <NetworkProvider>
-                  <ToastProvider>
-                    <App />
-                  </ToastProvider>
-                </NetworkProvider>
-              </FullscreenProvider>
-            </DashboardPreferencesProvider>
-          </ThemeProvider>
-        </RBACProvider>
-      </HashRouter>
-    </React.StrictMode>
-  );
-  console.log('React app has been rendered WITHOUT Auth Context (fallback)');
-}
+);

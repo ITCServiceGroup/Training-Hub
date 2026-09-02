@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRBAC, ROLES } from '../../contexts/RBACContext';
-import { getAllUsers, setUserActiveStatus, deleteUserProfile, getUserStats } from '../../services/api/users';
+import { getAllUsers, setUserActiveStatus, getUserStats } from '../../services/api/users';
 import UserForm from './components/UserForm';
 
 const UserManagement = () => {
-  const { profile, canManageSpecificUser, getRoleDisplayName } = useRBAC();
+  const { canManageSpecificUser, getRoleDisplayName } = useRBAC();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [stats, setStats] = useState(null);
@@ -103,27 +103,6 @@ const UserManagement = () => {
 
     if (error) {
       alert('Failed to update user status: ' + error.message);
-      return;
-    }
-
-    loadUsers();
-    loadStats();
-  };
-
-  const handleDeleteUser = async (user) => {
-    if (!canManageSpecificUser(user)) {
-      alert('You do not have permission to delete this user.');
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to DELETE ${user.display_name}? This action cannot be undone.`)) {
-      return;
-    }
-
-    const { error } = await deleteUserProfile(user.user_id);
-
-    if (error) {
-      alert('Failed to delete user: ' + error.message);
       return;
     }
 
@@ -337,14 +316,6 @@ const UserManagement = () => {
                           >
                             {user.is_active ? 'Deactivate' : 'Activate'}
                           </button>
-                          {user.user_id !== profile.user_id && (
-                            <button
-                              onClick={() => handleDeleteUser(user)}
-                              className="text-red-600 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
-                            >
-                              Delete
-                            </button>
-                          )}
                         </>
                       )}
                       {!canManageSpecificUser(user) && (

@@ -1222,7 +1222,6 @@ export const iconComponentMap = {
   'Yen Sign': FaYenSign,
   'Yin Yang': FaYinYang,
   // Additional gardening and power infrastructure related icons
-  'Apple': FaApple,
   'Burn': FaFireAlt,
   'Campfire': FaFire,
   'Camping': FaCampground,

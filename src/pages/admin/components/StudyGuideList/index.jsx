@@ -17,11 +17,12 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { CategoryContext } from '../../../../components/layout/AdminLayout';
+import CategoryContext from '../../../../components/layout/CategoryContext';
 import { FaCopy, FaArrowRight, FaEllipsisV } from 'react-icons/fa';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import { studyGuidesService } from '../../../../services/api/studyGuides';
 import VisibilityBadge from '../../../../components/common/VisibilityBadge';
+import { useCatalog } from '../../../../hooks/useCatalog';
 
 // Helper function to extract a preview from HTML or JSON content
 const extractPreview = (content, maxLength = 150) => {
@@ -684,7 +685,8 @@ const StudyGuideList = ({
 }) => {
   const [hoveredId, setHoveredId] = useState(null);
   const [activeId, setActiveId] = useState(null);
-  const { sectionsData, selectedCategory } = useContext(CategoryContext);
+  const { selectedCategory } = useContext(CategoryContext);
+  const { sections: sectionsData } = useCatalog({ mode: 'admin' });
   const [previews, setPreviews] = useState({});
 
   // Combine prop data with context data

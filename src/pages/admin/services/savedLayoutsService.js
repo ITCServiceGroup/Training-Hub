@@ -36,6 +36,8 @@ export const getSavedLayouts = async (userId) => {
  * Save a new layout or update existing one
  */
 export const saveLayout = async (userId, layout) => {
+  let fallbackLayout = layout;
+
   try {
     console.log('💾 Saving layout:', { userId, layoutName: layout.name });
 
@@ -61,6 +63,7 @@ export const saveLayout = async (userId, layout) => {
       created_at: layout.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+    fallbackLayout = layoutData;
 
     console.log('📝 Layout data prepared:', layoutData);
 
@@ -114,7 +117,7 @@ export const saveLayout = async (userId, layout) => {
   } catch (error) {
     console.warn('Error saving layout:', error);
     // Fallback to localStorage
-    return saveLocalLayout(layoutData);
+    return saveLocalLayout(fallbackLayout);
   }
 };
 

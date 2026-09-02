@@ -1,13 +1,19 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import { useTheme } from '../../../../../../../contexts/ThemeContext';
+import React, { useRef, useEffect, useCallback } from "react";
+import { useTheme } from "../../../../../../../contexts/ThemeContext";
 
 /**
  * Component for rendering interactive elements in an iframe for proper isolation
  */
-const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgroundColor, secondaryBackgroundColor }) => {
+const InteractiveRenderer = ({
+  name,
+  titleTextColor,
+  buttonColor,
+  primaryBackgroundColor,
+  secondaryBackgroundColor,
+}) => {
   const iframeRef = useRef(null);
   const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
   const themeRef = useRef(theme);
 
   // Function to notify iframe about theme changes
@@ -16,14 +22,22 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
 
     try {
       // Send a message to the iframe with the new theme
-      iframe.contentWindow.postMessage({
-        type: 'theme-change',
-        theme: newTheme
-      }, '*');
+      iframe.contentWindow.postMessage(
+        {
+          type: "theme-change",
+          theme: newTheme,
+        },
+        "*",
+      );
 
-      console.log(`[InteractiveRenderer] Sent theme-change message: ${newTheme}`);
+      console.log(
+        `[InteractiveRenderer] Sent theme-change message: ${newTheme}`,
+      );
     } catch (error) {
-      console.error('[InteractiveRenderer] Error sending theme message:', error);
+      console.error(
+        "[InteractiveRenderer] Error sending theme message:",
+        error,
+      );
     }
   }, []);
 
@@ -35,32 +49,40 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
 
     // Create a fresh document structure
     iframeDoc.open();
-    iframeDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
+    iframeDoc.write("<!DOCTYPE html><html><head></head><body></body></html>");
     iframeDoc.close();
 
     // Get current theme colors
-    const currentTitleColor = titleTextColor ? titleTextColor[isDark ? 'dark' : 'light'] : null;
-    const currentButtonColor = buttonColor ? buttonColor[isDark ? 'dark' : 'light'] : null;
-    const currentPrimaryBgColor = primaryBackgroundColor ? primaryBackgroundColor[isDark ? 'dark' : 'light'] : null;
-    const currentSecondaryBgColor = secondaryBackgroundColor ? secondaryBackgroundColor[isDark ? 'dark' : 'light'] : null;
+    const currentTitleColor = titleTextColor
+      ? titleTextColor[isDark ? "dark" : "light"]
+      : null;
+    const currentButtonColor = buttonColor
+      ? buttonColor[isDark ? "dark" : "light"]
+      : null;
+    const currentPrimaryBgColor = primaryBackgroundColor
+      ? primaryBackgroundColor[isDark ? "dark" : "light"]
+      : null;
+    const currentSecondaryBgColor = secondaryBackgroundColor
+      ? secondaryBackgroundColor[isDark ? "dark" : "light"]
+      : null;
 
     // Add styles to the iframe
-    const style = iframeDoc.createElement('style');
+    const style = iframeDoc.createElement("style");
     style.textContent = `
       :root {
         /* Custom color variables from ContentEditor */
-        ${currentTitleColor ? `--custom-title-color: rgba(${currentTitleColor.r}, ${currentTitleColor.g}, ${currentTitleColor.b}, ${currentTitleColor.a});` : ''}
-        ${currentButtonColor ? `--custom-button-color: rgba(${currentButtonColor.r}, ${currentButtonColor.g}, ${currentButtonColor.b}, ${currentButtonColor.a});` : ''}
-        ${currentPrimaryBgColor ? `--custom-primary-bg-color: rgba(${currentPrimaryBgColor.r}, ${currentPrimaryBgColor.g}, ${currentPrimaryBgColor.b}, ${currentPrimaryBgColor.a});` : ''}
-        ${currentSecondaryBgColor ? `--custom-secondary-bg-color: rgba(${currentSecondaryBgColor.r}, ${currentSecondaryBgColor.g}, ${currentSecondaryBgColor.b}, ${currentSecondaryBgColor.a});` : ''}
+        ${currentTitleColor ? `--custom-title-color: rgba(${currentTitleColor.r}, ${currentTitleColor.g}, ${currentTitleColor.b}, ${currentTitleColor.a});` : ""}
+        ${currentButtonColor ? `--custom-button-color: rgba(${currentButtonColor.r}, ${currentButtonColor.g}, ${currentButtonColor.b}, ${currentButtonColor.a});` : ""}
+        ${currentPrimaryBgColor ? `--custom-primary-bg-color: rgba(${currentPrimaryBgColor.r}, ${currentPrimaryBgColor.g}, ${currentPrimaryBgColor.b}, ${currentPrimaryBgColor.a});` : ""}
+        ${currentSecondaryBgColor ? `--custom-secondary-bg-color: rgba(${currentSecondaryBgColor.r}, ${currentSecondaryBgColor.g}, ${currentSecondaryBgColor.b}, ${currentSecondaryBgColor.a});` : ""}
       }
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         margin: 0;
         padding: 0;
-        background-color: ${isDark ? '#1e293b' : '#ffffff'};
-        color: ${isDark ? '#f8fafc' : '#1e293b'};
+        background-color: ${isDark ? "#1e293b" : "#ffffff"};
+        color: ${isDark ? "#f8fafc" : "#1e293b"};
         display: flex;
         justify-content: center;
         align-items: center;
@@ -134,15 +156,15 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
     iframeDoc.head.appendChild(style);
 
     // Add meta tag for viewport with a fixed width to ensure desktop layout
-    const meta = iframeDoc.createElement('meta');
-    meta.setAttribute('name', 'viewport');
+    const meta = iframeDoc.createElement("meta");
+    meta.setAttribute("name", "viewport");
     // Use a fixed width of 1400px to ensure desktop layout is always used
-    meta.setAttribute('content', 'width=1400, initial-scale=1.0');
+    meta.setAttribute("content", "width=1400, initial-scale=1.0");
     iframeDoc.head.appendChild(meta);
 
     // Create a div for the content
-    const contentDiv = iframeDoc.createElement('div');
-    contentDiv.className = 'interactive-element-wrapper';
+    const contentDiv = iframeDoc.createElement("div");
+    contentDiv.className = "interactive-element-wrapper";
     iframeDoc.body.appendChild(contentDiv);
 
     // Create the custom element
@@ -151,19 +173,22 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
     contentDiv.appendChild(customElement);
 
     // Load the script for the interactive element
-    const script = iframeDoc.createElement('script');
-    const interactiveAssetVersion = typeof __INTERACTIVE_ASSET_VERSION__ !== 'undefined'
-      ? __INTERACTIVE_ASSET_VERSION__
-      : 'local';
+    const script = iframeDoc.createElement("script");
+    const interactiveAssetVersion =
+      typeof __INTERACTIVE_ASSET_VERSION__ !== "undefined"
+        ? __INTERACTIVE_ASSET_VERSION__
+        : "local";
     // Use absolute path in dev, relative in production
-    const scriptBasePath = import.meta.env.DEV ? `/interactive-elements/${name}/index.js` : `./interactive-elements/${name}/index.js`;
+    const scriptBasePath = import.meta.env.DEV
+      ? `/interactive-elements/${name}/index.js`
+      : `./interactive-elements/${name}/index.js`;
     const scriptPath = `${scriptBasePath}?v=${encodeURIComponent(interactiveAssetVersion)}`;
     script.src = scriptPath;
-    script.type = 'module';
+    script.type = "module";
     iframeDoc.head.appendChild(script);
 
     // Add a script to override the max-width of the vis-container and handle theme changes
-    const overrideScript = iframeDoc.createElement('script');
+    const overrideScript = iframeDoc.createElement("script");
     overrideScript.textContent = `
       // Wait for the custom element to be defined and rendered
       setTimeout(() => {
@@ -210,8 +235,6 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
         // Set up message listener for theme changes
         window.addEventListener('message', (event) => {
           if (event.data && event.data.type === 'theme-change') {
-            console.log('[Interactive iframe] Received theme change:', event.data.theme);
-
             // Apply theme class to document
             if (event.data.theme === 'dark') {
               document.documentElement.classList.add('dark');
@@ -225,7 +248,6 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
             const customElement = document.querySelector('${name}-simulator');
             if (customElement && typeof customElement.updateTheme === 'function') {
               customElement.updateTheme(event.data.theme === 'dark');
-              console.log('[Interactive iframe] Called updateTheme on custom element');
             }
           }
         });
@@ -256,7 +278,15 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
     return () => {
       resizeObserver.disconnect();
     };
-  }, [name, isDark, notifyThemeChange, titleTextColor, buttonColor, primaryBackgroundColor, secondaryBackgroundColor]);
+  }, [
+    name,
+    isDark,
+    notifyThemeChange,
+    titleTextColor,
+    buttonColor,
+    primaryBackgroundColor,
+    secondaryBackgroundColor,
+  ]);
 
   // Effect to detect theme changes and notify the iframe
   useEffect(() => {
@@ -273,12 +303,12 @@ const InteractiveRenderer = ({ name, titleTextColor, buttonColor, primaryBackgro
       title={`Interactive: ${name}`}
       className="w-full border-none"
       style={{
-        minHeight: '200px',
-        height: '100%',
-        overflow: 'hidden',
-        width: '100%',
-        display: 'block',
-        maxWidth: '100%'
+        minHeight: "200px",
+        height: "100%",
+        overflow: "hidden",
+        width: "100%",
+        display: "block",
+        maxWidth: "100%",
       }}
       sandbox="allow-scripts allow-same-origin"
     />

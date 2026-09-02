@@ -3,12 +3,10 @@ import PropTypes from 'prop-types';
 import { accessCodesService } from '../../../services/api/accessCodes';
 import ConfirmationDialog from '../../common/ConfirmationDialog';
 import LoadingSpinner from '../../common/LoadingSpinner';
-import { useToast } from '../../common/ToastContainer';
 import { useDebounce } from '../../../hooks/useDebounce';
 import StatusBadge from './StatusBadge';
 
 const AccessCodeList = ({ quizId }) => {
-  const { showToast } = useToast();
   const [codes, setCodes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,20 +30,6 @@ const AccessCodeList = ({ quizId }) => {
     }
   }, [quizId]);
 
-  const handleCopyCode = useCallback(async (code) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      console.log('Copying code and showing toast:', code);
-      // Add a small delay to ensure the clipboard operation completes
-      setTimeout(() => {
-        showToast('Access Code copied to clipboard', 'success', 3000);
-      }, 100);
-    } catch (error) {
-      console.error('Failed to copy code:', error);
-      showToast('Failed to copy code', 'error', 3000);
-    }
-  }, [showToast]);
-
   const openDeleteConfirmation = useCallback((codeId) => {
     setDeleteConfirmation({ isOpen: true, codeId });
   }, []);
@@ -62,11 +46,11 @@ const AccessCodeList = ({ quizId }) => {
   const filteredCodes = useMemo(() => {
     return codes.filter(code => {
       const matchesSearch =
-        code.code.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        code.ldap.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        code.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        code.supervisor.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        code.market.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+        (code.code || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (code.ldap || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (code.email || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (code.supervisor || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (code.market || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase());
 
       if (!matchesSearch) return false;
 
@@ -171,7 +155,7 @@ const AccessCodeList = ({ quizId }) => {
           <table className="w-full min-w-[980px]">
           <thead className="bg-slate-50 dark:bg-slate-700">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">Code</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">Code Reference</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">LDAP</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">Supervisor</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">Market</th>
@@ -202,19 +186,11 @@ const AccessCodeList = ({ quizId }) => {
                     <div className="flex flex-wrap justify-end gap-2">
                       <button
                         type="button"
-                        className="px-3 py-2 text-sm bg-primary hover:bg-primary-dark dark:bg-primary-dark dark:hover:bg-primary text-white font-medium rounded-lg transition-colors"
-                        onClick={() => handleCopyCode(code.code)}
-                        title="Copy code"
-                      >
-                        Copy
-                      </button>
-                      <button
-                        type="button"
                         className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-red-600 dark:border-red-500 text-red-600 dark:text-red-500 hover:bg-red-600 dark:hover:bg-red-600 hover:text-white dark:hover:text-white font-medium rounded-lg transition-colors"
                         onClick={() => openDeleteConfirmation(code.id)}
-                        title="Delete code"
+                        title="Revoke code"
                       >
-                        Delete
+                        Revoke
                       </button>
                     </div>
                   </td>
@@ -233,9 +209,9 @@ const AccessCodeList = ({ quizId }) => {
           handleDelete(deleteConfirmation.codeId);
           setDeleteConfirmation({ isOpen: false, codeId: null });
         }}
-        title="Delete Access Code"
-        description="Are you sure you want to delete this access code? This action cannot be undone."
-        confirmButtonText="Delete"
+        title="Revoke Access Code"
+        description="Are you sure you want to revoke this access code? The audit history will be retained."
+        confirmButtonText="Revoke"
         confirmButtonVariant="danger"
       />
     </div>

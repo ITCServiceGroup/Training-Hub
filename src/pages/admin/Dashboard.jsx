@@ -386,6 +386,7 @@ import ExportButton from './components/ExportButton';
 import ExportModal from './components/ExportModal';
 import MultiSelect from './components/Filters/MultiSelect';
 import SingleSelect from './components/Filters/SingleSelect';
+import { DEFAULT_DASHBOARD_TILES } from './config/availableTiles';
 import { DashboardProvider } from './contexts/DashboardContext';
 import DrillDownBreadcrumbs from './components/DrillDownBreadcrumbs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -586,7 +587,6 @@ const Dashboard = () => {
           console.log('🔲 Generated grid layout:', newGridLayout);
         } else {
           // Fallback to default tiles if no dashboard tiles
-          const { DEFAULT_DASHBOARD_TILES } = await import('./config/availableTiles');
           setTileOrder(DEFAULT_DASHBOARD_TILES);
           const newGridLayout = convertTileConfigsToGridLayout(DEFAULT_DASHBOARD_TILES);
           setGridLayout(newGridLayout);
@@ -788,7 +788,6 @@ const Dashboard = () => {
         }
 
         // Final fallback to default tiles
-        const { DEFAULT_DASHBOARD_TILES } = await import('./config/availableTiles');
         setTileOrder(DEFAULT_DASHBOARD_TILES);
         console.log('📋 Using default tile order as final fallback:', DEFAULT_DASHBOARD_TILES);
       }

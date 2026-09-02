@@ -1,0 +1,3 @@
+-- Deterministic application fixtures belong here once the production schema
+-- baseline has been pulled and reconciled. Auth/RLS identities are created in
+-- transaction-scoped pgTAP tests so local seeds never resemble production users.

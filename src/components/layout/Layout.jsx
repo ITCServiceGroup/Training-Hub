@@ -14,8 +14,14 @@ const Layout = () => {
 
   return (
     <div className={`app-layout w-full flex flex-col ${isAdminPage || isStudyGuidePage || isFullscreen ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100`}>
+      <a
+        href="#main-content"
+        className="sr-only z-[100] rounded bg-white px-4 py-2 text-slate-900 shadow focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Skip to main content
+      </a>
       {!isFullscreen && <Header />}
-      <main className={`main-content ${isAdminPage || isStudyGuidePage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col w-full`}>
+      <main id="main-content" tabIndex="-1" className={`main-content ${isAdminPage || isStudyGuidePage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col w-full`}>
         {/* Apply padding conditionally - no padding for admin, study guide, or quiz pages */}
         <div
           className={`w-full ${isAdminPage || isStudyGuidePage || isFullscreen ? 'flex-1 min-h-0' : 'flex-1'} flex flex-col ${isAdminPage || isStudyGuidePage || isQuizPage || isFullscreen ? '' : 'p-8'}`}

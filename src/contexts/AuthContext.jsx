@@ -1,33 +1,18 @@
-import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
-import { getSupabaseClient, initializeSupabase } from '../config/supabase';
-import { initializeConfig, isSupabaseConfigured } from '../config/config';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+} from "react";
+import { getSupabaseClient, initializeSupabase } from "../config/supabase";
+import { initializeConfig, isSupabaseConfigured } from "../config/config";
 
-// Debug helper function with localStorage persistence
+// Keep authentication diagnostics ephemeral and development-only. Persisting
+// auth events in localStorage creates unnecessary employee-session metadata.
 const logAuth = (message, data = null) => {
-  const timestamp = new Date().toISOString();
-  const logMessage = `[AUTH ${timestamp}] ${message}`;
-  console.log(logMessage);
-
-  // Format data as string if present
-  let dataString = '';
-  if (data) {
-    console.log(`[AUTH DATA]`, data);
-    try {
-      dataString = JSON.stringify(data, null, 2);
-    } catch (e) {
-      dataString = `[Unable to stringify: ${e.message}]`;
-    }
-  }
-
-  // Persist to localStorage
-  try {
-    const logs = JSON.parse(localStorage.getItem('authLogs') || '[]');
-    logs.push({ timestamp, type: 'AUTH', message, data: dataString });
-    if (logs.length > 100) logs.shift();
-    localStorage.setItem('authLogs', JSON.stringify(logs));
-  } catch (e) {
-    console.error('Failed to persist log to localStorage', e);
-  }
+  if (!import.meta.env.DEV) return;
+  console.debug(`[AUTH ${new Date().toISOString()}] ${message}`, data || "");
 };
 
 // Create context
@@ -37,6 +22,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [authEvent, setAuthEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -45,90 +31,80 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize configuration and Supabase
   useEffect(() => {
-    logAuth('Initializing configuration');
+    let isMounted = true;
+    let subscription;
+
+    logAuth("Initializing configuration");
     initializeConfig();
 
     if (!isSupabaseConfigured()) {
-      logAuth('Supabase is not configured - some features will be disabled');
+      logAuth("Supabase is not configured - some features will be disabled");
       setLoading(false);
       return;
     }
 
     const client = initializeSupabase();
     if (!client) {
-      logAuth('Failed to initialize Supabase client');
-      setError('Authentication service unavailable');
+      logAuth("Failed to initialize Supabase client");
+      setError("Authentication service unavailable");
       setLoading(false);
       return;
     }
+
+    const handleAuthStateChange = (event, newSession) => {
+      if (!isMounted) return;
+
+      const newUserId = newSession?.user?.id || null;
+      currentUserIdRef.current = newUserId;
+      setSession(newSession);
+      setUser(newSession?.user || null);
+      setAuthEvent(event);
+      logAuth(`Auth state changed: ${event}`, { hasUser: Boolean(newUserId) });
+    };
+
+    const { data: authListener } = client.auth.onAuthStateChange(
+      handleAuthStateChange,
+    );
+    subscription = authListener.subscription;
 
     const initializeAuth = async () => {
       try {
         const { data, error: sessionError } = await client.auth.getSession();
         if (sessionError) throw sessionError;
+        if (!isMounted) return;
 
         const initialSession = data.session;
         setSession(initialSession);
         setUser(initialSession?.user || null);
         currentUserIdRef.current = initialSession?.user?.id || null;
 
-        logAuth('Session initialized', {
+        logAuth("Session initialized", {
           hasSession: !!initialSession,
-          hasUser: !!initialSession?.user
+          hasUser: !!initialSession?.user,
         });
-
-        const { data: { subscription } } = await client.auth.onAuthStateChange(
-          (event, newSession) => {
-            const newUserId = newSession?.user?.id || null;
-
-            logAuth(`Auth state changed: ${event}`, {
-              previousUserId: currentUserIdRef.current,
-              newUserId,
-              userChanged: currentUserIdRef.current !== newUserId
-            });
-
-            // For TOKEN_REFRESHED events, only update if absolutely necessary
-            // This prevents cascading re-renders when the tab regains focus
-            if (event === 'TOKEN_REFRESHED') {
-              // Only update if user ID has actually changed (shouldn't happen normally)
-              if (currentUserIdRef.current !== newUserId) {
-                logAuth('TOKEN_REFRESHED: User ID changed, updating state');
-                currentUserIdRef.current = newUserId;
-                setSession(newSession);
-                setUser(newSession?.user || null);
-              } else {
-                // Just silently update the session reference without triggering state updates
-                // This keeps the tokens fresh without causing re-renders
-                logAuth('TOKEN_REFRESHED: Same user, skipping state update to prevent re-renders');
-              }
-              return;
-            }
-
-            // For all other events (SIGNED_IN, SIGNED_OUT, etc.), update state normally
-            currentUserIdRef.current = newUserId;
-            setSession(newSession);
-            setUser(newSession?.user || null);
-          }
-        );
-
-        return () => subscription?.unsubscribe();
       } catch (error) {
-        logAuth('Auth initialization error', error);
+        if (!isMounted) return;
+        logAuth("Auth initialization error", error);
         setError(error.message);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
-    initializeAuth();
+    void initializeAuth();
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   // Sign in with email
   const signIn = async (email, password) => {
     const client = getSupabaseClient();
     if (!client) {
-      setError('Authentication service unavailable');
-      return { error: 'Authentication service unavailable' };
+      setError("Authentication service unavailable");
+      return { error: "Authentication service unavailable" };
     }
 
     setLoading(true);
@@ -157,7 +133,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     const client = getSupabaseClient();
     if (!client) {
-      setError('Authentication service unavailable');
+      setError("Authentication service unavailable");
       return;
     }
 
@@ -181,10 +157,11 @@ export const AuthProvider = ({ children }) => {
     session,
     loading,
     error,
+    authEvent,
     signIn,
     signOut,
     isAuthenticated: !!user,
-    isSupabaseAvailable: !!getSupabaseClient()
+    isSupabaseAvailable: !!getSupabaseClient(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -194,7 +171,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

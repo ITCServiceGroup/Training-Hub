@@ -13,7 +13,7 @@ import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import StudyGuideTemplateModal from './components/StudyGuideTemplateModal';
 import { studyGuidesService } from '../../services/api/studyGuides';
 import { sectionsService } from '../../services/api/sections';
-import { CategoryContext } from '../../components/layout/AdminLayout';
+import CategoryContext from '../../components/layout/CategoryContext';
 import { useCatalog } from '../../hooks/useCatalog';
 import { useContentVisibility } from '../../hooks/useContentVisibility';
 
@@ -190,9 +190,11 @@ const getInitialJson = (studyGuide, isCreatingFlag) => {
 const StudyGuides = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isFullscreen, exitFullscreen } = useFullscreen();
-  const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection, sectionsData, optimisticallyUpdateSectionsOrder } = useContext(CategoryContext);
+  const { selectedCategory, setSelectedCategory, setResetStudyGuideSelection } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
   const { sections, getGuidesByCategory, refresh } = useCatalog({ mode: 'admin' });
+  const sectionsData = sections;
+  const optimisticallyUpdateSectionsOrder = () => refresh();
   const { getNewContentDefaults } = useContentVisibility();
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedStudyGuide, setSelectedStudyGuide] = useState(null);

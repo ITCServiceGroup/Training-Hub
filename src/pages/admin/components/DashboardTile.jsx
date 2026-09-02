@@ -10,6 +10,7 @@ const DashboardTile = ({
   error = null,
   hasCustomFilters = false,
   onFilterClick,
+  onRefresh,
   dragHandle = null,
   className = '',
   drillDownFilters = [],
@@ -26,6 +27,11 @@ const DashboardTile = ({
     if (onFilterClick) {
       onFilterClick(id, e);
     }
+  };
+
+  const handleRefreshClick = (event) => {
+    event.stopPropagation();
+    onRefresh?.(id);
   };
 
 
@@ -115,6 +121,7 @@ const DashboardTile = ({
             </div>
             <button
               onClick={handleRefreshClick}
+              disabled={!onRefresh}
               className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               Try again

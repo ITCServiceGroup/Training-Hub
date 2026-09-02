@@ -1,17 +1,11 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../config/supabase';
+import { PERMISSIONS, ROLES, roleHasPermission } from '../config/authorization';
 
 const RBACContext = createContext(null);
 
-export const ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  ADMIN: 'admin',
-  AOM: 'aom',
-  SUPERVISOR: 'supervisor',
-  LEAD_TECH: 'lead_tech',
-  TECHNICIAN: 'technician'
-};
+export { ROLES } from '../config/authorization';
 
 export const RBACProvider = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
@@ -92,6 +86,8 @@ export const RBACProvider = ({ children }) => {
     return roleArray.includes(profile.role);
   };
 
+  const hasPermission = (permission) => roleHasPermission(profile?.role, permission);
+
   /**
    * Check if user is an admin (Super Admin or Admin)
    * @returns {boolean}
@@ -108,30 +104,19 @@ export const RBACProvider = ({ children }) => {
    * Check if user can create content
    * @returns {boolean}
    */
-  const canCreateContent = () => hasRole([
-    ROLES.SUPER_ADMIN,
-    ROLES.ADMIN,
-    ROLES.AOM,
-    ROLES.SUPERVISOR,
-    ROLES.LEAD_TECH
-  ]);
+  const canCreateContent = () => roleHasPermission(profile?.role, PERMISSIONS.CONTENT_MANAGE);
 
   /**
    * Check if user can manage other users
    * @returns {boolean}
    */
-  const canManageUsers = () => hasRole([
-    ROLES.SUPER_ADMIN,
-    ROLES.ADMIN,
-    ROLES.AOM,
-    ROLES.SUPERVISOR
-  ]);
+  const canManageUsers = () => roleHasPermission(profile?.role, PERMISSIONS.USERS_MANAGE);
 
   /**
    * Check if user can approve content for nationwide visibility
    * @returns {boolean}
    */
-  const canApproveContent = () => hasRole([ROLES.SUPER_ADMIN, ROLES.ADMIN]);
+  const canApproveContent = () => roleHasPermission(profile?.role, PERMISSIONS.APPROVALS_MANAGE);
 
   /**
    * Get role display name
@@ -192,6 +177,7 @@ export const RBACProvider = ({ children }) => {
     loading,
     error,
     hasRole,
+    hasPermission,
     isAdmin,
     isSuperAdmin,
     canCreateContent,

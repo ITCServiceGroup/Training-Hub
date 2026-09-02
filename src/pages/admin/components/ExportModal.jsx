@@ -8,7 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import { BiX, BiDownload, BiImage, BiFile, BiLoader } from 'react-icons/bi';
 import { useTheme } from '../../../contexts/ThemeContext';
-import exportService from '../services/exportService';
 
 const ExportModal = ({ 
   isOpen, 
@@ -67,6 +66,7 @@ const ExportModal = ({
       };
 
       setExportProgress('Capturing dashboard...');
+      const { default: exportService } = await import('../services/exportService');
       if (exportFormat === 'PNG') {
         await exportService.exportDashboardAsPNG(element, filename);
       } else {

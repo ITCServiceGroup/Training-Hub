@@ -823,7 +823,6 @@ export const ICONS = {
 
   // Communication
   'comment': FaComment,
-  'comments': FaComments,
   'envelope': FaEnvelope,
   'fax': FaFax,
   'inbox': FaInbox,
@@ -905,7 +904,6 @@ export const ICONS = {
   'coffee': FaCoffee,
   'pizza': FaPizzaSlice,
   'hamburger': FaHamburger,
-  'apple': FaAppleAlt,
   'bread': FaBreadSlice,
   'wine': FaWineGlass,
   'beer': FaBeer,

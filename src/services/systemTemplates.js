@@ -1,21 +1,55 @@
-/**
- * System Templates Service
- * Handles system templates stored in the codebase
- */
-
-import { systemTemplates } from '../data/systemTemplates';
+import {
+  getSystemTemplateDefinition,
+  systemTemplateRegistry,
+} from "../data/systemTemplateRegistry";
+import { validateSystemTemplate } from "../data/templateContract";
 
 class SystemTemplatesService {
   constructor() {
-    this.templates = systemTemplates;
+    this.templatePromises = new Map();
+  }
+
+  getMetadata(definition) {
+    const { load: _load, ...metadata } = definition;
+    return {
+      ...metadata,
+      loadContent: () => this.loadContent(metadata.id),
+    };
+  }
+
+  async loadTemplate(id) {
+    const definition = getSystemTemplateDefinition(id);
+    if (!definition) return null;
+
+    if (!this.templatePromises.has(id)) {
+      this.templatePromises.set(
+        id,
+        definition
+          .load()
+          .then((template) => validateSystemTemplate(template, definition))
+          .catch((error) => {
+            this.templatePromises.delete(id);
+            throw error;
+          }),
+      );
+    }
+
+    return this.templatePromises.get(id);
+  }
+
+  async loadContent(id) {
+    const template = await this.loadTemplate(id);
+    return template?.content ?? null;
   }
 
   /**
    * Get all system templates
    * @returns {Array} Array of system templates
    */
-  getAll() {
-    return [...this.templates];
+  async getAll() {
+    return systemTemplateRegistry.map((definition) =>
+      this.getMetadata(definition),
+    );
   }
 
   /**
@@ -23,8 +57,8 @@ class SystemTemplatesService {
    * @param {string} id - Template ID
    * @returns {Object|null} Template object or null if not found
    */
-  getById(id) {
-    return this.templates.find(template => template.id === id) || null;
+  async getById(id) {
+    return this.loadTemplate(id);
   }
 
   /**
@@ -32,11 +66,13 @@ class SystemTemplatesService {
    * @param {string} category - Category name
    * @returns {Array} Array of templates in the category
    */
-  getByCategory(category) {
-    if (category === 'All') {
+  async getByCategory(category) {
+    if (category === "All") {
       return this.getAll();
     }
-    return this.templates.filter(template => template.category === category);
+    return systemTemplateRegistry
+      .filter((template) => template.category === category)
+      .map((definition) => this.getMetadata(definition));
   }
 
   /**
@@ -44,26 +80,31 @@ class SystemTemplatesService {
    * @param {string} searchTerm - Search term
    * @returns {Array} Array of matching templates
    */
-  search(searchTerm) {
+  async search(searchTerm) {
     if (!searchTerm) {
       return this.getAll();
     }
 
     const term = searchTerm.toLowerCase();
-    return this.templates.filter(template =>
-      template.name.toLowerCase().includes(term) ||
-      template.description.toLowerCase().includes(term) ||
-      template.category.toLowerCase().includes(term) ||
-      template.tags.some(tag => tag.toLowerCase().includes(term))
-    );
+    return systemTemplateRegistry
+      .filter(
+        (template) =>
+          template.name.toLowerCase().includes(term) ||
+          template.description.toLowerCase().includes(term) ||
+          template.category.toLowerCase().includes(term) ||
+          template.tags.some((tag) => tag.toLowerCase().includes(term)),
+      )
+      .map((definition) => this.getMetadata(definition));
   }
 
   /**
    * Get all unique categories from system templates
    * @returns {Array} Array of category names
    */
-  getCategories() {
-    const categories = [...new Set(this.templates.map(template => template.category))];
+  async getCategories() {
+    const categories = [
+      ...new Set(systemTemplateRegistry.map((template) => template.category)),
+    ];
     return categories.sort();
   }
 
@@ -71,12 +112,12 @@ class SystemTemplatesService {
    * Get all unique tags from system templates
    * @returns {Array} Array of tag names
    */
-  getTags() {
-    const tags = [...new Set(this.templates.flatMap(template => template.tags))];
+  async getTags() {
+    const tags = [
+      ...new Set(systemTemplateRegistry.flatMap((template) => template.tags)),
+    ];
     return tags.sort();
   }
-
-
 
   /**
    * Check if a template is a system template
@@ -84,7 +125,9 @@ class SystemTemplatesService {
    * @returns {boolean} True if it's a system template
    */
   isSystemTemplate(template) {
-    return template.isSystemTemplate === true || template.id?.startsWith('system-');
+    return (
+      template.isSystemTemplate === true || template.id?.startsWith("system-")
+    );
   }
 }
 

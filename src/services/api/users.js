@@ -124,36 +124,6 @@ export const getUsersByMarket = async (marketId) => {
 };
 
 /**
- * Create a new user profile
- * Note: User must already exist in auth.users (created via Supabase Auth)
- * @param {object} profileData - User profile data
- * @returns {Promise<{data: object, error: object}>}
- */
-export const createUserProfile = async (profileData) => {
-  try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .insert({
-        user_id: profileData.user_id,
-        role: profileData.role,
-        market_id: profileData.market_id || null,
-        reports_to_user_id: profileData.reports_to_user_id || null,
-        display_name: profileData.display_name,
-        email: profileData.email,
-        is_active: profileData.is_active ?? true
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error creating user profile:', error);
-    return { data: null, error };
-  }
-};
-
-/**
  * Update an existing user profile
  * @param {string} userId - User ID
  * @param {object} updates - Fields to update
@@ -161,15 +131,18 @@ export const createUserProfile = async (profileData) => {
  */
 export const updateUserProfile = async (userId, updates) => {
   try {
-    // Don't allow updating user_id
-    const { user_id, created_at, updated_at, ...safeUpdates } = updates;
+    const current = await getUserById(userId);
+    if (current.error || !current.data) throw current.error || new Error('User not found');
 
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(safeUpdates)
-      .eq('user_id', userId)
-      .select()
-      .single();
+    const merged = { ...current.data, ...updates };
+    const { data, error } = await supabase.rpc('update_managed_user_profile', {
+      p_target_user_id: userId,
+      p_display_name: merged.display_name,
+      p_role: merged.role,
+      p_market_id: merged.market_id || null,
+      p_reports_to_user_id: merged.reports_to_user_id || null,
+      p_is_active: merged.is_active
+    });
 
     if (error) throw error;
     return { data, error: null };
@@ -187,27 +160,6 @@ export const updateUserProfile = async (userId, updates) => {
  */
 export const setUserActiveStatus = async (userId, isActive) => {
   return updateUserProfile(userId, { is_active: isActive });
-};
-
-/**
- * Delete a user profile
- * Note: This does not delete the auth.users record
- * @param {string} userId - User ID
- * @returns {Promise<{error: object}>}
- */
-export const deleteUserProfile = async (userId) => {
-  try {
-    const { error } = await supabase
-      .from('user_profiles')
-      .delete()
-      .eq('user_id', userId);
-
-    if (error) throw error;
-    return { error: null };
-  } catch (error) {
-    console.error('Error deleting user profile:', error);
-    return { error };
-  }
 };
 
 /**
@@ -262,24 +214,19 @@ export const getPotentialSupervisors = async (role, marketId) => {
  */
 export const createUser = async (userData) => {
   try {
-    // Call the database function to create the user
-    const { data, error } = await supabase.rpc('admin_create_user', {
-      p_email: userData.email,
-      p_password: userData.password,
-      p_display_name: userData.display_name,
-      p_role: userData.role,
-      p_market_id: userData.market_id,
-      p_reports_to_user_id: userData.reports_to_user_id
+    const { data, error } = await supabase.functions.invoke('admin-create-user', {
+      body: {
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.display_name,
+        role: userData.role,
+        marketId: userData.market_id,
+        reportsToUserId: userData.reports_to_user_id
+      }
     });
 
     if (error) throw error;
-
-    // Check if the function returned an error
-    if (data && !data.success) {
-      throw new Error(data.error || 'Failed to create user');
-    }
-
-    return { data: data, error: null };
+    return { data, error: null };
   } catch (error) {
     console.error('Error creating user:', error);
     return { data: null, error };
@@ -327,10 +274,8 @@ export default {
   getUserById,
   getUsersByRole,
   getUsersByMarket,
-  createUserProfile,
   updateUserProfile,
   setUserActiveStatus,
-  deleteUserProfile,
   getPotentialSupervisors,
   createUser,
   getUserStats

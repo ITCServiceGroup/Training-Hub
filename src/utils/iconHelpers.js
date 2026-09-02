@@ -1,4 +1,4 @@
-import { getIconByName } from './iconMappings';
+import DynamicIcon from '../components/common/DynamicIcon';
 
 /**
  * Get icon component and props for a section based on its custom icon or name-based detection
@@ -10,10 +10,9 @@ import { getIconByName } from './iconMappings';
 export const getSectionIcon = (section, currentSecondaryColor, size = 24) => {
   // If the section has a custom icon set, use it
   if (section.icon) {
-    const { component: IconComponent } = getIconByName(section.icon);
     return {
-      IconComponent,
-      iconProps: { size, color: "white" },
+      IconComponent: DynamicIcon,
+      iconProps: { iconName: section.icon, size, color: 'white' },
       color: currentSecondaryColor // Always use secondary color
     };
   }
@@ -31,10 +30,9 @@ export const getSectionIcon = (section, currentSecondaryColor, size = 24) => {
   else if (name.includes('software')) iconName = 'Chart';
   else if (name.includes('advanced')) iconName = 'Rocket';
 
-  const { component: IconComponent } = getIconByName(iconName);
   return {
-    IconComponent,
-    iconProps: { size, color: "white" },
+    IconComponent: DynamicIcon,
+    iconProps: { iconName, size, color: 'white' },
     color: currentSecondaryColor // Always use secondary color
   };
 };
@@ -49,10 +47,9 @@ export const getSectionIcon = (section, currentSecondaryColor, size = 24) => {
 export const getCategoryIcon = (category, currentSecondaryColor, size = 24) => {
   // If the category has a custom icon set, use it
   if (category.icon) {
-    const { component: IconComponent } = getIconByName(category.icon);
     return {
-      IconComponent,
-      iconProps: { size, color: "white" },
+      IconComponent: DynamicIcon,
+      iconProps: { iconName: category.icon, size, color: 'white' },
       color: currentSecondaryColor // Always use secondary color
     };
   }
@@ -69,10 +66,9 @@ export const getCategoryIcon = (category, currentSecondaryColor, size = 24) => {
   else if (name.includes('hardware')) iconName = 'Laptop';
   else if (name.includes('software')) iconName = 'Chart';
 
-  const { component: IconComponent } = getIconByName(iconName);
   return {
-    IconComponent,
-    iconProps: { size, color: "white" },
+    IconComponent: DynamicIcon,
+    iconProps: { iconName, size, color: 'white' },
     color: currentSecondaryColor // Always use secondary color
   };
 };
@@ -87,10 +83,9 @@ export const getCategoryIcon = (category, currentSecondaryColor, size = 24) => {
 export const getSearchResultIcon = (item, currentSecondaryColor, type = 'section') => {
   // If the item has a custom icon set, use it
   if (item.icon) {
-    const { component: IconComponent } = getIconByName(item.icon);
     return {
-      IconComponent,
-      iconProps: { size: 20, color: "white" },
+      IconComponent: DynamicIcon,
+      iconProps: { iconName: item.icon, size: 20, color: 'white' },
       color: currentSecondaryColor // Always use secondary color
     };
   }
@@ -108,10 +103,9 @@ export const getSearchResultIcon = (item, currentSecondaryColor, type = 'section
   else if (name.includes('software')) iconName = 'Chart';
   else if (type === 'section' && name.includes('advanced')) iconName = 'Rocket';
 
-  const { component: IconComponent } = getIconByName(iconName);
   return {
-    IconComponent,
-    iconProps: { size: 20, color: "white" },
+    IconComponent: DynamicIcon,
+    iconProps: { iconName, size: 20, color: 'white' },
     color: currentSecondaryColor // Always use secondary color
   };
 };

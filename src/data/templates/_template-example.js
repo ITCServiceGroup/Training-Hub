@@ -4,7 +4,7 @@
  * Instructions:
  * 1. Copy this file and rename it to your template name (e.g., "my-awesome-template.js")
  * 2. Update the template object below with your content
- * 3. Import and add it to the systemTemplates array in ../systemTemplates.js
+ * 3. Register its metadata and loader in ../systemTemplateRegistry.js
  * 4. Make sure all padding and margin values are arrays, not strings
  */
 

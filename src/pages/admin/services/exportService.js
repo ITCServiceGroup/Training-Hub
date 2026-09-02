@@ -3112,7 +3112,7 @@ class ExportService {
     });
   }
 
-  async _addTestCompletionTrendDetails(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
+  async _addTestCompletionTrendDetailsLegacy(pdf, x, y, width, rawData, lineHeight, sectionSpacing) {
     let currentY = y;
 
     // Overall Statistics Header

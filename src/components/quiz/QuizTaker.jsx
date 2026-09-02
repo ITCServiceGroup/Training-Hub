@@ -2,11 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import PropTypes from 'prop-types';
-import { supabase } from '../../config/supabase';
-import { shuffleArray, shuffleQuestionOptions } from '../../utils/shuffleUtils';
 import { quizzesService } from '../../services/api/quizzes';
 import { quizResultsService } from '../../services/api/quizResults';
-import { accessCodesService } from '../../services/api/accessCodes';
 import { categoriesService } from '../../services/api/categories';
 import QuizTimer from './QuizTimer';
 import QuestionDisplay from './QuestionDisplay';
@@ -28,6 +25,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const timeoutPromiseRef = useRef(null);
   const submitInProgressRef = useRef(false);
   const timeoutTimeoutRef = useRef(null); // Moved ref to top level
+  const submissionIdRef = useRef(globalThis.crypto.randomUUID());
   // Quiz state
   const [quiz, setQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -69,51 +67,12 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         let quizData;
 
         if (accessCode) {
-          // Validate access code first
-          const codeData = await accessCodesService.validateCode(accessCode);
-          if (!codeData) {
-            setError('Invalid access code');
-            setIsLoading(false);
-            return;
-          }
-          setAccessCodeData(codeData);
-
-          // Use quiz ID from access code
-          quizData = await quizzesService.getWithQuestions(codeData.quiz_id);
-          // Force practice mode off when using access code
-          quizData.is_practice = false;
-
-          // Apply randomization if enabled
-          if (quizData.randomize_questions) {
-            quizData.questions = shuffleArray(quizData.questions);
-          }
-          if (quizData.randomize_answers) {
-            quizData.questions = quizData.questions.map(q => shuffleQuestionOptions(q));
-          }
-
+          quizData = await quizzesService.getLearnerQuiz({ accessCode });
+          setAccessCodeData({ ...quizData.learner, code: accessCode });
           setQuiz(quizData);
         } else if (quizId) {
-          // Load quiz directly if ID is provided
-          quizData = await quizzesService.getWithQuestions(quizId);
-
-          // Validate quiz access
-          if (!quizData.is_practice && !quizData.has_practice_mode) {
-            setError('This quiz requires an access code');
-            setIsLoading(false);
-            return;
-          }
-
-          // Force practice mode on for direct access
-          quizData.is_practice = true;
-
-          // Apply randomization if enabled
-          if (quizData.randomize_questions) {
-            quizData.questions = shuffleArray(quizData.questions);
-          }
-          if (quizData.randomize_answers) {
-            quizData.questions = quizData.questions.map(q => shuffleQuestionOptions(q));
-          }
-
+          quizData = await quizzesService.getLearnerQuiz({ quizId });
+          setDisableImmediateFeedback(true);
           setQuiz(quizData);
         }
       } catch (error) {
@@ -176,143 +135,78 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     submitInProgressRef.current = true;
     setIsSubmitting(true);
 
-    // Calculate score - defined inside handleSubmitQuiz again
-    const calculateScore = () => {
-      if (!quiz || !quiz.questions) {
-         return { correct: 0, total: 0, percentage: 0 };
-      }
-      let correctCount = 0;
-      const totalQuestions = quiz.questions.length;
-
-      quiz.questions.forEach(question => {
-        const answerData = selectedAnswers[question.id];
-        if (answerData === undefined) return;
-
-        // Get the actual answer value, considering practice mode format
-        const answer = quiz.is_practice ? answerData.answer : answerData;
-        if (answer === undefined) return; // Skip if practice answer object doesn't have 'answer'
-
-        let isCorrect = false;
-        let partialCredit = 0;
-        
-        switch (question.question_type) {
-          case 'multiple_choice':
-            isCorrect = answer === question.correct_answer;
-            if (isCorrect) partialCredit = 1;
-            break;
-          case 'check_all_that_apply':
-            // Ensure answer is an array for comparison
-            if (Array.isArray(answer) && Array.isArray(question.correct_answer)) {
-              if (quiz.allow_partial_credit) {
-                // Calculate partial credit based on correct selections
-                const totalCorrect = question.correct_answer.length;
-                const correctSelections = answer.filter(a => question.correct_answer.includes(a)).length;
-                const incorrectSelections = answer.filter(a => !question.correct_answer.includes(a)).length;
-                
-                // Partial credit formula: (correct selections - incorrect selections) / total correct answers
-                // Ensure it doesn't go below 0
-                partialCredit = Math.max(0, (correctSelections - incorrectSelections) / totalCorrect);
-                isCorrect = partialCredit === 1;
-              } else {
-                // All-or-nothing grading
-                isCorrect =
-                  answer.length === question.correct_answer.length &&
-                  answer.every(a => question.correct_answer.includes(a));
-                if (isCorrect) partialCredit = 1;
-              }
-            }
-            break;
-          case 'true_false':
-            isCorrect = answer === question.correct_answer;
-            if (isCorrect) partialCredit = 1;
-            break;
-        }
-        correctCount += partialCredit;
-      });
-
-      const result = {
-        correct: Math.round(correctCount * 100) / 100, // Round to 2 decimal places
-        total: totalQuestions,
-        percentage: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 10000) / 100 : 0 // Round to 2 decimal places
-      };
-      return result;
-    };
-
     try {
-      const finalScore = calculateScore(); // Use the inner function
-      
-      // Ensure score is valid
-      if (finalScore && typeof finalScore.percentage === 'number' && !isNaN(finalScore.percentage)) {
-        setScore(finalScore);
-      } else {
-        // Provide fallback score
-        setScore({ correct: 0, total: quiz?.questions?.length || 0, percentage: 0 });
+      const rawAnswers = Object.fromEntries(
+        Object.entries(selectedAnswers).map(([questionId, answerData]) => [
+          questionId,
+          quiz.is_practice ? answerData?.answer : answerData
+        ])
+      );
+
+      const timingData = Object.fromEntries(
+        Object.entries(questionTimings)
+          .filter(([, timing]) => timing > 0)
+          .map(([questionId, timing]) => [questionId, Math.round(timing * 10) / 10])
+      );
+
+      const result = quiz.is_practice
+        ? await quizResultsService.gradePracticeAttempt({ quizId: quiz.id, answers: rawAnswers })
+        : await quizResultsService.submitOfficialAttempt({
+            accessCode,
+            answers: rawAnswers,
+            idempotencyKey: submissionIdRef.current,
+            timeTaken,
+            questionTimings: timingData
+          });
+
+      const finalScore = {
+        correct: Number(result.correct),
+        total: Number(result.total),
+        percentage: Number(result.score)
+      };
+      const feedback = result.feedback || {};
+      const quizWithFeedback = {
+        ...quiz,
+        questions: quiz.questions.map(question => ({
+          ...question,
+          correct_answer: feedback[question.id]?.correct_answer,
+          explanation: feedback[question.id]?.explanation,
+          authoritative_is_correct: feedback[question.id]?.is_correct
+        }))
+      };
+
+      setQuiz(quizWithFeedback);
+      setScore(finalScore);
+
+      if (quiz.is_practice) {
+        setSelectedAnswers(previous => Object.fromEntries(
+          Object.entries(previous).map(([questionId, answerData]) => {
+            const expected = feedback[questionId]?.correct_answer;
+            const answer = answerData?.answer;
+            const isCorrect = Array.isArray(answer) && Array.isArray(expected)
+              ? answer.length === expected.length && answer.every(value => expected.includes(value))
+              : answer === expected;
+            return [questionId, { ...answerData, isCorrect, showFeedback: true }];
+          })
+        ));
       }
 
-      // For non-practice quizzes, generate PDF and save the result
-      if (!quiz.is_practice && accessCodeData) {
-        let pdfUrl = null;
+      if (!quiz.is_practice && result.report_upload_token) {
         try {
-          pdfUrl = await pdfService.uploadQuizResultsPDF({
-            quiz,
-            selectedAnswers,
+          await pdfService.uploadQuizResultsPDF({
+            quiz: quizWithFeedback,
+            selectedAnswers: rawAnswers,
             score: finalScore,
             timeTaken,
-            ldap: accessCodeData.ldap,
-            isPractice: quiz.is_practice,
+            ldap: accessCodeData?.ldap,
+            isPractice: false,
             accessCodeData
-          }, accessCodeData);
-
-          if (!pdfUrl) {
-            console.warn('PDF generation/upload failed. Saving result without PDF URL.');
-          }
-
-          // Create timing data separately from answers
-          const timingData = {};
-          Object.keys(selectedAnswers).forEach(questionId => {
-            const timing = questionTimings[questionId] || 0;
-            if (timing > 0) {
-              timingData[questionId] = Math.round(timing * 10) / 10;
-            }
+          }, {
+            resultId: result.result_id,
+            uploadToken: result.report_upload_token
           });
-
-          // Store the shuffled question data for analytics
-          const shuffledQuestionData = {};
-          quiz.questions.forEach(question => {
-            shuffledQuestionData[question.id] = {
-              id: question.id,
-              question_text: question.question_text,
-              question_type: question.question_type,
-              options: question.options,
-              correct_answer: question.correct_answer, // This is already shuffled
-              category_id: question.category_id
-            };
-          });
-
-          // Save quiz result to DB with simple answer format + separate timing + shuffled question data
-          await quizResultsService.create({
-            ldap: accessCodeData.ldap,
-            supervisor: accessCodeData.supervisor,
-            market: accessCodeData.market,
-            quiz_id: quiz.id,
-            quiz_type: quiz.title,
-            score_value: finalScore.percentage / 100,
-            score_text: `${finalScore.correct}/${finalScore.total} (${finalScore.percentage}%)`,
-            answers: selectedAnswers, // Keep simple format like working quizzes
-            question_timings: timingData, // Store timing separately
-            shuffled_questions: shuffledQuestionData, // Store shuffled question data for analytics
-            time_taken: timeTaken,
-            date_of_test: new Date().toISOString(),
-            pdf_url: pdfUrl
-          });
-
-          // Mark access code as used
-          await accessCodesService.markAsUsed(accessCode);
-        } catch (error) {
-          console.error('Failed to save quiz result or generate PDF:', error);
-          if (isTimeout) {
-            throw error; // Re-throw for timeout handling
-          }
+        } catch (reportError) {
+          console.warn('The result was saved, but its report is still pending:', reportError);
         }
       }
 
@@ -321,17 +215,13 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       setIsReviewing(false);
     } catch (error) {
       console.error('Quiz submission failed:', error);
-      if (isTimeout) {
-        // Force completion on timeout
-        setQuizCompleted(true);
-        setIsReviewing(false);
-      }
+      setError(error.message || 'Quiz submission failed');
     } finally {
       submitInProgressRef.current = false;
       setIsSubmitting(false);
     }
     // calculateScore is not needed in deps as it's defined inside
-  }, [quiz, accessCodeData, accessCode, timeTaken, selectedAnswers]); // Removed stable state setters AND calculateScore
+  }, [quiz, accessCodeData, accessCode, timeTaken, selectedAnswers, questionTimings]);
 
   // Timeout handler
   const handleTimeout = useCallback(async (clearTimer) => {
@@ -448,14 +338,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       }
     }
 
-    // Load a fresh copy of questions and shuffle if needed
-    let questions = [...quiz.questions];
-    if (quiz.randomize_questions) {
-      questions = shuffleArray(questions);
-    }
-    if (quiz.randomize_answers) {
-      questions = questions.map(q => shuffleQuestionOptions(q));
-    }
+    const questions = [...quiz.questions];
     setQuiz({ ...quiz, questions });
 
     setQuizStarted(true);
@@ -492,51 +375,16 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const handleSelectAnswer = (answer) => {
     const currentQuestion = quiz.questions[currentQuestionIndex];
 
-    // For practice mode, always calculate correctness for scoring
+    // Learner answers are graded by the server. Practice feedback is returned
+    // only after submission, so official answers never need to be in app state.
     if (quiz.is_practice) {
-      let isCorrect = false;
-      let partialCredit = 0;
-
-      switch (currentQuestion.question_type) {
-        case 'multiple_choice':
-          isCorrect = answer === currentQuestion.correct_answer;
-          if (isCorrect) partialCredit = 1;
-          break;
-        case 'check_all_that_apply':
-          if (Array.isArray(answer) && Array.isArray(currentQuestion.correct_answer)) {
-            if (quiz.allow_partial_credit) {
-              // Calculate partial credit based on correct selections
-              const totalCorrect = currentQuestion.correct_answer.length;
-              const correctSelections = answer.filter(a => currentQuestion.correct_answer.includes(a)).length;
-              const incorrectSelections = answer.filter(a => !currentQuestion.correct_answer.includes(a)).length;
-
-              // Partial credit formula: (correct selections - incorrect selections) / total correct answers
-              // Ensure it doesn't go below 0
-              partialCredit = Math.max(0, (correctSelections - incorrectSelections) / totalCorrect);
-              isCorrect = partialCredit === 1;
-            } else {
-              // All-or-nothing grading
-              isCorrect =
-                answer.length === currentQuestion.correct_answer.length &&
-                answer.every(a => currentQuestion.correct_answer.includes(a));
-              if (isCorrect) partialCredit = 1;
-            }
-          }
-          break;
-        case 'true_false':
-          isCorrect = answer === currentQuestion.correct_answer;
-          if (isCorrect) partialCredit = 1;
-          break;
-      }
-
-      // Store answer with correctness data, but only show feedback if not disabled
       setSelectedAnswers(prev => ({
         ...prev,
         [currentQuestion.id]: {
           answer,
-          showFeedback: !disableImmediateFeedback, // Only show feedback if not disabled
-          isCorrect,
-          partialCredit: partialCredit
+          showFeedback: false,
+          isCorrect: false,
+          partialCredit: 0
         }
       }));
       setIsCurrentPracticeQuestionAnswered(true); // Mark as answered for practice mode

@@ -17,7 +17,7 @@ export const getUserPreferences = async () => {
     }
 
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('user_preferences')
       .select('preferences')
       .eq('user_id', user.id)
       .single();
@@ -43,9 +43,8 @@ export const updateUserPreferences = async (preferences) => {
     }
 
     const { data, error } = await supabase
-      .from('user_profiles')
-      .update({ preferences })
-      .eq('user_id', user.id)
+      .from('user_preferences')
+      .upsert({ user_id: user.id, preferences, updated_at: new Date().toISOString() })
       .select('preferences')
       .single();
 

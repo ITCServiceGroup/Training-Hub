@@ -5,7 +5,7 @@
 
 const developerConfig = {
   // Enable debug logging for system templates
-  debugSystemTemplates: false
+  debugSystemTemplates: false,
 };
 
 /**

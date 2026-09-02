@@ -243,10 +243,10 @@ const CategoryManagement = ({ section, onViewStudyGuides, onBack }) => {
       <QuestionMigrationDialog
         isOpen={migrationModalState.isOpen}
         onClose={() => setMigrationModalState({ isOpen: false, categoryId: null, categoryName: "", questions: [] })}
-        onComplete={() => {
+        onComplete={async () => {
           setMigrationModalState({ isOpen: false, categoryId: null, categoryName: "", questions: [] });
-          // Reload categories to refresh the data
-          loadCategories();
+          await refresh();
+          setCategories(getCategoriesBySection(section.id) || []);
         }}
         categoryId={migrationModalState.categoryId}
         categoryName={migrationModalState.categoryName}

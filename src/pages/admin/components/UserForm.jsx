@@ -139,8 +139,8 @@ const UserForm = ({ user, onClose }) => {
       return false;
     }
 
-    if (!isEditing && formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (!isEditing && formData.password.length < 10) {
+      setError('Password must be at least 10 characters');
       return false;
     }
 
@@ -152,6 +152,11 @@ const UserForm = ({ user, onClose }) => {
     // Regional roles must have a market
     if (!['super_admin', 'admin'].includes(formData.role) && !formData.market_id) {
       setError('Market is required for this role');
+      return false;
+    }
+
+    if (requiresSupervisor && !formData.reports_to_user_id) {
+      setError('An active reporting manager in the same market is required');
       return false;
     }
 
@@ -281,7 +286,8 @@ const UserForm = ({ user, onClose }) => {
                   required
                   autoComplete="new-password"
                   className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500"
-                  placeholder="Minimum 6 characters"
+                  minLength={10}
+                  placeholder="Minimum 10 characters"
                 />
                 <button
                   type="button"

@@ -38,18 +38,26 @@ export class TextFormatter {
       return { isValid: false, error: 'URL cannot be empty' };
     }
 
-    // Add protocol if missing
-    let normalizedUrl = trimmedUrl;
-    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-      normalizedUrl = 'https://' + normalizedUrl;
+    // Reject explicit non-web schemes before adding a default protocol. Without
+    // this check, values such as "ftp://example.com" become an apparently valid
+    // HTTPS URL whose hostname is "ftp".
+    const schemeMatch = trimmedUrl.match(/^([a-z][a-z0-9+.-]*):/i);
+    if (schemeMatch && !['http', 'https'].includes(schemeMatch[1].toLowerCase())) {
+      return { isValid: false, error: 'Only HTTP and HTTPS URLs are allowed' };
     }
+
+    // Add HTTPS when a user enters an ordinary hostname without a protocol.
+    const normalizedUrl = schemeMatch ? trimmedUrl : `https://${trimmedUrl}`;
 
     // Use native URL constructor for validation - it's fast and reliable
     try {
       const urlObj = new URL(normalizedUrl);
 
-      // Basic security checks
-      if (!urlObj.hostname || urlObj.hostname.length < 3) {
+      // Basic domain checks. URL accepts single-label strings such as
+      // "not-a-url" as hostnames, but those are not public web destinations.
+      const hostname = urlObj.hostname.toLowerCase();
+      const isIpv4 = /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname);
+      if (!hostname || (!hostname.includes('.') && !isIpv4)) {
         return { isValid: false, error: 'Invalid domain' };
       }
 
@@ -59,7 +67,6 @@ export class TextFormatter {
       }
 
       // Block localhost and private IPs for security
-      const hostname = urlObj.hostname.toLowerCase();
       if (hostname === 'localhost' ||
           hostname.startsWith('127.') ||
           hostname.startsWith('192.168.') ||

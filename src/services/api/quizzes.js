@@ -1,5 +1,6 @@
 import { BaseService } from './base';
 import { supabase } from '../../config/supabase';
+import { assessmentGateway } from './assessmentGateway';
 
 /**
  * Quizzes service for interacting with quizzes table
@@ -533,6 +534,14 @@ class QuizzesService extends BaseService {
       console.error('Error fetching quiz with questions:', error.message);
       throw error;
     }
+  }
+
+  /**
+   * Load the learner-safe quiz contract. Correct answers are intentionally
+   * absent until the server returns post-submission feedback.
+   */
+  async getLearnerQuiz({ quizId = null, accessCode = null }) {
+    return assessmentGateway.loadQuiz({ quizId, accessCode });
   }
 
   /**

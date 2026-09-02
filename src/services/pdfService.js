@@ -1,6 +1,3 @@
-import { pdf } from '@react-pdf/renderer';
-import QuizReportPDF from '../components/pdf/QuizReportPDF';
-
 /**
  * Professional PDF generation service using React-PDF
  * Replaces the legacy html2pdf.js implementation with enterprise-level PDF generation
@@ -31,6 +28,11 @@ class PDFService {
   }) {
     try {
       console.log('Generating PDF with React-PDF...');
+
+      const [{ pdf }, { default: QuizReportPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('../components/pdf/QuizReportPDF')
+      ]);
       
       // Create the PDF document
       const pdfDocument = QuizReportPDF({
@@ -112,10 +114,10 @@ class PDFService {
   /**
    * Upload quiz results PDF to Supabase storage
    * @param {Object} options - PDF generation options
-   * @param {Object} accessCodeData - Access code data for validation
-   * @returns {Promise<string>} Public URL of uploaded PDF
+   * @param {Object} reportAuthorization - Committed result and short-lived upload token
+   * @returns {Promise<Object>} Private report status
    */
-  async uploadQuizResultsPDF(options, accessCodeData) {
+  async uploadQuizResultsPDF(options, reportAuthorization) {
     try {
       console.log('Generating and uploading PDF...');
       
@@ -125,9 +127,8 @@ class PDFService {
       // Call the Edge Function to handle the upload
       const requestBody = {
         pdfData: base64Data,
-        accessCode: accessCodeData.code,
-        ldap: options.ldap,
-        quizId: options.quiz.id
+        resultId: reportAuthorization.resultId,
+        uploadToken: reportAuthorization.uploadToken
       };
 
       console.log('Sending request to Edge Function...');
@@ -148,9 +149,9 @@ class PDFService {
       }
 
       const result = await response.json();
-      console.log('PDF uploaded successfully:', result.pdf_url);
+      console.log('Private PDF report uploaded successfully');
       
-      return result.pdf_url;
+      return result;
     } catch (error) {
       console.error('Error uploading PDF:', error);
       throw error;

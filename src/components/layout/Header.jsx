@@ -3,20 +3,23 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRBAC } from '../../contexts/RBACContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import { FiSun, FiMoon, FiSettings, FiLogOut, FiUsers, FiCheckCircle } from 'react-icons/fi';
-import { MdDashboard, MdQuiz, MdOutlinePermMedia } from 'react-icons/md';
+import { FiSun, FiMoon, FiSettings, FiLogOut, FiUsers, FiCheckCircle, FiClipboard } from 'react-icons/fi';
+import { MdDashboard, MdQuiz, MdOutlinePermMedia, MdMenu, MdClose } from 'react-icons/md';
 import { BiBook } from 'react-icons/bi';
+import { PERMISSIONS } from '../../config/authorization';
 
 const Header = () => {
   const { isAuthenticated, signOut, user } = useAuth();
-  const { canManageUsers, isAdmin } = useRBAC();
+  const { canManageUsers, hasPermission, isAdmin, getRoleDisplayName, role } = useRBAC();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef(null);
+  const mobileMenuButtonRef = useRef(null);
+  const mobileNavigationRef = useRef(null);
+  const canAccessAdmin = hasPermission(PERMISSIONS.ADMIN_PORTAL);
 
   // Function to get the page title based on the current path
   const getPageTitle = () => {
@@ -28,6 +31,7 @@ const Header = () => {
     if (path.includes('/admin/questions')) return 'Questions Management';
     if (path.includes('/admin/quizzes')) return 'Quiz Management';
     if (path.includes('/admin/settings')) return 'Settings';
+    if (path.includes('/admin/training')) return 'Training Operations';
 
     return null; // Return null for non-admin pages
   };
@@ -73,6 +77,50 @@ const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isMenuOpen) return undefined;
+
+    const navigation = mobileNavigationRef.current;
+    const menuButton = mobileMenuButtonRef.current;
+    const previousOverflow = document.body.style.overflow;
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    document.body.style.overflow = 'hidden';
+    const animationFrame = window.requestAnimationFrame(() => {
+      navigation?.querySelector(focusableSelector)?.focus();
+    });
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsMenuOpen(false);
+        return;
+      }
+
+      if (event.key !== 'Tab' || !navigation) return;
+      const focusable = [...navigation.querySelectorAll(focusableSelector)];
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      menuButton?.focus();
+    };
+  }, [isMenuOpen]);
+
   return (
     <header className="bg-primary text-white py-4 shadow-md sticky top-0 z-40">
       <div className="w-full px-6">
@@ -91,11 +139,14 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <button
+            ref={mobileMenuButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 text-white hover:bg-primary-dark rounded-md transition-colors relative z-10"
             aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-primary-navigation"
           >
-            {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            {isMenuOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
           </button>
 
           {/* Desktop navigation */}
@@ -138,14 +189,14 @@ const Header = () => {
                       </div>
                       <div className="flex flex-col items-start">
                         <span className="text-sm font-medium">{user?.email || 'Administrator'}</span>
-                        <span className="text-xs text-slate-200">Admin</span>
+                        <span className="text-xs text-slate-200">{getRoleDisplayName(role) || 'User'}</span>
                       </div>
                     </button>
 
                     {/* Dropdown Menu */}
                     {isUserDropdownOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-md shadow-lg py-1 z-10 border border-slate-200 dark:border-slate-700">
-                        <Link
+                        {canAccessAdmin && <Link
                           to="/admin"
                           className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
                           onClick={() => setIsUserDropdownOpen(false)}
@@ -154,8 +205,8 @@ const Header = () => {
                             <MdDashboard className="mr-2 text-slate-700 dark:text-slate-200" />
                             <span className="text-slate-700 dark:text-slate-200">Dashboard</span>
                           </div>
-                        </Link>
-                        <Link
+                        </Link>}
+                        {canAccessAdmin && <Link
                           to="/admin/study-guides"
                           className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
                           onClick={() => setIsUserDropdownOpen(false)}
@@ -164,8 +215,8 @@ const Header = () => {
                             <BiBook className="mr-2 text-slate-700 dark:text-slate-200" />
                             <span className="text-slate-700 dark:text-slate-200">Create</span>
                           </div>
-                        </Link>
-                        <Link
+                        </Link>}
+                        {canAccessAdmin && <Link
                           to="/admin/media"
                           className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
                           onClick={() => setIsUserDropdownOpen(false)}
@@ -174,8 +225,8 @@ const Header = () => {
                             <MdOutlinePermMedia className="mr-2 text-slate-700 dark:text-slate-200" />
                             <span className="text-slate-700 dark:text-slate-200">Media Library</span>
                           </div>
-                        </Link>
-                        <Link
+                        </Link>}
+                        {canAccessAdmin && <Link
                           to="/admin/quizzes"
                           className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
                           onClick={() => setIsUserDropdownOpen(false)}
@@ -184,7 +235,7 @@ const Header = () => {
                             <MdQuiz className="mr-2 text-slate-700 dark:text-slate-200" />
                             <span className="text-slate-700 dark:text-slate-200">Quiz</span>
                           </div>
-                        </Link>
+                        </Link>}
                         {canManageUsers() && (
                           <Link
                             to="/admin/users"
@@ -195,6 +246,11 @@ const Header = () => {
                               <FiUsers className="mr-2 text-slate-700 dark:text-slate-200" />
                               <span className="text-slate-700 dark:text-slate-200">Users</span>
                             </div>
+                          </Link>
+                        )}
+                        {hasPermission(PERMISSIONS.TRAINING_MANAGE) && (
+                          <Link to="/admin/training" className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 no-underline" onClick={() => setIsUserDropdownOpen(false)}>
+                            <div className="flex items-center"><FiClipboard className="mr-2" /><span>Training</span></div>
                           </Link>
                         )}
                         {isAdmin() && (
@@ -209,7 +265,7 @@ const Header = () => {
                             </div>
                           </Link>
                         )}
-                        <Link
+                        {isAdmin() && <Link
                           to="/admin/settings"
                           className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 no-underline"
                           onClick={() => setIsUserDropdownOpen(false)}
@@ -218,7 +274,7 @@ const Header = () => {
                             <FiSettings className="mr-2 text-slate-700 dark:text-slate-200" />
                             <span className="text-slate-700 dark:text-slate-200">Settings</span>
                           </div>
-                        </Link>
+                        </Link>}
                         <button
                           onClick={handleSignOut}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -258,7 +314,9 @@ const Header = () => {
       </div>
 
       {/* Mobile navigation dropdown */}
-      <div
+      <button
+        type="button"
+        aria-label="Close primary navigation"
         className={`
           md:hidden fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300
           ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
@@ -267,6 +325,11 @@ const Header = () => {
         onClick={() => setIsMenuOpen(false)}
       />
       <div
+        id="mobile-primary-navigation"
+        ref={mobileNavigationRef}
+        role={isMenuOpen ? 'dialog' : undefined}
+        aria-modal={isMenuOpen || undefined}
+        aria-label="Primary navigation"
         className={`
           md:hidden fixed right-0 top-0 w-64 h-full bg-primary shadow-lg
           transform transition-transform duration-300 ease-in-out z-[95]
@@ -279,7 +342,7 @@ const Header = () => {
               <h2 className="text-xl font-semibold text-white">{pageTitle}</h2>
             </div>
           )}
-          <nav>
+          <nav aria-label="Mobile primary navigation">
             <ul className="list-none m-0 p-0 space-y-2">
               <li>
                 <Link
@@ -318,11 +381,11 @@ const Header = () => {
                       </div>
                       <div>
                         <div className="font-medium text-white">{user?.email || 'Administrator'}</div>
-                        <div className="text-xs text-slate-200">Admin</div>
+                        <div className="text-xs text-slate-200">{getRoleDisplayName(role) || 'User'}</div>
                       </div>
                     </div>
                   </li>
-                  <li>
+                  {canAccessAdmin && <li>
                     <Link
                       to="/admin"
                       className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
@@ -331,8 +394,8 @@ const Header = () => {
                       <MdDashboard className="mr-2" />
                       Dashboard
                     </Link>
-                  </li>
-                  <li>
+                  </li>}
+                  {canAccessAdmin && <li>
                     <Link
                       to="/admin/study-guides"
                       className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
@@ -341,8 +404,8 @@ const Header = () => {
                       <BiBook className="mr-2" />
                       Create
                     </Link>
-                  </li>
-                  <li>
+                  </li>}
+                  {canAccessAdmin && <li>
                     <Link
                       to="/admin/media"
                       className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
@@ -351,8 +414,8 @@ const Header = () => {
                       <MdOutlinePermMedia className="mr-2" />
                       Media Library
                     </Link>
-                  </li>
-                  <li>
+                  </li>}
+                  {canAccessAdmin && <li>
                     <Link
                       to="/admin/quizzes"
                       className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
@@ -361,7 +424,7 @@ const Header = () => {
                       <MdQuiz className="mr-2" />
                       Quiz
                     </Link>
-                  </li>
+                  </li>}
                   {canManageUsers() && (
                     <li>
                       <Link
@@ -371,6 +434,14 @@ const Header = () => {
                       >
                         <FiUsers className="mr-2" />
                         Users
+                      </Link>
+                    </li>
+                  )}
+                  {hasPermission(PERMISSIONS.TRAINING_MANAGE) && (
+                    <li>
+                      <Link to="/admin/training" className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors" onClick={handleMenuItemClick}>
+                        <FiClipboard className="mr-2" />
+                        Training
                       </Link>
                     </li>
                   )}
@@ -386,7 +457,7 @@ const Header = () => {
                       </Link>
                     </li>
                   )}
-                  <li>
+                  {isAdmin() && <li>
                     <Link
                       to="/admin/settings"
                       className="flex items-center text-white no-underline font-medium hover:bg-primary-dark hover:text-white px-3 py-3 rounded-md transition-colors"
@@ -395,7 +466,7 @@ const Header = () => {
                       <FiSettings className="mr-2" />
                       Settings
                     </Link>
-                  </li>
+                  </li>}
                   <li>
                     <button
                       onClick={handleSignOut}

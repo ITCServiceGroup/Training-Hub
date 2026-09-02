@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import SectionAdminGrid from './SectionAdminGrid';
 import { sectionsService } from '../../../../services/api/sections';
 import { questionsService } from '../../../../services/api/questions';
 import BreadcrumbNav from '../BreadcrumbNav';
 import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
-import { CategoryContext } from '../../../../components/layout/AdminLayout';
 import { useNetworkStatus } from '../../../../contexts/NetworkContext';
 import { useCatalog } from '../../../../hooks/useCatalog';
 import { useContentVisibility } from '../../../../hooks/useContentVisibility';
@@ -15,9 +14,9 @@ const RedBoldNum = ({ children }) => (
 
 const SectionManagement = ({ onViewCategories }) => {
   // Remove the non-existent optimisticallyUpdateSectionsOrder from context
-  const { sectionsData } = useContext(CategoryContext);
   const { isOnline, reconnectCount } = useNetworkStatus();
   const { sections, loading: isLoading, refresh } = useCatalog({ mode: 'admin' });
+  const sectionsData = sections;
   const { getNewContentDefaults } = useContentVisibility();
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);

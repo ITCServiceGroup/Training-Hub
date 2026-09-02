@@ -18,7 +18,7 @@ class TemplatesService {
       if (error) throw error;
 
       // Get system templates
-      const systemTemplates = systemTemplatesService.getAll();
+      const systemTemplates = await systemTemplatesService.getAll();
 
       // Combine and sort all templates
       const allTemplates = [
@@ -74,7 +74,7 @@ class TemplatesService {
     try {
       // Check if it's a system template first
       if (id?.startsWith('system-')) {
-        const systemTemplate = systemTemplatesService.getById(id);
+        const systemTemplate = await systemTemplatesService.getById(id);
         if (systemTemplate) {
           debugLog('System template found', { id, name: systemTemplate.name });
           return systemTemplate;

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { CategoryContext } from '../../../../components/layout/AdminLayout';
+import { useCatalog } from '../../../../hooks/useCatalog';
 import { FaFolder, FaFolderOpen } from 'react-icons/fa';
 
 /**
@@ -21,7 +21,7 @@ const CategorySelectionModal = ({
   // Get current theme colors
   const currentPrimaryColor = themeColors.primary[isDark ? 'dark' : 'light'];
   const currentSecondaryColor = themeColors.secondary[isDark ? 'dark' : 'light'];
-  const { sectionsData } = useContext(CategoryContext);
+  const { sections: sectionsData } = useCatalog({ mode: 'admin' });
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 

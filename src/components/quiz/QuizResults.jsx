@@ -17,15 +17,7 @@ const QuizResults = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-
-  // Early return if score is null/undefined
-  if (!score || typeof score.percentage !== 'number') {
-    return (
-      <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>
-        <div>Calculating results...</div>
-      </div>
-    );
-  }
+  const percentage = typeof score?.percentage === 'number' ? score.percentage : null;
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -69,14 +61,15 @@ const QuizResults = ({
   const resultMessage = useMemo(() => {
     const passingScore = quiz.passing_score || 70;
 
-    if (score.percentage >= passingScore) {
-      if (score.percentage >= 90) return 'Excellent work!';
-      if (score.percentage >= 80) return 'Great job!';
+    if (percentage === null) return 'Calculating results...';
+    if (percentage >= passingScore) {
+      if (percentage >= 90) return 'Excellent work!';
+      if (percentage >= 80) return 'Great job!';
       return 'Good job!';
     }
 
     return 'Keep practicing!';
-  }, [score.percentage, quiz.passing_score]);
+  }, [percentage, quiz.passing_score]);
 
   // Format time taken (memoized)
   const formattedTime = useMemo(() => {
@@ -89,6 +82,10 @@ const QuizResults = ({
   // Check if answer was correct (memoized)
   const isAnswerCorrect = useCallback((question, answerData) => {
     if (answerData === undefined) return false;
+
+    if (!isPractice && typeof question.authoritative_is_correct === 'boolean') {
+      return question.authoritative_is_correct;
+    }
 
     const answer = isPractice ? answerData.answer : answerData;
     if (answer === undefined) return false;
@@ -107,6 +104,14 @@ const QuizResults = ({
         return false;
     }
   }, [isPractice]);
+
+  if (percentage === null) {
+    return (
+      <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>
+        <div>Calculating results...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">

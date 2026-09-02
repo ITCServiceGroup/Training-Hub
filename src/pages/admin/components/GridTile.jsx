@@ -1,20 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import DashboardTile from './DashboardTile';
 import { useDashboard } from '../contexts/DashboardContext';
-
-// Import all chart components
-import ScoreDistributionChart from './charts/ScoreDistributionChart';
-import TimeDistributionChart from './charts/TimeDistributionChart';
-import ScoreTrendChart from './charts/ScoreTrendChart';
-import SupervisorPerformanceChart from './charts/SupervisorPerformanceChart';
-import MarketResultsChart from './charts/MarketResultsChart';
-import TimeVsScoreChart from './charts/TimeVsScoreChart';
-import PassFailRateChart from './charts/PassFailRateChart';
-import QuizTypePerformanceChart from './charts/QuizTypePerformanceChart';
-import TopBottomPerformersChart from './charts/TopBottomPerformersChart';
-import SupervisorEffectivenessChart from './charts/SupervisorEffectivenessChart';
-import QuestionLevelAnalyticsChart from './charts/QuestionLevelAnalyticsChart';
-import RetakeAnalysisChart from './charts/RetakeAnalysisChart';
+import LazyChartLoader from './LazyChartLoader';
 
 // Tile configurations (static) - use AVAILABLE_TILES from config
 import { AVAILABLE_TILES } from '../config/availableTiles';
@@ -49,44 +36,21 @@ const GridTile = memo(({
     };
   }, [tileId, tileConfig]);
 
-  // Memoize chart rendering to prevent recreation of chart components
+  // Keep heavyweight visualization libraries out of the dashboard route until
+  // an individual tile is actually visible.
   const chartComponent = useMemo(() => {
-    switch (tileId) {
-      case 'score-distribution':
-        return <ScoreDistributionChart data={tileData} loading={isInitialLoad} />;
-      case 'time-distribution':
-        return <TimeDistributionChart data={tileData} loading={isInitialLoad} />;
-      case 'score-trend':
-        return <ScoreTrendChart data={tileData} loading={isInitialLoad} />;
-      case 'supervisor-performance':
-        return <SupervisorPerformanceChart data={tileData} loading={isInitialLoad} />;
-      case 'market-results':
-        return <MarketResultsChart data={tileData} loading={isInitialLoad} />;
-      case 'time-vs-score':
-        return <TimeVsScoreChart data={tileData} loading={isInitialLoad} globalFilters={globalFilters} />;
-      case 'pass-fail-rate':
-        return <PassFailRateChart data={tileData} loading={isInitialLoad} />;
-      case 'quiz-type-performance':
-        return <QuizTypePerformanceChart data={tileData} loading={isInitialLoad} />;
-      case 'top-bottom-performers':
-        return <TopBottomPerformersChart data={tileData} loading={isInitialLoad} />;
-      case 'supervisor-effectiveness':
-        return <SupervisorEffectivenessChart data={tileData} loading={isInitialLoad} />;
-      case 'question-analytics':
-      case 'question-level-analytics':
-        return <QuestionLevelAnalyticsChart data={tileData} loading={isInitialLoad} />;
-      case 'retake-analysis':
-        return <RetakeAnalysisChart data={tileData} loading={isInitialLoad} />;
-      default:
-        return (
-          <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
-            <div className="text-center">
-              <div className="text-lg font-medium">Chart: {tileId}</div>
-              <div className="text-sm">Component not found</div>
-            </div>
-          </div>
-        );
-    }
+    const chartId = tileId === 'question-level-analytics' ? 'question-analytics' : tileId;
+    return (
+      <LazyChartLoader
+        chartId={chartId}
+        chartProps={{
+          data: tileData,
+          loading: isInitialLoad,
+          ...(tileId === 'time-vs-score' ? { globalFilters } : {})
+        }}
+        loadImmediately={false}
+      />
+    );
   }, [tileId, tileData, isInitialLoad, globalFilters]);
 
   return (
@@ -165,4 +129,3 @@ GridTileWithDrillDown.displayName = 'GridTileWithDrillDown';
 
 export { GridTile, GridTileWithDrillDown };
 export default GridTile;
-

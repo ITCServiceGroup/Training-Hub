@@ -6,10 +6,13 @@ import { BiBook, BiQuestionMark } from 'react-icons/bi';
 import { MdQuiz, MdTouchApp, MdAdminPanelSettings } from 'react-icons/md';
 import { FiEdit3, FiKey } from 'react-icons/fi';
 import { HiOutlineAcademicCap } from 'react-icons/hi';
+import { useAuth } from '../contexts/AuthContext';
+import LearnerTrainingPanel from '../components/training/LearnerTrainingPanel';
 
 const HomePage = () => {
   const { theme } = useTheme();
   const { isFullscreen, exitFullscreen } = useFullscreen();
+  const { isAuthenticated } = useAuth();
   const isDark = theme === 'dark';
 
   // Auto-exit fullscreen when navigating to home page
@@ -21,6 +24,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen">
+      {isAuthenticated && <LearnerTrainingPanel />}
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/30' : 'bg-gradient-to-br from-primary/10 via-secondary/5 to-primary/20'}`}></div>

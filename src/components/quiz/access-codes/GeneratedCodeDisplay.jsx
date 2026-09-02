@@ -8,7 +8,6 @@ const GeneratedCodeDisplay = memo(({ generatedCode, onGenerateAnother }) => {
   const handleCopyCode = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(generatedCode.code);
-      console.log('Copying generated code and showing toast:', generatedCode.code);
       // Add a small delay to ensure the clipboard operation completes
       setTimeout(() => {
         showToast('Access Code copied to clipboard', 'success', 3000);

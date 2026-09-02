@@ -1,40 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '../../../../contexts/ThemeContext';
-import { templatesService } from '../../../../services/api/templates';
-import { FaFileAlt, FaPlus, FaSearch, FaTags, FaCog, FaStar, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
-import LazyTemplatePreview from '../../../../components/LazyTemplatePreview';
-import { performanceLogger } from '../../../../utils/performanceLogger';
-import './StudyGuideTemplateModal.css';
+import React, { useState, useEffect } from "react";
+import { useTheme } from "../../../../contexts/ThemeContext";
+import { templatesService } from "../../../../services/api/templates";
+import {
+  FaFileAlt,
+  FaPlus,
+  FaSearch,
+  FaTags,
+  FaCog,
+  FaStar,
+  FaEdit,
+  FaTrash,
+  FaTimes,
+} from "react-icons/fa";
+import LazyTemplatePreview from "../../../../components/LazyTemplatePreview";
+import { performanceLogger } from "../../../../utils/performanceLogger";
+import "./StudyGuideTemplateModal.css";
 
-const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelectTemplate }) => {
+const StudyGuideTemplateModal = ({
+  isOpen,
+  onClose,
+  onStartFromScratch,
+  onSelectTemplate,
+}) => {
   const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
 
   const [templates, setTemplates] = useState([]);
   const [filteredTemplates, setFilteredTemplates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Edit template state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    name: '',
-    description: '',
-    category: 'Basic',
-    tags: []
+    name: "",
+    description: "",
+    category: "Basic",
+    tags: [],
   });
-  const [newTag, setNewTag] = useState('');
+  const [newTag, setNewTag] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Delete confirmation state
   const [deleteConfirmTemplate, setDeleteConfirmTemplate] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectingTemplateId, setSelectingTemplateId] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
-      performanceLogger.startTimer('template-modal-load');
+      performanceLogger.startTimer("template-modal-load");
       fetchTemplates();
     }
   }, [isOpen]);
@@ -44,15 +60,22 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
     let filtered = templates;
 
     if (searchTerm) {
-      filtered = filtered.filter(template =>
-        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      filtered = filtered.filter(
+        (template) =>
+          template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          template.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          template.tags.some((tag) =>
+            tag.toLowerCase().includes(searchTerm.toLowerCase()),
+          ),
       );
     }
 
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(template => template.category === selectedCategory);
+    if (selectedCategory !== "All") {
+      filtered = filtered.filter(
+        (template) => template.category === selectedCategory,
+      );
     }
 
     setFilteredTemplates(filtered);
@@ -63,22 +86,41 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
     try {
       const data = await templatesService.getAll();
       setTemplates(data);
-      
+
       // Log performance after templates are loaded and modal is ready
       setTimeout(() => {
-        const duration = performanceLogger.endTimer('template-modal-load');
+        const duration = performanceLogger.endTimer("template-modal-load");
         performanceLogger.logModalOpen(data.length, duration);
       }, 100);
     } catch (error) {
-      console.error('Failed to fetch templates:', error);
-      performanceLogger.endTimer('template-modal-load');
+      console.error("Failed to fetch templates:", error);
+      performanceLogger.endTimer("template-modal-load");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Get unique categories for filter
-  const categories = ['All', ...new Set(templates.map(t => t.category))];
+  const categories = ["All", ...new Set(templates.map((t) => t.category))];
+
+  const handleSelectTemplate = async (template) => {
+    if (!template.isSystemTemplate) {
+      onSelectTemplate(template);
+      return;
+    }
+
+    setSelectingTemplateId(template.id);
+    try {
+      const loadedTemplate = await templatesService.getById(template.id);
+      if (!loadedTemplate) throw new Error("Template is unavailable");
+      onSelectTemplate(loadedTemplate);
+    } catch (error) {
+      console.error("Failed to load system template:", error);
+      alert("Failed to load the selected template. Please try again.");
+    } finally {
+      setSelectingTemplateId(null);
+    }
+  };
 
   // Edit template handlers
   const handleEditTemplate = (template, e) => {
@@ -86,16 +128,16 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
     setEditingTemplate(template);
     setEditFormData({
       name: template.name,
-      description: template.description || '',
-      category: template.category || 'Basic',
-      tags: template.tags || []
+      description: template.description || "",
+      category: template.category || "Basic",
+      tags: template.tags || [],
     });
     setIsEditModalOpen(true);
   };
 
   const handleSaveEdit = async () => {
     if (!editFormData.name.trim()) {
-      alert('Please enter a template name');
+      alert("Please enter a template name");
       return;
     }
 
@@ -105,7 +147,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
         name: editFormData.name,
         description: editFormData.description,
         category: editFormData.category,
-        tags: editFormData.tags
+        tags: editFormData.tags,
       });
 
       // Refresh templates list
@@ -115,8 +157,8 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
       setIsEditModalOpen(false);
       setEditingTemplate(null);
     } catch (error) {
-      console.error('Error updating template:', error);
-      alert('Failed to update template');
+      console.error("Error updating template:", error);
+      alert("Failed to update template");
     } finally {
       setIsSaving(false);
     }
@@ -124,18 +166,18 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
   const handleAddTag = () => {
     if (newTag.trim() && !editFormData.tags.includes(newTag.trim())) {
-      setEditFormData(prev => ({
+      setEditFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, newTag.trim()]
+        tags: [...prev.tags, newTag.trim()],
       }));
-      setNewTag('');
+      setNewTag("");
     }
   };
 
   const handleRemoveTag = (tagToRemove) => {
-    setEditFormData(prev => ({
+    setEditFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
@@ -158,8 +200,8 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
       setDeleteConfirmTemplate(null);
     } catch (error) {
-      console.error('Error deleting template:', error);
-      alert('Failed to delete template');
+      console.error("Error deleting template:", error);
+      alert("Failed to delete template");
     } finally {
       setIsDeleting(false);
     }
@@ -170,19 +212,24 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 py-8 pt-20">
-        <div className="fixed inset-0 bg-black opacity-30" onClick={onClose}></div>
-        <div className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto study-guide-template-modal ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+        <div
+          className="fixed inset-0 bg-black opacity-30"
+          onClick={onClose}
+        ></div>
+        <div
+          className={`relative rounded-lg max-w-7xl w-full mx-auto p-4 md:p-6 max-h-[90vh] overflow-y-auto study-guide-template-modal ${isDark ? "bg-slate-800" : "bg-white"}`}
+        >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Create New Content</h2>
             <button
               onClick={onClose}
-              className={`p-2 rounded-full ${isDark ? 'hover:bg-slate-700' : 'hover:bg-gray-100'}`}
+              className={`p-2 rounded-full ${isDark ? "hover:bg-slate-700" : "hover:bg-gray-100"}`}
             >
               ×
             </button>
           </div>
 
-          <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className={`mb-6 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
             Choose how you'd like to start creating your content:
           </p>
 
@@ -190,19 +237,24 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
           <div
             className={`mb-6 p-4 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
               isDark
-                ? 'border-slate-600 hover:border-primary hover:bg-slate-700/50'
-                : 'border-gray-300 hover:border-primary hover:bg-gray-50'
+                ? "border-slate-600 hover:border-primary hover:bg-slate-700/50"
+                : "border-gray-300 hover:border-primary hover:bg-gray-50"
             }`}
             onClick={onStartFromScratch}
           >
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-full ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
+              <div
+                className={`p-3 rounded-full ${isDark ? "bg-slate-700" : "bg-gray-100"}`}
+              >
                 <FaPlus className="text-xl text-primary" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold">Start from Scratch</h3>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Begin with a blank canvas and build your content from the ground up
+                <p
+                  className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
+                >
+                  Begin with a blank canvas and build your content from the
+                  ground up
                 </p>
               </div>
             </div>
@@ -210,7 +262,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
           {/* Templates Section */}
           <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-4">Or choose from a template:</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Or choose from a template:
+            </h3>
 
             {/* Search and filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -220,7 +274,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                   type="text"
                   placeholder="Search templates..."
                   className={`pl-10 pr-4 py-2 w-full rounded-md border ${
-                    isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-100 border-gray-300 text-slate-800'
+                    isDark
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-gray-100 border-gray-300 text-slate-800"
                   }`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -231,11 +287,15 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className={`px-4 py-2 rounded-md border ${
-                  isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-100 border-gray-300 text-slate-800'
+                  isDark
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-gray-100 border-gray-300 text-slate-800"
                 }`}
               >
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
               </select>
             </div>
@@ -248,33 +308,41 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
             </div>
           ) : filteredTemplates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-h-[600px] overflow-y-auto p-4 template-grid-scroll">
-              {filteredTemplates.map(template => (
+              {filteredTemplates.map((template) => (
                 <div
                   key={template.id}
                   className={`rounded-lg overflow-hidden shadow-md cursor-pointer transform transition-transform hover:scale-105 relative m-2 ${
                     template.isSystemTemplate
-                      ? isDark ? 'bg-blue-900/50 hover:bg-blue-800/60 border border-blue-500/30' : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
-                      : isDark ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-50 hover:bg-gray-100'
+                      ? isDark
+                        ? "bg-blue-900/50 hover:bg-blue-800/60 border border-blue-500/30"
+                        : "bg-blue-50 hover:bg-blue-100 border border-blue-200"
+                      : isDark
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-gray-50 hover:bg-gray-100"
                   }`}
-                  onClick={() => onSelectTemplate(template)}
+                  onClick={() => handleSelectTemplate(template)}
+                  aria-busy={selectingTemplateId === template.id}
                 >
                   {/* System Template Badge */}
                   {template.isSystemTemplate && (
                     <div className="absolute top-2 right-2 z-10">
-                      <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                        isDark ? 'bg-blue-600 text-blue-100' : 'bg-blue-500 text-white'
-                      }`}>
+                      <div
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                          isDark
+                            ? "bg-blue-600 text-blue-100"
+                            : "bg-blue-500 text-white"
+                        }`}
+                      >
                         <FaStar size={10} />
                         System
                       </div>
                     </div>
                   )}
 
-
-
                   <div className="h-80 overflow-hidden">
                     <LazyTemplatePreview
                       content={template.content}
+                      loadContent={template.loadContent}
                       className="w-full h-full"
                       rootMargin="50px"
                       threshold={0.25}
@@ -282,7 +350,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                   </div>
                   <div className="p-3">
                     <div className="flex items-start justify-between mb-1">
-                      <h4 className="font-semibold text-sm flex-1">{template.name}</h4>
+                      <h4 className="font-semibold text-sm flex-1">
+                        {template.name}
+                      </h4>
 
                       {/* User Template Actions - Same line as title */}
                       {!template.isSystemTemplate && (
@@ -291,8 +361,8 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                             onClick={(e) => handleEditTemplate(template, e)}
                             className={`p-1.5 rounded-full transition-colors ${
                               isDark
-                                ? 'bg-slate-600 hover:bg-slate-500 text-slate-200'
-                                : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                                ? "bg-slate-600 hover:bg-slate-500 text-slate-200"
+                                : "bg-gray-200 hover:bg-gray-300 text-gray-600"
                             } shadow-sm`}
                             title="Edit template"
                           >
@@ -302,8 +372,8 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                             onClick={(e) => handleDeleteTemplate(template, e)}
                             className={`p-1.5 rounded-full transition-colors ${
                               isDark
-                                ? 'bg-red-600 hover:bg-red-500 text-red-200'
-                                : 'bg-red-500 hover:bg-red-600 text-white'
+                                ? "bg-red-600 hover:bg-red-500 text-red-200"
+                                : "bg-red-500 hover:bg-red-600 text-white"
                             } shadow-sm`}
                             title="Delete template"
                           >
@@ -312,17 +382,23 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                         </div>
                       )}
                     </div>
-                    <p className={`text-xs mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <p
+                      className={`text-xs mb-2 ${isDark ? "text-gray-300" : "text-gray-600"}`}
+                    >
                       {template.description}
                     </p>
                     <div className="flex flex-wrap gap-1">
-                      {template.tags.slice(0, 2).map(tag => (
+                      {template.tags.slice(0, 2).map((tag) => (
                         <span
                           key={tag}
                           className={`text-xs px-2 py-1 rounded-full flex items-center ${
                             template.isSystemTemplate
-                              ? isDark ? 'bg-blue-800 text-blue-200' : 'bg-blue-100 text-blue-800'
-                              : isDark ? 'bg-slate-600 text-gray-200' : 'bg-gray-200 text-gray-700'
+                              ? isDark
+                                ? "bg-blue-800 text-blue-200"
+                                : "bg-blue-100 text-blue-800"
+                              : isDark
+                                ? "bg-slate-600 text-gray-200"
+                                : "bg-gray-200 text-gray-700"
                           }`}
                         >
                           <FaTags className="mr-1" size={8} />
@@ -330,11 +406,17 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                         </span>
                       ))}
                       {template.tags.length > 2 && (
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          template.isSystemTemplate
-                            ? isDark ? 'bg-blue-800 text-blue-200' : 'bg-blue-100 text-blue-800'
-                            : isDark ? 'bg-slate-600 text-gray-200' : 'bg-gray-200 text-gray-700'
-                        }`}>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            template.isSystemTemplate
+                              ? isDark
+                                ? "bg-blue-800 text-blue-200"
+                                : "bg-blue-100 text-blue-800"
+                              : isDark
+                                ? "bg-slate-600 text-gray-200"
+                                : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
                           +{template.tags.length - 2}
                         </span>
                       )}
@@ -345,9 +427,13 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
             </div>
           ) : (
             <div className="text-center py-8">
-              <FaFileAlt className={`mx-auto text-4xl mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-              <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                {templates.length === 0 ? 'No templates available yet.' : 'No templates match your search.'}
+              <FaFileAlt
+                className={`mx-auto text-4xl mb-4 ${isDark ? "text-gray-500" : "text-gray-400"}`}
+              />
+              <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                {templates.length === 0
+                  ? "No templates available yet."
+                  : "No templates match your search."}
               </p>
             </div>
           )}
@@ -356,7 +442,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
             <button
               onClick={onClose}
               className={`px-4 py-2 rounded-md ${
-                isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                isDark
+                  ? "bg-slate-700 hover:bg-slate-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
               }`}
             >
               Cancel
@@ -368,17 +456,21 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
       {/* Edit Template Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`max-w-md w-full mx-4 rounded-lg shadow-xl ${
-            isDark ? 'bg-slate-800' : 'bg-white'
-          }`}>
+          <div
+            className={`max-w-md w-full mx-4 rounded-lg shadow-xl ${
+              isDark ? "bg-slate-800" : "bg-white"
+            }`}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3
+                  className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}
+                >
                   Edit Template
                 </h3>
                 <button
                   onClick={() => setIsEditModalOpen(false)}
-                  className={`p-1 rounded-full hover:bg-gray-100 ${isDark ? 'hover:bg-slate-700 text-gray-400' : 'text-gray-500'}`}
+                  className={`p-1 rounded-full hover:bg-gray-100 ${isDark ? "hover:bg-slate-700 text-gray-400" : "text-gray-500"}`}
                 >
                   <FaTimes size={16} />
                 </button>
@@ -386,33 +478,47 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
 
               <div className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-700'}`}>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? "text-white" : "text-gray-700"}`}
+                  >
                     Template Name
                   </label>
                   <input
                     type="text"
                     value={editFormData.name}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
                     className={`w-full px-3 py-2 border rounded-md ${
                       isDark
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
+                        ? "bg-slate-700 border-slate-600 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
                     }`}
                     placeholder="Enter template name"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-700'}`}>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? "text-white" : "text-gray-700"}`}
+                  >
                     Description
                   </label>
                   <textarea
                     value={editFormData.description}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     className={`w-full px-3 py-2 border rounded-md ${
                       isDark
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
+                        ? "bg-slate-700 border-slate-600 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
                     }`}
                     rows="3"
                     placeholder="Enter template description"
@@ -420,16 +526,23 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-700'}`}>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? "text-white" : "text-gray-700"}`}
+                  >
                     Category
                   </label>
                   <select
                     value={editFormData.category}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        category: e.target.value,
+                      }))
+                    }
                     className={`w-full px-3 py-2 border rounded-md ${
                       isDark
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
+                        ? "bg-slate-700 border-slate-600 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
                     }`}
                   >
                     <option value="Basic">Basic</option>
@@ -442,7 +555,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-700'}`}>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? "text-white" : "text-gray-700"}`}
+                  >
                     Tags
                   </label>
                   <div className="flex gap-2 mb-2">
@@ -450,11 +565,11 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                       type="text"
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
                       className={`flex-1 px-3 py-2 border rounded-md ${
                         isDark
-                          ? 'bg-slate-700 border-slate-600 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
+                          ? "bg-slate-700 border-slate-600 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
                       }`}
                       placeholder="Add a tag"
                     />
@@ -462,19 +577,21 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                       onClick={handleAddTag}
                       className={`px-3 py-2 rounded-md h-[42px] flex items-center justify-center ${
                         isDark
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-blue-500 hover:bg-blue-600 text-white'
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-blue-500 hover:bg-blue-600 text-white"
                       }`}
                     >
                       <FaPlus size={12} />
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {editFormData.tags.map(tag => (
+                    {editFormData.tags.map((tag) => (
                       <span
                         key={tag}
                         className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-                          isDark ? 'bg-slate-600 text-gray-200' : 'bg-gray-200 text-gray-700'
+                          isDark
+                            ? "bg-slate-600 text-gray-200"
+                            : "bg-gray-200 text-gray-700"
                         }`}
                       >
                         <FaTags size={8} />
@@ -495,7 +612,9 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                 <button
                   onClick={() => setIsEditModalOpen(false)}
                   className={`px-4 py-2 rounded-md ${
-                    isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                    isDark
+                      ? "bg-slate-700 hover:bg-slate-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
                   }`}
                 >
                   Cancel
@@ -505,11 +624,11 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                   disabled={isSaving}
                   className={`px-4 py-2 rounded-md ${
                     isDark
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-blue-500 hover:bg-blue-600 text-white"
                   } disabled:opacity-50`}
                 >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </div>
@@ -520,31 +639,40 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
       {/* Delete Confirmation Modal */}
       {deleteConfirmTemplate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`max-w-md w-full mx-4 rounded-lg shadow-xl ${
-            isDark ? 'bg-slate-800' : 'bg-white'
-          }`}>
+          <div
+            className={`max-w-md w-full mx-4 rounded-lg shadow-xl ${
+              isDark ? "bg-slate-800" : "bg-white"
+            }`}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3
+                  className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}
+                >
                   Delete Template
                 </h3>
                 <button
                   onClick={() => setDeleteConfirmTemplate(null)}
-                  className={`p-1 rounded-full hover:bg-gray-100 ${isDark ? 'hover:bg-slate-700 text-gray-400' : 'text-gray-500'}`}
+                  className={`p-1 rounded-full hover:bg-gray-100 ${isDark ? "hover:bg-slate-700 text-gray-400" : "text-gray-500"}`}
                 >
                   <FaTimes size={16} />
                 </button>
               </div>
 
-              <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                Are you sure you want to delete the template "{deleteConfirmTemplate.name}"? This action cannot be undone.
+              <p
+                className={`mb-6 ${isDark ? "text-gray-300" : "text-gray-600"}`}
+              >
+                Are you sure you want to delete the template "
+                {deleteConfirmTemplate.name}"? This action cannot be undone.
               </p>
 
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirmTemplate(null)}
                   className={`px-4 py-2 rounded-md ${
-                    isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                    isDark
+                      ? "bg-slate-700 hover:bg-slate-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
                   }`}
                 >
                   Cancel
@@ -554,7 +682,7 @@ const StudyGuideTemplateModal = ({ isOpen, onClose, onStartFromScratch, onSelect
                   disabled={isDeleting}
                   className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>

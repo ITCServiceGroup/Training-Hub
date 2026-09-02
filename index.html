@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -10,105 +10,44 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-touch-fullscreen" content="yes" />
-    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension:;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com chrome-extension:;
-      style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com chrome-extension:;
-      img-src 'self' data: https: chrome-extension:;
-      font-src 'self' data: https://fonts.gstatic.com chrome-extension:;
-      connect-src 'self' data: blob: https://*.supabase.co https://fonts.gstatic.com https://script.google.com https://script.googleusercontent.com chrome-extension:;
-      frame-src 'self' https://*.supabase.co https://www.youtube.com https://youtube.com https://player.vimeo.com chrome-extension:;
-      media-src 'self' data: blob: https://*.supabase.co chrome-extension:;
-      worker-src 'self' blob: chrome-extension:;
-    ">
+      base-uri 'self';
+      object-src 'none';
+      form-action 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: blob: https:;
+      font-src 'self' data: https://fonts.gstatic.com;
+      connect-src 'self' data: blob: https://*.supabase.co https://fonts.gstatic.com;
+      frame-src 'self' https://*.supabase.co https://www.youtube.com https://youtube.com https://player.vimeo.com;
+      media-src 'self' data: blob: https://*.supabase.co;
+      worker-src 'self' blob:;
+    "
+    />
     <!-- Permissions Policy for YouTube embeds -->
-    <meta http-equiv="Permissions-Policy" content="
-      compute-pressure=*,
-      accelerometer=*,
-      gyroscope=*,
-      magnetometer=*,
-      microphone=*,
-      camera=*,
-      geolocation=*,
-      fullscreen=*,
-      autoplay=*
-    ">
-    <!-- Removed GrapesJS local CSS link -->
-    <script>
-      (function() {
-        const STORAGE_KEY = 'codexThemePreferences';
-
-        const hexToRgb = (hex) => {
-          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
-          return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-          } : null;
-        };
-
-        const rgbToHex = (r, g, b) => {
-          return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-        };
-
-        const applyThemeClass = (theme) => {
-          if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-        };
-
-        const setVariable = (name, value) => {
-          if (!value) return;
-          document.documentElement.style.setProperty(name, value, 'important');
-        };
-
-        try {
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (!stored) return;
-
-          const prefs = JSON.parse(stored) || {};
-          const themeMode = prefs.themeMode || 'system';
-          const resolvedTheme = themeMode === 'system'
-            ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-            : themeMode;
-
-          applyThemeClass(resolvedTheme);
-
-          const colors = prefs.themeColors;
-          if (colors && colors.primary && colors.secondary) {
-            const isDark = resolvedTheme === 'dark';
-            const currentPrimary = colors.primary[isDark ? 'dark' : 'light'];
-            const currentSecondary = colors.secondary[isDark ? 'dark' : 'light'];
-
-            setVariable('--primary-color', currentPrimary);
-            setVariable('--color-primary', currentPrimary);
-
-            const rgb = hexToRgb(currentPrimary);
-            if (rgb) {
-              const darkerR = Math.round(rgb.r * 0.8);
-              const darkerG = Math.round(rgb.g * 0.8);
-              const darkerB = Math.round(rgb.b * 0.8);
-              setVariable('--primary-dark', rgbToHex(darkerR, darkerG, darkerB));
-
-              const lighterR = Math.min(255, Math.round(rgb.r + (255 - rgb.r) * 0.3));
-              const lighterG = Math.min(255, Math.round(rgb.g + (255 - rgb.g) * 0.3));
-              const lighterB = Math.min(255, Math.round(rgb.b + (255 - rgb.b) * 0.3));
-              setVariable('--primary-light', rgbToHex(lighterR, lighterG, lighterB));
-            }
-
-            setVariable('--secondary-color', currentSecondary);
-            setVariable('--color-secondary', currentSecondary);
-          }
-        } catch (error) {
-          console.warn('Theme preload failed:', error);
-        }
-      })();
-    </script>
+    <meta
+      http-equiv="Permissions-Policy"
+      content='
+      compute-pressure=(),
+      accelerometer=(),
+      gyroscope=(),
+      magnetometer=(),
+      microphone=(),
+      camera=(),
+      geolocation=(),
+      payment=(),
+      usb=(),
+      fullscreen=(self "https://www.youtube.com" "https://player.vimeo.com"),
+      autoplay=(self "https://www.youtube.com" "https://player.vimeo.com")
+    '
+    />
+    <script src="./theme-preload.js" vite-ignore></script>
   </head>
   <body>
     <div id="root"></div>
