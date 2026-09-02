@@ -1,4 +1,5 @@
 import { readdir, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
 const testFile = new URL(
@@ -8,6 +9,9 @@ const testFile = new URL(
 const migrationFiles = (await readdir(migrationDirectory))
   .filter((name) => name.endsWith(".sql"))
   .sort();
+const baselineMigration = "20260902000000_production_schema_baseline.sql";
+const baselineSha256 =
+  "c0287da9bf30a331e673f3d848211bc77c45d4b5b23559f3e228e44a86031ed0";
 
 if (!migrationFiles.length)
   throw new Error("No Supabase migrations were found");
@@ -22,14 +26,28 @@ for (const file of migrationFiles) {
   timestamps.add(match[1]);
 
   const sql = await readFile(new URL(file, migrationDirectory), "utf8");
+  if (file === baselineMigration) {
+    const actualSha256 = createHash("sha256").update(sql).digest("hex");
+    if (actualSha256 !== baselineSha256) {
+      throw new Error(
+        `${file}: immutable production baseline checksum changed; capture intentional changes in a forward migration`,
+      );
+    }
+    continue;
+  }
+  const sqlForContracts = sql
+    .replace(/--.*$/gm, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "");
   const declarations = [
-    ...sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+([\w.]+)/gi),
+    ...sqlForContracts.matchAll(
+      /create\s+(?:or\s+replace\s+)?function\s+([\w.]+)/gi,
+    ),
   ];
   let filePrivilegedFunctionCount = 0;
   declarations.forEach((declaration, index) => {
-    const block = sql.slice(
+    const block = sqlForContracts.slice(
       declaration.index,
-      declarations[index + 1]?.index ?? sql.length,
+      declarations[index + 1]?.index ?? sqlForContracts.length,
     );
     if (!/security\s+definer/i.test(block)) return;
 
@@ -56,7 +74,9 @@ for (const file of migrationFiles) {
     }
   });
 
-  const definerClauseCount = [...sql.matchAll(/security\s+definer/gi)].length;
+  const definerClauseCount = [
+    ...sqlForContracts.matchAll(/security\s+definer/gi),
+  ].length;
   if (filePrivilegedFunctionCount !== definerClauseCount) {
     throw new Error(
       `${file}: found ${definerClauseCount} SECURITY DEFINER clauses but checked ${filePrivilegedFunctionCount} functions`,

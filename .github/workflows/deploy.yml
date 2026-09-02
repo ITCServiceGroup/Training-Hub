@@ -54,6 +54,17 @@ jobs:
       - name: Validate migration and authorization-test contracts
         run: npm run db:static
 
+      - name: Start local Supabase database
+        run: >-
+          npx supabase start
+          --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Lint the replayed database
+        run: npm run db:lint
+
+      - name: Run database authorization and integrity tests
+        run: npm run db:test
+
       - name: Parse Edge Function entrypoints
         run: npm run functions:check
 

@@ -637,7 +637,7 @@ declare
   enrollment public.enrollments;
   assignment public.training_assignments;
   completion public.completion_records;
-  issued_at timestamptz := now();
+  completion_issued_at timestamptz := now();
   previous_certification public.certifications;
   new_expiry timestamptz;
 begin
@@ -664,8 +664,8 @@ begin
   end if;
 
   update public.enrollments
-  set status = 'completed', completed_at = issued_at, progress_percent = 100,
-      evidence_result_id = p_evidence_result_id, updated_at = issued_at
+  set status = 'completed', completed_at = completion_issued_at, progress_percent = 100,
+      evidence_result_id = p_evidence_result_id, updated_at = completion_issued_at
   where id = enrollment.id;
 
   insert into public.completion_records (
@@ -673,7 +673,7 @@ begin
     evidence_result_id, completed_at, recorded_by
   ) values (
     enrollment.id, assignment.id, enrollment.user_id, assignment.content_version_id,
-    p_evidence_result_id, issued_at, (select auth.uid())
+    p_evidence_result_id, completion_issued_at, (select auth.uid())
   ) returning * into completion;
 
   if assignment.certification_type is not null then
@@ -684,11 +684,11 @@ begin
       and status = 'active'
     for update;
 
-    new_expiry := greatest(issued_at, previous_certification.expires_at)
+    new_expiry := greatest(completion_issued_at, previous_certification.expires_at)
       + make_interval(months => assignment.certification_valid_months);
 
     update public.certifications
-    set status = 'expired', updated_at = issued_at
+    set status = 'expired', updated_at = completion_issued_at
     where user_id = enrollment.user_id
       and certification_type = assignment.certification_type
       and status = 'active';
@@ -701,7 +701,7 @@ begin
       assignment.certification_type,
       completion.id,
       'TH-' || upper(substr(encode(extensions.gen_random_bytes(12), 'hex'), 1, 16)),
-      issued_at,
+      completion_issued_at,
       new_expiry
     );
 

@@ -273,8 +273,8 @@ begin
     raise exception 'Earlier required path steps are incomplete' using errcode = '22023';
   end if;
   update public.learning_path_progress progress
-  set status = case when status = 'not_started' then 'in_progress' else status end,
-      started_at = coalesce(started_at, now()), updated_at = now()
+  set status = case when progress.status = 'not_started' then 'in_progress' else progress.status end,
+      started_at = coalesce(progress.started_at, now()), updated_at = now()
   from public.enrollments enrollment
   where progress.enrollment_id = p_enrollment_id
     and progress.sequence_number = p_sequence_number

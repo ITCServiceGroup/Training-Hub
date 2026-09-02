@@ -4,7 +4,7 @@
 
 A standard repository security scan was completed on 2026-09-02 against the pre-remediation worktree. It validated 20 findings: six high, ten medium, and four low. Every finding has a local remediation in this worktree. Local static, unit, build, dependency, browser, mobile, and accessibility checks pass.
 
-This record does not claim production closure. Database replay, pgTAP execution, role/market negative tests, Edge Function deployment, migration-ledger reconciliation, controlled release, and post-release verification still require an authorized staging and Training Hub Supabase project.
+This record does not claim production closure. Clean database replay, pgTAP execution, lint, synthetic assessment behavior, two-session code-consumption concurrency, and a read-only authenticated production UI smoke pass are complete. The sensitive-data recovery point, production migration-ledger registration, Edge Function deployment, controlled backend/frontend release, cross-role production verification, and post-release checks remain.
 
 ## Remediation map
 
@@ -33,16 +33,19 @@ This record does not claim production closure. Database replay, pgTAP execution,
 
 ## Local verification evidence
 
-- Nine forward migrations parse with PostgreSQL's parser.
-- Static contracts validate 59 privileged functions and 115 pgTAP assertions.
+- One checksum-locked production baseline and 11 forward migrations replay from a blank PostgreSQL 15 database.
+- Static contracts validate 59 privileged functions and 127 pgTAP assertions.
+- Database lint reports no errors or warnings in the final `public` and `private` schemas.
+- The pgTAP suite executes the learner-safe load, authoritative grading, atomic hash-only code consumption, result creation, and idempotent replay path with synthetic data.
+- A separate two-session concurrency check accepted exactly one attempt against a single-use synthetic code and committed exactly one result.
 - Both Edge Function entrypoints parse as TypeScript.
 - Fifty-six unit/contract tests pass; scoped coverage is 97.18% for statements and lines.
 - Production build, source and route/template budgets, and the 119-asset diagnostic prohibition pass; no source maps or local editor page are published.
-- Nine browser/mobile/accessibility checks pass and one non-applicable desktop case is skipped.
+- Nine browser/mobile/accessibility checks pass and one non-applicable desktop case is skipped. Authenticated production navigation across all admin destinations also completed without browser console warnings or errors.
 - Full and production-only npm audits report zero vulnerabilities.
 
 ## Required closure evidence
 
-Follow `DEPLOYMENT_AND_ROLLBACK.md`. Do not publish the frontend until the matching migrations and Edge Functions have passed clean staging replay, the 115 pgTAP checks, cross-role negative testing, data-integrity checks, and a reviewed production dry run.
+Follow `DEPLOYMENT_AND_ROLLBACK.md`. Do not publish the frontend until the schema-only baseline is registered in the existing production ledger, the dry run lists only the 11 forward migrations, the protected recovery point is approved, the matching migrations and Edge Functions are deployed, cross-role negative testing passes, and production integrity checks are recorded.
 
 After the generated full-repository scan, a direct review covered the additional validation-rate-limit, aggregate-analytics, content-republish, template-loading, telemetry, and build-output changes. That review fixed a historical-code limiter bypass, added per-guide publication serialization, and constrained telemetry fields. The desktop diff-scan workbench returned no scan ID because its working-tree selection was stale after `HEAD` changed; no replacement scan was created, and the earlier full scan remains the canonical generated report.

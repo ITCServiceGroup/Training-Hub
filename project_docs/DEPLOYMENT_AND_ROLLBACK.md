@@ -27,11 +27,18 @@ npx supabase migration list
 
 Compare the remote ledger with `supabase/migrations`. The historical `database/migrations` files are evidence, not a canonical replay chain. If the remote schema differs from the prerequisites asserted by a migration, stop and create a reviewed forward reconciliation migration. Do not mark an incompatible migration as applied and do not edit an already-applied file.
 
-The expected local forward chain currently ends with `20260902192134_remediate_security_review_findings.sql`. That migration intentionally validates existing score evidence before adding the range constraint and removes legacy plaintext codes. Any validation or prerequisite failure is a stop condition that requires data reconciliation, not a bypass.
+Production had an empty Supabase migration ledger when inventoried. The checksum-locked `20260902000000_production_schema_baseline.sql` exactly matches the schema-only production snapshot and must be registered as already applied before the first push. Never execute that baseline against the populated production schema.
 
-### 3. Verify in a staging project
+```bash
+npx supabase migration repair 20260902000000 --status applied --linked
+npx supabase migration list --linked
+```
 
-Use a production-like staging project with fixture users for every role and at least two markets.
+The expected chain contains the baseline plus 11 forward migrations and ends with `20260902210443_fix_database_lint_errors.sql`. `20260902192134_remediate_security_review_findings.sql` intentionally validates existing score evidence before adding the range constraint and removes legacy plaintext codes. Any validation or prerequisite failure is a stop condition that requires data reconciliation, not a bypass.
+
+### 3. Verify outside production
+
+The free-tier project limit prevents a second hosted project. The approved substitute is a local PostgreSQL 15 Supabase stack rebuilt from the schema-only production snapshot plus synthetic fixtures. This does not replace the controlled production role smoke pass after deployment.
 
 ```bash
 npx supabase db reset
@@ -41,7 +48,7 @@ npm run verify
 npm run test:e2e
 ```
 
-Then apply the forward migrations to staging and verify:
+Apply the forward migrations to the local production snapshot and verify:
 
 - anonymous users cannot enumerate codes, retrieve correct answers, or directly write results;
 - ordinary users cannot change role, market, active state, or permissions;
@@ -56,6 +63,8 @@ Then apply the forward migrations to staging and verify:
 - the old admin user-creation RPC cannot execute from a browser role.
 - password recovery returns to the GitHub Pages project base and access codes do not remain in browser URLs.
 
+Verified on 2026-09-02: snapshot-plus-fixture replay, blank `db reset`, 127 pgTAP assertions, clean public/private lint, 56 unit/contract tests, production build and budgets, 9 desktop/mobile/axe checks, one intentional skip, and a real two-session single-code concurrency test.
+
 ### 4. Apply production backend changes
 
 Run migration commands only after the reviewed plan and backup are present:
@@ -65,7 +74,7 @@ npx supabase db push --dry-run
 npx supabase db push
 ```
 
-Review the dry-run list before applying. Immediately compare the migration ledger and run read-only integrity checks after the push.
+Review the dry-run list before applying. It must list exactly the 11 forward migrations and must not list the baseline. Immediately compare the migration ledger and run read-only integrity checks after the push.
 
 Deploy both Edge Functions:
 
@@ -120,7 +129,7 @@ Stop the release if any of the following is true:
 
 - live project ownership, schema, or migration history cannot be confirmed;
 - a backup or restoration rehearsal is missing;
-- staging replay or a negative authorization test fails;
+- local production-snapshot replay or a negative authorization test fails;
 - the migration dry run contains an unexpected object;
 - an Edge Function secret or gateway setting is missing;
 - the frontend build does not match the deployed backend contract;

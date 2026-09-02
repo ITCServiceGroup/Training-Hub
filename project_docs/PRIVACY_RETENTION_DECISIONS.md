@@ -6,16 +6,16 @@ The application implements least-privilege access, private report storage, bound
 
 ## Decisions requiring approval
 
-| Data class | Required owner decision | Safe interim behavior |
-| --- | --- | --- |
-| Official attempts and scores | Retention period and regulatory/contract basis | Preserve; restrict to authorized learner hierarchy and administrators |
-| Individual answers | Whether they are required after grading and who may view them | Keep access tightly restricted; do not expose in learner/admin bulk responses |
-| Result PDFs | Whether PDFs are operationally necessary and their retention | Keep private; authorize each access; do not make the bucket public |
-| Access-code metadata | Retention for fraud/audit analysis | Store only the hash and lifecycle metadata; never recover plaintext codes |
-| Completion/certification evidence | Retention and legal significance | Preserve as immutable evidence |
-| Security/training audit events | Retention, monitoring, and incident needs | Preserve and restrict; redact secrets and direct answer payloads |
-| Exported reports | Allowed destinations, expiry, and deletion responsibilities | Minimize and audit exports; no unapproved persistent copies |
-| User/profile records | Deactivation, deletion, and historical attribution rules | Deactivate accounts; do not erase evidence or orphan attribution |
+| Data class                        | Required owner decision                                       | Safe interim behavior                                                         |
+| --------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Official attempts and scores      | Retention period and regulatory/contract basis                | Preserve; restrict to authorized learner hierarchy and administrators         |
+| Individual answers                | Whether they are required after grading and who may view them | Keep access tightly restricted; do not expose in learner/admin bulk responses |
+| Result PDFs                       | Whether PDFs are operationally necessary and their retention  | Keep private; authorize each access; do not make the bucket public            |
+| Access-code metadata              | Retention for fraud/audit analysis                            | Store only the hash and lifecycle metadata; never recover plaintext codes     |
+| Completion/certification evidence | Retention and legal significance                              | Preserve as immutable evidence                                                |
+| Security/training audit events    | Retention, monitoring, and incident needs                     | Preserve and restrict; redact secrets and direct answer payloads              |
+| Exported reports                  | Allowed destinations, expiry, and deletion responsibilities   | Minimize and audit exports; no unapproved persistent copies                   |
+| User/profile records              | Deactivation, deletion, and historical attribution rules      | Deactivate accounts; do not erase evidence or orphan attribution              |
 
 ## Questions the privacy and business owners must answer
 
@@ -41,13 +41,13 @@ The application implements least-privilege access, private report storage, bound
 
 ## Approval record
 
-| Field | Value |
-| --- | --- |
-| Business owner | Pending |
-| Privacy/legal owner | Pending |
-| Security owner | Pending |
+| Field                   | Value   |
+| ----------------------- | ------- |
+| Business owner          | Pending |
+| Privacy/legal owner     | Pending |
+| Security owner          | Pending |
 | Approved policy version | Pending |
-| Effective date | Pending |
-| Next review date | Pending |
+| Effective date          | Pending |
+| Next review date        | Pending |
 
 No automated destructive retention job may be enabled while this record remains pending.

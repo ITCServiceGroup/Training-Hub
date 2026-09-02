@@ -404,7 +404,7 @@ declare
   selected_incorrect integer;
   feedback jsonb := '{}'::jsonb;
   score_fraction double precision;
-  result_id bigint;
+  new_result_id bigint;
   upload_token text;
   existing_result public.quiz_results;
   existing_report public.quiz_result_reports;
@@ -558,7 +558,14 @@ begin
     access_code.supervisor,
     target_quiz.title,
     score_fraction,
-    concat(round(correct_count, 2), '/', question_count, ' (', round(score_fraction * 100, 2), '%)'),
+    concat(
+      round(correct_count, 2),
+      '/',
+      question_count,
+      ' (',
+      round((score_fraction * 100)::numeric, 2),
+      '%)'
+    ),
     greatest(coalesce(p_time_taken, 0), 0),
     now(),
     p_answers,
@@ -567,7 +574,7 @@ begin
     now(),
     (select auth.uid()),
     access_code.learner_user_id
-  ) returning id into result_id;
+  ) returning id into new_result_id;
 
   update public.access_codes
   set attempt_count = attempt_count + 1,
@@ -579,7 +586,7 @@ begin
   insert into public.quiz_result_reports (
     result_id, status, upload_token_hash, upload_token_expires_at
   ) values (
-    result_id,
+    new_result_id,
     'pending',
     extensions.digest(upload_token, 'sha256'),
     now() + interval '15 minutes'
@@ -588,7 +595,7 @@ begin
   insert into public.security_audit_log (
     actor_user_id, action, target_type, target_id, metadata
   ) values (
-    (select auth.uid()), 'quiz_attempt.submitted', 'quiz_result', result_id::text,
+    (select auth.uid()), 'quiz_attempt.submitted', 'quiz_result', new_result_id::text,
     jsonb_build_object(
       'quiz_id', target_quiz.id,
       'access_code_id', access_code.id,
@@ -597,7 +604,7 @@ begin
   );
 
   return jsonb_build_object(
-    'result_id', result_id,
+    'result_id', new_result_id,
     'score', round((score_fraction * 100)::numeric, 2),
     'correct', round(correct_count, 2),
     'total', question_count,

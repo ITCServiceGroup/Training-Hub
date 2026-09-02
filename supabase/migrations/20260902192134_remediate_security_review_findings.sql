@@ -723,16 +723,25 @@ create trigger media_library_immutable_scope
 before update on public.media_library
 for each row execute function private.guard_media_library_scope();
 
-update storage.buckets
-set public = true,
-    file_size_limit = 52428800,
-    allowed_mime_types = array[
+insert into storage.buckets (
+  id, name, public, file_size_limit, allowed_mime_types
+) values (
+  'media-library',
+  'media-library',
+  true,
+  52428800,
+  array[
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       'video/mp4', 'video/webm', 'video/quicktime',
       'audio/mpeg', 'audio/wav', 'audio/ogg'
-    ]::text[],
-    updated_at = now()
-where id = 'media-library';
+    ]::text[]
+)
+on conflict (id) do update
+set name = excluded.name,
+    public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types,
+    updated_at = now();
 
 drop policy if exists "Allow authenticated users to read media-library" on storage.objects;
 drop policy if exists "Allow authenticated users to insert media-library" on storage.objects;

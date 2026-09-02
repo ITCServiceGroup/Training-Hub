@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(115);
+select plan(127);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_profiles'::regclass),
@@ -365,13 +365,15 @@ select ok(
   'browser clients cannot finalize report metadata'
 );
 select ok((
-  select qual::text ilike '%is_supervisor_managed_user%'
+  select pg_get_expr(polqual, polrelid) ilike '%is_supervisor_managed_user%'
   from pg_policy
   where polrelid = 'public.quiz_results'::regclass
     and polname = 'quiz_results_select_authorized_managers'
 ), 'supervisor result reads are restricted to their reporting hierarchy');
 select ok((
-  select pg_get_constraintdef(oid) ilike '%score_value%between%0%1%'
+  select convalidated
+    and pg_get_constraintdef(oid) ilike '%score_value%>=%0%'
+    and pg_get_constraintdef(oid) ilike '%score_value%<=%1%'
   from pg_constraint
   where conrelid = 'public.quiz_results'::regclass
     and conname = 'quiz_results_score_value_range_check'
@@ -511,6 +513,196 @@ select ok((
   from pg_proc
   where oid = 'public.republish_content_version(uuid,text,timestamptz)'::regprocedure
 ), 'republishing is serialized, limited to superseded versions, and writes an audited reason');
+
+select is(
+  (
+    select count(*)::integer
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and has_function_privilege('anon', p.oid, 'execute')
+      and p.oid not in (
+        'public.can_view_content(integer,boolean)'::regprocedure,
+        'public.load_quiz_for_learner(uuid,text)'::regprocedure,
+        'public.submit_quiz_attempt(text,jsonb,uuid,integer,jsonb)'::regprocedure,
+        'public.grade_practice_attempt(uuid,jsonb)'::regprocedure
+      )
+  ),
+  0,
+  'anonymous callers can execute only the explicit learner and public-content function allowlist'
+);
+select is(
+  (
+    select count(*)::integer
+    from unnest(array[
+      'public.admin_create_user(text,text,text,text,integer,uuid)'::regprocedure,
+      'public.finalize_quiz_report_upload(bigint,text)'::regprocedure,
+      'public.load_quiz_for_learner_unthrottled(uuid,text)'::regprocedure,
+      'public.submit_quiz_attempt_unthrottled(text,jsonb,uuid,integer,jsonb)'::regprocedure,
+      'public.ensure_single_default_configuration()'::regprocedure,
+      'public.ensure_single_default_dashboard()'::regprocedure,
+      'public.ensure_single_default_layout()'::regprocedure,
+      'public.migrate_existing_users_to_simple_dashboards()'::regprocedure
+    ]) as blocked(signature)
+    where has_function_privilege('authenticated', blocked.signature, 'execute')
+  ),
+  0,
+  'authenticated callers cannot execute internal, maintenance, or service-only functions'
+);
+select ok(
+  not exists (
+    select 1
+    from pg_default_acl defaults
+    join pg_namespace n on n.oid = defaults.defaclnamespace
+    cross join lateral aclexplode(defaults.defaclacl) privilege
+    where n.nspname = 'public'
+      and defaults.defaclrole = 'postgres'::regrole
+      and defaults.defaclobjtype = 'f'
+      and privilege.privilege_type = 'EXECUTE'
+      and privilege.grantee in (0, 'anon'::regrole, 'authenticated'::regrole)
+  ),
+  'future public functions are not executable by API roles unless explicitly granted'
+);
+select ok(
+  not exists (
+    select 1
+    from pg_default_acl defaults
+    join pg_namespace n on n.oid = defaults.defaclnamespace
+    cross join lateral aclexplode(defaults.defaclacl) privilege
+    where n.nspname = 'public'
+      and defaults.defaclrole = 'postgres'::regrole
+      and defaults.defaclobjtype in ('r', 'S')
+      and privilege.grantee in (0, 'anon'::regrole, 'authenticated'::regrole)
+  ),
+  'future public tables and sequences require explicit API-role grants'
+);
+
+-- Execute the public learner boundary with fully synthetic rows. The outer
+-- transaction rolls everything back, so these fixtures never persist locally
+-- or resemble production identities.
+insert into public.quizzes (
+  id, title, category_ids, passing_score, is_practice, is_nationwide
+) values (
+  '00000000-0000-4000-8000-000000000201',
+  'pgTAP authoritative assessment fixture',
+  '[]'::jsonb,
+  0.8,
+  false,
+  true
+);
+
+insert into public.questions (
+  id, question_text, question_type, options, correct_answer, is_nationwide
+) values (
+  '00000000-0000-4000-8000-000000000202',
+  'Which fixture answer is correct?',
+  'multiple_choice',
+  '["A", "B"]'::jsonb,
+  '"A"'::jsonb,
+  true
+);
+
+insert into public.quiz_questions (quiz_id, question_id, order_index)
+values (
+  '00000000-0000-4000-8000-000000000201',
+  '00000000-0000-4000-8000-000000000202',
+  0
+);
+
+insert into public.access_codes (
+  id, quiz_id, code, code_hash, ldap, email, supervisor, market,
+  is_used, attempt_count, max_attempts
+) values (
+  '00000000-0000-4000-8000-000000000203',
+  '00000000-0000-4000-8000-000000000201',
+  null,
+  extensions.digest('BEHAVE01', 'sha256'),
+  'local-pgtap-fixture',
+  'fixture@example.invalid',
+  'Local Fixture Supervisor',
+  'Local Fixture Market',
+  false,
+  0,
+  1
+);
+
+create temporary table assessment_test_state (
+  first_submission jsonb not null
+) on commit drop;
+
+select ok(
+  public.load_quiz_for_learner(
+    '00000000-0000-4000-8000-000000000201', 'BEHAVE01'
+  ) #>> '{questions,0,correct_answer}' is null,
+  'official learner payloads do not expose correct answers at runtime'
+);
+select is(
+  public.load_quiz_for_learner(
+    '00000000-0000-4000-8000-000000000201', 'BEHAVE01'
+  ) ->> 'id',
+  '00000000-0000-4000-8000-000000000201',
+  'official learner payloads resolve the quiz bound to the access code'
+);
+
+insert into assessment_test_state (first_submission)
+select public.submit_quiz_attempt(
+  'BEHAVE01',
+  '{"00000000-0000-4000-8000-000000000202": "A"}'::jsonb,
+  '00000000-0000-4000-8000-000000000204',
+  12,
+  '{}'::jsonb
+);
+
+select is(
+  (select (first_submission ->> 'score')::numeric from assessment_test_state),
+  100::numeric,
+  'authoritative submission grades the synthetic correct answer on the server'
+);
+select is(
+  (select (first_submission ->> 'idempotent_replay')::boolean from assessment_test_state),
+  false,
+  'the initial authoritative submission is not marked as a replay'
+);
+select is(
+  (select count(*)::integer from public.quiz_results
+   where idempotency_key = '00000000-0000-4000-8000-000000000204'),
+  1,
+  'authoritative submission creates exactly one result'
+);
+select ok((
+  select result.score_value = 1
+    and result.grading_version = 'server-v1'
+    and result.graded_at is not null
+  from public.quiz_results result
+  where result.idempotency_key = '00000000-0000-4000-8000-000000000204'
+), 'the committed result contains server-authored grading evidence');
+select ok((
+  select code.is_used
+    and code.attempt_count = 1
+    and code.code is null
+  from public.access_codes code
+  where code.id = '00000000-0000-4000-8000-000000000203'
+), 'result creation and hash-only access-code consumption commit together');
+select ok((
+  with replay as (
+    select public.submit_quiz_attempt(
+      'BEHAVE01',
+      '{"00000000-0000-4000-8000-000000000202": "A"}'::jsonb,
+      '00000000-0000-4000-8000-000000000204',
+      12,
+      '{}'::jsonb
+    ) as payload
+  )
+  select (replay.payload ->> 'idempotent_replay')::boolean
+    and replay.payload ->> 'result_id' =
+      (select first_submission ->> 'result_id' from assessment_test_state)
+    and (
+      select count(*)
+      from public.quiz_results
+      where idempotency_key = '00000000-0000-4000-8000-000000000204'
+    ) = 1
+  from replay
+), 'idempotent replay returns the original result without creating a duplicate');
 
 select * from finish();
 rollback;

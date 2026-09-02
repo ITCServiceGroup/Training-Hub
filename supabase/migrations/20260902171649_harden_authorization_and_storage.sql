@@ -236,12 +236,18 @@ grant execute on function public.update_managed_user_profile(
 ) to authenticated;
 
 -- Result reports are private evidence, not public assets.
-update storage.buckets
-set public = false,
-    file_size_limit = 10485760,
-    allowed_mime_types = array['application/pdf']::text[],
-    updated_at = now()
-where id = 'quiz-pdfs';
+insert into storage.buckets (
+  id, name, public, file_size_limit, allowed_mime_types
+) values (
+  'quiz-pdfs', 'quiz-pdfs', false, 10485760,
+  array['application/pdf']::text[]
+)
+on conflict (id) do update
+set name = excluded.name,
+    public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types,
+    updated_at = now();
 
 drop policy if exists "Allow public to read quiz-pdfs" on storage.objects;
 drop policy if exists "Allow authenticated users to insert quiz-pdfs" on storage.objects;

@@ -1,6 +1,6 @@
 # Training Hub Implementation Plan
 
-**Status:** Local implementation and verification complete; staging/live rollout gates remain
+**Status:** Release candidate verified locally and inventoried live; production recovery/deployment gates remain
 **Last updated:** 2026-09-02
 **Repository:** `ITCServiceGroup/Training-Hub`
 **Default branch:** `main`
@@ -23,27 +23,29 @@ Do not mark an item complete merely because code was written. Completion require
 
 ## Implementation checkpoint - 2026-09-02
 
-The repository now contains the planned local implementation across Phases 1-7. This does not mean the production release is complete: clean database replay, pgTAP execution, staging role-boundary tests, migration-ledger reconciliation, privacy-owner decisions, controlled deployment, and post-deployment smoke verification still require the Training Hub Supabase project, Docker, production-like fixtures, and authorized operators.
+The repository now contains the planned implementation across Phases 1-7. Production catalog inventory, schema capture, two clean migration rehearsals, pgTAP execution, lint, runtime assessment behavior, concurrency, application verification, and read-only authenticated UI smoke testing are complete. This does not mean the production release is complete: a protected data recovery point, baseline-ledger registration, privacy/authorization owner approval, controlled backend and Edge Function deployment, cross-role production checks, and the matching Pages release remain.
 
-| Area                     | Implemented locally                                                                                                                                                                              | Verification state                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Assessment integrity     | Learner-safe loader, server-held answers, hash-only codes, per-caller failed-validation limits, transactional/idempotent grading, immutable results, independent private-report upload           | Unit/contract/static SQL/browser checks pass; real PostgreSQL concurrency and live negative tests pending            |
-| Authorization            | Named frontend permissions, route guards, direct/lead-mediated supervisor hierarchy, active-profile helpers, aggregate-only question analytics, hardened grants/RLS, legacy policy cleanup       | Frontend tests and 115 pgTAP assertions authored; pgTAP execution and live catalog verification pending              |
-| Storage and provisioning | Private report bucket, atomic finalization, opaque keys, one-time upload token, allowlisted/owner-scoped public training media, hierarchy-safe `admin-create-user` Edge Function                 | Both functions parse; staging deployment and authorized/denied calls pending                                         |
-| Delivery safety          | Manual production deployment, validation workflow, audit, CodeQL, Dependabot, format/source/build/bundle/diagnostic gates                                                                        | Local equivalent passes; remote GitHub workflow has not run on this worktree                                         |
-| Frontend reliability     | Auth cleanup, explicit account states, error boundary, mobile admin drawer, focus management, accessibility smoke coverage                                                                       | Unit, desktop/mobile Playwright, and axe checks pass for covered public routes; authenticated fixture matrix pending |
-| Architecture/performance | Domain training feature, centralized contracts and permissions, independently loaded validated templates, lazy chart/export loading, aggregate-only bounded analytics, source and bundle budgets | Build and route budgets pass; production performance telemetry targets remain a product/operations task              |
-| Training lifecycle       | Assignments, audiences, enrollments, prerequisites, learning paths, completions, certification states, content review/publication/republish, compliance queues                                   | Schema/RPC/UI implementation and static checks complete; staging workflow and scheduler operation pending            |
-| Privacy/retention        | Least-privilege access, private reports, redacted diagnostics, explicit decision record                                                                                                          | Destructive retention remains disabled until business/privacy/legal approval                                         |
+| Area                     | Implemented locally                                                                                                                                                                              | Verification state                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Assessment integrity     | Learner-safe loader, server-held answers, hash-only codes, per-caller failed-validation limits, transactional/idempotent grading, immutable results, independent private-report upload           | Runtime pgTAP and two-session single-code concurrency pass; controlled post-deploy negative tests remain  |
+| Authorization            | Named frontend permissions, route guards, direct/lead-mediated supervisor hierarchy, active-profile helpers, aggregate-only question analytics, hardened grants/RLS, legacy policy cleanup       | Live exposure inventory complete; 127 pgTAP assertions pass; cross-role post-deploy verification remains  |
+| Storage and provisioning | Private report bucket, atomic finalization, opaque keys, one-time upload token, allowlisted/owner-scoped public training media, hierarchy-safe `admin-create-user` Edge Function                 | Both functions parse; staging deployment and authorized/denied calls pending                              |
+| Delivery safety          | Manual production deployment, validation workflow, database reset/lint/pgTAP gates, audit, CodeQL, Dependabot, format/source/build/bundle/diagnostic gates                                       | Local equivalent passes; remote GitHub workflow has not run on this release candidate                     |
+| Frontend reliability     | Auth cleanup, explicit account states, error boundary, mobile admin drawer, focus management, accessibility smoke coverage                                                                       | Unit, desktop/mobile Playwright, axe, and read-only authenticated production navigation pass              |
+| Architecture/performance | Domain training feature, centralized contracts and permissions, independently loaded validated templates, lazy chart/export loading, aggregate-only bounded analytics, source and bundle budgets | Build and route budgets pass; production performance telemetry targets remain a product/operations task   |
+| Training lifecycle       | Assignments, audiences, enrollments, prerequisites, learning paths, completions, certification states, content review/publication/republish, compliance queues                                   | Schema/RPC/UI implementation and static checks complete; staging workflow and scheduler operation pending |
+| Privacy/retention        | Least-privilege access, private reports, redacted diagnostics, explicit decision record                                                                                                          | Destructive retention remains disabled until business/privacy/legal approval                              |
 
 Local evidence produced in this worktree:
 
 - 56 unit/contract tests pass with 97.18% statement/line coverage.
-- Nine forward-only migrations parse with PostgreSQL's parser and pass static contracts for 59 privileged functions.
-- The pgTAP suite declares and contains 115 authorization/integrity assertions.
+- One checksum-locked production baseline and 11 forward migrations replay from a blank PostgreSQL 15 database and pass static contracts for 59 privileged functions.
+- All 127 pgTAP authorization, integrity, and authoritative-assessment runtime assertions pass.
+- Database lint reports no errors or warnings for the final `public` and `private` schemas.
+- A real two-session concurrency check against one synthetic single-use code committed exactly one result.
 - Both Edge Function entrypoints parse as TypeScript.
 - Production build, source-map prohibition, 314-module source budgets, route/template bundle budgets, and a 119-asset production-diagnostic prohibition pass.
-- Nine desktop/mobile Playwright and axe checks pass and one desktop-only mobile check is intentionally skipped, including credential-free access-code URL verification.
+- Nine desktop/mobile Playwright and axe checks pass and one desktop-only mobile check is intentionally skipped, including credential-free access-code URL verification. Every authenticated production admin destination also loaded without console warnings or errors.
 - Full and production-only dependency audits report zero vulnerabilities at the time of this checkpoint.
 - A standard Codex Security scan produced 20 validated findings; all 20 have a local code or removal remediation. See `project_docs/SECURITY_REMEDIATION.md` for the evidence and remaining staging gates.
 - A final direct security review of the post-scan delta found and fixed an expired-code rate-limit bypass, serialized concurrent content republishing, and tightened telemetry field validation. The desktop diff-scan workbench could not create a follow-up scan because its working-tree selection was stale after `HEAD` changed, so the original full scan remains the canonical generated report.
@@ -116,30 +118,31 @@ Admin SPA
 
 **Estimate:** 2-3 engineering days
 **Dependencies:** Supabase project access; representative test accounts
-**Status:** `[-]`
+**Status:** `[-]` (live inventory and local recovery rehearsal complete; protected data recovery approval pending)
 
 ### Phase 0 progress - 2026-09-02
 
-- Repository `main` is aligned with `origin/main` at `bb02234847105200e9961660231dcbb2d6feb92b`.
-- The connected Supabase account does not expose the Training Hub project, so catalog, grants, policies, migration ledger, Auth settings, advisors, and deployed-function inventory remain access-gated.
-- Anonymous read-only production probes confirmed access-code enumeration, correct-answer retrieval, and public quiz-PDF listing/download without storing sensitive values.
+- Supabase CLI 2.116.0 is authenticated and linked to Training Hub project `scmwpoowjhzawvmiyohz`.
+- Read-only catalog inventory confirmed the live grants, policies, RLS state, functions, Storage buckets, row counts, empty migration ledger, advisors, and deployed Edge Function inventory.
+- Anonymous read-only production probes and catalog inspection confirmed access-code enumeration/update exposure, correct-answer retrieval, arbitrary result insertion, broad function execution, and public quiz-PDF listing/download without storing sensitive values.
+- A schema-only production backup was captured and checksum-locked as the canonical baseline. A full data backup remains approval-gated because it would contain employee/result data and legacy plaintext codes.
 - Checked-in schema, migrations, privileged functions, Storage code, and assessment data paths are documented in `project_docs/PHASE_0_BASELINE.md`.
 - A proposed role and resource permission model is documented in `project_docs/AUTHORIZATION_MATRIX.md` and requires product-owner approval before RLS implementation.
-- A read-only catalog inventory query is prepared at `database/audits/phase_0_inventory.sql` for use as soon as Training Hub project access is available.
+- The reviewed inventory query remains at `database/audits/phase_0_inventory.sql` for repeatable pre/post-deployment checks.
 
 ### TH-001 - Inventory the live Supabase project
 
-- [ ] Capture tables, columns, constraints, indexes, triggers, and views.
-- [ ] Capture grants for `anon`, `authenticated`, service roles, tables, sequences, and functions.
-- [ ] Capture every RLS policy, target role, command, `USING`, and `WITH CHECK` expression.
-- [ ] Confirm RLS status on every exposed-schema table.
-- [ ] Inventory functions, owners, security mode, `search_path`, and execute grants.
-- [ ] Inventory Storage bucket privacy, MIME restrictions, file limits, and object policies.
-- [ ] Inventory deployed Edge Functions and environment configuration without exposing secret values.
-- [ ] Compare the remote migration ledger to `database/migrations` and the nested `supabase` directories.
-- [ ] Record Auth configuration relevant to sessions, passwords, and enabled providers.
-- [ ] Record Data API exposed schemas and default privileges.
-- [ ] Run Supabase database and security advisors if supported by the installed tooling.
+- [x] Capture tables, columns, constraints, indexes, triggers, and views.
+- [x] Capture grants for `anon`, `authenticated`, service roles, tables, sequences, and functions.
+- [x] Capture every RLS policy, target role, command, `USING`, and `WITH CHECK` expression.
+- [x] Confirm RLS status on every exposed-schema table.
+- [x] Inventory functions, owners, security mode, `search_path`, and execute grants.
+- [x] Inventory Storage bucket privacy, MIME restrictions, file limits, and object policies.
+- [x] Inventory deployed Edge Functions and environment configuration without exposing secret values.
+- [x] Compare the remote migration ledger to `database/migrations` and the nested `supabase` directories.
+- [-] Record Auth configuration relevant to sessions, passwords, and enabled providers. Advisors confirmed password/MFA gaps; dashboard owner action remains.
+- [x] Record Data API exposed schemas and default privileges.
+- [x] Run Supabase database and security advisors if supported by the installed tooling.
 
 ### TH-002 - Approve an authorization matrix
 
@@ -157,13 +160,13 @@ Apply the matrix to profiles, authorization fields, access codes, quizzes, corre
 
 ### TH-003 - Establish recovery and verification fixtures
 
-- [ ] Export schema and record the current migration state.
-- [ ] Back up authorization tables, access codes, results, and Storage object metadata.
-- [ ] Record baseline row counts and representative integrity checks.
-- [ ] Create non-production fixture users for every role and at least two markets.
-- [ ] Create expired, unused, used, and wrong-quiz access-code fixtures.
-- [ ] Document rollback SQL or reverse migrations for each planned authorization change.
-- [ ] Test recovery in a non-production environment.
+- [x] Export schema and record the current migration state.
+- [!] Back up authorization tables, access codes, results, and Storage object metadata. Explicit approval is required before copying sensitive production rows locally.
+- [x] Record baseline row counts and representative integrity checks.
+- [!] Create non-production fixture users for every role and at least two markets. The free-tier project has no staging environment; use transaction-scoped local fixtures and controlled production accounts.
+- [x] Create synthetic unused, used/replayed, invalid, and concurrent access-code fixtures in rollback-safe local tests.
+- [x] Document rollback and forward-recovery procedures for each authorization change.
+- [x] Test schema recovery and migration replay in the local production-snapshot environment.
 
 ### Phase 0 exit criteria
 
@@ -181,14 +184,14 @@ Apply the matrix to profiles, authorization fields, access codes, quizzes, corre
 
 ### TH-101 - Standardize Supabase project structure
 
-- [ ] Confirm the installed Supabase CLI version and discover commands through `--help`.
-- [ ] Standardize future work under `supabase/migrations`, `supabase/functions`, and `supabase/tests`.
-- [ ] Remove the nested placeholder project only after confirming it is unused.
-- [ ] Do not rename or rewrite already-applied production migrations without reconciling the remote ledger.
-- [ ] Create a reviewed canonical baseline for new environments.
-- [ ] Prove a blank local database can reproduce the intended schema.
-- [ ] Add deterministic seed fixtures for role and RLS testing.
-- [ ] Document local Supabase setup and recovery.
+- [x] Confirm the installed Supabase CLI version and discover commands through `--help`.
+- [x] Standardize future work under `supabase/migrations`, `supabase/functions`, and `supabase/tests`.
+- [x] Remove the nested placeholder project only after confirming it is unused.
+- [x] Preserve the immutable baseline and use forward migrations; production ledger registration remains a release step.
+- [x] Create a reviewed, checksum-locked canonical baseline for new environments.
+- [x] Prove a blank local database can reproduce the intended schema.
+- [x] Add deterministic transaction-scoped fixtures for authorization and assessment behavior testing.
+- [x] Document local Supabase setup and recovery.
 
 ### TH-102 - Add database authorization tests
 
@@ -242,7 +245,7 @@ Run the suite through `supabase test db` in CI.
 - [ ] A user cannot self-promote through REST, RPC, or the interface.
 - [ ] Result reports are inaccessible without an authorized signed path.
 - [ ] Production logs contain no access tokens or full assessment payloads.
-- [ ] Local migration replay and authorization tests pass.
+- [x] Local migration replay and authorization tests pass.
 - [ ] Existing learner and admin workflows still pass smoke testing.
 
 ## Phase 2 - Build the authoritative assessment service

@@ -1,6 +1,6 @@
 # Training Hub Phase 0 Baseline
 
-**Status:** In progress
+**Status:** Read-only production inventory complete; protected data recovery approval pending
 **Started:** 2026-09-02
 **Scope:** TH-001 through TH-003 from `IMPLEMENTATION_PLAN.md`
 **Production project reference:** `scmwpoowjhzawvmiyohz`
@@ -25,43 +25,58 @@ Three high-priority exposures were confirmed through anonymous, non-mutating pro
 
 No access-code value, answer value, employee identifier, object name, PDF content, or credential was printed or stored during these checks.
 
-These confirmations justify prioritizing the assessment-integrity and report-privacy work. They do not by themselves prove the behavior of update, insert, delete, privileged functions, or authenticated role boundaries.
+Direct catalog inventory later confirmed the corresponding grants, policies, function ACLs, and Storage configuration. These findings are no longer source-only hypotheses.
 
 ## Repository and Git baseline
 
-| Check | Result |
-| --- | --- |
-| Branch | `main` |
-| Local commit | `bb02234847105200e9961660231dcbb2d6feb92b` |
-| `origin/main` | `bb02234847105200e9961660231dcbb2d6feb92b` |
-| Pre-existing working change | `IMPLEMENTATION_PLAN.md` was untracked and created for this program |
-| Branch divergence | None observed |
-| Implementation branches/worktrees | None created |
+| Check                             | Result                                                              |
+| --------------------------------- | ------------------------------------------------------------------- |
+| Branch                            | `main`                                                              |
+| Local commit                      | `bb02234847105200e9961660231dcbb2d6feb92b`                          |
+| `origin/main`                     | `bb02234847105200e9961660231dcbb2d6feb92b`                          |
+| Pre-existing working change       | `IMPLEMENTATION_PLAN.md` was untracked and created for this program |
+| Branch divergence                 | None observed                                                       |
+| Implementation branches/worktrees | None created                                                        |
 
 ## Available access and tooling
 
-### Workspace
+The Supabase CLI is authenticated and linked to production project
+`scmwpoowjhzawvmiyohz`. The local environment now has Homebrew, Colima, Docker,
+Supabase CLI 2.116.0, and a PostgreSQL 15 local stack. The canonical root
+configuration is `supabase/config.toml`; the obsolete nested scaffold has been
+removed.
 
-- No local `.env`, `.env.local`, `.env.automation`, database URL, database password, service-role credential, or Supabase access token was found.
-- `.env.example` contains only placeholder frontend configuration names.
-- No system `supabase`, `psql`, `docker`, `node`, or `npm` command is on `PATH`.
-- A bundled Node runtime is available through the Codex workspace runtime.
-- The root does not contain a standard `supabase/config.toml`.
-- A nested configuration exists at `supabase/functions/supabase/config.toml`, indicating an incorrectly nested or partially initialized Supabase project.
+A schema-only production backup is retained locally under `.local-backups`
+(ignored by Git, mode 0600) and its SHA-256 is recorded in the local-development
+runbook. It contains no table rows, Auth users, or Storage objects. A full data
+backup would copy employee/result data and the 84 legacy plaintext codes, so it
+has not been created without explicit approval.
 
-### Supabase connector
+## Live catalog inventory
 
-The authenticated Supabase connector is functional, but the Training Hub project is not among the projects visible to it. Only unrelated projects were returned. Therefore the connector could not be used for:
+Read-only production catalog queries confirmed:
 
-- `pg_policy`, grants, function, trigger, or view inspection;
-- the live migration ledger;
-- Storage bucket configuration and policies;
-- deployed Edge Function inventory;
-- Auth settings;
-- database/security advisors; or
-- schema export and backup.
+- 16 application tables in `public`, all with RLS enabled;
+- 68 policies, most historically targeted at `public` rather than narrow API
+  roles;
+- 84 access-code rows, 61 quiz-result rows, 305 question rows, 454 quiz-question
+  links, 23 quizzes, 20 study guides, and 4 user profiles;
+- 84 plaintext access codes requiring the reviewed hash-only conversion;
+- no duplicate normalized codes, malformed multi-select answers, out-of-range
+  scores, orphaned quiz references, or invalid profile roles;
+- broad anonymous table privileges and policies permitting code reads/updates,
+  result insertion, and answer-bearing question reads;
+- both `quiz-pdfs` and `media-library` configured public with no MIME or size
+  limits;
+- ten public `SECURITY DEFINER` functions callable by browser roles;
+- an empty Supabase migration ledger despite the deployed schema;
+- one deployed legacy Edge Function, `upload-quiz-pdf`; and
+- 84 advisor findings in the deployed baseline: 26 warnings and 58 information
+  items, including Security Definer execution exposure, leaked-password
+  protection disabled, and insufficient MFA options.
 
-Project-level access to `scmwpoowjhzawvmiyohz` remains a Phase 0 dependency.
+The deployed database is PostgreSQL 15.14. No production mutation was performed
+during inventory.
 
 ## Live anonymous probes
 
@@ -77,13 +92,13 @@ All probes were read-only:
 
 ### Results
 
-| Surface | Anonymous request | Result | Interpretation |
-| --- | --- | --- | --- |
-| Access codes | Initial ID-only probe followed by a field-presence probe, each with `limit=1` | HTTP 200; one row; `code`, `email`, `ldap`, `market`, `supervisor`, `quiz_id`, `expires_at`, and `is_used` were returned and non-null | **Confirmed exposure:** anonymous callers can retrieve a live bearer code and associated employee data. Only field names and null/non-null flags were emitted; no values were printed or stored. |
-| Correct answers | `GET questions?select=id,correct_answer&limit=1` | HTTP 200; one row | **Confirmed exposure:** official answer data is reachable anonymously for at least one question. The answer value was not returned to the audit output. |
-| Quiz results read | `GET quiz_results?select=id&limit=1` | HTTP 200; zero rows | Inconclusive. This may indicate RLS denial, an empty visible result set, or both. It says nothing about inserts. |
-| Report object listing | List `quiz-pdfs`, limit one | HTTP 200; one object | **Confirmed exposure:** an anonymous caller can enumerate at least one report object name. The name was not returned to the audit output. |
-| Report download | `HEAD` public URL for the listed object | HTTP 200 | **Confirmed exposure:** a listed quiz-result PDF is publicly downloadable without a user session. |
+| Surface               | Anonymous request                                                             | Result                                                                                                                                | Interpretation                                                                                                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Access codes          | Initial ID-only probe followed by a field-presence probe, each with `limit=1` | HTTP 200; one row; `code`, `email`, `ldap`, `market`, `supervisor`, `quiz_id`, `expires_at`, and `is_used` were returned and non-null | **Confirmed exposure:** anonymous callers can retrieve a live bearer code and associated employee data. Only field names and null/non-null flags were emitted; no values were printed or stored. |
+| Correct answers       | `GET questions?select=id,correct_answer&limit=1`                              | HTTP 200; one row                                                                                                                     | **Confirmed exposure:** official answer data is reachable anonymously for at least one question. The answer value was not returned to the audit output.                                          |
+| Quiz results read     | `GET quiz_results?select=id&limit=1`                                          | HTTP 200; zero rows                                                                                                                   | Inconclusive. This may indicate RLS denial, an empty visible result set, or both. It says nothing about inserts.                                                                                 |
+| Report object listing | List `quiz-pdfs`, limit one                                                   | HTTP 200; one object                                                                                                                  | **Confirmed exposure:** an anonymous caller can enumerate at least one report object name. The name was not returned to the audit output.                                                        |
+| Report download       | `HEAD` public URL for the listed object                                       | HTTP 200                                                                                                                              | **Confirmed exposure:** a listed quiz-result PDF is publicly downloadable without a user session.                                                                                                |
 
 ### Probes intentionally not performed
 
@@ -137,14 +152,14 @@ Later migrations also create:
 
 ### Migration history
 
-| Inventory item | Checked-in result |
-| --- | --- |
-| SQL migration files | 33 |
-| Historical `CREATE POLICY` statements | 180 |
-| Historical `SECURITY DEFINER` references | 21 |
-| Historical `CREATE TRIGGER` statements | 9 |
-| Duplicate numeric prefix | `24` |
-| Current migration directory | `database/migrations` rather than standard `supabase/migrations` |
+| Inventory item                           | Checked-in result                                                |
+| ---------------------------------------- | ---------------------------------------------------------------- |
+| SQL migration files                      | 33                                                               |
+| Historical `CREATE POLICY` statements    | 180                                                              |
+| Historical `SECURITY DEFINER` references | 21                                                               |
+| Historical `CREATE TRIGGER` statements   | 9                                                                |
+| Duplicate numeric prefix                 | `24`                                                             |
+| Current migration directory              | `database/migrations` rather than standard `supabase/migrations` |
 
 The counts are historical occurrences, not the expected final live count, because later files drop and recreate earlier policies and functions.
 
@@ -153,10 +168,10 @@ The counts are historical occurrences, not the expected final live count, becaus
 1. `02_create_quiz_system.sql` uses inline `COMMENT` syntax in column definitions that is not valid ordinary PostgreSQL syntax.
 2. Migration prefix `24` is used twice, leaving order dependent on filename sorting rather than a unique migration sequence.
 3. The old schema snapshot predates major RBAC migrations.
-4. The root lacks a standard Supabase configuration and migration ledger.
-5. A duplicate nested Edge Function scaffold exists under `supabase/functions/supabase/functions/upload-quiz-pdf`.
-6. Some Storage migrations use `CREATE POLICY IF NOT EXISTS`, which must be verified against the actual Postgres version and successfully applied history.
-7. Migration replay has not been proven on a clean database.
+4. The original root lacked a standard Supabase configuration and migration ledger; a canonical root project and checksum-locked baseline now replace that gap.
+5. The original duplicate nested Edge Function scaffold was removed after confirming it was unused.
+6. Historical Storage SQL remains non-canonical; reviewed forward migrations now own final Storage policies and bucket limits.
+7. Clean PostgreSQL 15 replay is now proven both from the production schema snapshot and from a blank `supabase db reset`.
 
 ## Privileged function inventory
 
@@ -217,54 +232,37 @@ The checked-in Storage migration configures `quiz-pdfs` as public with no file-s
 
 ## Finding status
 
-| Finding | Status | Evidence needed next |
-| --- | --- | --- |
-| Anonymous access-code and employee-data retrieval | **Live confirmed** | Live grants/policies and legitimate client dependencies; no further sensitive row reads are needed |
-| Anonymous correct-answer access | **Live confirmed** | Live grants/policies; determine every affected quiz/question visibility path |
-| Public result PDF listing/download | **Live confirmed** | Live bucket settings, Storage policies, object counts, retention, and legitimate consumers |
-| Client-authoritative official grading | **Source confirmed** | Production network trace and deployed bundle parity |
-| Non-atomic result/code/report flow | **Source confirmed** | Production function version and database trigger inventory |
-| Self-service role/market escalation | **Source plausible; live unverified** | Live table grants and profile update policies; rollback-safe role tests outside production |
-| Anonymous arbitrary code updates | **Source plausible; live unverified** | Live update grants/policies; non-production negative test |
-| Anonymous arbitrary result insertion | **Source plausible; live unverified** | Live insert grants/policies; non-production negative test |
-| Broad privileged-function execution | **Source plausible; live unverified** | Live `pg_proc`, owners, definitions, and ACLs |
-| Migration replay failure | **Source plausible; not executed** | Supabase CLI/local database and clean replay |
-| Auth/session settings risk | **Unverified** | Project-level Auth settings and representative accounts |
+| Finding                                           | Status                          | Evidence needed next                                                                                |
+| ------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Anonymous access-code and employee-data retrieval | **Live confirmed**              | Live grants/policies and legitimate client dependencies; no further sensitive row reads are needed  |
+| Anonymous correct-answer access                   | **Live confirmed**              | Live grants/policies; determine every affected quiz/question visibility path                        |
+| Public result PDF listing/download                | **Live confirmed**              | Live bucket settings, Storage policies, object counts, retention, and legitimate consumers          |
+| Client-authoritative official grading             | **Source confirmed**            | Production network trace and deployed bundle parity                                                 |
+| Non-atomic result/code/report flow                | **Source confirmed**            | Production function version and database trigger inventory                                          |
+| Self-service role/market escalation               | **Live policy/grant confirmed** | Corrective RPC/grant behavior passes local pgTAP; controlled post-deploy denial remains             |
+| Anonymous arbitrary code updates                  | **Live confirmed**              | Corrective grants/RLS pass local pgTAP; controlled post-deploy denial remains                       |
+| Anonymous arbitrary result insertion              | **Live confirmed**              | Corrective immutable service boundary passes local runtime and concurrency tests                    |
+| Broad privileged-function execution               | **Live confirmed**              | Final local state exposes exactly four anonymous functions and denies maintenance/service functions |
+| Migration replay failure                          | **Resolved locally**            | Snapshot replay and blank `db reset` both pass all 12 migrations                                    |
+| Auth/session settings risk                        | **Partially live confirmed**    | Leaked-password protection and MFA options remain dashboard/operator configuration work             |
 
-## Required access to finish Phase 0
+## Remaining release prerequisites
 
-One of the following authorized paths is needed for the Training Hub project:
+1. Approve either a protected local full-data backup or the explicit decision to
+   proceed using Supabase's available recovery facilities. The current
+   schema-only backup is insufficient to restore employee/result rows.
+2. Approve the authorization matrix and the interim non-destructive privacy
+   defaults documented in `PRIVACY_RETENTION_DECISIONS.md`.
+3. Register only the checksum-locked baseline migration as already applied in
+   the empty production migration ledger.
+4. Confirm the production dry run lists exactly the 11 forward migrations.
+5. Apply the backend release, deploy both Edge Functions, and run controlled
+   allow/deny smoke checks before publishing the matching Pages artifact.
 
-1. Add the Training Hub organization/project to the connected Supabase connector; or
-2. provide a project-scoped Supabase MCP connection; or
-3. provide a read-only database connection capable of querying catalog metadata; or
-4. run reviewed inventory SQL in the Supabase SQL editor and provide the results.
-
-Required read-only catalogs/settings include:
-
-- `pg_class`, `pg_namespace`, `pg_attribute`, and `pg_constraint`;
-- `pg_policy` and `pg_policies`;
-- `information_schema.role_table_grants`, routine grants, and sequence grants;
-- `pg_proc`, function owners, ACLs, security mode, and configuration;
-- `pg_trigger`;
-- view definitions and security mode;
-- `storage.buckets` and Storage policies;
-- `supabase_migrations.schema_migrations`;
-- deployed Edge Functions;
-- Data API schemas/default privileges;
-- Auth configuration; and
-- security/performance advisors.
-
-## Next safe actions
-
-1. Obtain project-level read-only access and complete TH-001.
-2. Run `database/audits/phase_0_inventory.sql` through an authorized catalog connection and review the results before sharing them.
-3. Review and approve `project_docs/AUTHORIZATION_MATRIX.md`.
-4. Export the live schema and migration ledger before writing corrective SQL.
-5. Establish a local Supabase project and prove clean migration replay.
-6. Create non-production role and access-code fixtures.
-7. Write negative pgTAP tests that reproduce each confirmed or plausible authorization failure.
-8. Only after those tests fail for the expected reason, design the corrective expand-migrate-contract changes.
+Local preparation is complete: the production schema snapshot and synthetic
+legacy fixtures replay cleanly, a blank database resets from version control,
+127 pgTAP assertions pass, database lint is clean, and a real concurrent
+single-use-code test commits one result only.
 
 ## Current Supabase guidance
 

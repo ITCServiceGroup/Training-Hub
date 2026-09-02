@@ -305,14 +305,23 @@ from storage.buckets
 order by id;
 
 -- ---------------------------------------------------------------------------
--- 18. Supabase migration ledger
+-- 18. Supabase migration ledger presence
 -- ---------------------------------------------------------------------------
 
 select
-  version,
-  name
-from supabase_migrations.schema_migrations
-order by version;
+  n.nspname as schema_name,
+  c.relname as table_name,
+  c.relkind as object_kind,
+  pg_get_userbyid(c.relowner) as owner
+from pg_catalog.pg_class as c
+join pg_catalog.pg_namespace as n
+  on n.oid = c.relnamespace
+where n.nspname = 'supabase_migrations'
+  and c.relname = 'schema_migrations';
+
+-- Read the ledger rows separately only after the object above is confirmed to
+-- exist. Older hand-managed projects may not have a Supabase CLI ledger, and a
+-- direct reference would abort the rest of this otherwise read-only inventory.
 
 -- ---------------------------------------------------------------------------
 -- 19. Catalog objects whose names are especially security-sensitive
