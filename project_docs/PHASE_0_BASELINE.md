@@ -243,7 +243,7 @@ The checked-in Storage migration configures `quiz-pdfs` as public with no file-s
 | Anonymous arbitrary code updates                  | **Live confirmed**              | Corrective grants/RLS pass local pgTAP; controlled post-deploy denial remains                       |
 | Anonymous arbitrary result insertion              | **Live confirmed**              | Corrective immutable service boundary passes local runtime and concurrency tests                    |
 | Broad privileged-function execution               | **Live confirmed**              | Final local state exposes exactly four anonymous functions and denies maintenance/service functions |
-| Migration replay failure                          | **Resolved locally**            | Snapshot replay and blank `db reset` both pass all 12 migrations                                    |
+| Migration replay failure                          | **Resolved locally**            | Snapshot replay and blank `db reset` both pass all 13 migrations                                    |
 | Auth/session settings risk                        | **Partially live confirmed**    | Leaked-password protection and MFA options remain dashboard/operator configuration work             |
 
 ## Remaining release prerequisites
@@ -255,13 +255,14 @@ The checked-in Storage migration configures `quiz-pdfs` as public with no file-s
    defaults documented in `PRIVACY_RETENTION_DECISIONS.md`.
 3. Register only the checksum-locked baseline migration as already applied in
    the empty production migration ledger.
-4. Confirm the production dry run lists exactly the 11 forward migrations.
+4. Confirm the production dry run lists exactly the 12 forward migrations.
 5. Apply the backend release, deploy both Edge Functions, and run controlled
    allow/deny smoke checks before publishing the matching Pages artifact.
 
 Local preparation is complete: the production schema snapshot and synthetic
 legacy fixtures replay cleanly, a blank database resets from version control,
-127 pgTAP assertions pass, database lint is clean, and a real concurrent
+167 pgTAP assertions pass, including behavior under authenticated JWT claims;
+database lint is clean, and a real concurrent
 single-use-code test commits one result only.
 
 ## Current Supabase guidance

@@ -2,10 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 
 const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
-const testFile = new URL(
-  "../supabase/tests/authorization_rls.test.sql",
-  import.meta.url,
-);
+const testDirectory = new URL("../supabase/tests/", import.meta.url);
 const migrationFiles = (await readdir(migrationDirectory))
   .filter((name) => name.endsWith(".sql"))
   .sort();
@@ -84,20 +81,29 @@ for (const file of migrationFiles) {
   }
 }
 
-const tests = await readFile(testFile, "utf8");
-const declaredPlan = Number(tests.match(/select\s+plan\((\d+)\)/i)?.[1]);
-const assertionCount = [
-  ...tests.matchAll(
-    /select\s+(?:ok|is|isnt|has_|lives_ok|throws_ok|results_eq|set_eq|bag_eq|matches|unlike|cmp_ok|isa_ok|can_ok|function_returns|col_type|policy_cmd_is)\s*\(/gi,
-  ),
-].length;
+const testFiles = (await readdir(testDirectory))
+  .filter((name) => name.endsWith(".test.sql"))
+  .sort();
+if (!testFiles.length) throw new Error("No Supabase pgTAP tests were found");
 
-if (!declaredPlan || declaredPlan !== assertionCount) {
-  throw new Error(
-    `pgTAP plan mismatch: declared ${declaredPlan || 0}, found ${assertionCount}`,
-  );
+let assertionCount = 0;
+for (const file of testFiles) {
+  const tests = await readFile(new URL(file, testDirectory), "utf8");
+  const declaredPlan = Number(tests.match(/select\s+plan\((\d+)\)/i)?.[1]);
+  const fileAssertionCount = [
+    ...tests.matchAll(
+      /select\s+(?:ok|is|isnt|has_|lives_ok|throws_ok|results_eq|set_eq|bag_eq|matches|unlike|cmp_ok|isa_ok|can_ok|function_returns|col_type|policy_cmd_is)\s*\(/gi,
+    ),
+  ].length;
+
+  if (!declaredPlan || declaredPlan !== fileAssertionCount) {
+    throw new Error(
+      `${file}: pgTAP plan mismatch: declared ${declaredPlan || 0}, found ${fileAssertionCount}`,
+    );
+  }
+  assertionCount += fileAssertionCount;
 }
 
 console.log(
-  `Validated ${migrationFiles.length} migrations, ${privilegedFunctionCount} privileged functions, and ${assertionCount} pgTAP assertions.`,
+  `Validated ${migrationFiles.length} migrations, ${privilegedFunctionCount} privileged functions, and ${assertionCount} pgTAP assertions across ${testFiles.length} files.`,
 );

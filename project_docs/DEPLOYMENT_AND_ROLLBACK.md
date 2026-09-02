@@ -34,7 +34,7 @@ npx supabase migration repair 20260902000000 --status applied --linked
 npx supabase migration list --linked
 ```
 
-The expected chain contains the baseline plus 11 forward migrations and ends with `20260902210443_fix_database_lint_errors.sql`. `20260902192134_remediate_security_review_findings.sql` intentionally validates existing score evidence before adding the range constraint and removes legacy plaintext codes. Any validation or prerequisite failure is a stop condition that requires data reconciliation, not a bypass.
+The expected chain contains the baseline plus 12 forward migrations and ends with `20260902211800_allow_rls_policy_helpers.sql`. `20260902192134_remediate_security_review_findings.sql` intentionally validates existing score evidence before adding the range constraint and removes legacy plaintext codes. Any validation or prerequisite failure is a stop condition that requires data reconciliation, not a bypass.
 
 ### 3. Verify outside production
 
@@ -63,7 +63,7 @@ Apply the forward migrations to the local production snapshot and verify:
 - the old admin user-creation RPC cannot execute from a browser role.
 - password recovery returns to the GitHub Pages project base and access codes do not remain in browser URLs.
 
-Verified on 2026-09-02: snapshot-plus-fixture replay, blank `db reset`, 127 pgTAP assertions, clean public/private lint, 56 unit/contract tests, production build and budgets, 9 desktop/mobile/axe checks, one intentional skip, and a real two-session single-code concurrency test.
+Verified on 2026-09-02: snapshot-plus-fixture replay, blank `db reset`, 167 pgTAP assertions across two files, clean public/private lint, 56 unit/contract tests, production build and budgets, 9 desktop/mobile/axe checks, one intentional skip, and a real two-session single-code concurrency test.
 
 ### 4. Apply production backend changes
 
@@ -74,7 +74,7 @@ npx supabase db push --dry-run
 npx supabase db push
 ```
 
-Review the dry-run list before applying. It must list exactly the 11 forward migrations and must not list the baseline. Immediately compare the migration ledger and run read-only integrity checks after the push.
+Review the dry-run list before applying. It must list exactly the 12 forward migrations and must not list the baseline. Immediately compare the migration ledger and run read-only integrity checks after the push.
 
 Deploy both Edge Functions:
 

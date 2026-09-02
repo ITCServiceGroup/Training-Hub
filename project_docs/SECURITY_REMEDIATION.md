@@ -33,10 +33,10 @@ This record does not claim production closure. Clean database replay, pgTAP exec
 
 ## Local verification evidence
 
-- One checksum-locked production baseline and 11 forward migrations replay from a blank PostgreSQL 15 database.
-- Static contracts validate 59 privileged functions and 127 pgTAP assertions.
+- One checksum-locked production baseline and 12 forward migrations replay from a blank PostgreSQL 15 database.
+- Static contracts validate 59 privileged functions and 167 pgTAP assertions across two test files.
 - Database lint reports no errors or warnings in the final `public` and `private` schemas.
-- The pgTAP suite executes the learner-safe load, authoritative grading, atomic hash-only code consumption, result creation, and idempotent replay path with synthetic data.
+- The pgTAP suite executes the learner-safe load, authoritative grading, atomic hash-only code consumption, result creation, idempotent replay, and real-claim role/market/hierarchy authorization paths with synthetic data.
 - A separate two-session concurrency check accepted exactly one attempt against a single-use synthetic code and committed exactly one result.
 - Both Edge Function entrypoints parse as TypeScript.
 - Fifty-six unit/contract tests pass; scoped coverage is 97.18% for statements and lines.
@@ -46,6 +46,6 @@ This record does not claim production closure. Clean database replay, pgTAP exec
 
 ## Required closure evidence
 
-Follow `DEPLOYMENT_AND_ROLLBACK.md`. Do not publish the frontend until the schema-only baseline is registered in the existing production ledger, the dry run lists only the 11 forward migrations, the protected recovery point is approved, the matching migrations and Edge Functions are deployed, cross-role negative testing passes, and production integrity checks are recorded.
+Follow `DEPLOYMENT_AND_ROLLBACK.md`. Do not publish the frontend until the schema-only baseline is registered in the existing production ledger, the dry run lists only the 12 forward migrations, the protected recovery point is approved, the matching migrations and Edge Functions are deployed, cross-role negative testing passes, and production integrity checks are recorded.
 
 After the generated full-repository scan, a direct review covered the additional validation-rate-limit, aggregate-analytics, content-republish, template-loading, telemetry, and build-output changes. That review fixed a historical-code limiter bypass, added per-guide publication serialization, and constrained telemetry fields. The desktop diff-scan workbench returned no scan ID because its working-tree selection was stale after `HEAD` changed; no replacement scan was created, and the earlier full scan remains the canonical generated report.
