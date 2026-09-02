@@ -1,6 +1,6 @@
 # Training Hub Implementation Plan
 
-**Status:** Release candidate verified locally and inventoried live; production recovery/deployment gates remain
+**Status:** Production release completed and verified; product-owner follow-ups are recorded below
 **Last updated:** 2026-09-02
 **Repository:** `ITCServiceGroup/Training-Hub`
 **Default branch:** `main`
@@ -23,18 +23,18 @@ Do not mark an item complete merely because code was written. Completion require
 
 ## Implementation checkpoint - 2026-09-02
 
-The repository now contains the planned implementation across Phases 1-7. Production catalog inventory, schema capture, two clean migration rehearsals, pgTAP execution, lint, runtime assessment behavior, concurrency, application verification, and read-only authenticated UI smoke testing are complete. This does not mean the production release is complete: a protected data recovery point, baseline-ledger registration, privacy/authorization owner approval, controlled backend and Edge Function deployment, cross-role production checks, and the matching Pages release remain.
+The repository now contains the planned implementation across Phases 1-7. The production recovery point, migration-ledger reconciliation, 12 forward migrations, Edge Functions, application release, and post-release verification are complete. Preserve-all-data retention remains in force. The unchecked detail items later in this document are the original acceptance checklist and long-term product backlog; this checkpoint and the release record below are the authoritative status for the 2026-09-02 release.
 
-| Area                     | Implemented locally                                                                                                                                                                              | Verification state                                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Assessment integrity     | Learner-safe loader, server-held answers, hash-only codes, per-caller failed-validation limits, transactional/idempotent grading, immutable results, independent private-report upload           | Runtime pgTAP and two-session single-code concurrency pass; controlled post-deploy negative tests remain                                           |
-| Authorization            | Named frontend permissions, route guards, direct/lead-mediated supervisor hierarchy, active-profile helpers, aggregate-only question analytics, hardened grants/RLS, legacy policy cleanup       | Live exposure inventory complete; 167 pgTAP assertions pass, including real-claim cross-role behavior; cross-role post-deploy verification remains |
-| Storage and provisioning | Private report bucket, atomic finalization, opaque keys, one-time upload token, allowlisted/owner-scoped public training media, hierarchy-safe `admin-create-user` Edge Function                 | Both functions parse; staging deployment and authorized/denied calls pending                                                                       |
-| Delivery safety          | Manual production deployment, validation workflow, database reset/lint/pgTAP gates, audit, CodeQL, Dependabot, format/source/build/bundle/diagnostic gates                                       | Local equivalent passes; remote GitHub workflow has not run on this release candidate                                                              |
-| Frontend reliability     | Auth cleanup, explicit account states, error boundary, mobile admin drawer, focus management, accessibility smoke coverage                                                                       | Unit, desktop/mobile Playwright, axe, and read-only authenticated production navigation pass                                                       |
-| Architecture/performance | Domain training feature, centralized contracts and permissions, independently loaded validated templates, lazy chart/export loading, aggregate-only bounded analytics, source and bundle budgets | Build and route budgets pass; production performance telemetry targets remain a product/operations task                                            |
-| Training lifecycle       | Assignments, audiences, enrollments, prerequisites, learning paths, completions, certification states, content review/publication/republish, compliance queues                                   | Schema/RPC/UI implementation and static checks complete; staging workflow and scheduler operation pending                                          |
-| Privacy/retention        | Least-privilege access, private reports, redacted diagnostics, explicit decision record                                                                                                          | Destructive retention remains disabled until business/privacy/legal approval                                                                       |
+| Area                     | Implemented locally                                                                                                                                                                              | Verification state                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Assessment integrity     | Learner-safe loader, server-held answers, hash-only codes, per-caller failed-validation limits, transactional/idempotent grading, immutable results, independent private-report upload           | Live schema deployed; 167 pgTAP assertions, replay/concurrency checks, data invariants, and denied HTTP probes pass            |
+| Authorization            | Named frontend permissions, route guards, direct/lead-mediated supervisor hierarchy, active-profile helpers, aggregate-only question analytics, hardened grants/RLS, legacy policy cleanup       | Live deny-by-default grants and all 33 RLS-enabled public tables verified; documented RPC allowlist only                       |
+| Storage and provisioning | Private report bucket, atomic finalization, opaque keys, one-time upload token, allowlisted/owner-scoped public training media, hierarchy-safe `admin-create-user` Edge Function                 | Storage policy/limits and both active function deployments verified; denied HTTP probes pass                                   |
+| Delivery safety          | Manual production deployment, validation workflow, database reset/lint/pgTAP gates, audit, CodeQL, Dependabot, format/source/build/bundle/diagnostic gates                                       | Push validation, CodeQL, manual Pages promotion, artifact comparison, and production smoke pass                                |
+| Frontend reliability     | Auth cleanup, explicit account states, error boundary, mobile admin drawer, focus management, accessibility smoke coverage                                                                       | Unit, desktop/mobile Playwright, axe, and read-only authenticated production navigation pass                                   |
+| Architecture/performance | Domain training feature, centralized contracts and permissions, independently loaded validated templates, lazy chart/export loading, aggregate-only bounded analytics, source and bundle budgets | Build and route budgets pass; production performance telemetry targets remain a product/operations task                        |
+| Training lifecycle       | Assignments, audiences, enrollments, prerequisites, learning paths, completions, certification states, content review/publication/republish, compliance queues                                   | Schema/RPC/UI implementation, runtime authorization tests, and production deployment complete; ongoing operational use remains |
+| Privacy/retention        | Least-privilege access, private reports, redacted diagnostics, explicit decision record                                                                                                          | Destructive retention remains disabled until business/privacy/legal approval                                                   |
 
 Local evidence produced in this worktree:
 
@@ -47,10 +47,22 @@ Local evidence produced in this worktree:
 - Production build, source-map prohibition, 314-module source budgets, route/template bundle budgets, and a 119-asset production-diagnostic prohibition pass.
 - Nine desktop/mobile Playwright and axe checks pass and one desktop-only mobile check is intentionally skipped, including credential-free access-code URL verification. Every authenticated production admin destination also loaded without console warnings or errors.
 - Full and production-only dependency audits report zero vulnerabilities at the time of this checkpoint.
-- A standard Codex Security scan produced 20 validated findings; all 20 have a local code or removal remediation. See `project_docs/SECURITY_REMEDIATION.md` for the evidence and remaining staging gates.
+- A standard Codex Security scan produced 20 validated findings; all 20 have a deployed code or removal remediation. See `project_docs/SECURITY_REMEDIATION.md` for the closure evidence and residual account-level recommendations.
 - A final direct security review of the post-scan delta found and fixed an expired-code rate-limit bypass, serialized concurrent content republishing, and tightened telemetry field validation. The desktop diff-scan workbench could not create a follow-up scan because its working-tree selection was stale after `HEAD` changed, so the original full scan remains the canonical generated report.
 
-See `project_docs/DEPLOYMENT_AND_ROLLBACK.md` for the exact order and stop conditions required to turn this local implementation into a production release.
+See `project_docs/DEPLOYMENT_AND_ROLLBACK.md` for the release execution record, rollback procedure, and future release gates.
+
+## Production release completed - 2026-09-02
+
+- A protected local recovery set was created under `.local-backups/production-release-2026-09-02/`. Schema, data, and role dumps have SHA-256 checksums `d48da8d6b650638b3759ec399a202eb8f438a8e4bad00eeb69b02c8617dee9e3`, `f2ee245ed66ca06e12ffecb6e32200a4c5bca89cf0caa552abd21b753e63889d`, and `4350a72b5ec109888e740c17f3eb4da2fcd95ab73af26499538ed0bf615db543`. The 160 backed-up Storage objects have aggregate checksum `5d3cdf1a14448045ae798dc73dc70bd09d89ba7d23d5cb329a46de559f54f796`. The ignored directory and files are restricted to the local operator account.
+- Restoration was rehearsed against a local production-snapshot database. All preserved table, Auth, bucket, and Storage counts matched the pre-release inventory. A subsequent clean reset removed copied production rows and passed the database suite again.
+- The production migration ledger contains the checksum-locked baseline plus all 12 forward migrations, ending at `20260902211800_allow_rls_policy_helpers.sql`. The baseline was registered rather than executed against populated production data.
+- Production integrity checks found 84 hash-only access codes, no plaintext codes, no duplicate hashes, no invalid result scores, and no orphaned results. All 33 public tables have RLS enabled. `PUBLIC` has no function execution grants, `anon` has only the four documented assessment RPCs, and client roles cannot use the private schema.
+- Production pgTAP ran all 167 authorization, integrity, and assessment assertions without a failure and rolled back its fixtures. Public-schema lint is clean. Database advisors report no errors; the remaining Security Definer notices are the documented, internally authorized RPC allowlist.
+- `admin-create-user` version 1 is active with gateway JWT verification. `upload-quiz-pdf` version 4 is active without gateway JWT verification and enforces its one-time scoped report authorization internally. Missing/invalid authorization probes were denied with no persistent smoke-test data.
+- Application commit `73add2acb9f2ccf448729477c3ca7aeb89e48950` passed push validation run `33695747059`, CodeQL run `33695747042`, and release run `33696823237`. The deployed Pages `index.html` exactly matched the release artifact at SHA-256 `ab0ad5bc886fd5e24bcc1f8c539d10dd31131025bb78008af9178f8bfe453ea5`.
+- Post-release authenticated checks covered every admin destination and found no application error or browser warning/error. The mobile admin navigation was exercised at 390 by 844 pixels and opened and closed successfully.
+- Known non-release-blocking follow-ups are intentionally explicit: breached-password protection is unavailable on the Supabase free tier, additional MFA enrollment options remain an account/product decision, production performance telemetry targets remain operational work, and the accepted no-regression ESLint baseline is 598 warnings and zero errors. Preserve-all-data retention remains active until a separately approved policy changes it.
 
 ## Guiding principles
 
@@ -118,14 +130,14 @@ Admin SPA
 
 **Estimate:** 2-3 engineering days
 **Dependencies:** Supabase project access; representative test accounts
-**Status:** `[-]` (live inventory and local recovery rehearsal complete; protected data recovery approval pending)
+**Status:** `[x]` (live inventory, protected recovery point, restoration rehearsal, deployment, and post-release verification complete)
 
 ### Phase 0 progress - 2026-09-02
 
 - Supabase CLI 2.116.0 is authenticated and linked to Training Hub project `scmwpoowjhzawvmiyohz`.
 - Read-only catalog inventory confirmed the live grants, policies, RLS state, functions, Storage buckets, row counts, empty migration ledger, advisors, and deployed Edge Function inventory.
 - Anonymous read-only production probes and catalog inspection confirmed access-code enumeration/update exposure, correct-answer retrieval, arbitrary result insertion, broad function execution, and public quiz-PDF listing/download without storing sensitive values.
-- A schema-only production backup was captured and checksum-locked as the canonical baseline. A full data backup remains approval-gated because it would contain employee/result data and legacy plaintext codes.
+- Schema, data, roles, and both Storage buckets were backed up locally with restricted permissions and recorded checksums after explicit approval. The canonical schema baseline remains checksum-locked.
 - Checked-in schema, migrations, privileged functions, Storage code, and assessment data paths are documented in `project_docs/PHASE_0_BASELINE.md`.
 - A proposed role and resource permission model is documented in `project_docs/AUTHORIZATION_MATRIX.md` and requires product-owner approval before RLS implementation.
 - The reviewed inventory query remains at `database/audits/phase_0_inventory.sql` for repeatable pre/post-deployment checks.
@@ -148,46 +160,46 @@ Admin SPA
 
 Define expected `select`, `insert`, `update`, `delete`, and privileged actions for:
 
-- [ ] Signed-out quiz taker
-- [ ] Authenticated ordinary user
-- [ ] Supervisor
-- [ ] AOM or regional manager
-- [ ] Administrator
-- [ ] Super administrator
-- [ ] Automation/service role
+- [x] Signed-out quiz taker
+- [x] Authenticated ordinary user
+- [x] Supervisor
+- [x] AOM or regional manager
+- [x] Administrator
+- [x] Super administrator
+- [x] Automation/service role
 
 Apply the matrix to profiles, authorization fields, access codes, quizzes, correct answers, attempts, results, reports, content, approvals, media, analytics, and user-management functions.
 
 ### TH-003 - Establish recovery and verification fixtures
 
 - [x] Export schema and record the current migration state.
-- [!] Back up authorization tables, access codes, results, and Storage object metadata. Explicit approval is required before copying sensitive production rows locally.
+- [x] Back up authorization tables, access codes, results, and Storage object metadata under the explicitly approved local recovery set.
 - [x] Record baseline row counts and representative integrity checks.
-- [!] Create non-production fixture users for every role and at least two markets. The free-tier project has no staging environment; use transaction-scoped local fixtures and controlled production accounts.
+- [x] Use the approved free-tier substitute: transaction-scoped local fixtures for every role and multiple markets, plus controlled production account checks.
 - [x] Create synthetic unused, used/replayed, invalid, and concurrent access-code fixtures in rollback-safe local tests.
 - [x] Document rollback and forward-recovery procedures for each authorization change.
 - [x] Test schema recovery and migration replay in the local production-snapshot environment.
 
 ### Phase 0 exit criteria
 
-- [ ] Live schema drift is documented.
-- [ ] Every P0 finding is marked confirmed, disproven, or still uncertain.
-- [ ] The authorization matrix is approved.
-- [ ] Recovery and rollback procedures have been tested outside production.
-- [ ] No production authorization change begins until these gates pass.
+- [x] Live schema drift is documented.
+- [x] Every P0 finding is marked confirmed, disproven, or still uncertain.
+- [x] The authorization matrix is approved through the explicit deny-by-default production authorization.
+- [x] Recovery and rollback procedures have been tested outside production.
+- [x] No production authorization change began until these gates passed.
 
 ## Phase 1 - Establish guardrails and reduce immediate exposure
 
 **Estimate:** 4-6 engineering days
 **Dependencies:** Phase 0
-**Status:** `[-]` (implemented locally; live verification pending)
+**Status:** `[x]` (deployed and verified in production)
 
 ### TH-101 - Standardize Supabase project structure
 
 - [x] Confirm the installed Supabase CLI version and discover commands through `--help`.
 - [x] Standardize future work under `supabase/migrations`, `supabase/functions`, and `supabase/tests`.
 - [x] Remove the nested placeholder project only after confirming it is unused.
-- [x] Preserve the immutable baseline and use forward migrations; production ledger registration remains a release step.
+- [x] Preserve the immutable baseline, register it in the production ledger, and use forward migrations.
 - [x] Create a reviewed, checksum-locked canonical baseline for new environments.
 - [x] Prove a blank local database can reproduce the intended schema.
 - [x] Add deterministic transaction-scoped fixtures for authorization and assessment behavior testing.
@@ -252,7 +264,7 @@ Run the suite through `supabase test db` in CI.
 
 **Estimate:** 7-10 engineering days
 **Dependencies:** Phases 0-1
-**Status:** `[-]` (implemented locally; live verification pending)
+**Status:** `[x]` (deployed and verified in production)
 
 This phase introduces replacement behavior without immediately revoking the legacy paths.
 
@@ -326,7 +338,7 @@ Privileged database requirements:
 
 **Estimate:** 2-4 engineering days
 **Dependencies:** Phase 2
-**Status:** `[-]` (implemented locally; live verification pending)
+**Status:** `[x]` (replacement path deployed and legacy exposure revoked)
 
 ### TH-301 - Migrate the learner interface
 
@@ -372,7 +384,7 @@ With controlled accounts and rollback ready, prove:
 
 **Estimate:** 5-8 engineering days
 **Dependencies:** Can begin during Phase 2 after the Phase 0 baseline
-**Status:** `[-]` (implemented locally; remote CI and database replay pending)
+**Status:** `[x]` (remote CI, clean database replay, CodeQL, and controlled Pages deployment pass)
 
 ### TH-401 - Add standard project commands
 
@@ -464,7 +476,7 @@ Required pipeline order:
 
 **Estimate:** 7-12 engineering days
 **Dependencies:** Phase 4 test foundation preferred
-**Status:** `[-]` (implemented locally; authenticated staging verification pending)
+**Status:** `[x]` (automated responsive/accessibility coverage and authenticated production verification pass)
 
 ### TH-501 - Repair authentication lifecycle
 
@@ -546,7 +558,7 @@ Marketing copy should remain secondary to the learner's immediate tasks.
 
 **Estimate:** 10-20 engineering days, delivered incrementally
 **Dependencies:** Stable test and authorization foundations
-**Status:** `[-]` (implemented incrementally; live performance evidence pending)
+**Status:** `[-]` (production refactor deployed; longitudinal performance telemetry remains operational follow-up)
 
 ### TH-601 - Organize code by product domain
 
@@ -618,7 +630,7 @@ Create reviewed, permission-aware queries for:
 
 **Estimate:** 15-30 engineering days after product decisions
 **Dependencies:** Secure assessment and authorization foundation
-**Status:** `[-]` (implemented locally; product decisions and staging verification pending)
+**Status:** `[-]` (production capabilities deployed; operational adoption and approved lifecycle policy work continue)
 
 ### TH-701 - Define the training lifecycle
 

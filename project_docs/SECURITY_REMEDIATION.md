@@ -2,9 +2,9 @@
 
 ## Scope and status
 
-A standard repository security scan was completed on 2026-09-02 against the pre-remediation worktree. It validated 20 findings: six high, ten medium, and four low. Every finding has a local remediation in this worktree. Local static, unit, build, dependency, browser, mobile, and accessibility checks pass.
+A standard repository security scan was completed on 2026-09-02 against the pre-remediation worktree. It validated 20 findings: six high, ten medium, and four low. Every finding has a deployed code or removal remediation. Static, unit, database, build, dependency, browser, mobile, accessibility, and live release checks pass.
 
-This record does not claim production closure. Clean database replay, pgTAP execution, lint, synthetic assessment behavior, two-session code-consumption concurrency, and a read-only authenticated production UI smoke pass are complete. The sensitive-data recovery point, production migration-ledger registration, Edge Function deployment, controlled backend/frontend release, cross-role production verification, and post-release checks remain.
+Production closure was completed on 2026-09-02 using the deny-by-default authorization model and preserve-all-data retention default. The protected recovery point, restoration rehearsal, migration-ledger registration, 12 forward migrations, both Edge Functions, controlled Pages release, and post-release checks all completed without a stop condition.
 
 ## Remediation map
 
@@ -44,8 +44,15 @@ This record does not claim production closure. Clean database replay, pgTAP exec
 - Nine browser/mobile/accessibility checks pass and one non-applicable desktop case is skipped. Authenticated production navigation across all admin destinations also completed without browser console warnings or errors.
 - Full and production-only npm audits report zero vulnerabilities.
 
-## Required closure evidence
+## Production closure evidence
 
-Follow `DEPLOYMENT_AND_ROLLBACK.md`. Do not publish the frontend until the schema-only baseline is registered in the existing production ledger, the dry run lists only the 12 forward migrations, the protected recovery point is approved, the matching migrations and Edge Functions are deployed, cross-role negative testing passes, and production integrity checks are recorded.
+- The local recovery set contains restricted schema, data, roles, and Storage backups with checksums recorded in `IMPLEMENTATION_PLAN.md`; restoration against the production snapshot succeeded.
+- The production ledger contains the baseline plus all 12 forward migrations. Pre/post counts were preserved, codes are hash-only, result integrity checks are clean, and all 33 public tables have RLS enabled.
+- The live pgTAP suite passed all 167 assertions and rolled back its fixtures. Public-schema lint is clean, `PUBLIC` has no function execution grants, and `anon` retains only the four documented assessment RPCs.
+- `admin-create-user` version 1 and `upload-quiz-pdf` version 4 are active with their documented gateway settings. Missing/invalid authorization probes were rejected.
+- GitHub validation run `33695747059`, CodeQL run `33695747042`, and Pages release run `33696823237` succeeded for application commit `73add2acb9f2ccf448729477c3ca7aeb89e48950`.
+- The live Pages entry document exactly matched the workflow artifact at SHA-256 `ab0ad5bc886fd5e24bcc1f8c539d10dd31131025bb78008af9178f8bfe453ea5`. All authenticated admin destinations loaded without application or console errors, and the mobile admin drawer passed a 390-pixel interaction check.
+
+Residual account-level recommendations are not concealed: breached-password protection is unavailable on the current Supabase free tier, additional MFA enrollment remains a product/account decision, and 598 legacy ESLint warnings remain behind a zero-regression budget. These do not reopen the 20 remediated repository findings.
 
 After the generated full-repository scan, a direct review covered the additional validation-rate-limit, aggregate-analytics, content-republish, template-loading, telemetry, and build-output changes. That review fixed a historical-code limiter bypass, added per-guide publication serialization, and constrained telemetry fields. The desktop diff-scan workbench returned no scan ID because its working-tree selection was stale after `HEAD` changed; no replacement scan was created, and the earlier full scan remains the canonical generated report.

@@ -6,6 +6,18 @@ The static GitHub Pages application and the Supabase backend are one release uni
 
 Production operations require an authenticated operator with access to the Training Hub Supabase project and the GitHub `github-pages` environment. Do not put credentials in command history, logs, issues, or committed files.
 
+## Release execution record - 2026-09-02
+
+- Recovery: restricted schema, data, roles, and all 160 Storage objects were backed up under `.local-backups/production-release-2026-09-02/`; checksums are recorded in `IMPLEMENTATION_PLAN.md`. A production-snapshot restoration rehearsal and a subsequent clean reset both passed.
+- Database: the baseline was registered without executing it against populated production data, exactly 12 forward migrations were applied, and all 13 local/remote ledger versions align through `20260902211800`.
+- Preservation: all inventoried application, Auth, bucket, and object counts were preserved. Post-release checks found no plaintext codes, duplicate code hashes, invalid scores, or orphan results.
+- Authorization: all 33 public tables have RLS enabled; `PUBLIC` has no function execution grants; `anon` has the four documented assessment RPCs; client roles cannot use the private schema. All 167 live pgTAP assertions passed and rolled back.
+- Functions: `admin-create-user` version 1 is active with `verify_jwt=true`; `upload-quiz-pdf` version 4 is active with `verify_jwt=false` and its internal scoped-token authorization. Denied HTTP probes behaved as expected.
+- Delivery: application commit `73add2acb9f2ccf448729477c3ca7aeb89e48950` passed validation run `33695747059`, CodeQL run `33695747042`, and Pages run `33696823237`.
+- Artifact: deployed `index.html` matched the Pages artifact byte-for-byte at SHA-256 `ab0ad5bc886fd5e24bcc1f8c539d10dd31131025bb78008af9178f8bfe453ea5`.
+- Smoke: all authenticated admin destinations rendered with no application or browser-console error; the responsive admin drawer opened and closed at 390 by 844 pixels. No persistent disposable smoke-test data remains.
+- Retention: preserve-all-data remains the production default. Breached-password protection is unavailable on the free tier; additional MFA enrollment and production performance telemetry remain explicit product/account follow-ups.
+
 ## Required release order
 
 ### 1. Establish the recovery point
