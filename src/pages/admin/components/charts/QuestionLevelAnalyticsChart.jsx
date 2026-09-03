@@ -157,7 +157,11 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
       const currentData = stableDataRef.previousData;
 
       if (!currentData || currentData.length === 0) {
-        setQuestionState((prev) => ({ ...prev, data: [] }));
+        setQuestionState({
+          data: [],
+          loading: false,
+          hasEverLoaded: true,
+        });
         return;
       }
 
@@ -399,6 +403,42 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
     );
   }
 
+  // Check for a legacy-only response before the notices are removed from chartData.
+  const legacyNotice = questionState.data?.find((item) => item.isLegacyNotice);
+  const hasOnlyLegacyNotice =
+    Boolean(legacyNotice) &&
+    questionState.data.every(
+      (item) => item.isLegacyNotice || item.isExclusionNotice,
+    );
+
+  if (hasOnlyLegacyNotice) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-slate-600 dark:text-slate-300 text-lg font-semibold mb-2">
+            Question Analytics Not Available
+          </div>
+          <div className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+            Question-level analytics require detailed response data, which is
+            not available for legacy quiz results.
+          </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <div className="text-amber-800 dark:text-amber-200 text-sm">
+              <div className="font-medium">Legacy Quiz Types:</div>
+              <div>
+                {legacyNotice.legacyQuizTypes?.join(", ") ||
+                  legacyNotice.quizTitle}
+              </div>
+              <div className="mt-2 text-xs">
+                {legacyNotice.attempts} total quiz attempts
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Don't show "no data" if we haven't loaded anything yet or are still in the process
   if (chartData.length === 0) {
     console.log("📊 QuestionAnalytics: No chart data", {
@@ -425,38 +465,6 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
           {showOnlyProblematic
             ? "No problematic questions found"
             : "No data available"}
-        </div>
-      </div>
-    );
-  }
-
-  // Check if we only have a legacy notice
-  const hasOnlyLegacyNotice =
-    chartData.length === 1 && chartData[0]?.isLegacyNotice;
-
-  if (hasOnlyLegacyNotice) {
-    const notice = chartData[0];
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-slate-600 dark:text-slate-300 text-lg font-semibold mb-2">
-            Question Analytics Not Available
-          </div>
-          <div className="text-slate-500 dark:text-slate-400 text-sm mb-4">
-            Question-level analytics require detailed response data, which is
-            not available for legacy quiz results.
-          </div>
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-            <div className="text-amber-800 dark:text-amber-200 text-sm">
-              <div className="font-medium">Legacy Quiz Types:</div>
-              <div>
-                {notice.legacyQuizTypes?.join(", ") || notice.quizTitle}
-              </div>
-              <div className="mt-2 text-xs">
-                {notice.attempts} total quiz attempts
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );

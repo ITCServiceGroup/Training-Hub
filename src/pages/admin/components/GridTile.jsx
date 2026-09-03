@@ -36,8 +36,9 @@ const GridTile = memo(({
     };
   }, [tileId, tileConfig]);
 
-  // Keep heavyweight visualization libraries out of the dashboard route until
-  // an individual tile is actually visible.
+  // Keep visualization libraries in separate chunks, but load every selected
+  // dashboard chart immediately. The grid itself controls visibility and some
+  // embedded browsers do not provide IntersectionObserver.
   const chartComponent = useMemo(() => {
     const chartId = tileId === 'question-level-analytics' ? 'question-analytics' : tileId;
     return (
@@ -48,7 +49,7 @@ const GridTile = memo(({
           loading: isInitialLoad,
           ...(tileId === 'time-vs-score' ? { globalFilters } : {})
         }}
-        loadImmediately={false}
+        loadImmediately
       />
     );
   }, [tileId, tileData, isInitialLoad, globalFilters]);

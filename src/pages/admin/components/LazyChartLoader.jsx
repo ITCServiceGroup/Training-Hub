@@ -194,41 +194,48 @@ class ChartErrorBoundary extends React.Component {
   }
 }
 
-// Intersection Observer hook for visibility detection
-const useIntersectionObserver = (options = {}) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+// Intersection Observer hook for visibility detection. Some embedded browsers and
+// test environments do not expose IntersectionObserver, so visibility must fail
+// open instead of leaving the dashboard in its loading state forever.
+const useIntersectionObserver = ({ threshold = 0.1, rootMargin = '50px' } = {}) => {
+  const observerSupported =
+    typeof window !== 'undefined' && typeof window.IntersectionObserver === 'function';
+  const [hasBeenVisible, setHasBeenVisible] = useState(!observerSupported);
   const elementRef = useRef(null);
 
   useEffect(() => {
-    const element = elementRef.current;
-    if (!element) return;
+    if (hasBeenVisible) return undefined;
 
-    const observer = new IntersectionObserver(
+    if (typeof window.IntersectionObserver !== 'function') {
+      setHasBeenVisible(true);
+      return undefined;
+    }
+
+    const element = elementRef.current;
+    if (!element) return undefined;
+
+    const observer = new window.IntersectionObserver(
       ([entry]) => {
-        const visible = entry.isIntersecting;
-        setIsVisible(visible);
-        
         // Once visible, keep it loaded (don't unload when scrolled away)
-        if (visible && !hasBeenVisible) {
+        if (entry.isIntersecting) {
           setHasBeenVisible(true);
+          observer.disconnect();
         }
       },
       {
-        threshold: 0.1, // Load when 10% visible
-        rootMargin: '50px', // Start loading 50px before entering viewport
-        ...options
+        threshold,
+        rootMargin
       }
     );
 
     observer.observe(element);
 
     return () => {
-      observer.unobserve(element);
+      observer.disconnect();
     };
-  }, [hasBeenVisible, options]);
+  }, [hasBeenVisible, rootMargin, threshold]);
 
-  return [elementRef, isVisible || hasBeenVisible];
+  return [elementRef, hasBeenVisible];
 };
 
 // Main lazy chart loader component
@@ -255,10 +262,13 @@ const LazyChartLoader = ({
     );
   }
 
-  console.log('📊 Rendering chart:', chartId, 'shouldLoad:', shouldLoadChart);
-
   return (
-    <div ref={containerRef} style={{ minHeight: `${height}px` }}>
+    <div
+      ref={containerRef}
+      className="h-full min-h-0 w-full"
+      data-chart-loader={chartId}
+      style={{ minHeight: `${height}px` }}
+    >
       {shouldLoadChart ? (
         <Suspense fallback={<ChartSkeleton height={height} />}>
           <ChartErrorBoundary chartId={chartId}>

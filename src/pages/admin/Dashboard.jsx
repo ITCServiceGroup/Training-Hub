@@ -387,6 +387,10 @@ import ExportModal from './components/ExportModal';
 import MultiSelect from './components/Filters/MultiSelect';
 import SingleSelect from './components/Filters/SingleSelect';
 import { DEFAULT_DASHBOARD_TILES } from './config/availableTiles';
+import {
+  appendTileToDashboard,
+  tileConfigsToGridLayout
+} from './utils/dashboardLayout';
 import { DashboardProvider } from './contexts/DashboardContext';
 import DrillDownBreadcrumbs from './components/DrillDownBreadcrumbs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -397,7 +401,6 @@ import DataQualityDiagnostics from './components/DataQualityDiagnostics';
 
 import ResizableGridLayout from './components/ResizableGridLayout';
 import './components/styles/dashboard-grid.css';
-import './components/styles/resizable-grid.css';
 import './components/styles/resizable-grid.css';
 // GridTile component moved outside Dashboard to prevent recreation on every render
 import { GridTileWithDrillDown } from './components/GridTile';
@@ -503,41 +506,7 @@ const Dashboard = () => {
 
   // Convert tile configurations to grid layout format
   const convertTileConfigsToGridLayout = useCallback((tileConfigs) => {
-    if (!Array.isArray(tileConfigs)) return [];
-
-    return tileConfigs.map((tileConfig) => {
-      // Handle both old format (string IDs) and new format (tile configuration objects)
-      if (typeof tileConfig === 'string') {
-        // Legacy format - convert to default 1x1 tile
-        const index = tileConfigs.indexOf(tileConfig);
-        const row = Math.floor(index / 3);
-        const col = index % 3;
-        return {
-          i: tileConfig,
-          x: col,
-          y: row,
-          w: 1, // Default width: 1 column
-          h: 1, // Default height: 1 row
-          minW: 1,
-          maxW: 3,
-          minH: 1,
-          maxH: 2,
-        };
-      } else {
-        // New format - use tile configuration data
-        return {
-          i: tileConfig.id,
-          x: tileConfig.position?.x || 0,
-          y: tileConfig.position?.y || 0,
-          w: tileConfig.size?.w || 1,
-          h: tileConfig.size?.h || 1,
-          minW: 1,
-          maxW: 3,
-          minH: 1,
-          maxH: 2,
-        };
-      }
-    });
+    return tileConfigsToGridLayout(tileConfigs);
   }, []);
 
   // Convert grid layout back to tile configurations
@@ -1082,25 +1051,18 @@ const Dashboard = () => {
         {/* Compact Dashboard Header */}
         <div className="bg-slate-100 dark:bg-slate-700 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-600 p-4">
           {/* Title Row */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
               Analytics Dashboard
             </h1>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Global Filters:</span>
-              <div className="w-40"></div>
-              <div className="w-40"></div>
-              <div className="w-40"></div>
-              <div className="w-40"></div>
-              <div className="w-20"></div>
-              <div className="w-10"></div>
-              <div></div>
-            </div>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Global Filters
+            </span>
           </div>
           
-          <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex flex-col gap-4 mb-2 2xl:flex-row 2xl:items-end 2xl:justify-between">
             {/* Left Side - Controls */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Dashboard Manager Dropdown */}
               <DashboardManagerDropdown
                 dashboards={dashboards}
@@ -1118,18 +1080,8 @@ const Dashboard = () => {
               <TileLibraryButton
                 currentTiles={getCurrentTiles().map(tile => tile.id)}
                 onAddTile={(tileId) => {
-                  // Add tile to current dashboard
                   const currentTiles = getCurrentTiles();
-                  const newTile = {
-                    id: tileId,
-                    position: { x: 0, y: 0 }, // Will be auto-positioned
-                    size: { w: 1, h: 1 },
-                    priority: currentTiles.length + 1,
-                    isVisible: true,
-                    config: {},
-                    customSettings: {}
-                  };
-                  updateTiles([...currentTiles, newTile]);
+                  updateTiles(appendTileToDashboard(currentTiles, tileId));
                 }}
                 onRemoveTile={(tileId) => {
                   // Remove tile from current dashboard
@@ -1181,9 +1133,9 @@ const Dashboard = () => {
             </div>
 
             {/* Right Side - Global Filters */}
-            <div className="flex items-center gap-3 flex-1 justify-end" style={{overflow: 'visible'}}>
+            <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:max-w-[72rem] 2xl:flex-1 2xl:grid-cols-[repeat(5,minmax(8rem,1fr))_auto]">
               {/* Time Period Filter */}
-              <div className="w-40 relative">
+              <div className="relative min-w-0">
                 <SingleSelect
                   value={timePeriodDropdownValue}
                   onDropdownToggle={setTimePeriodDropdownOpen}
@@ -1375,7 +1327,7 @@ const Dashboard = () => {
 
 
               {/* Market Filter */}
-              <div className="w-40">
+              <div className="min-w-0">
                 <MultiSelect
                   type="markets"
                   value={globalFilters.markets || []}
@@ -1390,7 +1342,7 @@ const Dashboard = () => {
               </div>
 
               {/* Supervisor Filter */}
-              <div className="w-40">
+              <div className="min-w-0">
                 <MultiSelect
                   type="supervisors"
                   value={globalFilters.supervisors || []}
@@ -1405,7 +1357,7 @@ const Dashboard = () => {
               </div>
 
               {/* LDAP Filter */}
-              <div className="w-40">
+              <div className="min-w-0">
                 <MultiSelect
                   type="ldaps"
                   value={globalFilters.ldaps || []}
@@ -1420,7 +1372,7 @@ const Dashboard = () => {
               </div>
 
               {/* Quiz Type Filter */}
-              <div className="w-40">
+              <div className="min-w-0">
                 <MultiSelect
                   type="quizTypes"
                   value={globalFilters.quizTypes || []}
@@ -1435,7 +1387,7 @@ const Dashboard = () => {
               </div>
 
               {/* Reset Button */}
-              <div>
+              <div className="flex sm:col-span-2 lg:col-span-1 2xl:col-span-1">
                 <button
                   onClick={() => {
                     console.log('🔄 Resetting filters');
@@ -1468,7 +1420,7 @@ const Dashboard = () => {
                       return newFilters;
                     });
                   }}
-                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white"
+                  className="flex w-full items-center justify-center gap-1 px-3 py-2 text-sm rounded-md transition-colors shadow-sm border border-slate-300 dark:border-slate-600 text-white 2xl:w-auto"
                   style={{
                     backgroundColor: 'var(--primary-color)',
                     '--tw-shadow': '0 1px 2px 0 rgb(0 0 0 / 0.05)'
