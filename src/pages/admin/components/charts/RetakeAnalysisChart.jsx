@@ -268,9 +268,8 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
     <div className="h-full w-full relative">
       {/* Legend - Horizontal layout at top */}
       <div className="absolute top-2 left-2 right-2 z-10 p-1">
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="font-medium text-slate-700 dark:text-slate-300">Retake Flow:</span>
-          <span className="text-slate-600 dark:text-slate-400">Flow shows attempt → outcome patterns</span>
           <span className="text-slate-600 dark:text-slate-400">Width = number of users</span>
           <span className="text-slate-600 dark:text-slate-400">Green = passed, Red = failed</span>
         </div>
@@ -278,7 +277,7 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
 
       <ResponsiveSankey
         data={sankeyData}
-        margin={{ top: 50, right: 180, bottom: 50, left: 120 }}
+        margin={{ top: 56, right: 120, bottom: 36, left: 104 }}
         align="justify"
         colors={{ datum: 'color' }}
         nodeOpacity={1}
@@ -301,7 +300,7 @@ const RetakeAnalysisChart = ({ data = [], loading = false }) => {
         linkBlendMode={isDark ? 'screen' : 'normal'}
         labelPosition="outside"
         labelOrientation="horizontal"
-        labelPadding={20}
+        labelPadding={8}
         labelTextColor={{
           from: 'color',
           modifiers: isDark ? [['brighter', 5]] : [['darker', 1]]
