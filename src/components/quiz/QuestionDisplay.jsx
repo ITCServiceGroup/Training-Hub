@@ -436,7 +436,7 @@ QuestionDisplay.propTypes = {
       PropTypes.number,
       PropTypes.arrayOf(PropTypes.number),
       PropTypes.bool
-    ]).isRequired,
+    ]),
     explanation: PropTypes.string
   }),
   selectedAnswer: PropTypes.oneOfType([

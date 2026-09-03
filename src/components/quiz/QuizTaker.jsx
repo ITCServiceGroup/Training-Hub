@@ -1,25 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme } from '../../contexts/ThemeContext';
-import PropTypes from 'prop-types';
-import { quizzesService } from '../../services/api/quizzes';
-import { quizResultsService } from '../../services/api/quizResults';
-import { categoriesService } from '../../services/api/categories';
-import QuizTimer from './QuizTimer';
-import QuestionDisplay from './QuestionDisplay';
-import QuizReview from './QuizReview';
-import QuizResults from './QuizResults';
-import { pdfService } from '../../services/pdfService';
-import { FaSpinner } from 'react-icons/fa';
-
-
-
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
+import PropTypes from "prop-types";
+import { quizzesService } from "../../services/api/quizzes";
+import { quizResultsService } from "../../services/api/quizResults";
+import { categoriesService } from "../../services/api/categories";
+import QuizTimer from "./QuizTimer";
+import QuestionDisplay from "./QuestionDisplay";
+import QuizReview from "./QuizReview";
+import QuizResults from "./QuizResults";
+import { pdfService } from "../../services/pdfService";
+import { FaSpinner } from "react-icons/fa";
 
 const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
   // Refs
   const pdfContentRef = useRef(null);
   const timeoutPromiseRef = useRef(null);
@@ -40,8 +37,16 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   const [cameFromReview, setCameFromReview] = useState(false); // Track if user navigated back from review page
   const [score, setScore] = useState(null);
   const [accessCodeData, setAccessCodeData] = useState(null);
-  const [isCurrentPracticeQuestionAnswered, setIsCurrentPracticeQuestionAnswered] = useState(false); // New state for practice mode
-  const [disableImmediateFeedback, setDisableImmediateFeedback] = useState(false); // Toggle for practice mode feedback
+  const [
+    isCurrentPracticeQuestionAnswered,
+    setIsCurrentPracticeQuestionAnswered,
+  ] = useState(false); // New state for practice mode
+  const [disableImmediateFeedback, setDisableImmediateFeedback] =
+    useState(false); // Toggle for practice mode feedback
+  const [isCheckingPracticeAnswer, setIsCheckingPracticeAnswer] =
+    useState(false);
+  const [practiceFeedbackError, setPracticeFeedbackError] = useState(null);
+  const practiceFeedbackRequestRef = useRef(0);
 
   // Question timing state
   const [questionStartTimes, setQuestionStartTimes] = useState({}); // Track when each question was started
@@ -72,14 +77,13 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           setQuiz(quizData);
         } else if (quizId) {
           quizData = await quizzesService.getLearnerQuiz({ quizId });
-          setDisableImmediateFeedback(true);
           setQuiz(quizData);
         }
       } catch (error) {
         if (error.message) {
           setError(error.message);
         } else {
-          setError('Failed to load quiz');
+          setError("Failed to load quiz");
         }
       } finally {
         setIsLoading(false);
@@ -93,28 +97,28 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   useEffect(() => {
     const loadNavigationInfo = async () => {
       const urlParams = new URLSearchParams(location.search);
-      const fromParam = urlParams.get('from');
-      const sectionId = urlParams.get('sectionId');
-      const categoryId = urlParams.get('categoryId');
-      const studyGuideId = urlParams.get('studyGuideId');
-      const studyGuideName = urlParams.get('studyGuideName');
+      const fromParam = urlParams.get("from");
+      const sectionId = urlParams.get("sectionId");
+      const categoryId = urlParams.get("categoryId");
+      const studyGuideId = urlParams.get("studyGuideId");
+      const studyGuideName = urlParams.get("studyGuideName");
 
       // Handle study guide navigation context
-      if (fromParam === 'study-guide' && studyGuideId && studyGuideName) {
+      if (fromParam === "study-guide" && studyGuideId && studyGuideName) {
         setStudyGuideInfo({
           id: studyGuideId,
           name: studyGuideName,
           sectionId,
-          categoryId
+          categoryId,
         });
       }
       // Handle category navigation context (existing functionality)
-      else if (fromParam === 'practice' && categoryId) {
+      else if (fromParam === "practice" && categoryId) {
         try {
           const category = await categoriesService.getById(categoryId);
           setCategoryInfo({ ...category, sectionId });
         } catch (error) {
-          console.error('Failed to load category info:', error);
+          console.error("Failed to load category info:", error);
         }
       }
     };
@@ -123,126 +127,158 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   }, [location.search]);
 
   // Submit quiz handler - defined before timer effect
-  const handleSubmitQuiz = useCallback(async (isTimeout = false) => {
-    // Stop timing for current question before submission
-    if (quiz && quiz.questions && quiz.questions[currentQuestionIndex]) {
-      const currentQuestionId = quiz.questions[currentQuestionIndex].id;
-      stopQuestionTimer(currentQuestionId);
-    }
-
-    // Prevent multiple submissions
-    if (submitInProgressRef.current) return;
-    submitInProgressRef.current = true;
-    setIsSubmitting(true);
-
-    try {
-      const rawAnswers = Object.fromEntries(
-        Object.entries(selectedAnswers).map(([questionId, answerData]) => [
-          questionId,
-          quiz.is_practice ? answerData?.answer : answerData
-        ])
-      );
-
-      const timingData = Object.fromEntries(
-        Object.entries(questionTimings)
-          .filter(([, timing]) => timing > 0)
-          .map(([questionId, timing]) => [questionId, Math.round(timing * 10) / 10])
-      );
-
-      const result = quiz.is_practice
-        ? await quizResultsService.gradePracticeAttempt({ quizId: quiz.id, answers: rawAnswers })
-        : await quizResultsService.submitOfficialAttempt({
-            accessCode,
-            answers: rawAnswers,
-            idempotencyKey: submissionIdRef.current,
-            timeTaken,
-            questionTimings: timingData
-          });
-
-      const finalScore = {
-        correct: Number(result.correct),
-        total: Number(result.total),
-        percentage: Number(result.score)
-      };
-      const feedback = result.feedback || {};
-      const quizWithFeedback = {
-        ...quiz,
-        questions: quiz.questions.map(question => ({
-          ...question,
-          correct_answer: feedback[question.id]?.correct_answer,
-          explanation: feedback[question.id]?.explanation,
-          authoritative_is_correct: feedback[question.id]?.is_correct
-        }))
-      };
-
-      setQuiz(quizWithFeedback);
-      setScore(finalScore);
-
-      if (quiz.is_practice) {
-        setSelectedAnswers(previous => Object.fromEntries(
-          Object.entries(previous).map(([questionId, answerData]) => {
-            const expected = feedback[questionId]?.correct_answer;
-            const answer = answerData?.answer;
-            const isCorrect = Array.isArray(answer) && Array.isArray(expected)
-              ? answer.length === expected.length && answer.every(value => expected.includes(value))
-              : answer === expected;
-            return [questionId, { ...answerData, isCorrect, showFeedback: true }];
-          })
-        ));
+  const handleSubmitQuiz = useCallback(
+    async (isTimeout = false) => {
+      // Stop timing for current question before submission
+      if (quiz && quiz.questions && quiz.questions[currentQuestionIndex]) {
+        const currentQuestionId = quiz.questions[currentQuestionIndex].id;
+        stopQuestionTimer(currentQuestionId);
       }
 
-      if (!quiz.is_practice && result.report_upload_token) {
-        try {
-          await pdfService.uploadQuizResultsPDF({
-            quiz: quizWithFeedback,
-            selectedAnswers: rawAnswers,
-            score: finalScore,
-            timeTaken,
-            ldap: accessCodeData?.ldap,
-            isPractice: false,
-            accessCodeData
-          }, {
-            resultId: result.result_id,
-            uploadToken: result.report_upload_token
-          });
-        } catch (reportError) {
-          console.warn('The result was saved, but its report is still pending:', reportError);
+      // Prevent multiple submissions
+      if (submitInProgressRef.current) return;
+      submitInProgressRef.current = true;
+      setIsSubmitting(true);
+
+      try {
+        const rawAnswers = Object.fromEntries(
+          Object.entries(selectedAnswers).map(([questionId, answerData]) => [
+            questionId,
+            quiz.is_practice ? answerData?.answer : answerData,
+          ]),
+        );
+
+        const timingData = Object.fromEntries(
+          Object.entries(questionTimings)
+            .filter(([, timing]) => timing > 0)
+            .map(([questionId, timing]) => [
+              questionId,
+              Math.round(timing * 10) / 10,
+            ]),
+        );
+
+        const result = quiz.is_practice
+          ? await quizResultsService.gradePracticeAttempt({
+              quizId: quiz.id,
+              answers: rawAnswers,
+            })
+          : await quizResultsService.submitOfficialAttempt({
+              accessCode,
+              answers: rawAnswers,
+              idempotencyKey: submissionIdRef.current,
+              timeTaken,
+              questionTimings: timingData,
+            });
+
+        const finalScore = {
+          correct: Number(result.correct),
+          total: Number(result.total),
+          percentage: Number(result.score),
+        };
+        const feedback = result.feedback || {};
+        const quizWithFeedback = {
+          ...quiz,
+          questions: quiz.questions.map((question) => ({
+            ...question,
+            correct_answer: feedback[question.id]?.correct_answer,
+            explanation: feedback[question.id]?.explanation,
+            authoritative_is_correct: feedback[question.id]?.is_correct,
+          })),
+        };
+
+        setQuiz(quizWithFeedback);
+        setScore(finalScore);
+
+        if (quiz.is_practice) {
+          setSelectedAnswers((previous) =>
+            Object.fromEntries(
+              Object.entries(previous).map(([questionId, answerData]) => {
+                const expected = feedback[questionId]?.correct_answer;
+                const answer = answerData?.answer;
+                const isCorrect =
+                  Array.isArray(answer) && Array.isArray(expected)
+                    ? answer.length === expected.length &&
+                      answer.every((value) => expected.includes(value))
+                    : answer === expected;
+                return [
+                  questionId,
+                  { ...answerData, isCorrect, showFeedback: true },
+                ];
+              }),
+            ),
+          );
         }
-      }
 
-      // Set completion states
-      setQuizCompleted(true);
-      setIsReviewing(false);
-    } catch (error) {
-      console.error('Quiz submission failed:', error);
-      setError(error.message || 'Quiz submission failed');
-    } finally {
-      submitInProgressRef.current = false;
-      setIsSubmitting(false);
-    }
-    // calculateScore is not needed in deps as it's defined inside
-  }, [quiz, accessCodeData, accessCode, timeTaken, selectedAnswers, questionTimings]);
+        if (!quiz.is_practice && result.report_upload_token) {
+          try {
+            await pdfService.uploadQuizResultsPDF(
+              {
+                quiz: quizWithFeedback,
+                selectedAnswers: rawAnswers,
+                score: finalScore,
+                timeTaken,
+                ldap: accessCodeData?.ldap,
+                isPractice: false,
+                accessCodeData,
+              },
+              {
+                resultId: result.result_id,
+                uploadToken: result.report_upload_token,
+              },
+            );
+          } catch (reportError) {
+            console.warn(
+              "The result was saved, but its report is still pending:",
+              reportError,
+            );
+          }
+        }
+
+        // Set completion states
+        setQuizCompleted(true);
+        setIsReviewing(false);
+      } catch (error) {
+        console.error("Quiz submission failed:", error);
+        setError(error.message || "Quiz submission failed");
+      } finally {
+        submitInProgressRef.current = false;
+        setIsSubmitting(false);
+      }
+      // calculateScore is not needed in deps as it's defined inside
+    },
+    [
+      quiz,
+      accessCodeData,
+      accessCode,
+      timeTaken,
+      selectedAnswers,
+      questionTimings,
+    ],
+  );
 
   // Timeout handler
-  const handleTimeout = useCallback(async (clearTimer) => {
-    if (timeoutPromiseRef.current) return; // Prevent multiple timeouts
+  const handleTimeout = useCallback(
+    async (clearTimer) => {
+      if (timeoutPromiseRef.current) return; // Prevent multiple timeouts
 
-    // Clear timer if provided
-    if (clearTimer) clearTimer();
-    setTimeLeft(0);
+      // Clear timer if provided
+      if (clearTimer) clearTimer();
+      setTimeLeft(0);
 
-    try {
-      timeoutPromiseRef.current = handleSubmitQuiz(true);
-      await timeoutPromiseRef.current;
-    } catch (error) {
-      console.error('Failed to submit quiz on timeout:', error);
-      // Force completion on timeout error
-      setQuizCompleted(true);
-      setIsReviewing(false);
-    } finally {
-      timeoutPromiseRef.current = null;
-    }
-  }, [handleSubmitQuiz]); // Removed stable state setters
+      try {
+        timeoutPromiseRef.current = handleSubmitQuiz(true);
+        await timeoutPromiseRef.current;
+      } catch (error) {
+        console.error("Failed to submit quiz on timeout:", error);
+        // Force completion on timeout error
+        setQuizCompleted(true);
+        setIsReviewing(false);
+      } finally {
+        timeoutPromiseRef.current = null;
+      }
+    },
+    [handleSubmitQuiz],
+  ); // Removed stable state setters
 
   // Timer effect for time limit countdown - using timestamp-based approach for reliability
   useEffect(() => {
@@ -252,7 +288,10 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       if (!timeLimitEndTimeRef.current) return;
 
       const now = Date.now();
-      const remaining = Math.max(0, Math.ceil((timeLimitEndTimeRef.current - now) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.ceil((timeLimitEndTimeRef.current - now) / 1000),
+      );
 
       setTimeLeft(remaining);
 
@@ -266,7 +305,12 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       }
     };
 
-    if (quizStarted && !quizCompleted && timeLimitEndTimeRef.current && !timeoutPromiseRef.current) {
+    if (
+      quizStarted &&
+      !quizCompleted &&
+      timeLimitEndTimeRef.current &&
+      !timeoutPromiseRef.current
+    ) {
       // Update immediately
       updateTimer();
 
@@ -281,9 +325,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       // Cleanup pending submission promise *without* setting state here
       if (timeoutPromiseRef.current) {
         timeoutPromiseRef.current
-          .catch(error => {
+          .catch((error) => {
             // Log error, but don't set state in cleanup
-            console.error('Error during cleanup of timeout submission:', error);
+            console.error("Error during cleanup of timeout submission:", error);
           })
           .finally(() => {
             // Ensure ref is cleared even if component unmounts during submission
@@ -318,12 +362,11 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     };
   }, [quizStarted, quizCompleted]);
 
-
   // Format time
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   // Start quiz
@@ -331,7 +374,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     // Show confirmation if user disabled immediate feedback
     if (quiz.is_practice && disableImmediateFeedback) {
       const confirmed = window.confirm(
-        "You have chosen to disable immediate feedback. You will not receive any feedback on your answers until you complete the entire quiz.\n\nAre you sure you want to continue?"
+        "You have chosen to disable immediate feedback. You will not receive any feedback on your answers until you complete the entire quiz.\n\nAre you sure you want to continue?",
       );
       if (!confirmed) {
         return; // User cancelled, don't start quiz
@@ -347,6 +390,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     setQuizCompleted(false);
     setIsReviewing(false);
     setCameFromReview(false); // Reset review flag when starting quiz
+    setIsCheckingPracticeAnswer(false);
+    setPracticeFeedbackError(null);
+    practiceFeedbackRequestRef.current += 1;
 
     // Initialize timestamp-based timers
     const now = Date.now();
@@ -354,7 +400,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
     if (quiz.time_limit) {
       setTimeLeft(quiz.time_limit);
-      timeLimitEndTimeRef.current = now + (quiz.time_limit * 1000); // Convert seconds to milliseconds
+      timeLimitEndTimeRef.current = now + quiz.time_limit * 1000; // Convert seconds to milliseconds
     } else {
       timeLimitEndTimeRef.current = null;
     }
@@ -372,27 +418,86 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   };
 
   // Handle answer selection and provide immediate feedback in practice mode
-  const handleSelectAnswer = (answer) => {
+  const handleSelectAnswer = async (answer) => {
     const currentQuestion = quiz.questions[currentQuestionIndex];
 
     // Learner answers are graded by the server. Practice feedback is returned
-    // only after submission, so official answers never need to be in app state.
+    // only after an answer is submitted, so answer keys are never included in
+    // the initial learner payload.
     if (quiz.is_practice) {
-      setSelectedAnswers(prev => ({
+      const answerState = {
+        answer,
+        showFeedback: false,
+        isCorrect: false,
+        partialCredit: 0,
+      };
+
+      setSelectedAnswers((prev) => ({
         ...prev,
-        [currentQuestion.id]: {
-          answer,
-          showFeedback: false,
-          isCorrect: false,
-          partialCredit: 0
-        }
+        [currentQuestion.id]: answerState,
       }));
-      setIsCurrentPracticeQuestionAnswered(true); // Mark as answered for practice mode
+      setPracticeFeedbackError(null);
+
+      if (disableImmediateFeedback) {
+        setIsCurrentPracticeQuestionAnswered(true);
+        return;
+      }
+
+      const requestId = practiceFeedbackRequestRef.current + 1;
+      practiceFeedbackRequestRef.current = requestId;
+      setIsCheckingPracticeAnswer(true);
+      setIsCurrentPracticeQuestionAnswered(false);
+
+      try {
+        const result = await quizResultsService.gradePracticeAttempt({
+          quizId: quiz.id,
+          answers: { [currentQuestion.id]: answer },
+        });
+        const feedback = result.feedback?.[currentQuestion.id];
+
+        if (!feedback || !Object.hasOwn(feedback, "correct_answer")) {
+          throw new Error("Practice feedback was unavailable");
+        }
+
+        if (practiceFeedbackRequestRef.current !== requestId) return;
+
+        setQuiz((previous) => ({
+          ...previous,
+          questions: previous.questions.map((question) =>
+            question.id === currentQuestion.id
+              ? {
+                  ...question,
+                  correct_answer: feedback.correct_answer,
+                  explanation: feedback.explanation,
+                }
+              : question,
+          ),
+        }));
+        setSelectedAnswers((previous) => ({
+          ...previous,
+          [currentQuestion.id]: {
+            ...answerState,
+            showFeedback: true,
+            isCorrect: Boolean(feedback.is_correct),
+          },
+        }));
+        setIsCurrentPracticeQuestionAnswered(true);
+      } catch (feedbackError) {
+        if (practiceFeedbackRequestRef.current !== requestId) return;
+        console.error("Practice answer check failed:", feedbackError);
+        setPracticeFeedbackError(
+          "We could not check that answer. Select it again to retry.",
+        );
+      } finally {
+        if (practiceFeedbackRequestRef.current === requestId) {
+          setIsCheckingPracticeAnswer(false);
+        }
+      }
     } else {
       // For regular quizzes, just store the answer (keep original format)
-      setSelectedAnswers(prev => ({
+      setSelectedAnswers((prev) => ({
         ...prev,
-        [currentQuestion.id]: answer
+        [currentQuestion.id]: answer,
       }));
     }
   };
@@ -400,9 +505,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   // Question timing functions
   const startQuestionTimer = useCallback((questionId) => {
     const now = Date.now();
-    setQuestionStartTimes(prev => ({
+    setQuestionStartTimes((prev) => ({
       ...prev,
-      [questionId]: now
+      [questionId]: now,
     }));
     currentQuestionStartTimeRef.current = now;
   }, []);
@@ -413,9 +518,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     const now = Date.now();
     const timeSpent = (now - currentQuestionStartTimeRef.current) / 1000; // Convert to seconds
 
-    setQuestionTimings(prev => ({
+    setQuestionTimings((prev) => ({
       ...prev,
-      [questionId]: (prev[questionId] || 0) + timeSpent
+      [questionId]: (prev[questionId] || 0) + timeSpent,
     }));
 
     currentQuestionStartTimeRef.current = null;
@@ -423,9 +528,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   }, []);
 
   const updateQuestionTiming = useCallback((questionId, additionalTime = 0) => {
-    setQuestionTimings(prev => ({
+    setQuestionTimings((prev) => ({
       ...prev,
-      [questionId]: (prev[questionId] || 0) + additionalTime
+      [questionId]: (prev[questionId] || 0) + additionalTime,
     }));
   }, []);
 
@@ -447,11 +552,14 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     if (currentQuestionIndex < quiz.questions.length - 1) {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
-      setIsCurrentPracticeQuestionAnswered(false); // Reset for next question
+      setPracticeFeedbackError(null);
 
       // Start timing for next question
       if (quiz && quiz.questions && quiz.questions[nextIndex]) {
         const nextQuestionId = quiz.questions[nextIndex].id;
+        setIsCurrentPracticeQuestionAnswered(
+          Boolean(selectedAnswers[nextQuestionId]),
+        );
         startQuestionTimer(nextQuestionId);
       }
     } else {
@@ -476,28 +584,37 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
       setCurrentQuestionIndex(prevIndex);
-      setIsCurrentPracticeQuestionAnswered(false); // Reset when going back
+      setPracticeFeedbackError(null);
       setCameFromReview(false); // Reset review flag when navigating normally
 
       // Start timing for previous question
       if (quiz && quiz.questions && quiz.questions[prevIndex]) {
         const prevQuestionId = quiz.questions[prevIndex].id;
+        setIsCurrentPracticeQuestionAnswered(
+          Boolean(selectedAnswers[prevQuestionId]),
+        );
         startQuestionTimer(prevQuestionId);
       }
     }
   };
 
   if (isLoading) {
-    return <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>Loading quiz...</div>;
+    return (
+      <div className={`text-center p-8 ${isDark ? "text-gray-300" : ""}`}>
+        Loading quiz...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className={`p-6 ${isDark ? 'bg-red-900/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700'} border rounded-lg`}>
+      <div
+        className={`p-6 ${isDark ? "bg-red-900/30 border-red-900/50 text-red-400" : "bg-red-50 border-red-200 text-red-700"} border rounded-lg`}
+      >
         <p className="mb-4">{error}</p>
         <button
-          onClick={() => navigate('/quiz')}
-          className={`px-4 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors`}
+          onClick={() => navigate("/quiz")}
+          className={`px-4 py-2 ${isDark ? "bg-slate-700 hover:bg-slate-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"} rounded-lg font-medium transition-colors`}
         >
           Return to Quizzes
         </button>
@@ -506,7 +623,11 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   }
 
   if (!quiz) {
-    return <div className={`text-center p-8 ${isDark ? 'text-gray-300' : ''}`}>Quiz not found</div>;
+    return (
+      <div className={`text-center p-8 ${isDark ? "text-gray-300" : ""}`}>
+        Quiz not found
+      </div>
+    );
   }
 
   // Quiz completed screen
@@ -524,7 +645,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             const studyGuideUrl = `/study/${studyGuideInfo.sectionId}/${studyGuideInfo.categoryId}/${studyGuideInfo.id}`;
             navigate(studyGuideUrl);
           } else {
-            navigate('/study-guide');
+            navigate("/study-guide");
           }
         }}
         isPractice={quiz.is_practice}
@@ -543,7 +664,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
           onSubmit={handleSubmitQuiz}
           onBack={(questionIndex) => {
             setIsReviewing(false);
-            if (typeof questionIndex === 'number') {
+            if (typeof questionIndex === "number") {
               setCurrentQuestionIndex(questionIndex);
               setCameFromReview(true); // Mark that user came from review page
             } else {
@@ -557,13 +678,20 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         {/* Loading overlay */}
         {isSubmitting && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-8 max-w-md mx-4 text-center shadow-xl`}>
-              <FaSpinner className={`animate-spin text-4xl ${isDark ? 'text-blue-400' : 'text-blue-600'} mx-auto mb-4`} />
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+            <div
+              className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-lg p-8 max-w-md mx-4 text-center shadow-xl`}
+            >
+              <FaSpinner
+                className={`animate-spin text-4xl ${isDark ? "text-blue-400" : "text-blue-600"} mx-auto mb-4`}
+              />
+              <h3
+                className={`text-lg font-semibold ${isDark ? "text-white" : "text-slate-900"} mb-2`}
+              >
                 Saving Your Results
               </h3>
-              <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                Please wait while we save your quiz results. You will be redirected to the results page shortly.
+              <p className={`${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                Please wait while we save your quiz results. You will be
+                redirected to the results page shortly.
               </p>
             </div>
           </div>
@@ -575,7 +703,9 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
   // Quiz start screen
   if (!quizStarted) {
     return (
-      <div className={`max-w-2xl mx-auto p-6 ${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow`}>
+      <div
+        className={`max-w-2xl mx-auto p-6 ${isDark ? "bg-slate-800" : "bg-white"} rounded-lg shadow`}
+      >
         {/* Back navigation */}
         {studyGuideInfo && (
           <div className="mb-4">
@@ -585,7 +715,7 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
                 const studyGuideUrl = `/study/${studyGuideInfo.sectionId}/${studyGuideInfo.categoryId}/${studyGuideInfo.id}`;
                 navigate(studyGuideUrl);
               }}
-              className={`text-sm ${isDark ? 'text-primary-light hover:text-primary' : 'text-primary-dark hover:text-primary'} hover:underline`}
+              className={`text-sm ${isDark ? "text-primary-light hover:text-primary" : "text-primary-dark hover:text-primary"} hover:underline`}
             >
               ← Back to '{studyGuideInfo.name}'
             </button>
@@ -594,39 +724,69 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         {!studyGuideInfo && categoryInfo && (
           <div className="mb-4">
             <button
-              onClick={() => navigate(`/quiz/practice/${categoryInfo.sectionId}/${categoryInfo.id}`)}
-              className={`text-sm ${isDark ? 'text-primary-light hover:text-primary' : 'text-primary-dark hover:text-primary'} hover:underline`}
+              onClick={() =>
+                navigate(
+                  `/quiz/practice/${categoryInfo.sectionId}/${categoryInfo.id}`,
+                )
+              }
+              className={`text-sm ${isDark ? "text-primary-light hover:text-primary" : "text-primary-dark hover:text-primary"} hover:underline`}
             >
               ← Back to {categoryInfo.name}
             </button>
           </div>
         )}
 
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>{quiz.title}</h2>
+        <h2
+          className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"} mb-4`}
+        >
+          {quiz.title}
+        </h2>
         {quiz.description && (
-          <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'} mb-6`}>{quiz.description}</p>
+          <p className={`${isDark ? "text-gray-300" : "text-slate-600"} mb-6`}>
+            {quiz.description}
+          </p>
         )}
 
         <div className="flex gap-8 mb-8">
           <div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Questions</p>
-            <p className={`font-bold ${isDark ? 'text-white' : ''}`}>{quiz.questions.length}</p>
+            <p
+              className={`text-sm ${isDark ? "text-gray-400" : "text-slate-500"}`}
+            >
+              Questions
+            </p>
+            <p className={`font-bold ${isDark ? "text-white" : ""}`}>
+              {quiz.questions.length}
+            </p>
           </div>
           {quiz.time_limit && (
             <div>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Time Limit</p>
-              <p className={`font-bold ${isDark ? 'text-white' : ''}`}>{Math.floor(quiz.time_limit / 60)} minutes</p>
+              <p
+                className={`text-sm ${isDark ? "text-gray-400" : "text-slate-500"}`}
+              >
+                Time Limit
+              </p>
+              <p className={`font-bold ${isDark ? "text-white" : ""}`}>
+                {Math.floor(quiz.time_limit / 60)} minutes
+              </p>
             </div>
           )}
           <div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Passing Score</p>
-            <p className={`font-bold ${isDark ? 'text-white' : ''}`}>{quiz.passing_score || 70}%</p>
+            <p
+              className={`text-sm ${isDark ? "text-gray-400" : "text-slate-500"}`}
+            >
+              Passing Score
+            </p>
+            <p className={`font-bold ${isDark ? "text-white" : ""}`}>
+              {quiz.passing_score || 70}%
+            </p>
           </div>
         </div>
 
         {/* Practice mode feedback toggle */}
         {quiz.is_practice && (
-          <div className={`mb-6 p-4 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-blue-50 border-blue-200'}`}>
+          <div
+            className={`mb-6 p-4 rounded-lg border ${isDark ? "bg-slate-700 border-slate-600" : "bg-blue-50 border-blue-200"}`}
+          >
             <label className="flex items-start cursor-pointer">
               <input
                 type="checkbox"
@@ -635,12 +795,18 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
                 className="h-5 w-5 text-primary rounded border-slate-300 focus:ring-primary flex-shrink-0 mt-0.5 cursor-pointer"
               />
               <div className="ml-3">
-                <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <span
+                  className={`font-medium ${isDark ? "text-white" : "text-slate-900"}`}
+                >
                   Disable Immediate Feedback
                 </span>
-                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
-                  By default, practice quizzes show you whether your answer is correct or incorrect immediately after each question.
-                  Check this box to disable immediate feedback and only see results at the end of the quiz.
+                <p
+                  className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-slate-600"}`}
+                >
+                  By default, practice quizzes show you whether your answer is
+                  correct or incorrect immediately after each question. Check
+                  this box to disable immediate feedback and only see results at
+                  the end of the quiz.
                 </p>
               </div>
             </label>
@@ -659,15 +825,23 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
 
   // Quiz taking screen
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  const progressPercentage = Math.round(((currentQuestionIndex + 1) / quiz.questions.length) * 100);
+  const progressPercentage = Math.round(
+    ((currentQuestionIndex + 1) / quiz.questions.length) * 100,
+  );
 
   return (
     <>
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{quiz.title}</h2>
-            <p className={isDark ? 'text-gray-400' : 'text-slate-500'}>Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+            <h2
+              className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+            >
+              {quiz.title}
+            </h2>
+            <p className={isDark ? "text-gray-400" : "text-slate-500"}>
+              Question {currentQuestionIndex + 1} of {quiz.questions.length}
+            </p>
           </div>
 
           {timeLeft !== null && (
@@ -680,27 +854,61 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
         </div>
 
         {/* Progress bar */}
-        <div className={`h-2 ${isDark ? 'bg-slate-700' : 'bg-slate-100'} rounded-full mb-8`}>
+        <div
+          className={`h-2 ${isDark ? "bg-slate-700" : "bg-slate-100"} rounded-full mb-8`}
+        >
           <div
             className="h-full bg-primary rounded-full transition-all duration-300"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
 
-        <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
+        <div
+          className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-lg shadow-sm p-6`}
+        >
           <QuestionDisplay
             question={currentQuestion}
-            selectedAnswer={quiz.is_practice ? selectedAnswers[currentQuestion.id]?.answer : selectedAnswers[currentQuestion.id]}
+            selectedAnswer={
+              quiz.is_practice
+                ? selectedAnswers[currentQuestion.id]?.answer
+                : selectedAnswers[currentQuestion.id]
+            }
             onSelectAnswer={handleSelectAnswer}
             isPractice={quiz.is_practice}
-            showFeedback={quiz.is_practice && !disableImmediateFeedback && selectedAnswers[currentQuestion.id]?.showFeedback}
-            isCorrect={quiz.is_practice && selectedAnswers[currentQuestion.id]?.isCorrect}
+            showFeedback={
+              quiz.is_practice &&
+              !disableImmediateFeedback &&
+              selectedAnswers[currentQuestion.id]?.showFeedback
+            }
+            isCorrect={
+              quiz.is_practice && selectedAnswers[currentQuestion.id]?.isCorrect
+            }
             disableImmediateFeedback={disableImmediateFeedback}
+            disabled={isCheckingPracticeAnswer}
           />
 
-          <div className={`flex justify-between mt-8 pt-6 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          {isCheckingPracticeAnswer && (
+            <p
+              className={`mt-4 text-sm ${isDark ? "text-blue-300" : "text-blue-700"}`}
+              role="status"
+            >
+              Checking answer…
+            </p>
+          )}
+          {practiceFeedbackError && (
+            <p
+              className={`mt-4 text-sm ${isDark ? "text-red-300" : "text-red-700"}`}
+              role="alert"
+            >
+              {practiceFeedbackError}
+            </p>
+          )}
+
+          <div
+            className={`flex justify-between mt-8 pt-6 border-t ${isDark ? "border-slate-700" : "border-slate-200"}`}
+          >
             <button
-              className={`px-6 py-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`px-6 py-2 ${isDark ? "bg-slate-700 hover:bg-slate-600 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"} rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
               onClick={handlePrevQuestion}
               disabled={currentQuestionIndex === 0}
             >
@@ -710,9 +918,18 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
             <button
               className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleNextQuestion}
-              disabled={quiz.is_practice && !isCurrentPracticeQuestionAnswered} // Disable if practice and not answered
+              disabled={
+                quiz.is_practice &&
+                (!isCurrentPracticeQuestionAnswered || isCheckingPracticeAnswer)
+              }
             >
-              {cameFromReview ? 'Review Answers' : (currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : (quiz.is_practice ? 'Finish Quiz' : 'Review Answers'))}
+              {cameFromReview
+                ? "Review Answers"
+                : currentQuestionIndex < quiz.questions.length - 1
+                  ? "Next"
+                  : quiz.is_practice
+                    ? "Finish Quiz"
+                    : "Review Answers"}
             </button>
           </div>
         </div>
@@ -721,13 +938,20 @@ const QuizTaker = ({ quizId, accessCode, testTakerInfo }) => {
       {/* Loading overlay for practice quiz submission */}
       {isSubmitting && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg p-8 max-w-md mx-4 text-center shadow-xl`}>
-            <FaSpinner className={`animate-spin text-4xl ${isDark ? 'text-blue-400' : 'text-blue-600'} mx-auto mb-4`} />
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+          <div
+            className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-lg p-8 max-w-md mx-4 text-center shadow-xl`}
+          >
+            <FaSpinner
+              className={`animate-spin text-4xl ${isDark ? "text-blue-400" : "text-blue-600"} mx-auto mb-4`}
+            />
+            <h3
+              className={`text-lg font-semibold ${isDark ? "text-white" : "text-slate-900"} mb-2`}
+            >
               Saving Your Results
             </h3>
-            <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              Please wait while we save your quiz results and generate your certificate. You will be redirected to the results page shortly.
+            <p className={`${isDark ? "text-slate-300" : "text-slate-600"}`}>
+              Please wait while we save your quiz results and generate your
+              certificate. You will be redirected to the results page shortly.
             </p>
           </div>
         </div>
@@ -743,11 +967,10 @@ QuizTaker.propTypes = {
     ldap: PropTypes.string,
     email: PropTypes.string,
     supervisor: PropTypes.string,
-    market: PropTypes.string
-  })
+    market: PropTypes.string,
+  }),
 };
 
 // PDF generation is now handled by the pdfService using React-PDF
-
 
 export default QuizTaker;

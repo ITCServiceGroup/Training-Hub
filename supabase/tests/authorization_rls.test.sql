@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(127);
+select plan(131);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_profiles'::regclass),
@@ -703,6 +703,48 @@ select ok((
     ) = 1
   from replay
 ), 'idempotent replay returns the original result without creating a duplicate');
+
+update public.quizzes
+set has_practice_mode = true
+where id = '00000000-0000-4000-8000-000000000201';
+
+select ok(
+  public.load_quiz_for_learner(
+    '00000000-0000-4000-8000-000000000201', null
+  ) #>> '{questions,0,correct_answer}' is null,
+  'practice learner payloads do not expose correct answers before submission'
+);
+select is(
+  jsonb_object_length(
+    public.grade_practice_attempt(
+      '00000000-0000-4000-8000-000000000201',
+      '{"00000000-0000-4000-8000-000000000202": "A"}'::jsonb
+    ) -> 'feedback'
+  ),
+  1,
+  'practice grading returns feedback only for the submitted question'
+);
+select ok((
+  with graded as (
+    select public.grade_practice_attempt(
+      '00000000-0000-4000-8000-000000000201',
+      '{"00000000-0000-4000-8000-000000000202": "A"}'::jsonb
+    ) as payload
+  )
+  select (payload #>> '{feedback,00000000-0000-4000-8000-000000000202,is_correct}')::boolean
+    and payload #>> '{feedback,00000000-0000-4000-8000-000000000202,correct_answer}' = 'A'
+  from graded
+), 'practice grading returns authoritative correctness and answer feedback after submission');
+select is(
+  jsonb_object_length(
+    public.grade_practice_attempt(
+      '00000000-0000-4000-8000-000000000201',
+      '{}'::jsonb
+    ) -> 'feedback'
+  ),
+  0,
+  'practice grading does not disclose unsubmitted question answers'
+);
 
 select * from finish();
 rollback;

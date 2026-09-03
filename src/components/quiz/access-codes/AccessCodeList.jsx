@@ -5,13 +5,14 @@ import ConfirmationDialog from '../../common/ConfirmationDialog';
 import LoadingSpinner from '../../common/LoadingSpinner';
 import { useDebounce } from '../../../hooks/useDebounce';
 import StatusBadge from './StatusBadge';
+import { getAccessCodeStatus } from './accessCodeStatus';
 
 const AccessCodeList = ({ quizId }) => {
   const [codes, setCodes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('all'); // 'all', 'used', 'unused', 'expired'
+  const [filter, setFilter] = useState('all');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, codeId: null });
 
@@ -54,35 +55,15 @@ const AccessCodeList = ({ quizId }) => {
 
       if (!matchesSearch) return false;
 
-      const now = new Date();
-      const isExpired = code.expires_at && new Date(code.expires_at) < now;
-
-      switch (filter) {
-        case 'used':
-          return code.is_used;
-        case 'unused':
-          return !code.is_used && !isExpired;
-        case 'expired':
-          return isExpired;
-        default:
-          return true;
-      }
+      return filter === 'all' || getAccessCodeStatus(code) === filter;
     });
   }, [codes, debouncedSearchTerm, filter]);
 
   const statusCounts = useMemo(() => {
-    const now = new Date();
     return codes.reduce((acc, code) => {
-      const isExpired = code.expires_at && new Date(code.expires_at) < now;
-      if (isExpired) {
-        acc.expired += 1;
-      } else if (code.is_used) {
-        acc.used += 1;
-      } else {
-        acc.unused += 1;
-      }
+      acc[getAccessCodeStatus(code)] += 1;
       return acc;
-    }, { used: 0, unused: 0, expired: 0 });
+    }, { used: 0, unused: 0, expired: 0, revoked: 0 });
   }, [codes]);
 
 
@@ -120,8 +101,9 @@ const AccessCodeList = ({ quizId }) => {
           >
             <option value="all">All Codes</option>
             <option value="used">Used</option>
-            <option value="unused">Unused</option>
+            <option value="unused">Active</option>
             <option value="expired">Expired</option>
+            <option value="revoked">Revoked</option>
           </select>
         </div>
       </div>
@@ -134,10 +116,13 @@ const AccessCodeList = ({ quizId }) => {
           Used: {statusCounts.used}
         </span>
         <span className="inline-flex rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
-          Unused: {statusCounts.unused}
+          Active: {statusCounts.unused}
         </span>
         <span className="inline-flex rounded-full bg-amber-100 dark:bg-amber-900/40 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200">
           Expired: {statusCounts.expired}
+        </span>
+        <span className="inline-flex rounded-full bg-red-100 dark:bg-red-900/40 px-2.5 py-1 text-xs font-semibold text-red-800 dark:text-red-200">
+          Revoked: {statusCounts.revoked}
         </span>
         <span className="inline-flex rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
           Showing: {filteredCodes.length}
