@@ -715,11 +715,14 @@ select ok(
   'practice learner payloads do not expose correct answers before submission'
 );
 select is(
-  jsonb_object_length(
-    public.grade_practice_attempt(
-      '00000000-0000-4000-8000-000000000201',
-      '{"00000000-0000-4000-8000-000000000202": "A"}'::jsonb
-    ) -> 'feedback'
+  (
+    select count(*)::integer
+    from jsonb_object_keys(
+      public.grade_practice_attempt(
+        '00000000-0000-4000-8000-000000000201',
+        '{"00000000-0000-4000-8000-000000000202": "A"}'::jsonb
+      ) -> 'feedback'
+    )
   ),
   1,
   'practice grading returns feedback only for the submitted question'
@@ -736,11 +739,14 @@ select ok((
   from graded
 ), 'practice grading returns authoritative correctness and answer feedback after submission');
 select is(
-  jsonb_object_length(
-    public.grade_practice_attempt(
-      '00000000-0000-4000-8000-000000000201',
-      '{}'::jsonb
-    ) -> 'feedback'
+  (
+    select count(*)::integer
+    from jsonb_object_keys(
+      public.grade_practice_attempt(
+        '00000000-0000-4000-8000-000000000201',
+        '{}'::jsonb
+      ) -> 'feedback'
+    )
   ),
   0,
   'practice grading does not disclose unsubmitted question answers'
