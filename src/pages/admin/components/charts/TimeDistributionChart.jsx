@@ -3,6 +3,7 @@ import { ResponsivePie } from '@nivo/pie';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
+import ChartLegend from './ChartLegend';
 import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const TimeDistributionChart = ({ data = [], loading = false }) => {
@@ -154,10 +155,11 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
   const colors = ['#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
   return (
-    <div className="h-full w-full">
-      <ResponsivePie
+    <div className="flex h-full w-full min-w-0">
+      <div className="h-full min-w-0 flex-1">
+        <ResponsivePie
         data={chartData}
-        margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
+        margin={{ top: 16, right: 16, bottom: 16, left: 16 }}
         innerRadius={0.5}
         padAngle={0.7}
         cornerRadius={3}
@@ -186,10 +188,7 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
           from: 'color',
           modifiers: [['darker', 0.2]],
         }}
-        arcLinkLabelsSkipAngle={10}
-        arcLinkLabelsTextColor={isDark ? '#e2e8f0' : '#475569'}
-        arcLinkLabelsThickness={2}
-        arcLinkLabelsColor={{ from: 'color' }}
+        enableArcLinkLabels={false}
         arcLabelsSkipAngle={10}
         arcLabelsTextColor={isDark ? '#ffffff' : '#000000'}
         animate={true}
@@ -247,24 +246,10 @@ const TimeDistributionChart = ({ data = [], loading = false }) => {
             />
           );
         }}
-        legends={[
-          {
-            anchor: 'bottom-right',
-            direction: 'column',
-            justify: false,
-            translateX: 60,
-            translateY: 0,
-            itemsSpacing: 2,
-            itemWidth: 60,
-            itemHeight: 18,
-            itemTextColor: isDark ? '#e2e8f0' : '#475569',
-            itemDirection: 'left-to-right',
-            itemOpacity: 1,
-            symbolSize: 12,
-            symbolShape: 'circle',
-          },
-        ]}
+        legends={[]}
       />
+      </div>
+      <ChartLegend items={chartData} colors={colors} ariaLabel="Time distribution legend" />
     </div>
   );
 };

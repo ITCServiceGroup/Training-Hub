@@ -99,16 +99,18 @@ const CHART_COMPONENTS = {
 };
 
 // Loading skeleton component
-const ChartSkeleton = ({ height = 300 }) => {
+const ChartSkeleton = ({ height = 300, fillContainer = false }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   return (
     <div 
       className={`w-full rounded-lg animate-pulse ${
+        fillContainer ? 'h-full min-h-0' : ''
+      } ${
         isDark ? 'bg-slate-700' : 'bg-slate-200'
       }`}
-      style={{ height: `${height}px` }}
+      style={fillContainer ? undefined : { height: `${height}px` }}
     >
       <div className="p-4 space-y-4">
         {/* Title skeleton */}
@@ -243,7 +245,8 @@ const LazyChartLoader = ({
   chartId, 
   chartProps = {}, 
   height = 300,
-  loadImmediately = false 
+  loadImmediately = false,
+  fillContainer = false
 }) => {
   const [containerRef, shouldLoad] = useIntersectionObserver();
   const ChartComponent = CHART_COMPONENTS[chartId];
@@ -267,16 +270,16 @@ const LazyChartLoader = ({
       ref={containerRef}
       className="h-full min-h-0 w-full"
       data-chart-loader={chartId}
-      style={{ minHeight: `${height}px` }}
+      style={fillContainer ? undefined : { minHeight: `${height}px` }}
     >
       {shouldLoadChart ? (
-        <Suspense fallback={<ChartSkeleton height={height} />}>
+        <Suspense fallback={<ChartSkeleton height={height} fillContainer={fillContainer} />}>
           <ChartErrorBoundary chartId={chartId}>
             <ChartComponent {...chartProps} />
           </ChartErrorBoundary>
         </Suspense>
       ) : (
-        <ChartSkeleton height={height} />
+        <ChartSkeleton height={height} fillContainer={fillContainer} />
       )}
     </div>
   );

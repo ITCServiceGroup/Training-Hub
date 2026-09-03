@@ -650,7 +650,7 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
 
       <ResponsiveLine
         data={displayChartData}
-        margin={{ top: 20, right: 30, bottom: 80, left: 60 }}
+        margin={{ top: 20, right: 30, bottom: 62, left: 60 }}
         colors={{ datum: 'color' }}
         xScale={{
           type: 'time',
@@ -732,9 +732,6 @@ const ScoreTrendChart = ({ data = [], loading = false }) => {
           tickSize: 5,
           tickPadding: 5,
           tickRotation: -45,
-          legend: 'Date',
-          legendOffset: 60,
-          legendPosition: 'middle',
         }}
         axisLeft={{
           tickSize: 5,

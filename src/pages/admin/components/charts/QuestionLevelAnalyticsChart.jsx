@@ -14,6 +14,7 @@ import {
   isHoverDrillDownDisabled,
 } from "../../utils/dashboardFilters";
 import { questionAnalyticsService } from "../../services/questionAnalyticsService";
+import { truncateChartLabel } from "../../utils/chartLabels";
 
 // Global cache that persists across component mounts/unmounts
 const globalQuestionDataCache = new Map();
@@ -239,8 +240,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
       .map((question) => ({
         ...question,
         questionId:
-          question.displayText ||
-          question.questionText.substring(0, 50) + "...",
+          question.displayText || question.questionText || "Unknown question",
       }));
   }, [questionState.data, sortBy, sortOrder, showOnlyProblematic]);
 
@@ -548,7 +548,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
         data={chartData}
         keys={["difficulty"]}
         indexBy="questionId"
-        margin={{ top: 40, right: 30, bottom: 100, left: 60 }}
+        margin={{ top: 40, right: 30, bottom: 82, left: 60 }}
         padding={0.3}
         valueScale={{ type: "linear", min: 0, max: 100 }}
         indexScale={{ type: "band", round: true }}
@@ -616,9 +616,7 @@ const QuestionLevelAnalyticsChart = ({ data = [], loading = false }) => {
           tickSize: 5,
           tickPadding: 5,
           tickRotation: -45,
-          legend: "Questions",
-          legendPosition: "middle",
-          legendOffset: 80,
+          format: (value) => truncateChartLabel(value, 18),
         }}
         axisLeft={{
           tickSize: 5,

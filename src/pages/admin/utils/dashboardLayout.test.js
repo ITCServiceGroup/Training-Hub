@@ -4,6 +4,7 @@ import {
   repairCollapsedDashboardTiles,
   tileConfigsToGridLayout,
 } from "./dashboardLayout";
+import { AVAILABLE_TILES } from "../config/availableTiles";
 
 const hasCollisions = (layout) => {
   const occupied = new Set();
@@ -104,4 +105,20 @@ describe("dashboard layout repair", () => {
     expect(layout).toHaveLength(4);
     expect(hasCollisions(layout)).toBe(false);
   });
+
+  it.each(Object.keys(AVAILABLE_TILES))(
+    "allows %s to span the full three-column desktop grid",
+    (tileId) => {
+      const [layoutItem] = tileConfigsToGridLayout([
+        {
+          id: tileId,
+          position: { x: 0, y: 0 },
+          size: { w: 3, h: 1 },
+        },
+      ]);
+
+      expect(layoutItem.w).toBe(3);
+      expect(layoutItem.maxW).toBe(3);
+    },
+  );
 });

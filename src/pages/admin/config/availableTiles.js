@@ -60,7 +60,7 @@ export const AVAILABLE_TILES = {
     component: 'ScoreDistributionChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 2 },
+    maxSize: { w: 3, h: 2 },
     tags: ['scores', 'distribution', 'performance'],
     isCore: true,
     popularity: 95
@@ -88,7 +88,7 @@ export const AVAILABLE_TILES = {
     component: 'PassFailRateChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 1 },
+    maxSize: { w: 3, h: 1 },
     tags: ['pass', 'fail', 'rates', 'overview'],
     isCore: true,
     popularity: 85
@@ -102,7 +102,7 @@ export const AVAILABLE_TILES = {
     component: 'TopBottomPerformersChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 2 },
+    maxSize: { w: 3, h: 2 },
     tags: ['ranking', 'performers', 'users', 'leaderboard'],
     isCore: false,
     popularity: 75
@@ -118,7 +118,7 @@ export const AVAILABLE_TILES = {
     component: 'TimeDistributionChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 1 },
+    maxSize: { w: 3, h: 1 },
     tags: ['time', 'distribution', 'completion'],
     isCore: true,
     popularity: 80
@@ -148,7 +148,7 @@ export const AVAILABLE_TILES = {
     component: 'SupervisorPerformanceChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 2 },
+    maxSize: { w: 3, h: 2 },
     tags: ['supervisors', 'teams', 'management', 'performance'],
     isCore: true,
     popularity: 85
@@ -162,7 +162,7 @@ export const AVAILABLE_TILES = {
     component: 'SupervisorEffectivenessChart',
     size: { w: 2, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 2 },
+    maxSize: { w: 3, h: 2 },
     tags: ['supervisors', 'effectiveness', 'training', 'analysis'],
     isCore: false,
     popularity: 65
@@ -176,7 +176,7 @@ export const AVAILABLE_TILES = {
     component: 'MarketResultsChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 1 },
+    maxSize: { w: 3, h: 1 },
     tags: ['markets', 'locations', 'regional', 'performance'],
     isCore: true,
     popularity: 75
@@ -192,7 +192,7 @@ export const AVAILABLE_TILES = {
     component: 'QuizTypePerformanceChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 1 },
+    maxSize: { w: 3, h: 1 },
     tags: ['quiz', 'types', 'categories', 'analysis'],
     isCore: false,
     popularity: 60
@@ -220,7 +220,7 @@ export const AVAILABLE_TILES = {
     component: 'RetakeAnalysisChart',
     size: { w: 1, h: 1 },
     minSize: { w: 1, h: 1 },
-    maxSize: { w: 2, h: 2 },
+    maxSize: { w: 3, h: 2 },
     tags: ['retakes', 'improvement', 'patterns', 'learning'],
     isCore: false,
     popularity: 55

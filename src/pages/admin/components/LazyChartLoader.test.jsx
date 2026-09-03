@@ -53,4 +53,20 @@ describe("LazyChartLoader", () => {
       "2 results",
     );
   });
+
+  it("fills dashboard tiles without forcing a minimum pixel height", async () => {
+    vi.stubGlobal("IntersectionObserver", undefined);
+
+    const { container } = render(
+      <LazyChartLoader
+        chartId="score-distribution"
+        chartProps={{ data: [{ id: 1 }] }}
+        fillContainer
+      />,
+    );
+
+    await screen.findByTestId("score-chart");
+    expect(container.firstChild).toHaveClass("h-full", "min-h-0", "w-full");
+    expect(container.firstChild).not.toHaveStyle({ minHeight: "300px" });
+  });
 });

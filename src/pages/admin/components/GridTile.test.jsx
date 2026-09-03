@@ -7,11 +7,12 @@ vi.mock("./DashboardTile", () => ({
 }));
 
 vi.mock("./LazyChartLoader", () => ({
-  default: ({ chartId, chartProps, loadImmediately }) => (
+  default: ({ chartId, chartProps, loadImmediately, fillContainer }) => (
     <div
       data-testid={`chart-${chartId}`}
       data-result-count={chartProps.data.length}
       data-load-immediately={String(loadImmediately)}
+      data-fill-container={String(fillContainer)}
     />
   ),
 }));
@@ -42,6 +43,7 @@ describe("GridTile chart loading contract", () => {
 
       const chart = screen.getByTestId(`chart-${chartId}`);
       expect(chart).toHaveAttribute("data-load-immediately", "true");
+      expect(chart).toHaveAttribute("data-fill-container", "true");
       expect(chart).toHaveAttribute("data-result-count", "1");
     },
   );

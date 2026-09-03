@@ -50,6 +50,7 @@ const GridTile = memo(({
           ...(tileId === 'time-vs-score' ? { globalFilters } : {})
         }}
         loadImmediately
+        fillContainer
       />
     );
   }, [tileId, tileData, isInitialLoad, globalFilters]);

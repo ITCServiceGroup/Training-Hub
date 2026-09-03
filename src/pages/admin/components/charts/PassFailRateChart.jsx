@@ -4,6 +4,7 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboardFilters } from '../../contexts/DashboardContext';
 import { filterDataForChart, createPassFailClassificationFilter, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
+import ChartLegend from './ChartLegend';
 
 const PassFailRateChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -187,7 +188,7 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
   };
 
   return (
-    <div className="h-full w-full relative">
+    <div className="flex h-full w-full min-w-0 relative">
       {/* Pass Rate Summary */}
       <div 
         className={`absolute top-2 left-2 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 p-2 cursor-pointer transition-all duration-200 hover:shadow-md ${showDetailedInfo ? 'max-w-xs' : 'w-28'}`}
@@ -237,9 +238,10 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
         )}
       </div>
 
-      <ResponsivePie
+      <div className="h-full min-w-0 flex-1">
+        <ResponsivePie
         data={chartData}
-        margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
+        margin={{ top: 16, right: 16, bottom: 16, left: 16 }}
         innerRadius={0.6}
         padAngle={2}
         cornerRadius={3}
@@ -268,10 +270,7 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
           from: 'color',
           modifiers: [['darker', 0.3]],
         }}
-        arcLinkLabelsSkipAngle={10}
-        arcLinkLabelsTextColor={isDark ? '#e2e8f0' : '#475569'}
-        arcLinkLabelsThickness={2}
-        arcLinkLabelsColor={{ from: 'color' }}
+        enableArcLinkLabels={false}
         arcLabelsSkipAngle={10}
         arcLabelsTextColor={isDark ? '#ffffff' : '#000000'}
         animate={true}
@@ -308,23 +307,13 @@ const PassFailRateChart = ({ data = [], loading = false }) => {
             />
           );
         }}
-        legends={[
-          {
-            anchor: 'bottom',
-            direction: 'row',
-            justify: false,
-            translateX: 0,
-            translateY: 56,
-            itemsSpacing: 20,
-            itemWidth: 60,
-            itemHeight: 18,
-            itemTextColor: isDark ? '#e2e8f0' : '#475569',
-            itemDirection: 'left-to-right',
-            itemOpacity: 1,
-            symbolSize: 12,
-            symbolShape: 'circle',
-          },
-        ]}
+        legends={[]}
+      />
+      </div>
+      <ChartLegend
+        items={chartData}
+        colors={chartData.map(d => d.color)}
+        ariaLabel="Pass and fail results legend"
       />
     </div>
   );

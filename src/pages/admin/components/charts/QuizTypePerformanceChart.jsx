@@ -4,6 +4,7 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import { filterDataForChart, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
+import { truncateChartLabel } from '../../utils/chartLabels';
 
 const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
   const { theme } = useTheme();
@@ -273,9 +274,10 @@ const QuizTypePerformanceChart = ({ data = [], loading = false }) => {
           tickSize: 5,
           tickPadding: 5,
           tickRotation: -45,
+          format: value => truncateChartLabel(value, 16),
           legend: 'Quiz Type',
           legendPosition: 'middle',
-          legendOffset: 60,
+          legendOffset: 52,
         }}
         axisLeft={{
           tickSize: 5,

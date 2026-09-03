@@ -224,7 +224,7 @@ const ScoreDistributionChart = ({ data = [], loading = false }) => {
           tickRotation: 0,
           legend: 'Score Range',
           legendPosition: 'middle',
-          legendOffset: 40,
+          legendOffset: 32,
         }}
         axisLeft={{
           tickSize: 5,

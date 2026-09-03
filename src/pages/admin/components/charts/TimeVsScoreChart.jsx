@@ -664,7 +664,7 @@ const TimeVsScoreChart = ({ data = [], loading = false, globalFilters = {} }) =>
           tickPadding: 5,
           tickRotation: 0,
           legend: 'Time Taken (minutes)',
-          legendOffset: 40,
+          legendOffset: 32,
           legendPosition: 'middle',
         }}
         axisLeft={{

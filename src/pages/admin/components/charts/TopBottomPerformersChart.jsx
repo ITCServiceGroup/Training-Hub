@@ -5,6 +5,7 @@ import { useDashboardPreferences } from '../../../../contexts/DashboardPreferenc
 import { useDashboard } from '../../contexts/DashboardContext';
 import { filterDataForChart } from '../../utils/dashboardFilters';
 import EnhancedTooltip from './EnhancedTooltip';
+import { truncateChartLabel } from '../../utils/chartLabels';
 import { FaToggleOn, FaToggleOff, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const TopBottomPerformersChart = ({ data = [], loading = false }) => {
@@ -287,9 +288,10 @@ const TopBottomPerformersChart = ({ data = [], loading = false }) => {
           tickSize: 5,
           tickPadding: 5,
           tickRotation: -45,
+          format: value => truncateChartLabel(value, 16),
           legend: showTopPerformers ? 'Top Performers' : 'Bottom Performers',
           legendPosition: 'middle',
-          legendOffset: 60,
+          legendOffset: 52,
         }}
         axisLeft={{
           tickSize: 5,

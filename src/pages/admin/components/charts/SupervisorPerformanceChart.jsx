@@ -3,6 +3,7 @@ import { ResponsiveBar } from '@nivo/bar';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useDashboard } from '../../contexts/DashboardContext';
 import EnhancedTooltip from './EnhancedTooltip';
+import { truncateChartLabel } from '../../utils/chartLabels';
 import { filterDataForChart, shouldShowDrillDownIndicators, isHoverDrillDownDisabled } from '../../utils/dashboardFilters';
 
 const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
@@ -201,9 +202,10 @@ const SupervisorPerformanceChart = ({ data = [], loading = false }) => {
           tickSize: 5,
           tickPadding: 5,
           tickRotation: -45,
+          format: value => truncateChartLabel(value, 16),
           legend: 'Supervisor',
           legendPosition: 'middle',
-          legendOffset: 60,
+          legendOffset: 52,
         }}
         axisLeft={{
           tickSize: 5,
